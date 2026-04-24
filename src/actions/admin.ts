@@ -87,7 +87,6 @@ export async function createScenario(data: { name: string, description: string, 
 export async function installStandardScenarios() {
   await checkAdmin();
 
-  // Ensure base roles exist first
   const roles = await prisma.mafiaRole.findMany();
   const getRoleId = (name: string) => roles.find(r => r.name === name)?.id;
 

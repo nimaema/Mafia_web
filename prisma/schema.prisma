@@ -1,5 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -7,19 +9,59 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum Alignment {
+  CITIZEN
+  MAFIA
+  NEUTRAL
+}
+
+enum GameStatus {
+  WAITING
+  IN_PROGRESS
+  FINISHED
+}
+
+enum GameResult {
+  WIN
+  LOSS
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password_hash String?
+  role          Role      @default(USER)
+
+  accounts      Account[]
+  sessions      Session[]
+  scenarios     Scenario[]
+  gamesHosted   Game[]        @relation("HostedGames")
+  gameHistories GameHistory[]
+  passwordResetTokens PasswordResetToken[]
+}
+
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -34,29 +76,6 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum Role {
-  ADMIN
-  MODERATOR
-  USER
-}
-
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password_hash String?
-  role          Role      @default(USER)
-  accounts      Account[]
-  sessions      Session[]
-
-  hostedGames   Game[]        @relation("HostedGames")
-  gameHistories GameHistory[]
-
-  scenarios     Scenario[]
-}
-
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -65,27 +84,33 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-enum Alignment {
-  CITIZEN
-  MAFIA
-  NEUTRAL
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+
+  @@index([userId])
 }
 
 model MafiaRole {
-  id            String         @id @default(cuid())
-  name          String         @unique
-  description   String?
-  alignment     Alignment
-  is_permanent  Boolean        @default(false)
-  scenarioRoles ScenarioRole[]
+  id           String     @id @default(cuid())
+  name         String     @unique
+  description  String?
+  alignment    Alignment
+  is_permanent Boolean    @default(false)
+
+  scenarios    ScenarioRole[]
+  gameHistories GameHistory[]
 }
 
 model Scenario {
   id          String         @id @default(cuid())
   name        String         @unique
   description String?
-  created_by  String?
-  creator     User?          @relation(fields: [created_by], references: [id])
+  createdBy   String?
+  creator     User?          @relation(fields: [createdBy], references: [id])
   roles       ScenarioRole[]
 
   games       Game[]
@@ -95,42 +120,38 @@ model Scenario {
 
 model ScenarioRole {
   id          String    @id @default(cuid())
-  scenario_id String
-  scenario    Scenario  @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
-  role_id     String
-  role        MafiaRole @relation(fields: [role_id], references: [id])
+  scenarioId  String
+  scenario    Scenario  @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  roleId      String
+  role        MafiaRole @relation(fields: [roleId], references: [id])
   count       Int       @default(1)
 
-  @@unique([scenario_id, role_id])
+  @@unique([scenarioId, roleId])
 }
 
 model Game {
   id           String      @id @default(cuid())
-  moderator_id String
-  moderator    User        @relation("HostedGames", fields: [moderator_id], references: [id])
+  moderatorId  String
+  moderator    User        @relation("HostedGames", fields: [moderatorId], references: [id])
   password     String?
   status       GameStatus  @default(WAITING)
-  scenario_id  String?
-  scenario     Scenario?   @relation(fields: [scenario_id], references: [id])
+  scenarioId   String?
+  scenario     Scenario?   @relation(fields: [scenarioId], references: [id])
 
   histories    GameHistory[]
   createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-}
-
-enum GameStatus {
-  WAITING
-  ONGOING
-  FINISHED
 }
 
 model GameHistory {
-  id        String   @id @default(cuid())
-  game_id   String
-  game      Game     @relation(fields: [game_id], references: [id])
-  user_id   String
-  user      User     @relation(fields: [user_id], references: [id])
-  role_name String
-  result    String
-  createdAt DateTime @default(now())
+  id       String     @id @default(cuid())
+  gameId   String
+  game     Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId   String
+  role     MafiaRole  @relation(fields: [roleId], references: [id])
+  result   GameResult?
+  createdAt DateTime    @default(now())
+
+  @@unique([gameId, userId])
 }

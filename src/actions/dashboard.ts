@@ -10,43 +10,44 @@ export async function getUserStats() {
   const userId = session.user.id;
 
   const totalGames = await prisma.gameHistory.count({
-    where: { user_id: userId }
+    where: { userId }
   });
 
   const wins = await prisma.gameHistory.count({
     where: { 
-      user_id: userId,
+      userId,
       result: "WIN"
     }
   });
 
   const losses = await prisma.gameHistory.count({
     where: { 
-      user_id: userId,
+      userId,
       result: "LOSS"
     }
   });
 
+  // Group by roleId (camelCase)
   const roleCounts = await prisma.gameHistory.groupBy({
-    by: ['role_id'],
-    where: { user_id: userId },
-    _count: { role_id: true }
+    by: ['roleId'],
+    where: { userId },
+    _count: { roleId: true }
   });
 
-  // Get role names
+  // Get role details
   const roles = await prisma.mafiaRole.findMany({
     where: {
-      id: { in: roleCounts.map(r => r.role_id) }
+      id: { in: roleCounts.map(r => r.roleId) }
     }
   });
 
   const roleHistory = roleCounts.map(rc => ({
-    role: roles.find(r => r.id === rc.role_id)?.name || "ناشناس",
-    count: rc._count.role_id
+    role: roles.find(r => r.id === rc.roleId)?.name || "ناشناس",
+    count: rc._count.roleId
   }));
 
   const recentGames = await prisma.gameHistory.findMany({
-    where: { user_id: userId },
+    where: { userId },
     take: 5,
     orderBy: { createdAt: 'desc' },
     include: {
@@ -62,9 +63,9 @@ export async function getUserStats() {
     ],
     roleHistory,
     recentGames: recentGames.map(rg => ({
-      id: rg.game_id,
+      id: rg.gameId,
       roleName: rg.role.name,
-      result: rg.result,
+      result: rg.result || "PENDING",
       date: rg.createdAt.toLocaleDateString('fa-IR')
     }))
   };
