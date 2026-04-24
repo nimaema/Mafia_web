@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next'
  
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Mafia God Companion',
-    short_name: 'Mafia God',
+    name: 'Mafia Role Companion',
+    short_name: 'Mafia Role',
     description: 'دستیار دیجیتال بازی مافیا',
     start_url: '/',
     display: 'standalone',

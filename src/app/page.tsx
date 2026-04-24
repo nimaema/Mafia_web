@@ -5,7 +5,7 @@ export default function Home() {
     <div className="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col">
       <header className="bg-gray-50/90 dark:bg-zinc-950/90 backdrop-blur-md sticky top-0 z-50 border-b border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-row-reverse justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-8">
-          <span className="text-2xl font-black text-lime-500 dark:text-lime-400 uppercase">Mafia God</span>
+          <span className="text-2xl font-black text-lime-500 dark:text-lime-400 uppercase">Mafia Role</span>
         </div>
         <Link href="/auth/login" className="bg-lime-400 text-zinc-950 px-6 py-2.5 rounded-xl font-semibold hover:bg-lime-500 hover:-translate-y-[1px] transition-all shadow-sm">
           ورود به بازی
@@ -22,7 +22,7 @@ export default function Home() {
             حرفه‌ای بازی مافیا
           </h1>
           <p className="text-lg text-zinc-400 max-w-lg mt-4">
-            با پلتفرم مدیریت Mafia God، پیچیده‌ترین سناریوها، نقش‌ها و فازهای شب و روز را با دقت و سرعت بالا رهبری کنید. طراحی شده برای گردانندگان حرفه‌ای.
+            با پلتفرم مدیریت Mafia Role، پیچیده‌ترین سناریوها، نقش‌ها و فازهای شب و روز را با دقت و سرعت بالا رهبری کنید. طراحی شده برای گردانندگان حرفه‌ای.
           </p>
           <div className="flex flex-wrap gap-4 mt-8">
             <Link href="/auth/register" className="bg-lime-400 text-zinc-950 px-8 py-3.5 rounded-xl font-semibold hover:bg-lime-500 hover:-translate-y-[1px] transition-all shadow-sm flex items-center gap-2">
@@ -62,9 +62,9 @@ export default function Home() {
       </main>
       
       <footer className="bg-zinc-100 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row-reverse justify-between items-center w-full px-8 py-12 max-w-7xl mx-auto gap-6 mt-auto">
-        <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Mafia God</div>
+        <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Mafia Role</div>
         <div className="font-sans text-xs text-zinc-500 dark:text-zinc-400">
-          © ۲۰۲۴ Mafia God. تمامی حقوق برای مدیریت بازی محفوظ است.
+          © ۲۰۲۴ Mafia Role. تمامی حقوق برای مدیریت بازی محفوظ است.
         </div>
       </footer>
     </div>
