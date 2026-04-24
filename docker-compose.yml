@@ -18,6 +18,7 @@ services:
       - NEXT_PUBLIC_PUSHER_KEY=${NEXT_PUBLIC_PUSHER_KEY}
       - PUSHER_SECRET=${PUSHER_SECRET}
       - NEXT_PUBLIC_PUSHER_CLUSTER=${NEXT_PUBLIC_PUSHER_CLUSTER}
+      - INITIAL_ADMIN_PASSWORD=${INITIAL_ADMIN_PASSWORD:-admin123}
     depends_on:
       - db
     # Port is not exposed to host to ensure strict zero-trust networking
