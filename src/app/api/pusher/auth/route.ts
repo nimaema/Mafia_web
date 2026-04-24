@@ -1,22 +1,25 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { pusherServer } from "@/lib/pusher";
+import { NextResponse } from 'next/server';
+import { pusherServer } from '@/lib/pusher';
+import { auth } from '@/auth';
 
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   const session = await auth();
+  
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return new Response('Unauthorized', { status: 401 });
   }
 
-  const body = await request.text();
-  const params = new URLSearchParams(body);
-  const socketId = params.get("socket_id")!;
-  const channelName = params.get("channel_name")!;
+  const body = await req.formData();
+  const socketId = body.get('socket_id') as string;
+  const channel = body.get('channel_name') as string;
 
-  const authData = pusherServer.authorizeChannel(socketId, channelName, {
-    user_id: session.user.id,
-    user_info: { name: session.user.name, role: session.user.role },
+  const authResponse = pusherServer.authorizeChannel(socketId, channel, {
+    user_id: session.user.id!,
+    user_info: {
+      name: session.user.name,
+      email: session.user.email,
+    },
   });
 
-  return NextResponse.json(authData);
+  return NextResponse.json(authResponse);
 }

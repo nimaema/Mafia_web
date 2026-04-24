@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://mafia:mafiapass@db:5432/mafiadb
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-supersecret}
+      - AUTH_SECRET=${AUTH_SECRET:-supersecret}
+      - EMAIL_SERVER_HOST=${EMAIL_SERVER_HOST}
+      - EMAIL_SERVER_PORT=${EMAIL_SERVER_PORT}
+      - EMAIL_SERVER_USER=${EMAIL_SERVER_USER}
+      - EMAIL_SERVER_PASSWORD=${EMAIL_SERVER_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - PUSHER_APP_ID=${PUSHER_APP_ID}
+      - NEXT_PUBLIC_PUSHER_KEY=${NEXT_PUBLIC_PUSHER_KEY}
+      - PUSHER_SECRET=${PUSHER_SECRET}
+      - NEXT_PUBLIC_PUSHER_CLUSTER=${NEXT_PUBLIC_PUSHER_CLUSTER}
+    depends_on:
+      - db
+    # Port is not exposed to host to ensure strict zero-trust networking
+    ports:
+      - "3000:3000"
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: mafia
+      POSTGRES_PASSWORD: mafiapass
+      POSTGRES_DB: mafiadb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: always
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - app
+
+volumes:
+  pgdata:

@@ -1,10 +1,11 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -14,14 +15,8 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          UserRole  @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
   accounts      Account[]
   sessions      Session[]
-  moderatedGames Game[]   @relation("Moderator")
-  playedGames    Player[]
 }
 
 model Account {
@@ -57,86 +52,4 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
-}
-
-model Role {
-  id          String    @id @default(cuid())
-  name        String
-  alignment   Alignment
-  description String?
-  abilities   String?
-  scenarioRoles ScenarioRole[]
-  playerRoles   Player[]
-}
-
-model Scenario {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  isPublic    Boolean  @default(true)
-  roles       ScenarioRole[]
-  games       Game[]
-}
-
-model ScenarioRole {
-  scenarioId String
-  roleId     String
-  count      Int @default(1)
-
-  scenario Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
-  role     Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
-  @@id([scenarioId, roleId])
-}
-
-model Game {
-  id          String     @id @default(cuid())
-  status      GameStatus @default(WAITING)
-  password    String?
-  moderatorId String
-  scenarioId  String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  moderator User      @relation("Moderator", fields: [moderatorId], references: [id])
-  scenario  Scenario? @relation(fields: [scenarioId], references: [id])
-  players   Player[]
-}
-
-model Player {
-  id       String @id @default(cuid())
-  gameId   String
-  userId   String
-  roleId   String?
-  status   PlayerStatus @default(ALIVE)
-  revealed Boolean @default(false)
-
-  game Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role Role? @relation(fields: [roleId], references: [id])
-
-  @@unique([gameId, userId])
-}
-
-enum UserRole {
-  ADMIN
-  MODERATOR
-  USER
-}
-
-enum Alignment {
-  CITIZEN
-  MAFIA
-  NEUTRAL
-}
-
-enum GameStatus {
-  WAITING
-  RUNNING
-  FINISHED
-}
-
-enum PlayerStatus {
-  ALIVE
-  DEAD
 }
