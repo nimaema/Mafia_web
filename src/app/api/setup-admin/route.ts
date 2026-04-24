@@ -13,7 +13,8 @@ export async function GET() {
       return NextResponse.json({ message: "Admin already exists" }, { status: 200 });
     }
 
-    const hashedPassword = await bcrypt.hash("admin123", 10);
+    const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || "admin123";
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     
     await prisma.user.create({
       data: {
@@ -24,7 +25,11 @@ export async function GET() {
       }
     });
 
-    return NextResponse.json({ message: "Admin user created successfully", email: adminEmail, password: "admin123" }, { status: 201 });
+    return NextResponse.json({ 
+      message: "Admin user created successfully", 
+      email: adminEmail, 
+      password: adminPassword 
+    }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
