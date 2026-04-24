@@ -73,8 +73,8 @@ export async function createScenario(data: { name: string, description: string, 
       description: data.description,
       roles: {
         create: data.roles.map(r => ({
-          roleId: r.roleId,
-          count: r.count
+          count: r.count,
+          role: { connect: { id: r.roleId } }
         }))
       }
     }
@@ -144,7 +144,10 @@ export async function installStandardScenarios() {
           name: s.name,
           description: s.description,
           roles: {
-            create: roleLinks
+            create: roleLinks.map(rl => ({
+              count: rl.count,
+              role: { connect: { id: rl.roleId } }
+            }))
           }
         }
       });
