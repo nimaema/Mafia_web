@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
 
 export default function DashboardLayout({
   children,
@@ -38,7 +37,10 @@ export default function DashboardLayout({
         </nav>
 
         <button 
-          onClick={() => signOut({ callbackUrl: "/" })}
+          onClick={async () => {
+            const { logoutAction } = await import("@/actions/logout");
+            await logoutAction();
+          }}
           className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 mt-auto border-t border-zinc-100 dark:border-zinc-800 pt-6"
         >
           <span className="material-symbols-outlined">logout</span>
@@ -68,7 +70,10 @@ export default function DashboardLayout({
           <span className="text-[10px] font-bold">مدیریت</span>
         </Link>
         <button 
-          onClick={() => signOut({ callbackUrl: "/" })}
+          onClick={async () => {
+            const { logoutAction } = await import("@/actions/logout");
+            await logoutAction();
+          }}
           className="flex flex-col items-center justify-center flex-1 h-full gap-1 text-red-500/60"
         >
           <span className="material-symbols-outlined text-2xl">logout</span>

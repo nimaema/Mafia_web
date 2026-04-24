@@ -169,6 +169,7 @@ export async function installStandardScenarios() {
   }
 
   revalidatePath("/dashboard/admin");
+  return { success: true };
 }
 
 export async function deleteScenario(id: string) {

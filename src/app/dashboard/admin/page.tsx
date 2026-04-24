@@ -268,8 +268,11 @@ export default function AdminDashboard() {
                     </h4>
                     <button 
                       onClick={async () => {
-                        await installStandardScenarios();
-                        refreshData();
+                        const res = await installStandardScenarios();
+                        if (res?.success) {
+                          alert("سناریوها و نقش‌های پیش‌فرض با موفقیت نصب شدند");
+                          refreshData();
+                        }
                       }}
                       className="text-[10px] px-2 py-1 bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 rounded hover:bg-lime-500 hover:text-white transition-colors border border-lime-200 dark:border-lime-800"
                     >
