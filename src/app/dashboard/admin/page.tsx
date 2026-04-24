@@ -1,19 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAllUsers, updateUserRole, getMafiaRoles, createMafiaRole } from "@/actions/admin";
+import { 
+  getAllUsers, updateUserRole, 
+  getMafiaRoles, createMafiaRole, 
+  getScenarios, createScenario, installStandardScenarios 
+} from "@/actions/admin";
 import { Role, Alignment } from "@prisma/client";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"users" | "scenarios" | "roles">("users");
   const [users, setUsers] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
+  const [scenarios, setScenarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Form states
+  // Role Form
   const [newRoleName, setNewRoleName] = useState("");
   const [newRoleDesc, setNewRoleDesc] = useState("");
   const [newRoleAlign, setNewRoleAlign] = useState<Alignment>("CITIZEN");
+
+  // Scenario Form
+  const [newScenName, setNewScenName] = useState("");
+  const [newScenDesc, setNewScenDesc] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<{roleId: string, count: number}[]>([]);
 
   useEffect(() => {
     refreshData();
@@ -28,6 +38,11 @@ export default function AdminDashboard() {
       } else if (activeTab === "roles") {
         const data = await getMafiaRoles();
         setRoles(data);
+      } else if (activeTab === "scenarios") {
+        const data = await getScenarios();
+        setScenarios(data);
+        const rolesData = await getMafiaRoles();
+        setRoles(rolesData);
       }
     } catch (error) {
       console.error(error);
@@ -54,6 +69,38 @@ export default function AdminDashboard() {
     } catch (error) {
       alert("خطا در ایجاد نقش");
     }
+  };
+
+  const handleAddScenario = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedRoles.length === 0) return alert("حداقل یک نقش انتخاب کنید");
+    try {
+      await createScenario({ 
+        name: newScenName, 
+        description: newScenDesc, 
+        roles: selectedRoles 
+      });
+      setNewScenName("");
+      setNewScenDesc("");
+      setSelectedRoles([]);
+      refreshData();
+    } catch (error) {
+      alert("خطا در ایجاد سناریو");
+    }
+  };
+
+  const toggleRoleInScenario = (roleId: string) => {
+    setSelectedRoles(prev => {
+      const exists = prev.find(r => r.roleId === roleId);
+      if (exists) return prev.filter(r => r.roleId !== roleId);
+      return [...prev, { roleId, count: 1 }];
+    });
+  };
+
+  const updateRoleCount = (roleId: string, delta: number) => {
+    setSelectedRoles(prev => prev.map(r => 
+      r.roleId === roleId ? { ...r, count: Math.max(1, r.count + delta) } : r
+    ));
   };
 
   return (
@@ -198,7 +245,7 @@ export default function AdminDashboard() {
                         <div key={role.id} className="p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/20 flex flex-col gap-2">
                            <div className="flex justify-between items-center">
                               <span className="font-bold">{role.name}</span>
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${role.alignment === 'CITIZEN' ? 'bg-green-100 text-green-700' : role.alignment === 'MAFIA' ? 'bg-red-100 text-red-700' : 'bg-zinc-100 text-zinc-700'}`}>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${role.alignment === 'CITIZEN' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : role.alignment === 'MAFIA' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800'}`}>
                                 {role.alignment === 'CITIZEN' ? 'شهروند' : role.alignment === 'MAFIA' ? 'مافیا' : 'مستقل'}
                               </span>
                            </div>
@@ -211,10 +258,94 @@ export default function AdminDashboard() {
             )}
 
             {activeTab === "scenarios" && (
-              <div className="p-20 text-center text-zinc-500 flex flex-col items-center gap-4">
-                <span className="material-symbols-outlined text-6xl opacity-20">construction</span>
-                <p>بخش مدیریت سناریوها به‌زودی اضافه خواهد شد.</p>
-                <p className="text-xs opacity-50">در حال توسعه زیرساخت‌های گرافیکی</p>
+              <div className="flex flex-col md:flex-row h-full">
+                {/* Form */}
+                <div className="w-full md:w-96 p-6 border-l border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/20">
+                  <div className="flex justify-between items-center mb-6">
+                    <h4 className="font-bold flex items-center gap-2">
+                      <span className="material-symbols-outlined text-lime-500">add_task</span>
+                      ایجاد سناریو
+                    </h4>
+                    <button 
+                      onClick={async () => {
+                        await installStandardScenarios();
+                        refreshData();
+                      }}
+                      className="text-[10px] px-2 py-1 bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 rounded hover:bg-lime-500 hover:text-white transition-colors border border-lime-200 dark:border-lime-800"
+                    >
+                      نصب سناریوهای استاندارد
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleAddScenario} className="flex flex-col gap-4">
+                    <input 
+                      value={newScenName}
+                      onChange={(e) => setNewScenName(e.target.value)}
+                      required
+                      placeholder="نام سناریو (مثلا: پدرخوانده)"
+                      className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-2 text-sm outline-none focus:border-lime-500"
+                    />
+                    <textarea 
+                      value={newScenDesc}
+                      onChange={(e) => setNewScenDesc(e.target.value)}
+                      placeholder="توضیحات کوتاه..."
+                      className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-2 text-sm outline-none focus:border-lime-500 h-20"
+                    />
+                    
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs font-bold text-zinc-500">نقش‌های انتخاب شده:</label>
+                      <div className="max-h-48 overflow-y-auto border border-zinc-100 dark:border-zinc-800 rounded-lg p-2 flex flex-col gap-2 bg-white dark:bg-zinc-950">
+                        {roles.map(role => (
+                          <div key={role.id} className="flex items-center justify-between gap-2 p-1 border-b border-zinc-50 dark:border-zinc-800 last:border-0">
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="checkbox" 
+                                checked={!!selectedRoles.find(r => r.roleId === role.id)}
+                                onChange={() => toggleRoleInScenario(role.id)}
+                                className="accent-lime-500"
+                              />
+                              <span className="text-xs">{role.name}</span>
+                            </div>
+                            {selectedRoles.find(r => r.roleId === role.id) && (
+                              <div className="flex items-center gap-2">
+                                <button type="button" onClick={() => updateRoleCount(role.id, -1)} className="w-5 h-5 bg-zinc-100 dark:bg-zinc-800 rounded flex items-center justify-center text-xs">-</button>
+                                <span className="text-xs font-bold">{selectedRoles.find(r => r.roleId === role.id)?.count}</span>
+                                <button type="button" onClick={() => updateRoleCount(role.id, 1)} className="w-5 h-5 bg-zinc-100 dark:bg-zinc-800 rounded flex items-center justify-center text-xs">+</button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <button type="submit" className="bg-lime-500 text-zinc-950 py-2 rounded-lg font-bold hover:bg-lime-600 transition-colors shadow-sm">ذخیره سناریو</button>
+                  </form>
+                </div>
+
+                {/* List */}
+                <div className="flex-1 p-6 overflow-y-auto max-h-[600px]">
+                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {scenarios.map((scen) => (
+                        <div key={scen.id} className="p-5 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/30 flex flex-col gap-4">
+                           <div className="flex justify-between items-start">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-lg">{scen.name}</span>
+                                <span className="text-xs text-zinc-500">{scen.description}</span>
+                              </div>
+                              <span className="bg-zinc-900 text-white text-[10px] px-2 py-1 rounded-full">
+                                {scen.roles.reduce((acc: number, r: any) => acc + r.count, 0)} نفره
+                              </span>
+                           </div>
+                           <div className="flex flex-wrap gap-2">
+                              {scen.roles.map((r: any) => (
+                                <span key={r.role.id} className={`text-[10px] px-2 py-1 rounded border ${r.role.alignment === 'CITIZEN' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
+                                  {r.role.name} ({r.count})
+                                </span>
+                              ))}
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
               </div>
             )}
           </>
