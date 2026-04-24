@@ -12,6 +12,13 @@ async function checkAdmin() {
   }
 }
 
+async function checkModerator() {
+  const session = await auth();
+  if (session?.user?.role !== "ADMIN" && session?.user?.role !== "MODERATOR") {
+    throw new Error("Unauthorized: Moderator access required");
+  }
+}
+
 // User Management
 export async function getAllUsers() {
   await checkAdmin();
@@ -31,7 +38,7 @@ export async function updateUserRole(userId: string, role: Role) {
 
 // Role Management
 export async function getMafiaRoles() {
-  await checkAdmin();
+  await checkModerator();
   return await prisma.mafiaRole.findMany({
     orderBy: { alignment: 'asc' }
   });
@@ -82,7 +89,7 @@ export async function deleteMafiaRole(id: string) {
 
 // Scenario Management
 export async function getScenarios() {
-  await checkAdmin();
+  await checkModerator();
   return await prisma.scenario.findMany({
     include: {
       roles: {

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getPusherClient } from "@/lib/pusher";
+import { getGameStatus, startGame } from "@/actions/game";
 
 type Player = {
   id: string;
@@ -11,11 +12,19 @@ type Player = {
 
 export default function GameLobbyPage() {
   const params = useParams();
+  const router = useRouter();
   const gameId = params.id as string;
   const [players, setPlayers] = useState<Player[]>([]);
+  const [game, setGame] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("در حال انتظار برای بازیکنان...");
 
   useEffect(() => {
+    // Fetch initial status
+    getGameStatus(gameId).then(res => {
+      setGame(res);
+      setLoading(false);
+    });
     // Initialize Pusher
     const pusher = getPusherClient();
     const channel = pusher.subscribe(`game-${gameId}`);
@@ -31,7 +40,22 @@ export default function GameLobbyPage() {
     return () => {
       pusher.unsubscribe(`game-${gameId}`);
     };
-  }, [gameId]);
+  }, [gameId, router]);
+
+  const handleStartGame = async () => {
+    setLoading(true);
+    const res = await startGame(gameId);
+    if (res.success) {
+      router.push(`/dashboard/moderator/game/${gameId}`);
+    } else {
+      alert(res.error);
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div className="p-12 text-center animate-pulse">در حال بارگذاری...</div>;
+
+  const requiredPlayers = game?.scenario?.roles.reduce((a: any, b: any) => a + b.count, 0) || 0;
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto">
@@ -78,14 +102,15 @@ export default function GameLobbyPage() {
       </section>
       
       <button 
-        disabled={players.length < 5}
+        onClick={handleStartGame}
+        disabled={players.length < requiredPlayers || loading}
         className="w-full bg-lime-500 text-zinc-950 text-lg font-semibold rounded-xl py-4 mt-2 hover:bg-lime-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         <span className="material-symbols-outlined">play_arrow</span>
         شروع بازی
       </button>
-      {players.length < 5 && (
-        <p className="text-center text-sm text-red-500">حداقل ۵ بازیکن برای شروع بازی نیاز است.</p>
+      {players.length < requiredPlayers && (
+        <p className="text-center text-sm text-red-500 font-bold">حداقل {requiredPlayers} بازیکن برای این سناریو نیاز است.</p>
       )}
     </div>
   );

@@ -7,6 +7,9 @@ import {
   PieChart, Pie, Cell, Legend
 } from "recharts";
 import { getUserStats } from "@/actions/dashboard";
+import { getWaitingGames } from "@/actions/game";
+import { getPusherClient } from "@/lib/pusher";
+import Link from "next/link";
 
 export default function UserDashboard() {
   const { data: session } = useSession();
@@ -16,13 +19,35 @@ export default function UserDashboard() {
     roleHistory: any[];
     recentGames: any[];
   } | null>(null);
+  const [activeGames, setActiveGames] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
+    refreshData();
+
+    // Pusher for real-time lobby updates
+    const pusher = getPusherClient();
+    const channel = pusher.subscribe('lobby');
+    channel.bind('game-created', () => {
+      refreshActiveGames();
+    });
+
+    return () => {
+      pusher.unsubscribe('lobby');
+    };
+  }, []);
+
+  const refreshData = async () => {
     getUserStats().then(res => {
       if (res) setData(res);
     });
-  }, []);
+    refreshActiveGames();
+  };
+
+  const refreshActiveGames = async () => {
+    const games = await getWaitingGames();
+    setActiveGames(games);
+  };
 
   if (!mounted) return <div className="p-8 text-center animate-pulse">در حال بارگذاری...</div>;
 
@@ -57,6 +82,63 @@ export default function UserDashboard() {
               امتیاز: ۱۲۵۰
             </span>
           </div>
+        </div>
+      </section>
+
+      {/* Active Games / Lobby */}
+      <section className="bg-white dark:bg-zinc-900 rounded-2xl border-2 border-lime-500/20 dark:border-lime-500/10 shadow-xl shadow-lime-500/5 overflow-hidden flex flex-col">
+        <div className="p-4 bg-lime-500/5 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
+          <h3 className="font-bold flex items-center gap-2">
+            <span className="material-symbols-outlined text-lime-500">sensors</span>
+            بازی‌های در انتظار بازیکن
+          </h3>
+          <span className="text-[10px] px-2 py-1 bg-lime-500 text-zinc-950 rounded-full font-black animate-pulse">زنده</span>
+        </div>
+        <div className="p-4">
+          {activeGames.length === 0 ? (
+            <div className="py-10 text-center flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center">
+                <span className="material-symbols-outlined text-zinc-300 dark:text-zinc-600">hourglass_empty</span>
+              </div>
+              <p className="text-sm text-zinc-500">در حال حاضر بازی فعالی وجود ندارد.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeGames.map((game) => (
+                <Link 
+                  key={game.id} 
+                  href={`/lobby/${game.id}`}
+                  className="group p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/30 hover:border-lime-500/50 hover:bg-white dark:hover:bg-zinc-800 transition-all flex flex-col gap-3"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm">{game.scenario?.name || "سناریو نامشخص"}</span>
+                      <span className="text-[10px] text-zinc-500">توسط {game.moderator?.name || "گرداننده"}</span>
+                    </div>
+                    <span className="bg-zinc-900 text-white text-[10px] px-2 py-1 rounded-lg">
+                      {game.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0)} نفره
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex -space-x-2 rtl:space-x-reverse">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="w-6 h-6 rounded-full border-2 border-white dark:border-zinc-900 bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[10px] text-zinc-400">person</span>
+                        </div>
+                      ))}
+                      <div className="w-6 h-6 rounded-full border-2 border-white dark:border-zinc-900 bg-lime-500 flex items-center justify-center text-[10px] font-bold text-zinc-950">
+                        +
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-lime-600 dark:text-lime-400 group-hover:translate-x-[-4px] transition-transform flex items-center gap-1">
+                      ورود به لابی
+                      <span className="material-symbols-outlined text-sm">arrow_back</span>
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
