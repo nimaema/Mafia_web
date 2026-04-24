@@ -82,6 +82,15 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+
+  @@index([userId])
+}
+
 model MafiaRole {
   id           String     @id @default(cuid())
   name         String     @unique
