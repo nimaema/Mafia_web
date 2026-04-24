@@ -1,20 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { registerUser } from "@/actions/auth";
+import { useActionState } from "react";
+import { loginUser } from "@/actions/auth";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const router = useRouter();
 
-  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const result = await registerUser(formData);
+    const result = await loginUser(formData);
     
     if (result.success) {
-      router.push("/auth/login");
+      router.push("/dashboard/user");
     } else {
       alert(result.error);
     }
@@ -30,20 +31,12 @@ export default function RegisterPage() {
           <h1 className="text-2xl font-bold">مدیریت مافیا</h1>
           
           <div className="flex p-1 bg-zinc-100 dark:bg-zinc-800 rounded-full w-full mt-4 border border-zinc-200 dark:border-zinc-700">
-            <Link href="/auth/login" className="flex-1 py-2 rounded-full text-zinc-500 dark:text-zinc-400 font-medium hover:text-zinc-900 dark:hover:text-zinc-100 transition-all text-center">ورود</Link>
-            <button className="flex-1 py-2 rounded-full bg-lime-500 text-zinc-950 font-medium shadow-sm transition-all">ثبت‌نام</button>
+            <button className="flex-1 py-2 rounded-full bg-lime-500 text-zinc-950 font-medium shadow-sm transition-all">ورود</button>
+            <Link href="/auth/register" className="flex-1 py-2 rounded-full text-zinc-500 dark:text-zinc-400 font-medium hover:text-zinc-900 dark:hover:text-zinc-100 transition-all text-center">ثبت‌نام</Link>
           </div>
         </header>
 
-        <form onSubmit={handleRegister} className="flex flex-col gap-4 relative z-10">
-          <div className="flex flex-col gap-1">
-            <label className="text-sm text-zinc-500 px-1">نام</label>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">person</span>
-              <input name="name" required type="text" placeholder="نام شما" className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors" />
-            </div>
-          </div>
-
+        <form onSubmit={handleLogin} className="flex flex-col gap-4 relative z-10">
           <div className="flex flex-col gap-1">
             <label className="text-sm text-zinc-500 px-1">ایمیل</label>
             <div className="relative">
@@ -53,7 +46,10 @@ export default function RegisterPage() {
           </div>
           
           <div className="flex flex-col gap-1">
-            <label className="text-sm text-zinc-500 px-1">رمز عبور</label>
+            <div className="flex justify-between items-center px-1">
+              <label className="text-sm text-zinc-500">رمز عبور</label>
+              <Link href="/auth/forgot-password" className="text-sm text-lime-600 dark:text-lime-400 hover:opacity-80 transition-opacity">فراموشی رمز؟</Link>
+            </div>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
               <input name="password" required type="password" dir="ltr" placeholder="••••••••" className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors" />
@@ -61,7 +57,7 @@ export default function RegisterPage() {
           </div>
           
           <button type="submit" className="w-full bg-lime-500 text-zinc-950 text-lg font-semibold rounded-lg py-3 mt-4 hover:bg-lime-600 transition-colors shadow-sm">
-            ثبت‌نام
+            ورود به حساب
           </button>
         </form>
 
