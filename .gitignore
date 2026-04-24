@@ -41,3 +41,9 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Scratch and batch files
+batch*.json
+files_content.json
+package_lock_push.json
+/scratch/

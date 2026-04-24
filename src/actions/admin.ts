@@ -39,7 +39,7 @@ export async function getMafiaRoles() {
 
 export async function createMafiaRole(data: { name: string; description: string; alignment: Alignment }) {
   await checkAdmin();
-  return await prisma.mafiaRole.create({
+  const role = await prisma.mafiaRole.create({
     data: {
       name: data.name,
       description: data.description,
@@ -47,6 +47,37 @@ export async function createMafiaRole(data: { name: string; description: string;
       is_permanent: false
     }
   });
+  revalidatePath("/dashboard/admin");
+  return role;
+}
+
+export async function updateMafiaRole(id: string, data: { name: string; description: string; alignment: Alignment }) {
+  await checkAdmin();
+  const role = await prisma.mafiaRole.update({
+    where: { id },
+    data: {
+      name: data.name,
+      description: data.description,
+      alignment: data.alignment
+    }
+  });
+  revalidatePath("/dashboard/admin");
+  return role;
+}
+
+export async function deleteMafiaRole(id: string) {
+  await checkAdmin();
+  // Check if role is permanent
+  const role = await prisma.mafiaRole.findUnique({ where: { id } });
+  if (role?.is_permanent) {
+    throw new Error("نقش‌های سیستمی قابل حذف نیستند");
+  }
+
+  // Delete associated scenario roles first (Prisma handles this if onDelete: Cascade is set, but it's not set for ScenarioRole -> MafiaRole)
+  await prisma.scenarioRole.deleteMany({ where: { roleId: id } });
+  
+  await prisma.mafiaRole.delete({ where: { id } });
+  revalidatePath("/dashboard/admin");
 }
 
 // Scenario Management
@@ -84,8 +115,37 @@ export async function createScenario(data: { name: string, description: string, 
   return scenario;
 }
 
+export async function updateScenario(id: string, data: { name: string, description: string, roles: { roleId: string, count: number }[] }) {
+  await checkAdmin();
+
+  // First delete old roles
+  await prisma.scenarioRole.deleteMany({
+    where: { scenarioId: id }
+  });
+
+  const scenario = await prisma.scenario.update({
+    where: { id },
+    data: {
+      name: data.name,
+      description: data.description,
+      roles: {
+        create: data.roles.map(r => ({
+          count: r.count,
+          role: { connect: { id: r.roleId } }
+        }))
+      }
+    }
+  });
+
+  revalidatePath("/dashboard/admin");
+  return scenario;
+}
+
 export async function installStandardScenarios() {
   await checkAdmin();
+
+  const roles = await prisma.mafiaRole.findMany();
+  const getRoleId = (name: string) => roles.find(r => r.name === name)?.id;
 
   const scenarios = [
     {

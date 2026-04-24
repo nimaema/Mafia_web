@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { 
   getAllUsers, updateUserRole, 
-  getMafiaRoles, createMafiaRole, 
-  getScenarios, createScenario, installStandardScenarios 
+  getMafiaRoles, createMafiaRole, updateMafiaRole, deleteMafiaRole,
+  getScenarios, createScenario, updateScenario, deleteScenario,
+  installStandardScenarios 
 } from "@/actions/admin";
 import { Role, Alignment } from "@prisma/client";
 
@@ -16,11 +17,13 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   // Role Form
+  const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
   const [newRoleName, setNewRoleName] = useState("");
   const [newRoleDesc, setNewRoleDesc] = useState("");
   const [newRoleAlign, setNewRoleAlign] = useState<Alignment>("CITIZEN");
 
   // Scenario Form
+  const [editingScenarioId, setEditingScenarioId] = useState<string | null>(null);
   const [newScenName, setNewScenName] = useState("");
   const [newScenDesc, setNewScenDesc] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<{roleId: string, count: number}[]>([]);
@@ -62,31 +65,85 @@ export default function AdminDashboard() {
   const handleAddRole = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createMafiaRole({ name: newRoleName, description: newRoleDesc, alignment: newRoleAlign });
+      if (editingRoleId) {
+        await updateMafiaRole(editingRoleId, { name: newRoleName, description: newRoleDesc, alignment: newRoleAlign });
+      } else {
+        await createMafiaRole({ name: newRoleName, description: newRoleDesc, alignment: newRoleAlign });
+      }
       setNewRoleName("");
       setNewRoleDesc("");
+      setNewRoleAlign("CITIZEN");
+      setEditingRoleId(null);
       refreshData();
     } catch (error) {
-      alert("خطا در ایجاد نقش");
+      alert("خطا در ثبت نقش");
     }
+  };
+
+  const handleDeleteRole = async (id: string) => {
+    if (!confirm("آیا از حذف این نقش اطمینان دارید؟")) return;
+    try {
+      await deleteMafiaRole(id);
+      refreshData();
+    } catch (error: any) {
+      alert(error.message || "خطا در حذف نقش");
+    }
+  };
+
+  const handleEditRole = (role: any) => {
+    setEditingRoleId(role.id);
+    setNewRoleName(role.name);
+    setNewRoleDesc(role.description || "");
+    setNewRoleAlign(role.alignment);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleAddScenario = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedRoles.length === 0) return alert("حداقل یک نقش انتخاب کنید");
     try {
-      await createScenario({ 
-        name: newScenName, 
-        description: newScenDesc, 
-        roles: selectedRoles 
-      });
+      if (editingScenarioId) {
+        await updateScenario(editingScenarioId, { 
+          name: newScenName, 
+          description: newScenDesc, 
+          roles: selectedRoles 
+        });
+      } else {
+        await createScenario({ 
+          name: newScenName, 
+          description: newScenDesc, 
+          roles: selectedRoles 
+        });
+      }
       setNewScenName("");
       setNewScenDesc("");
       setSelectedRoles([]);
+      setEditingScenarioId(null);
       refreshData();
     } catch (error) {
-      alert("خطا در ایجاد سناریو");
+      alert("خطا در ثبت سناریو");
     }
+  };
+
+  const handleDeleteScenario = async (id: string) => {
+    if (!confirm("آیا از حذف این سناریو اطمینان دارید؟")) return;
+    try {
+      await deleteScenario(id);
+      refreshData();
+    } catch (error) {
+      alert("خطا در حذف سناریو");
+    }
+  };
+
+  const handleEditScenario = (scen: any) => {
+    setEditingScenarioId(scen.id);
+    setNewScenName(scen.name);
+    setNewScenDesc(scen.description || "");
+    setSelectedRoles(scen.roles.map((r: any) => ({
+      roleId: r.roleId,
+      count: r.count
+    })));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const toggleRoleInScenario = (roleId: string) => {
@@ -198,9 +255,24 @@ export default function AdminDashboard() {
               <div className="flex flex-col md:flex-row h-full">
                 {/* Form */}
                 <div className="w-full md:w-80 p-6 border-l border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/20">
-                  <h4 className="font-bold mb-4 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-lime-500">add_circle</span>
-                    افزودن نقش جدید
+                  <h4 className="font-bold mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-lime-500">{editingRoleId ? 'edit_square' : 'add_circle'}</span>
+                      {editingRoleId ? 'ویرایش نقش' : 'افزودن نقش جدید'}
+                    </div>
+                    {editingRoleId && (
+                      <button 
+                        onClick={() => {
+                          setEditingRoleId(null);
+                          setNewRoleName("");
+                          setNewRoleDesc("");
+                          setNewRoleAlign("CITIZEN");
+                        }}
+                        className="text-[10px] text-zinc-400 hover:text-red-500"
+                      >
+                        انصراف
+                      </button>
+                    )}
                   </h4>
                   <form onSubmit={handleAddRole} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1">
@@ -234,7 +306,9 @@ export default function AdminDashboard() {
                         placeholder="توضیح توانایی نقش..."
                       />
                     </div>
-                    <button type="submit" className="bg-lime-500 text-zinc-950 py-2 rounded-lg font-bold hover:bg-lime-600 transition-colors shadow-sm mt-2">ثبت نقش</button>
+                    <button type="submit" className="bg-lime-500 text-zinc-950 py-2 rounded-lg font-bold hover:bg-lime-600 transition-colors shadow-sm mt-2">
+                      {editingRoleId ? 'بروزرسانی نقش' : 'ثبت نقش'}
+                    </button>
                   </form>
                 </div>
 
@@ -242,12 +316,32 @@ export default function AdminDashboard() {
                 <div className="flex-1 p-6 overflow-y-auto max-h-[600px]">
                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {roles.map((role) => (
-                        <div key={role.id} className="p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/20 flex flex-col gap-2">
+                        <div key={role.id} className="p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/20 flex flex-col gap-2 group relative">
                            <div className="flex justify-between items-center">
                               <span className="font-bold">{role.name}</span>
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${role.alignment === 'CITIZEN' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : role.alignment === 'MAFIA' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800'}`}>
-                                {role.alignment === 'CITIZEN' ? 'شهروند' : role.alignment === 'MAFIA' ? 'مافیا' : 'مستقل'}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${role.alignment === 'CITIZEN' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : role.alignment === 'MAFIA' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800'}`}>
+                                  {role.alignment === 'CITIZEN' ? 'شهروند' : role.alignment === 'MAFIA' ? 'مافیا' : 'مستقل'}
+                                </span>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button 
+                                    onClick={() => handleEditRole(role)}
+                                    className="p-1 text-zinc-400 hover:text-blue-500 transition-colors"
+                                    title="ویرایش"
+                                  >
+                                    <span className="material-symbols-outlined text-sm">edit</span>
+                                  </button>
+                                  {!role.is_permanent && (
+                                    <button 
+                                      onClick={() => handleDeleteRole(role.id)}
+                                      className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                                      title="حذف"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">delete</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
                            </div>
                            <p className="text-xs text-zinc-500 leading-relaxed">{role.description || "توضیحی ندارد"}</p>
                         </div>
@@ -263,21 +357,35 @@ export default function AdminDashboard() {
                 <div className="w-full md:w-96 p-6 border-l border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/20">
                   <div className="flex justify-between items-center mb-6">
                     <h4 className="font-bold flex items-center gap-2">
-                      <span className="material-symbols-outlined text-lime-500">add_task</span>
-                      ایجاد سناریو
+                      <span className="material-symbols-outlined text-lime-500">{editingScenarioId ? 'edit_square' : 'add_task'}</span>
+                      {editingScenarioId ? 'ویرایش سناریو' : 'ایجاد سناریو'}
                     </h4>
-                    <button 
-                      onClick={async () => {
-                        const res = await installStandardScenarios();
-                        if (res?.success) {
-                          alert("سناریوها و نقش‌های پیش‌فرض با موفقیت نصب شدند");
-                          refreshData();
-                        }
-                      }}
-                      className="text-[10px] px-2 py-1 bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 rounded hover:bg-lime-500 hover:text-white transition-colors border border-lime-200 dark:border-lime-800"
-                    >
-                      نصب سناریوهای استاندارد
-                    </button>
+                    {editingScenarioId ? (
+                      <button 
+                        onClick={() => {
+                          setEditingScenarioId(null);
+                          setNewScenName("");
+                          setNewScenDesc("");
+                          setSelectedRoles([]);
+                        }}
+                        className="text-[10px] text-zinc-400 hover:text-red-500"
+                      >
+                        انصراف
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={async () => {
+                          const res = await installStandardScenarios();
+                          if (res?.success) {
+                            alert("سناریوها و نقش‌های پیش‌فرض با موفقیت نصب شدند");
+                            refreshData();
+                          }
+                        }}
+                        className="text-[10px] px-2 py-1 bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 rounded hover:bg-lime-500 hover:text-white transition-colors border border-lime-200 dark:border-lime-800"
+                      >
+                        نصب سناریوهای استاندارد
+                      </button>
+                    )}
                   </div>
 
                   <form onSubmit={handleAddScenario} className="flex flex-col gap-4">
@@ -289,7 +397,7 @@ export default function AdminDashboard() {
                       className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-2 text-sm outline-none focus:border-lime-500"
                     />
                     <textarea 
-                      value={newScenDesc}
+                      value={newScenName}
                       onChange={(e) => setNewScenDesc(e.target.value)}
                       placeholder="توضیحات کوتاه..."
                       className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-2 text-sm outline-none focus:border-lime-500 h-20"
@@ -320,7 +428,9 @@ export default function AdminDashboard() {
                         ))}
                       </div>
                     </div>
-                    <button type="submit" className="bg-lime-500 text-zinc-950 py-2 rounded-lg font-bold hover:bg-lime-600 transition-colors shadow-sm">ذخیره سناریو</button>
+                    <button type="submit" className="bg-lime-500 text-zinc-950 py-2 rounded-lg font-bold hover:bg-lime-600 transition-colors shadow-sm">
+                      {editingScenarioId ? 'بروزرسانی سناریو' : 'ذخیره سناریو'}
+                    </button>
                   </form>
                 </div>
 
@@ -328,13 +438,31 @@ export default function AdminDashboard() {
                 <div className="flex-1 p-6 overflow-y-auto max-h-[600px]">
                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {scenarios.map((scen) => (
-                        <div key={scen.id} className="p-5 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/30 flex flex-col gap-4">
+                        <div key={scen.id} className="p-5 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/30 flex flex-col gap-4 group relative">
                            <div className="flex justify-between items-start">
                               <div className="flex flex-col">
-                                <span className="font-bold text-lg">{scen.name}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-lg">{scen.name}</span>
+                                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button 
+                                      onClick={() => handleEditScenario(scen)}
+                                      className="p-1 text-zinc-400 hover:text-blue-500 transition-colors"
+                                      title="ویرایش"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">edit</span>
+                                    </button>
+                                    <button 
+                                      onClick={() => handleDeleteScenario(scen.id)}
+                                      className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                                      title="حذف"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">delete</span>
+                                    </button>
+                                  </div>
+                                </div>
                                 <span className="text-xs text-zinc-500">{scen.description}</span>
                               </div>
-                              <span className="bg-zinc-900 text-white text-[10px] px-2 py-1 rounded-full">
+                              <span className="bg-zinc-900 text-white text-[10px] px-2 py-1 rounded-full whitespace-nowrap">
                                 {scen.roles.reduce((acc: number, r: any) => acc + r.count, 0)} نفره
                               </span>
                            </div>
