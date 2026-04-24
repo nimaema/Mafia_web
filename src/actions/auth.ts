@@ -46,7 +46,13 @@ export async function loginUser(formData: FormData) {
       password,
       redirect: false,
     });
-    return { success: true };
+    
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { role: true }
+    });
+
+    return { success: true, role: user?.role };
   } catch (error) {
     return { error: "Invalid credentials" };
   }

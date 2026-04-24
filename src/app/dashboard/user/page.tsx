@@ -6,29 +6,33 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from "recharts";
-
-const statsData = [
-  { name: 'پیروزی‌ها', value: 45, color: '#84cc16' }, // lime-500
-  { name: 'شکست‌ها', value: 20, color: '#ef4444' }   // red-500
-];
-
-const roleHistory = [
-  { role: 'شهروند ساده', count: 15 },
-  { role: 'مافیا', count: 8 },
-  { role: 'پزشک', count: 5 },
-  { role: 'کارآگاه', count: 4 },
-  { role: 'پدرخوانده', count: 3 },
-];
+import { getUserStats } from "@/actions/dashboard";
 
 export default function UserDashboard() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
+  const [data, setData] = useState<{
+    statsData: any[];
+    roleHistory: any[];
+    recentGames: any[];
+  } | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    getUserStats().then(res => {
+      if (res) setData(res);
+    });
   }, []);
 
   if (!mounted) return <div className="p-8 text-center animate-pulse">در حال بارگذاری...</div>;
+
+  const statsData = data?.statsData || [
+    { name: 'پیروزی‌ها', value: 0, color: '#84cc16' },
+    { name: 'شکست‌ها', value: 0, color: '#ef4444' }
+  ];
+
+  const roleHistory = data?.roleHistory || [];
+  const recentGames = data?.recentGames || [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -46,7 +50,7 @@ export default function UserDashboard() {
           <h2 className="text-2xl font-bold">{session?.user?.name || "کاربر مهمان"}</h2>
           <p className="text-zinc-500 text-sm mt-1">{session?.user?.email || "نامشخص"}</p>
           <div className="mt-3 flex gap-2">
-            <span className="px-3 py-1 bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 text-xs font-semibold rounded-full border border-lime-200 dark:border-lime-800">سطح: مبتدی</span>
+            <span className="px-3 py-1 bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 text-xs font-semibold rounded-full border border-lime-200 dark:border-lime-800">نقش: {session?.user?.role === 'ADMIN' ? 'مدیر' : session?.user?.role === 'MODERATOR' ? 'گرداننده' : 'بازیکن'}</span>
             <span className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-xs font-semibold rounded-full border border-zinc-200 dark:border-zinc-700">امتیاز: ۱۲۵۰</span>
           </div>
         </div>
@@ -60,28 +64,32 @@ export default function UserDashboard() {
             آمار پیروزی‌ها
           </h3>
           <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={statsData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {statsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontFamily: 'Vazirmatn' }} 
-                  itemStyle={{ fontFamily: 'Vazirmatn' }}
-                />
-                <Legend wrapperStyle={{ fontFamily: 'Vazirmatn', fontSize: '14px' }} />
-              </PieChart>
-            </ResponsiveContainer>
+            {statsData[0].value === 0 && statsData[1].value === 0 ? (
+              <div className="h-full flex items-center justify-center text-zinc-400 text-sm italic">داده‌ای برای نمایش وجود ندارد</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statsData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {statsData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontFamily: 'Vazirmatn' }} 
+                    itemStyle={{ fontFamily: 'Vazirmatn' }}
+                  />
+                  <Legend wrapperStyle={{ fontFamily: 'Vazirmatn', fontSize: '14px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </section>
 
@@ -92,18 +100,22 @@ export default function UserDashboard() {
             نقش‌های بازی شده
           </h3>
           <div className="h-64 w-full" dir="ltr">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={roleHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" opacity={0.5} />
-                <XAxis dataKey="role" tick={{ fontSize: 12, fill: '#71717a', fontFamily: 'Vazirmatn' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12, fill: '#71717a' }} axisLine={false} tickLine={false} />
-                <Tooltip 
-                  cursor={{ fill: '#f4f4f5', opacity: 0.4 }}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontFamily: 'Vazirmatn' }}
-                />
-                <Bar dataKey="count" fill="#84cc16" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {roleHistory.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-zinc-400 text-sm italic">داده‌ای برای نمایش وجود ندارد</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={roleHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" opacity={0.5} />
+                  <XAxis dataKey="role" tick={{ fontSize: 12, fill: '#71717a', fontFamily: 'Vazirmatn' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: '#71717a' }} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    cursor={{ fill: '#f4f4f5', opacity: 0.4 }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontFamily: 'Vazirmatn' }}
+                  />
+                  <Bar dataKey="count" fill="#84cc16" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </section>
       </div>
@@ -118,20 +130,32 @@ export default function UserDashboard() {
           <button className="text-sm text-lime-600 dark:text-lime-400 hover:underline">مشاهده همه</button>
         </div>
         <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800">
-          {[1, 2, 3].map((_, i) => (
-            <div key={i} className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
-              <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${i % 2 === 0 ? 'bg-lime-100 text-lime-600 dark:bg-lime-900/30 dark:text-lime-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
-                  <span className="material-symbols-outlined">{i % 2 === 0 ? 'emoji_events' : 'cancel'}</span>
+          {recentGames.length === 0 ? (
+            <div className="p-12 text-center text-zinc-500 flex flex-col items-center gap-3">
+              <span className="material-symbols-outlined text-4xl opacity-20">history_toggle_off</span>
+              <p className="text-sm">هنوز در هیچ بازی شرکت نکرده‌اید</p>
+            </div>
+          ) : (
+            recentGames.map((game, i) => (
+              <div key={game.id} className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${game.result === 'WIN' ? 'bg-lime-100 text-lime-600 dark:bg-lime-900/30 dark:text-lime-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
+                    <span className="material-symbols-outlined">{game.result === 'WIN' ? 'emoji_events' : 'cancel'}</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">بازی شماره {game.id.slice(-4)}</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">نقش: {game.roleName} • {game.date}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-sm">بازی شماره {1042 - i}</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">نقش: {i % 2 === 0 ? 'پزشک' : 'مافیا'} • ۲ روز پیش</p>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-0.5 rounded ${game.result === 'WIN' ? 'bg-lime-100 text-lime-700 dark:bg-lime-900/40 dark:text-lime-300' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'}`}>
+                    {game.result === 'WIN' ? 'برد' : 'باخت'}
+                  </span>
+                  <span className="material-symbols-outlined text-zinc-400">chevron_left</span>
                 </div>
               </div>
-              <span className="material-symbols-outlined text-zinc-400">chevron_left</span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
     </div>

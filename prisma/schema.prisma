@@ -137,6 +137,7 @@ model Game {
   scenario     Scenario?   @relation(fields: [scenario_id], references: [id])
 
   histories    GameHistory[]
+  createdAt    DateTime    @default(now())
 }
 
 model GameHistory {
@@ -148,6 +149,7 @@ model GameHistory {
   role_id  String
   role     MafiaRole  @relation(fields: [role_id], references: [id])
   result   GameResult?
+  createdAt DateTime    @default(now())
 
   @@unique([game_id, user_id])
 }

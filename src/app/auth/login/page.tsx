@@ -15,7 +15,13 @@ export default function LoginPage() {
     const result = await loginUser(formData);
     
     if (result.success) {
-      router.push("/dashboard/user");
+      if (result.role === "ADMIN") {
+        router.push("/dashboard/admin");
+      } else if (result.role === "MODERATOR") {
+        router.push("/dashboard/moderator");
+      } else {
+        router.push("/dashboard/user");
+      }
     } else {
       alert(result.error);
     }
