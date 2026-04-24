@@ -115,6 +115,18 @@ export async function installStandardScenarios() {
         { name: "کارآگاه", count: 1 },
         { name: "شهروند ساده", count: 5 }
       ]
+    },
+    {
+      name: "سناریو کاپو",
+      description: "سناریو حرفه‌ای با نقش کاپو",
+      roles: [
+        { name: "پدرخوانده", count: 1 },
+        { name: "کاپو", count: 1 },
+        { name: "مافیا ساده", count: 1 },
+        { name: "دکتر", count: 1 },
+        { name: "کارآگاه", count: 1 },
+        { name: "شهروند ساده", count: 5 }
+      ]
     }
   ];
 
