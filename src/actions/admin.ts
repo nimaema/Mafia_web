@@ -87,49 +87,64 @@ export async function createScenario(data: { name: string, description: string, 
 export async function installStandardScenarios() {
   await checkAdmin();
 
-  const roles = await prisma.mafiaRole.findMany();
-  const getRoleId = (name: string) => roles.find(r => r.name === name)?.id;
-
   const scenarios = [
     {
       name: "سناریو پدرخوانده",
       description: "سناریو استاندارد ۱۰ نفره - شب‌های مافیا",
       roles: [
-        { name: "پدرخوانده", count: 1 },
-        { name: "دکتر لکتر", count: 1 },
-        { name: "مافیا ساده", count: 1 },
-        { name: "دکتر", count: 1 },
-        { name: "کارآگاه", count: 1 },
-        { name: "روئین تن", count: 1 },
-        { name: "شهروند ساده", count: 4 }
+        { name: "پدرخوانده", alignment: Alignment.MAFIA, count: 1 },
+        { name: "دکتر لکتر", alignment: Alignment.MAFIA, count: 1 },
+        { name: "مافیا ساده", alignment: Alignment.MAFIA, count: 1 },
+        { name: "دکتر", alignment: Alignment.CITIZEN, count: 1 },
+        { name: "کارآگاه", alignment: Alignment.CITIZEN, count: 1 },
+        { name: "روئین تن", alignment: Alignment.CITIZEN, count: 1 },
+        { name: "شهروند ساده", alignment: Alignment.CITIZEN, count: 4 }
       ]
     },
     {
       name: "سناریو بازپرس",
       description: "سناریو پیشرفته با نقش بازپرس",
       roles: [
-        { name: "پدرخوانده", count: 1 },
-        { name: "مافیا ساده", count: 2 },
-        { name: "دکتر", count: 1 },
-        { name: "کارآگاه", count: 1 },
-        { name: "شهروند ساده", count: 5 }
+        { name: "پدرخوانده", alignment: Alignment.MAFIA, count: 1 },
+        { name: "مافیا ساده", alignment: Alignment.MAFIA, count: 2 },
+        { name: "دکتر", alignment: Alignment.CITIZEN, count: 1 },
+        { name: "کارآگاه", alignment: Alignment.CITIZEN, count: 1 },
+        { name: "بازپرس", alignment: Alignment.CITIZEN, count: 1 },
+        { name: "شهروند ساده", alignment: Alignment.CITIZEN, count: 4 }
       ]
     },
     {
       name: "سناریو کاپو",
       description: "سناریو حرفه‌ای با نقش کاپو",
       roles: [
-        { name: "پدرخوانده", count: 1 },
-        { name: "کاپو", count: 1 },
-        { name: "مافیا ساده", count: 1 },
-        { name: "دکتر", count: 1 },
-        { name: "کارآگاه", count: 1 },
-        { name: "شهروند ساده", count: 5 }
+        { name: "پدرخوانده", alignment: Alignment.MAFIA, count: 1 },
+        { name: "کاپو", alignment: Alignment.MAFIA, count: 1 },
+        { name: "مافیا ساده", alignment: Alignment.MAFIA, count: 1 },
+        { name: "دکتر", alignment: Alignment.CITIZEN, count: 1 },
+        { name: "کارآگاه", alignment: Alignment.CITIZEN, count: 1 },
+        { name: "شهروند ساده", alignment: Alignment.CITIZEN, count: 5 }
       ]
     }
   ];
 
   for (const s of scenarios) {
+    // Ensure all roles exist first
+    for (const r of s.roles) {
+      await prisma.mafiaRole.upsert({
+        where: { name: r.name },
+        update: {},
+        create: {
+          name: r.name,
+          alignment: r.alignment,
+          description: `نقش ${r.name}`,
+          is_permanent: true
+        }
+      });
+    }
+
+    const currentRoles = await prisma.mafiaRole.findMany();
+    const getRoleId = (name: string) => currentRoles.find(r => r.name === name)?.id;
+
     const roleLinks = s.roles.map(r => ({
       roleId: getRoleId(r.name) || "",
       count: r.count
