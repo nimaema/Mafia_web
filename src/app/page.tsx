@@ -28,9 +28,6 @@ export default function Home() {
             <Link href="/auth/register" className="bg-lime-400 text-zinc-950 px-8 py-3.5 rounded-xl font-semibold hover:bg-lime-500 hover:-translate-y-[1px] transition-all shadow-sm flex items-center gap-2">
               شروع بازی
             </Link>
-            <Link href="/auth/login" className="bg-zinc-800 text-zinc-100 px-8 py-3.5 rounded-xl font-semibold hover:bg-zinc-700 hover:-translate-y-[1px] transition-all border border-zinc-700 flex items-center gap-2">
-              ورود گرداننده
-            </Link>
           </div>
         </div>
         
