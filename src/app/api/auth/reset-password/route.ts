@@ -4,8 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 
 const schema = z.object({
-  name: z.string().min(2, "نام حداقل ۲ کاراکتر باشد"),
-  email: z.string().email("ایمیل معتبر وارد کنید"),
+  token: z.string().min(1),
   password: z
     .string()
     .min(8, "رمز عبور حداقل ۸ کاراکتر باشد")
@@ -16,24 +15,39 @@ const schema = z.object({
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password } = schema.parse(body);
+    const { token, password } = schema.parse(body);
 
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
+    const resetToken = await prisma.passwordResetToken.findUnique({
+      where: { token },
+      include: { user: true },
+    });
+
+    if (!resetToken) {
       return NextResponse.json(
-        { error: "این ایمیل قبلاً ثبت شده است" },
-        { status: 409 }
+        { error: "لینک بازیابی نامعتبر است" },
+        { status: 400 }
+      );
+    }
+
+    if (resetToken.expiresAt < new Date()) {
+      await prisma.passwordResetToken.delete({ where: { token } });
+      return NextResponse.json(
+        { error: "لینک بازیابی منقضی شده است. دوباره درخواست دهید." },
+        { status: 400 }
       );
     }
 
     const password_hash = await hashPassword(password);
 
-    const user = await prisma.user.create({
-      data: { name, email, password_hash },
-      select: { id: true, name: true, email: true, role: true },
-    });
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: resetToken.userId },
+        data: { password_hash },
+      }),
+      prisma.passwordResetToken.delete({ where: { token } }),
+    ]);
 
-    return NextResponse.json({ user }, { status: 201 });
+    return NextResponse.json({ ok: true });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json(
@@ -41,7 +55,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    console.error("[REGISTER]", err);
+    console.error("[RESET_PASSWORD]", err);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
