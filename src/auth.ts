@@ -8,23 +8,6 @@ import type { UserRole } from "@prisma/client";
 import { DefaultSession } from "next-auth";
 import "next-auth/jwt";
 
-declare module "next-auth" {
-  interface User {
-    role?: UserRole;
-  }
-  interface Session {
-    user: {
-      id: string;
-      role?: UserRole;
-    } & DefaultSession["user"];
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    role?: UserRole;
-  }
-}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
