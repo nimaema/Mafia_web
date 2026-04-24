@@ -1,96 +1,59 @@
-import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
-import { prisma } from "@/lib/prisma";
-import { verifyPassword } from "@/lib/password";
-import type { UserRole } from "@prisma/client";
-import { DefaultSession } from "next-auth";
-import "next-auth/jwt";
+import NextAuth from "next-auth"
+import CredentialsProvider from "next-auth/providers/credentials"
+import GoogleProvider from "next-auth/providers/google"
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import { PrismaClient } from "@prisma/client"
+import { verifyPassword } from "./lib/password"
 
+const prisma = new PrismaClient()
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
-
-  session: {
-    strategy: "jwt",
-  },
-
-  pages: {
-    signIn: "/auth/login",
-    error: "/auth/error",
-  },
-
+  session: { strategy: "jwt" },
   providers: [
     GoogleProvider({
-      clientId: process.env.AUTH_GOOGLE_ID!,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
-      allowDangerousEmailAccountLinking: true,
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
-
     CredentialsProvider({
-      name: "credentials",
+      name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password) return null
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-        });
+          where: { email: credentials.email as string }
+        })
 
-        if (!user || !user.password_hash) {
-          return null;
+        if (!user || !user.password_hash) return null
+
+        const isValid = await verifyPassword(credentials.password as string, user.password_hash)
+
+        if (isValid) {
+          return user
         }
 
-        const isValid = await verifyPassword(
-          credentials.password as string,
-          user.password_hash
-        );
-
-        if (!isValid) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          role: user.role,
-        };
-      },
-    }),
+        return null
+      }
+    })
   ],
-
   callbacks: {
-    async jwt({ token, user }) {
+    jwt({ token, user }) {
       if (user) {
-        token.role = (user as { role?: UserRole }).role ?? "USER";
+        // @ts-ignore
+        token.role = user.role
       }
-
-      // Always refresh role from DB on sign-in
-      if (token.sub && !token.role) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub },
-          select: { role: true },
-        });
-        if (dbUser) token.role = dbUser.role;
-      }
-
-      return token;
+      return token
     },
-
-    async session({ session, token }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
-        session.user.role = token.role as UserRole;
+    session({ session, token }) {
+      if (session.user && token.role) {
+        // @ts-ignore
+        session.user.role = token.role as string
       }
-      return session;
-    },
-  },
-});
+      return session
+    }
+  }
+})

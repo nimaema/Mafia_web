@@ -1,203 +1,139 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import AlignmentPieChart from "@/components/charts/AlignmentPieChart";
-import WinLossBarChart from "@/components/charts/WinLossBarChart";
-import { Alignment } from "@prisma/client";
-import { signOut } from "@/auth";
+"use client";
 
-export const metadata = { title: "پنل کاربری" };
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
+} from "recharts";
 
-const ALIGNMENT_LABELS = {
-  CITIZEN: "شهروند",
-  MAFIA: "مافیا",
-  NEUTRAL: "خنثی",
-};
+const statsData = [
+  { name: 'پیروزی‌ها', value: 45, color: '#84cc16' }, // lime-500
+  { name: 'شکست‌ها', value: 20, color: '#ef4444' }   // red-500
+];
 
-const ALIGNMENT_COLORS = {
-  CITIZEN: "#2563eb",
-  MAFIA: "#b91c1c",
-  NEUTRAL: "#18181b",
-};
+const roleHistory = [
+  { role: 'شهروند ساده', count: 15 },
+  { role: 'مافیا', count: 8 },
+  { role: 'پزشک', count: 5 },
+  { role: 'کارآگاه', count: 4 },
+  { role: 'پدرخوانده', count: 3 },
+];
 
-const RESULT_LABELS = {
-  WIN: "برد",
-  LOSS: "باخت",
-};
+export default function UserDashboard() {
+  const { data: session, status } = useSession();
+  const [mounted, setMounted] = useState(false);
 
-export default async function UserDashboard({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string }>;
-}) {
-  const session = await auth();
-  if (!session?.user) redirect("/auth/login");
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const sParams = await searchParams;
-  const page = parseInt(sParams.page || "1");
-  const limit = 5;
-
-  const [totalGames, history, allHistory, waitingGames] = await Promise.all([
-    prisma.player.count({ where: { userId: session.user.id, game: { status: "FINISHED" } } }),
-    prisma.player.findMany({
-      where: { userId: session.user.id, game: { status: "FINISHED" } },
-      include: {
-        game: { include: { scenario: true } },
-        role: true,
-      },
-      orderBy: { game: { updatedAt: "desc" } },
-      skip: (page - 1) * limit,
-      take: limit,
-    }),
-    prisma.player.findMany({
-      where: { userId: session.user.id, game: { status: "FINISHED" } },
-      include: { role: true },
-    }),
-    prisma.game.findMany({
-      where: { status: "WAITING" },
-      include: { moderator: { select: { name: true } }, scenario: true, _count: { select: { players: true } } },
-      take: 3,
-    }),
-  ]);
-
-  // Transform data for charts
-  const alignmentCounts: Record<Alignment, number> = { CITIZEN: 0, MAFIA: 0, NEUTRAL: 0 };
-  const scenarioStats: Record<string, { name: string; wins: number; losses: number }> = {};
-
-  for (const h of allHistory) {
-    if (h.role?.alignment) alignmentCounts[h.role.alignment]++;
-    const sName = h.game.scenario?.name || "سفارشی";
-    if (!scenarioStats[sName]) scenarioStats[sName] = { name: sName, wins: 0, losses: 0 };
-    // @ts-ignore - Assuming we have a result logic in our actual game state
-    if (h.result === "WIN") scenarioStats[sName].wins++;
-    // @ts-ignore
-    else scenarioStats[sName].losses++;
-  }
-
-  const pieData = (Object.entries(alignmentCounts) as [Alignment, number][]).map(
-    ([alignment, count]) => ({
-      name: ALIGNMENT_LABELS[alignment],
-      value: count,
-      color: ALIGNMENT_COLORS[alignment],
-    })
-  );
-
-  const barData = Object.values(scenarioStats).slice(0, 6);
-  const totalPages = Math.ceil(totalGames / limit);
+  if (!mounted) return <div className="p-8 text-center animate-pulse">در حال بارگذاری...</div>;
 
   return (
-    <div className="bg-zinc-950 min-h-screen text-zinc-100" dir="rtl">
-      {/* Header */}
-      <header className="bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800 sticky top-0 z-40">
-        <div className="page-container flex flex-row-reverse justify-between items-center py-3">
-          <span className="text-lg font-bold text-lime-400">🎭 مافیا</span>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-zinc-400">{session.user.name}</span>
-            <Link href="/lobby" className="text-sm text-zinc-400 hover:text-lime-400 transition-colors">لابی</Link>
-            <form action={async () => { "use server"; await signOut({ redirectTo: "/" }); }}>
-              <button type="submit" className="text-sm text-zinc-500 hover:text-red-400 transition-colors">خروج</button>
-            </form>
+    <div className="flex flex-col gap-6">
+      {/* Header Profile Section */}
+      <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row items-center gap-6 relative overflow-hidden">
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-lime-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="w-24 h-24 rounded-full bg-zinc-200 dark:bg-zinc-800 border-4 border-white dark:border-zinc-900 shadow-lg flex items-center justify-center relative z-10">
+          {session?.user?.image ? (
+            <img src={session.user.image} alt="Profile" className="w-full h-full rounded-full object-cover" />
+          ) : (
+            <span className="material-symbols-outlined text-4xl text-zinc-400">person</span>
+          )}
+        </div>
+        <div className="flex flex-col items-center md:items-start z-10">
+          <h2 className="text-2xl font-bold">{session?.user?.name || "کاربر مهمان"}</h2>
+          <p className="text-zinc-500 text-sm mt-1">{session?.user?.email || "نامشخص"}</p>
+          <div className="mt-3 flex gap-2">
+            <span className="px-3 py-1 bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 text-xs font-semibold rounded-full border border-lime-200 dark:border-lime-800">سطح: مبتدی</span>
+            <span className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-xs font-semibold rounded-full border border-zinc-200 dark:border-zinc-700">امتیاز: ۱۲۵۰</span>
           </div>
         </div>
-      </header>
+      </section>
 
-      <div className="page-container py-8 space-y-8 pb-24 md:pb-8">
-        <div className="animate-fade-in">
-          <h1 className="text-2xl font-bold">سلام، {session.user.name} 👋</h1>
-          <p className="text-zinc-400 text-sm mt-1">داشبورد بازیکن شما</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Win/Loss Pie Chart */}
+        <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-4">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <span className="material-symbols-outlined text-lime-500">pie_chart</span>
+            آمار پیروزی‌ها
+          </h3>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statsData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {statsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontFamily: 'Vazirmatn' }} 
+                  itemStyle={{ fontFamily: 'Vazirmatn' }}
+                />
+                <Legend wrapperStyle={{ fontFamily: 'Vazirmatn', fontSize: '14px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+
+        {/* Roles History Bar Chart */}
+        <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-4">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <span className="material-symbols-outlined text-lime-500">bar_chart</span>
+            نقش‌های بازی شده
+          </h3>
+          <div className="h-64 w-full" dir="ltr">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={roleHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" opacity={0.5} />
+                <XAxis dataKey="role" tick={{ fontSize: 12, fill: '#71717a', fontFamily: 'Vazirmatn' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: '#71717a' }} axisLine={false} tickLine={false} />
+                <Tooltip 
+                  cursor={{ fill: '#f4f4f5', opacity: 0.4 }}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontFamily: 'Vazirmatn' }}
+                />
+                <Bar dataKey="count" fill="#84cc16" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+      </div>
+
+      {/* Recent Games List */}
+      <section className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
+          <h3 className="font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-lime-500">history</span>
+            تاریخچه بازی‌ها
+          </h3>
+          <button className="text-sm text-lime-600 dark:text-lime-400 hover:underline">مشاهده همه</button>
         </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-slide-up">
-          {[
-            { label: "کل بازی‌ها", value: totalGames },
-            { label: "برد", value: allHistory.filter(h => (h as any).result === "WIN").length },
-            { label: "باخت", value: allHistory.filter(h => (h as any).result === "LOSS").length },
-            { label: "درصد برد", value: totalGames ? `${Math.round((allHistory.filter(h => (h as any).result === "WIN").length / totalGames) * 100)}٪` : "۰٪" },
-          ].map((stat) => (
-            <div key={stat.label} className="surface-card p-5">
-              <p className="text-sm text-zinc-400">{stat.label}</p>
-              <p className="text-2xl font-bold mt-1 text-lime-400">{stat.value}</p>
+        <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800">
+          {[1, 2, 3].map((_, i) => (
+            <div key={i} className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${i % 2 === 0 ? 'bg-lime-100 text-lime-600 dark:bg-lime-900/30 dark:text-lime-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
+                  <span className="material-symbols-outlined">{i % 2 === 0 ? 'emoji_events' : 'cancel'}</span>
+                </div>
+                <div>
+                  <p className="font-medium text-sm">بازی شماره {1042 - i}</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">نقش: {i % 2 === 0 ? 'پزشک' : 'مافیا'} • ۲ روز پیش</p>
+                </div>
+              </div>
+              <span className="material-symbols-outlined text-zinc-400">chevron_left</span>
             </div>
           ))}
         </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="surface-card p-6">
-            <h2 className="text-base font-semibold mb-4">توزیع نقش‌ها</h2>
-            <AlignmentPieChart data={pieData} />
-          </div>
-          <div className="surface-card p-6">
-            <h2 className="text-base font-semibold mb-4">برد/باخت بر اساس سناریو</h2>
-            <WinLossBarChart data={barData} />
-          </div>
-        </div>
-
-        {waitingGames.length > 0 && (
-          <div className="surface-card p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-base font-semibold">بازی‌های در انتظار</h2>
-              <Link href="/lobby" className="text-xs text-lime-400 hover:underline">مشاهده همه</Link>
-            </div>
-            <div className="space-y-3">
-              {waitingGames.map((game) => (
-                <div key={game.id} className="flex items-center justify-between p-4 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
-                  <div>
-                    <p className="font-medium text-sm">{game.scenario?.name ?? "بازی سفارشی"}</p>
-                    <p className="text-xs text-zinc-400 mt-0.5">
-                      گرداننده: {game.moderator.name} · {game._count.players} بازیکن
-                    </p>
-                  </div>
-                  <Link href={`/lobby`} className="btn-primary text-xs px-4 py-2">پیوستن</Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="surface-card p-6">
-          <h2 className="text-base font-semibold mb-4">تاریخچه بازی‌ها</h2>
-          {history.length === 0 ? (
-            <div className="text-center py-12 text-zinc-500 text-sm">هنوز بازی‌ای ثبت نشده است</div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-zinc-800">
-                      <th className="text-right py-3 px-2 text-zinc-400 font-medium">تاریخ</th>
-                      <th className="text-right py-3 px-2 text-zinc-400 font-medium">سناریو</th>
-                      <th className="text-right py-3 px-2 text-zinc-400 font-medium">نقش</th>
-                      <th className="text-right py-3 px-2 text-zinc-400 font-medium">نتیجه</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.map((h) => (
-                      <tr key={h.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                        <td className="py-3 px-2 text-zinc-400">
-                          {new Date(h.game.updatedAt).toLocaleDateString("fa-IR")}
-                        </td>
-                        <td className="py-3 px-2">{h.game.scenario?.name ?? "سفارشی"}</td>
-                        <td className="py-3 px-2">
-                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${
-                            h.role?.alignment === "CITIZEN" ? "chip-citizen" :
-                            h.role?.alignment === "MAFIA" ? "chip-mafia" : "chip-neutral"
-                          }`}>
-                            {h.role?.name || "نامشخص"}
-                          </span>
-                        </td>
-                        <td className="py-3 px-2 font-medium">
-                          {(h as any).result === "WIN" ? "برد" : "باخت"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
