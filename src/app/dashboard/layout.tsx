@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 export default function DashboardLayout({
   children,
@@ -14,12 +15,12 @@ export default function DashboardLayout({
     <div className="bg-surface-dim text-on-surface min-h-screen pb-20 md:pb-0 md:flex">
       {/* Desktop Sidebar (hidden on mobile) */}
       <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 min-h-screen p-4">
-        <div className="flex items-center gap-2 mb-8">
+        <div className="flex items-center gap-2 mb-8 px-2">
           <span className="material-symbols-outlined text-lime-500 text-3xl">admin_panel_settings</span>
           <h1 className="text-xl font-bold">دستیار مافیا</h1>
         </div>
         
-        <nav className="flex flex-col gap-2">
+        <nav className="flex flex-col gap-2 flex-grow">
           <Link href="/dashboard/user" className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${pathname === "/dashboard/user" ? "bg-lime-50 dark:bg-lime-900/20 text-lime-600 dark:text-lime-400 font-medium" : "hover:bg-zinc-50 dark:hover:bg-zinc-800"}`}>
             <span className="material-symbols-outlined">person</span>
             <span>پروفایل من</span>
@@ -33,6 +34,14 @@ export default function DashboardLayout({
             <span>تنظیمات</span>
           </Link>
         </nav>
+
+        <button 
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="flex items-center gap-3 p-3 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors mt-auto border-t border-zinc-100 dark:border-zinc-800"
+        >
+          <span className="material-symbols-outlined">logout</span>
+          <span>خروج از حساب</span>
+        </button>
       </aside>
 
       {/* Main Content */}
@@ -54,6 +63,13 @@ export default function DashboardLayout({
           <span className="material-symbols-outlined text-2xl">settings</span>
           <span className="text-[10px] font-medium">تنظیمات</span>
         </Link>
+        <button 
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="flex flex-col items-center justify-center w-full h-full gap-1 text-red-500"
+        >
+          <span className="material-symbols-outlined text-2xl">logout</span>
+          <span className="text-[10px] font-medium">خروج</span>
+        </button>
       </nav>
     </div>
   );
