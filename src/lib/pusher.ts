@@ -12,7 +12,7 @@ export const pusherServer = new PusherServer({
 
 // Client-side Pusher
 export const getPusherClient = () => {
-  return new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY || "local-key", {\
+  return new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY || "local-key", {
     cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "ap2",
   });
 };
