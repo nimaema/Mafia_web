@@ -39,9 +39,9 @@ export default function UserDashboard() {
       {/* Header Profile Section */}
       <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row items-center gap-6 relative overflow-hidden">
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-lime-500/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="w-24 h-24 rounded-full bg-zinc-200 dark:bg-zinc-800 border-4 border-white dark:border-zinc-900 shadow-lg flex items-center justify-center relative z-10">
+        <div className="w-24 h-24 rounded-full bg-zinc-200 dark:bg-zinc-800 border-4 border-white dark:border-zinc-900 shadow-lg flex items-center justify-center relative z-10 overflow-hidden">
           {session?.user?.image ? (
-            <img src={session.user.image} alt="Profile" className="w-full h-full rounded-full object-cover" />
+            <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
           ) : (
             <span className="material-symbols-outlined text-4xl text-zinc-400">person</span>
           )}
@@ -50,8 +50,12 @@ export default function UserDashboard() {
           <h2 className="text-2xl font-bold">{session?.user?.name || "کاربر مهمان"}</h2>
           <p className="text-zinc-500 text-sm mt-1">{session?.user?.email || "نامشخص"}</p>
           <div className="mt-3 flex gap-2">
-            <span className="px-3 py-1 bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 text-xs font-semibold rounded-full border border-lime-200 dark:border-lime-800">نقش: {session?.user?.role === 'ADMIN' ? 'مدیر' : session?.user?.role === 'MODERATOR' ? 'گرداننده' : 'بازیکن'}</span>
-            <span className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-xs font-semibold rounded-full border border-zinc-200 dark:border-zinc-700">امتیاز: ۱۲۵۰</span>
+            <span className="px-3 py-1 bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 text-xs font-semibold rounded-full border border-lime-200 dark:border-lime-800">
+              نقش: {session?.user?.role === 'ADMIN' ? 'مدیر' : session?.user?.role === 'MODERATOR' ? 'گرداننده' : 'بازیکن'}
+            </span>
+            <span className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-xs font-semibold rounded-full border border-zinc-200 dark:border-zinc-700">
+              امتیاز: ۱۲۵۰
+            </span>
           </div>
         </div>
       </section>
@@ -139,19 +143,19 @@ export default function UserDashboard() {
             recentGames.map((game, i) => (
               <div key={game.id} className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${game.result === 'WIN' ? 'bg-lime-100 text-lime-600 dark:bg-lime-900/30 dark:text-lime-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${game.result === 'WIN' ? 'bg-lime-100 text-lime-600 dark:bg-lime-900/30 dark:text-lime-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
                     <span className="material-symbols-outlined">{game.result === 'WIN' ? 'emoji_events' : 'cancel'}</span>
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">بازی شماره {game.id.slice(-4)}</p>
-                    <p className="text-xs text-zinc-500 mt-0.5">نقش: {game.roleName} • {game.date}</p>
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">بازی شماره {game.id.slice(-4)}</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">{game.roleName} • {game.date}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-0.5 rounded ${game.result === 'WIN' ? 'bg-lime-100 text-lime-700 dark:bg-lime-900/40 dark:text-lime-300' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'}`}>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className={`text-xs px-2 py-0.5 rounded font-medium ${game.result === 'WIN' ? 'bg-lime-100 text-lime-700 dark:bg-lime-900/40 dark:text-lime-300' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'}`}>
                     {game.result === 'WIN' ? 'برد' : 'باخت'}
                   </span>
-                  <span className="material-symbols-outlined text-zinc-400">chevron_left</span>
+                  <span className="material-symbols-outlined text-zinc-400 text-lg">chevron_left</span>
                 </div>
               </div>
             ))
