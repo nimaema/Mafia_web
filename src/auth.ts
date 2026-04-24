@@ -22,7 +22,6 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
-    id?: string;
     role?: UserRole;
   }
 }
@@ -88,14 +87,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
         token.role = (user as { role?: UserRole }).role ?? "USER";
       }
 
       // Always refresh role from DB on sign-in
-      if (token.id && !token.role) {
+      if (token.sub && !token.role) {
         const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
+          where: { id: token.sub },
           select: { role: true },
         });
         if (dbUser) token.role = dbUser.role;
@@ -105,8 +103,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
 
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string;
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
         session.user.role = token.role as UserRole;
       }
       return session;
