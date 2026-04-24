@@ -155,3 +155,9 @@ export async function installStandardScenarios() {
 
   revalidatePath("/dashboard/admin");
 }
+
+export async function deleteScenario(id: string) {
+  await checkAdmin();
+  await prisma.scenario.delete({ where: { id } });
+  revalidatePath("/dashboard/admin");
+}
