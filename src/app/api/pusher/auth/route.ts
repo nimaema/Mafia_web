@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
   const authData = pusherServer.authorizeChannel(socketId, channelName, {
     user_id: session.user.id,
-    user_userInfo: { name: session.user.name, role: session.user.role },
+    user_info: { name: session.user.name, role: session.user.role },
   });
 
   return NextResponse.json(authData);
