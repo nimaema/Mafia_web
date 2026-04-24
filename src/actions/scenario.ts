@@ -14,9 +14,10 @@ export async function createScenario(data: { name: string; description?: string;
     data: {
       name: data.name,
       description: data.description,
+      created_by: session.user.id!,
       roles: {
         create: data.roles.map((r) => ({
-          roleId: r.roleId,
+          role_id: r.roleId,
           count: r.count,
         })),
       },

@@ -89,18 +89,30 @@ model MafiaRole {
   alignment    Alignment
   is_permanent Boolean    @default(false)
 
-  scenarios    Scenario[]
+  scenarios    ScenarioRole[]
   gameHistories GameHistory[]
 }
 
 model Scenario {
-  id         String      @id @default(cuid())
-  name       String
-  created_by String
-  creator    User        @relation(fields: [created_by], references: [id])
-  roles      MafiaRole[]
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  created_by  String
+  creator     User           @relation(fields: [created_by], references: [id])
+  roles       ScenarioRole[]
 
-  games      Game[]
+  games       Game[]
+}
+
+model ScenarioRole {
+  id          String    @id @default(cuid())
+  scenario_id String
+  scenario    Scenario  @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
+  role_id     String
+  role        MafiaRole @relation(fields: [role_id], references: [id])
+  count       Int       @default(1)
+
+  @@unique([scenario_id, role_id])
 }
 
 model Game {
