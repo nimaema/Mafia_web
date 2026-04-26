@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 async function checkAdmin() {
   const session = await auth();
   if (!session?.user?.id || session.user.role !== "ADMIN") {
-    throw new Error("Unauthorized: Admin access required");
+    throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی مدیر)");
   }
   return session.user.id;
 }
@@ -16,7 +16,7 @@ async function checkAdmin() {
 async function checkModerator() {
   const session = await auth();
   if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
-    throw new Error("Unauthorized: Moderator access required");
+    throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی گرداننده یا مدیر)");
   }
   return session.user.id;
 }

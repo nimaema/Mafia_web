@@ -7,15 +7,15 @@ import { revalidatePath } from "next/cache";
 
 async function checkModerator() {
   const session = await auth();
-  if (!session?.user?.id || session.user.role !== "MODERATOR") {
-    throw new Error("Unauthorized: Only moderators can perform this action");
+  if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
+    throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی گرداننده یا مدیر)");
   }
   return session.user.id;
 }
 
 export async function joinGame(gameId: string, playerName: string, userId?: string) {
   if (!gameId || !playerName) {
-    return { error: "Missing required fields" };
+    return { error: "فیلدهای اجباری ناقص است" };
   }
 
   try {
@@ -24,11 +24,11 @@ export async function joinGame(gameId: string, playerName: string, userId?: stri
     });
 
     if (!game) {
-      return { error: "Game not found" };
+      return { error: "بازی یافت نشد" };
     }
 
     if (game.status !== "WAITING") {
-      return { error: "Game has already started" };
+      return { error: "بازی قبلاً شروع شده است" };
     }
 
     // Save to DB
@@ -54,7 +54,7 @@ export async function joinGame(gameId: string, playerName: string, userId?: stri
     if (error.code === 'P2002') {
        return { error: "شما قبلا با این نام وارد شده‌اید" };
     }
-    return { error: "Failed to join game" };
+    return { error: "خطا در پیوستن به بازی" };
   }
 }
 
@@ -82,7 +82,7 @@ export async function createGame(password?: string) {
     return { success: true, gameId: game.id };
   } catch (error: any) {
     console.error("Create game error:", error);
-    return { error: error.message || "Failed to create game" };
+    return { error: error.message || "خطا در ایجاد بازی" };
   }
 }
 
@@ -138,7 +138,7 @@ export async function startGame(gameId: string) {
     return { success: true };
   } catch (error: any) {
     console.error("Start game error:", error);
-    return { error: error.message || "Failed to start game" };
+    return { error: error.message || "خطا در شروع بازی" };
   }
 }
 
@@ -162,7 +162,7 @@ export async function setGameScenario(gameId: string, scenarioId: string) {
     return { success: true };
   } catch (error: any) {
     console.error("Set scenario error:", error);
-    return { error: "Failed to set scenario" };
+    return { error: "خطا در تنظیم سناریو" };
   }
 }
 
@@ -189,6 +189,6 @@ export async function createCustomGameScenario(gameId: string, roles: { roleId: 
     return await setGameScenario(gameId, scenario.id);
   } catch (error: any) {
     console.error("Create custom scenario error:", error);
-    return { error: "Failed to create custom scenario" };
+    return { error: "خطا در ایجاد سناریوی سفارشی" };
   }
 }
