@@ -78,9 +78,10 @@ export default function UserDashboard() {
             <span className="px-3 py-1 bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 text-xs font-semibold rounded-full border border-lime-200 dark:border-lime-800">
               نقش: {session?.user?.role === 'ADMIN' ? 'مدیر' : session?.user?.role === 'MODERATOR' ? 'گرداننده' : 'بازیکن'}
             </span>
-            <span className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-xs font-semibold rounded-full border border-zinc-200 dark:border-zinc-700">
-              امتیاز: ۱۲۵۰
-            </span>
+            <Link href="/dashboard/user/profile" className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-xs font-semibold rounded-full border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm">edit</span>
+              ویرایش پروفایل
+            </Link>
           </div>
         </div>
       </section>
