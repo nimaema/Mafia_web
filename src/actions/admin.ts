@@ -153,86 +153,155 @@ export async function updateScenario(id: string, data: { name: string, descripti
 export async function installStandardScenarios() {
   await checkAdmin();
 
-  const roles = await prisma.mafiaRole.findMany();
-  const getRoleId = (name: string) => roles.find(r => r.name === name)?.id;
+  const allRoles = await prisma.mafiaRole.findMany();
+  const id = (name: string) => allRoles.find(r => r.name === name)?.id;
 
   const scenarios = [
     {
-      name: "سناریو پدرخوانده",
-      description: "سناریو استاندارد ۱۰ نفره - شب‌های مافیا",
+      name: "کلاسیک ۱۲ نفره",
+      description: "سناریو بازپرس و محقق - ۱۲ نفر",
       roles: [
-        { name: "پدرخوانده", alignment: Alignment.MAFIA, count: 1 },
-        { name: "دکتر لکتر", alignment: Alignment.MAFIA, count: 1 },
-        { name: "مافیا ساده", alignment: Alignment.MAFIA, count: 1 },
-        { name: "دکتر", alignment: Alignment.CITIZEN, count: 1 },
-        { name: "کارآگاه", alignment: Alignment.CITIZEN, count: 1 },
-        { name: "روئین تن", alignment: Alignment.CITIZEN, count: 1 },
-        { name: "شهروند ساده", alignment: Alignment.CITIZEN, count: 4 }
-      ]
+        { name: "محقق", count: 1 }, { name: "بازپرس", count: 1 }, { name: "دکتر", count: 1 },
+        { name: "کارآگاه", count: 1 }, { name: "رویین‌تن", count: 1 }, { name: "تکتیرانداز", count: 1 },
+        { name: "شهروند ساده", count: 2 },
+        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "شیاد", count: 1 },
+        { name: "مافیا ساده", count: 1 },
+      ],
     },
     {
-      name: "سناریو بازپرس",
-      description: "سناریو پیشرفته با نقش بازپرس",
+      name: "کلاسیک ۱۳ نفره",
+      description: "سناریو بازپرس و محقق - ۱۳ نفر",
       roles: [
-        { name: "پدرخوانده", alignment: Alignment.MAFIA, count: 1 },
-        { name: "مافیا ساده", alignment: Alignment.MAFIA, count: 2 },
-        { name: "دکتر", alignment: Alignment.CITIZEN, count: 1 },
-        { name: "کارآگاه", alignment: Alignment.CITIZEN, count: 1 },
-        { name: "بازپرس", alignment: Alignment.CITIZEN, count: 1 },
-        { name: "شهروند ساده", alignment: Alignment.CITIZEN, count: 4 }
-      ]
+        { name: "محقق", count: 1 }, { name: "بازپرس", count: 1 }, { name: "دکتر", count: 1 },
+        { name: "کارآگاه", count: 1 }, { name: "رویین‌تن", count: 1 }, { name: "تکتیرانداز", count: 1 },
+        { name: "شهروند ساده", count: 3 },
+        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "شیاد", count: 1 },
+        { name: "مافیا ساده", count: 1 },
+      ],
     },
     {
-      name: "سناریو کاپو",
-      description: "سناریو حرفه‌ای با نقش کاپو",
+      name: "نماینده ۱۰ نفره",
+      description: "سناریو نماینده - ۱۰ نفر",
       roles: [
-        { name: "پدرخوانده", alignment: Alignment.MAFIA, count: 1 },
-        { name: "کاپو", alignment: Alignment.MAFIA, count: 1 },
-        { name: "مافیا ساده", alignment: Alignment.MAFIA, count: 1 },
-        { name: "دکتر", alignment: Alignment.CITIZEN, count: 1 },
-        { name: "کارآگاه", alignment: Alignment.CITIZEN, count: 1 },
-        { name: "شهروند ساده", alignment: Alignment.CITIZEN, count: 5 }
-      ]
-    }
+        { name: "دکتر", count: 1 }, { name: "راهنما", count: 1 }, { name: "مین‌گذار", count: 1 },
+        { name: "وکیل", count: 1 }, { name: "محافظ", count: 1 }, { name: "شهروند ساده", count: 2 },
+        { name: "دن مافیا", count: 1 }, { name: "یاغی", count: 1 }, { name: "هکر", count: 1 },
+      ],
+    },
+    {
+      name: "نماینده ۱۲ نفره",
+      description: "سناریو نماینده - ۱۲ نفر",
+      roles: [
+        { name: "دکتر", count: 1 }, { name: "راهنما", count: 1 }, { name: "مین‌گذار", count: 1 },
+        { name: "وکیل", count: 1 }, { name: "محافظ", count: 1 }, { name: "سرباز", count: 1 },
+        { name: "شهروند ساده", count: 2 },
+        { name: "دن مافیا", count: 1 }, { name: "یاغی", count: 1 }, { name: "هکر", count: 1 },
+        { name: "ناتو", count: 1 },
+      ],
+    },
+    {
+      name: "فراماسون ۱۲ نفره",
+      description: "سناریو فراماسون - ۱۲ نفر",
+      roles: [
+        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکتیرانداز", count: 1 },
+        { name: "فرمانده", count: 1 }, { name: "کشیش", count: 1 }, { name: "تفنگدار", count: 1 },
+        { name: "رویین‌تن", count: 1 },
+        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "سایلنسر", count: 1 },
+        { name: "مافیا ساده", count: 1 },
+        { name: "جوکر", count: 1 },
+      ],
+    },
+    {
+      name: "فراماسون ۱۳ نفره",
+      description: "سناریو فراماسون - ۱۳ نفر",
+      roles: [
+        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکتیرانداز", count: 1 },
+        { name: "فرمانده", count: 1 }, { name: "کشیش", count: 1 }, { name: "تفنگدار", count: 1 },
+        { name: "رویین‌تن", count: 1 }, { name: "کابوی", count: 1 },
+        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "سایلنسر", count: 1 },
+        { name: "مافیا ساده", count: 1 },
+        { name: "جوکر", count: 1 },
+      ],
+    },
+    {
+      name: "فراماسون ۱۵ نفره",
+      description: "سناریو فراماسون - ۱۵ نفر | نسخه کامل",
+      roles: [
+        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکتیرانداز", count: 1 },
+        { name: "فراماسون", count: 1 }, { name: "فرمانده", count: 1 }, { name: "کشیش", count: 1 },
+        { name: "تفنگدار", count: 1 }, { name: "رویین‌تن", count: 1 }, { name: "کابوی", count: 1 },
+        { name: "قاضی", count: 1 },
+        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "سایلنسر", count: 1 },
+        { name: "تروریست", count: 1 },
+        { name: "جوکر", count: 1 },
+      ],
+    },
+    {
+      name: "تکاور ۱۰ نفره",
+      description: "سناریو تکاور - ۱۰ نفر",
+      roles: [
+        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکاور", count: 1 },
+        { name: "نگهبان", count: 1 }, { name: "تفنگدار", count: 1 }, { name: "شهروند ساده", count: 2 },
+        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "افسونگر", count: 1 },
+      ],
+    },
+    {
+      name: "تکاور ۱۲ نفره",
+      description: "سناریو تکاور - ۱۲ نفر",
+      roles: [
+        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکاور", count: 1 },
+        { name: "نگهبان", count: 1 }, { name: "تفنگدار", count: 1 }, { name: "شهروند ساده", count: 3 },
+        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "افسونگر", count: 1 },
+        { name: "مافیا ساده", count: 1 },
+      ],
+    },
+    {
+      name: "تکاور ۱۳ نفره",
+      description: "سناریو تکاور - ۱۳ نفر",
+      roles: [
+        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکاور", count: 1 },
+        { name: "نگهبان", count: 1 }, { name: "تفنگدار", count: 1 }, { name: "شهروند ساده", count: 4 },
+        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "افسونگر", count: 1 },
+        { name: "مافیا ساده", count: 1 },
+      ],
+    },
+    {
+      name: "تکاور ۱۵ نفره",
+      description: "سناریو تکاور - ۱۵ نفر | نسخه کامل",
+      roles: [
+        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکاور", count: 1 },
+        { name: "نگهبان", count: 1 }, { name: "تفنگدار", count: 1 }, { name: "شهروند ساده", count: 5 },
+        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "افسونگر", count: 1 },
+        { name: "مافیا ساده", count: 2 },
+      ],
+    },
   ];
 
   for (const s of scenarios) {
-    // Ensure all roles exist first
-    for (const r of s.roles) {
-      await prisma.mafiaRole.upsert({
-        where: { name: r.name },
-        update: {},
-        create: {
-          name: r.name,
-          alignment: r.alignment,
-          description: `نقش ${r.name}`,
-          is_permanent: true
-        }
+    const roleLinks = s.roles
+      .map(r => ({ roleId: id(r.name), count: r.count }))
+      .filter((r): r is { roleId: string; count: number } => r.roleId != null);
+
+    if (roleLinks.length === 0) continue;
+
+    const existing = await prisma.scenario.findUnique({ where: { name: s.name } });
+
+    if (existing) {
+      await prisma.scenarioRole.deleteMany({ where: { scenarioId: existing.id } });
+      await prisma.scenario.update({
+        where: { id: existing.id },
+        data: {
+          description: s.description,
+          roles: { create: roleLinks.map(rl => ({ count: rl.count, role: { connect: { id: rl.roleId } } })) },
+        },
       });
-    }
-
-    const currentRoles = await prisma.mafiaRole.findMany();
-    const getRoleId = (name: string) => currentRoles.find(r => r.name === name)?.id;
-
-    const roleLinks = s.roles.map(r => ({
-      roleId: getRoleId(r.name) || "",
-      count: r.count
-    })).filter(r => r.roleId !== "");
-
-    if (roleLinks.length > 0) {
-      await prisma.scenario.upsert({
-        where: { name: s.name },
-        update: {},
-        create: {
+    } else {
+      await prisma.scenario.create({
+        data: {
           name: s.name,
           description: s.description,
-          roles: {
-            create: roleLinks.map(rl => ({
-              count: rl.count,
-              role: { connect: { id: rl.roleId } }
-            }))
-          }
-        }
+          roles: { create: roleLinks.map(rl => ({ count: rl.count, role: { connect: { id: rl.roleId } } })) },
+        },
       });
     }
   }
