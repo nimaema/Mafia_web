@@ -70,7 +70,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
     } catch (err: any) {
       alert(err.message || "خطا در ذخیره سناریو");
     } finally {
-      setLoading(null);
+      setLoading(false);
     }
   };
 

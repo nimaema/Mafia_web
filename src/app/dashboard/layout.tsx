@@ -105,13 +105,19 @@ export default async function DashboardLayout({
         {isModerator && (
           <Link href="/dashboard/moderator" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-lime-400">
             <span className="material-symbols-outlined text-2xl">sports_esports</span>
-            <span className="text-xs font-bold">بازی</span>
+            <span className="text-xs font-bold">بازی‌ها</span>
+          </Link>
+        )}
+        {isAdmin && (
+          <Link href="/dashboard/admin/users" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-lime-400">
+            <span className="material-symbols-outlined text-2xl">group</span>
+            <span className="text-xs font-bold">کاربران</span>
           </Link>
         )}
         {isAdmin && (
           <Link href="/dashboard/admin" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-lime-400">
             <span className="material-symbols-outlined text-2xl">settings</span>
-            <span className="text-xs font-bold">مدیریت</span>
+            <span className="text-xs font-bold">تنظیمات</span>
           </Link>
         )}
         <form action={handleLogout} className="flex-1 h-full">
