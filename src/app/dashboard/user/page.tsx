@@ -108,7 +108,7 @@ export default function UserDashboard() {
               <span className="material-symbols-outlined text-lime-500 font-black">sensors</span>
             </div>
             <div className="flex flex-col">
-              <h3 className="font-black text-white italic text-lg tracking-tight">نبردهای در انتظار فراخوان</h3>
+              <h3 className="font-black text-white italic text-lg tracking-tight">بازی‌های در انتظار فراخوان</h3>
               <p className="text-xs text-zinc-500">لابی‌های فعال که منتظر حضور شما هستند</p>
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function UserDashboard() {
                   
                   <div className="flex justify-between items-start relative z-10">
                     <div className="flex flex-col gap-1">
-                      <span className="font-black text-xl text-white tracking-tighter italic group-hover:text-lime-400 transition-colors">{game.scenario?.name || "نبرد ناگهانی"}</span>
+                      <span className="font-black text-xl text-white tracking-tighter italic group-hover:text-lime-400 transition-colors">{game.scenario?.name || "بازی ناگهانی"}</span>
                       <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-zinc-700 rounded-full"></span>
                         {game.moderator?.name || "گرداننده"}
@@ -215,14 +215,14 @@ export default function UserDashboard() {
             <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-blue-500 font-black">pie_chart</span>
             </div>
-            <h3 className="font-black text-white italic text-lg tracking-tight">تحلیل عملکرد نبردها</h3>
+            <h3 className="font-black text-white italic text-lg tracking-tight">تحلیل عملکرد بازی‌ها</h3>
           </div>
           
           <div className="h-72 w-full">
             {statsData[0].value === 0 && statsData[1].value === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-4">
                  <span className="material-symbols-outlined text-5xl opacity-20">analytics</span>
-                 <p className="text-sm font-medium italic">داده‌ای برای تحلیل نبردها موجود نیست</p>
+                 <p className="text-sm font-medium italic">داده‌ای برای تحلیل بازی‌ها موجود نیست</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -301,7 +301,7 @@ export default function UserDashboard() {
               <span className="material-symbols-outlined text-zinc-400 font-black">history</span>
             </div>
             <div className="flex flex-col">
-              <h3 className="font-black text-white italic text-lg tracking-tight">گزارش نبردهای پیشین</h3>
+              <h3 className="font-black text-white italic text-lg tracking-tight">گزارش بازی‌های پیشین</h3>
               <p className="text-xs text-zinc-500">تاریخچه آخرین فعالیت‌های شما در بازی</p>
             </div>
           </div>
@@ -315,7 +315,7 @@ export default function UserDashboard() {
                 <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
                   <span className="material-symbols-outlined text-4xl text-zinc-600">history_toggle_off</span>
                 </div>
-                <p className="text-sm font-black text-zinc-500 italic">هنوز در هیچ نبردی شرکت نکرده‌اید</p>
+                <p className="text-sm font-black text-zinc-500 italic">هنوز در هیچ بازی شرکت نکرده‌اید</p>
               </div>
             ) : (
               recentGames.map((game: any) => (
@@ -372,7 +372,7 @@ export default function UserDashboard() {
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                 <div className="bg-zinc-950 p-6 rounded-3xl border border-white/5 flex flex-col gap-1 shadow-inner">
-                   <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">میدان نبرد</p>
+                   <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">میدان بازی</p>
                    <p className="font-black text-xl text-white tracking-tighter">{selectedHistoryGame.scenarioName}</p>
                 </div>
                 <div className="bg-zinc-950 p-6 rounded-3xl border border-white/5 flex flex-col gap-1 shadow-inner">
@@ -386,7 +386,7 @@ export default function UserDashboard() {
                     : 'bg-red-500/5 border-red-500/20 shadow-red-500/5'
                 }`}>
                   <div className="flex flex-col gap-2">
-                    <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">هویت شما در نبرد</p>
+                    <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">هویت شما در بازی</p>
                     <p className={`font-black text-3xl tracking-tighter italic ${selectedHistoryGame.result === 'WIN' ? 'text-lime-400' : 'text-red-400'}`}>
                       {selectedHistoryGame.roleName}
                     </p>
@@ -431,13 +431,5 @@ export default function UserDashboard() {
         </div>
       )}
     </div>
-  );
-                  ))}
-                </div>
-             </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+  );}
+
