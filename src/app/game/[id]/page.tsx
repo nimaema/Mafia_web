@@ -22,7 +22,8 @@ export default function UserGamePage() {
     if (!gameId || !session?.user?.id) return;
 
     getGameStatus(gameId).then((res) => {
-      if (!res) {
+      // If game is finished or doesn't exist, player shouldn't be here
+      if (!res || res.status !== "IN_PROGRESS") {
         router.push("/dashboard/user");
         return;
       }
@@ -40,9 +41,17 @@ export default function UserGamePage() {
 
     const pusher = getPusherClient();
     const channel = pusher.subscribe(`game-${gameId}`);
+    
+    // Listen for game end
     channel.bind('game-ended', (data: { winningAlignment: string }) => {
       const winnerStr = data.winningAlignment === 'CITIZEN' ? 'شهروندان' : data.winningAlignment === 'MAFIA' ? 'مافیا' : 'مستقل‌ها';
       alert(`بازی به پایان رسید! تیم پیروز: ${winnerStr}`);
+      router.push("/dashboard/user");
+    });
+
+    // Listen for game cancellation
+    channel.bind('game-cancelled', () => {
+      alert("بازی توسط گرداننده لغو شد.");
       router.push("/dashboard/user");
     });
 
