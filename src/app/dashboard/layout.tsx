@@ -1,8 +1,8 @@
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { headers } from "next/headers";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { logout } from "@/actions/auth";
 
 export default async function DashboardLayout({
   children,
@@ -10,29 +10,31 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  if (!session) redirect("/auth/login");
+  
+  if (!session?.user) {
+    redirect("/auth/login");
+  }
 
-  const isAdmin = session.user?.role === "ADMIN";
-  const isModerator = session.user?.role === "MODERATOR" || isAdmin;
+  const isAdmin = session.user.role === "ADMIN";
+  const isModerator = session.user.role === "MODERATOR" || isAdmin;
 
-  // Simple server-side logout action
   const handleLogout = async () => {
     "use server";
-    await signOut({ redirectTo: "/" });
+    await logout();
   };
 
   return (
-    <div className="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 min-h-screen pb-20 md:pb-0 flex flex-col md:flex-row transition-colors duration-300">
-      {/* Desktop Sidebar (Right side for RTL) */}
-      <aside className="hidden md:flex flex-col w-72 bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 min-h-screen p-6 sticky top-0 transition-colors duration-300">
-        <div className="flex items-center gap-3 mb-10 px-2">
-          <div className="w-12 h-12 bg-lime-500 rounded-xl flex items-center justify-center shadow-lg shadow-lime-500/20">
-            <span className="material-symbols-outlined text-zinc-950 text-3xl font-bold">admin_panel_settings</span>
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col md:flex-row transition-colors duration-300">
+      {/* Sidebar - Desktop */}
+      <aside className="hidden md:flex w-72 bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 p-8 flex-col gap-8 shadow-xl transition-colors duration-300">
+        <div className="flex items-center gap-3 px-2">
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+             <span className="material-symbols-outlined text-white font-bold">playing_cards</span>
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-blue-600 dark:text-zinc-100">مدیریت مافیا</h1>
+          <h1 className="text-xl font-black tracking-tight">پیشخوان مافیا</h1>
         </div>
-        
-        <nav className="flex flex-col gap-3 flex-grow">
+
+        <nav className="flex flex-col gap-1">
           <Link href="/dashboard/user" className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-lg hover:text-blue-600 dark:hover:text-lime-400">
             <span className="material-symbols-outlined">person</span>
             <span className="font-medium">پروفایل من</span>
@@ -105,13 +107,19 @@ export default async function DashboardLayout({
         {isModerator && (
           <Link href="/dashboard/moderator" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-lime-400">
             <span className="material-symbols-outlined text-2xl">sports_esports</span>
-            <span className="text-xs font-bold">بازی</span>
+            <span className="text-xs font-bold">بازی‌ها</span>
+          </Link>
+        )}
+        {isAdmin && (
+          <Link href="/dashboard/admin/users" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-lime-400">
+            <span className="material-symbols-outlined text-2xl">group</span>
+            <span className="text-xs font-bold">کاربران</span>
           </Link>
         )}
         {isAdmin && (
           <Link href="/dashboard/admin" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-lime-400">
             <span className="material-symbols-outlined text-2xl">settings</span>
-            <span className="text-xs font-bold">مدیریت</span>
+            <span className="text-xs font-bold">تنظیمات</span>
           </Link>
         )}
         <form action={handleLogout} className="flex-1 h-full">

@@ -91,7 +91,9 @@ export async function createGame(password?: string) {
 export async function getWaitingGames() {
   noStore();
   return await prisma.game.findMany({
-    where: { status: "WAITING" },
+    where: { 
+      status: "WAITING" 
+    },
     include: {
       moderator: {
         select: { name: true }
@@ -104,6 +106,36 @@ export async function getWaitingGames() {
           }
         }
       }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
+export async function getModeratorGames() {
+  noStore();
+  const session = await auth();
+  if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
+    throw new Error("شما دسترسی لازم برای این عملیات را ندارید.");
+  }
+
+  const isAdmin = session.user.role === "ADMIN";
+  
+  return await prisma.game.findMany({
+    where: { 
+      ...(isAdmin ? {} : { moderatorId: session.user.id }),
+      status: { in: ["WAITING", "IN_PROGRESS"] }
+    },
+    include: {
+      moderator: { select: { name: true } },
+      scenario: { 
+        select: { 
+          name: true,
+          roles: {
+            include: { role: true }
+          }
+        } 
+      },
+      _count: { select: { players: true } }
     },
     orderBy: { createdAt: 'desc' }
   });

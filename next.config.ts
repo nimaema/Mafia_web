@@ -10,6 +10,20 @@ const withSerwist = withSerwistInit({
 const nextConfig: NextConfig = {
   output: 'standalone',
   turbopack: {},
+  async redirects() {
+    return [
+      {
+        source: '/dashboard/admin/user-management',
+        destination: '/dashboard/admin/users',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/admin/managemnet',
+        destination: '/dashboard/admin/users',
+        permanent: true,
+      }
+    ];
+  },
 };
 
 export default withSerwist(nextConfig);
