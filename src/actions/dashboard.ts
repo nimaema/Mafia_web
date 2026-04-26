@@ -56,7 +56,30 @@ export async function getUserStats() {
     }
   });
 
+  // Get current active game (IN_PROGRESS)
+  const activePlayerRecord = await prisma.gamePlayer.findFirst({
+    where: {
+      userId,
+      game: {
+        status: "IN_PROGRESS"
+      }
+    },
+    include: {
+      game: {
+        include: {
+          scenario: true,
+          moderator: true
+        }
+      }
+    }
+  });
+
   return {
+    currentActiveGame: activePlayerRecord?.game ? {
+      id: activePlayerRecord.game.id,
+      scenarioName: activePlayerRecord.game.scenario?.name || "ناشناس",
+      moderatorName: activePlayerRecord.game.moderator?.name || "مدیر",
+    } : null,
     statsData: [
       { name: 'پیروزی‌ها', value: wins, color: '#84cc16' },
       { name: 'شکست‌ها', value: losses, color: '#ef4444' }

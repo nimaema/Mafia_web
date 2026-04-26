@@ -29,6 +29,13 @@ export default function UserLobbyPage() {
     getGameStatus(gameId).then(res => {
       if (res) {
         setGame(res);
+        if (res.players) {
+          setPlayers(res.players);
+          // Check if current user is already in the players list
+          if (session?.user?.id && res.players.some((p: any) => p.userId === session.user.id)) {
+            setJoined(true);
+          }
+        }
       } else {
         router.push("/dashboard/user");
       }
@@ -53,7 +60,7 @@ export default function UserLobbyPage() {
     return () => {
       pusher.unsubscribe(`game-${gameId}`);
     };
-  }, [gameId, router]);
+  }, [gameId, router, session?.user?.id]);
 
   const handleJoin = async () => {
     if (!session?.user?.name) return;

@@ -18,6 +18,7 @@ export default function UserDashboard() {
     statsData: any[];
     roleHistory: any[];
     recentGames: any[];
+    currentActiveGame?: any;
   } | null>(null);
   const [activeGames, setActiveGames] = useState<any[]>([]);
 
@@ -96,12 +97,33 @@ export default function UserDashboard() {
           <span className="text-[10px] px-2 py-1 bg-lime-500 text-zinc-950 rounded-full font-black animate-pulse">زنده</span>
         </div>
         <div className="p-4">
+          {data?.currentActiveGame && (
+            <div className="mb-4">
+               <Link 
+                  href={`/game/${data.currentActiveGame.id}`}
+                  className="group relative overflow-hidden rounded-2xl p-[2px] w-full block animate-pulse"
+                >
+                  <span className="absolute inset-0 bg-gradient-to-r from-amber-500 to-rose-500 rounded-2xl opacity-100"></span>
+                  <div className="relative flex items-center justify-between bg-zinc-950 px-4 py-3 rounded-2xl transition-all group-hover:bg-transparent">
+                    <div className="flex flex-col">
+                      <span className="text-white font-bold text-sm tracking-wide group-hover:text-zinc-950 transition-colors">
+                        بازی در جریان شما: {data.currentActiveGame.scenarioName}
+                      </span>
+                      <span className="text-xs text-white/70 group-hover:text-zinc-950/70 transition-colors mt-1">توسط {data.currentActiveGame.moderatorName}</span>
+                    </div>
+                    <span className="material-symbols-outlined text-white text-lg group-hover:text-zinc-950 transition-colors group-hover:translate-x-[4px]">arrow_forward</span>
+                  </div>
+               </Link>
+               {activeGames.length > 0 && <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-4" />}
+            </div>
+          )}
+
           {activeGames.length === 0 ? (
             <div className="py-10 text-center flex flex-col items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center">
                 <span className="material-symbols-outlined text-zinc-300 dark:text-zinc-600">hourglass_empty</span>
               </div>
-              <p className="text-sm text-zinc-500">در حال حاضر بازی فعالی وجود ندارد.</p>
+              <p className="text-sm text-zinc-500">در حال حاضر بازی جدیدی برای عضویت وجود ندارد.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
