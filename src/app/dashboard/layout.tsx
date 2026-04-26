@@ -38,7 +38,7 @@ export default async function DashboardLayout({
             <span className="font-medium">پروفایل من</span>
           </Link>
 
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-lg hover:text-blue-600 dark:hover:text-lime-400">
+          <Link href="/dashboard/user/history" className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-lg hover:text-blue-600 dark:hover:text-lime-400">
             <span className="material-symbols-outlined">history</span>
             <span className="font-medium">تاریخچه بازی‌ها</span>
           </Link>
@@ -51,7 +51,7 @@ export default async function DashboardLayout({
                 <span className="material-symbols-outlined">sports_esports</span>
                 <span className="font-medium">بازی جدید / در جریان</span>
               </Link>
-              <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-lg hover:text-blue-600 dark:hover:text-lime-400">
+              <Link href="/dashboard/moderator/scenarios" className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-lg hover:text-blue-600 dark:hover:text-lime-400">
                 <span className="material-symbols-outlined">list_alt</span>
                 <span className="font-medium">مدیریت سناریوها</span>
               </Link>
@@ -66,7 +66,7 @@ export default async function DashboardLayout({
                 <span className="material-symbols-outlined">settings</span>
                 <span className="font-medium">تنظیمات ادمین</span>
               </Link>
-              <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-lg hover:text-blue-600 dark:hover:text-lime-400">
+              <Link href="/dashboard/admin/users" className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-lg hover:text-blue-600 dark:hover:text-lime-400">
                 <span className="material-symbols-outlined">group</span>
                 <span className="font-medium">مدیریت کاربران</span>
               </Link>

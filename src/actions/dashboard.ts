@@ -110,3 +110,64 @@ export async function getUserStats() {
     }))
   };
 }
+
+export async function getAllUserHistory() {
+  noStore();
+  const session = await auth();
+  if (!session?.user?.id) return [];
+
+  const userId = session.user.id;
+  const history = await prisma.gameHistory.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      role: true,
+      game: {
+        include: {
+          scenario: true,
+          moderator: true,
+          players: {
+            include: { role: true }
+          }
+        }
+      }
+    }
+  });
+
+  return history.map(rg => ({
+    id: rg.gameId,
+    roleName: rg.role.name,
+    result: rg.result || "PENDING",
+    date: rg.createdAt.toLocaleDateString('fa-IR'),
+    scenarioName: rg.game.scenario?.name || "بدون سناریو",
+    moderatorName: rg.game.moderator?.name || "ناشناس",
+    players: rg.game.players.map(p => ({
+      name: p.name,
+      roleName: p.role?.name || "بدون نقش",
+      alignment: p.role?.alignment || "NEUTRAL"
+    }))
+  }));
+}
+
+export async function deleteGameHistory(gameId: string) {
+  const session = await auth();
+  if (session?.user?.role !== "ADMIN") {
+    throw new Error("شما دسترسی لازم برای این عملیات را ندارید");
+  }
+
+  try {
+    await prisma.gameHistory.deleteMany({
+      where: { gameId }
+    });
+    
+    // Also delete the game to completely remove it
+    await prisma.game.delete({
+      where: { id: gameId }
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Delete history error:", error);
+    return { error: "خطا در حذف تاریخچه بازی" };
+  }
+}

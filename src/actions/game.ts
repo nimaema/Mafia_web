@@ -297,3 +297,31 @@ export async function endGame(gameId: string, winningAlignment: string) {
     return { error: "خطا در پایان دادن به بازی" };
   }
 }
+
+export async function cancelGame(gameId: string) {
+  try {
+    await checkModerator();
+
+    const game = await prisma.game.findUnique({
+      where: { id: gameId }
+    });
+
+    if (!game) throw new Error("بازی یافت نشد");
+
+    // Delete the game entirely (players will be cascade deleted)
+    await prisma.game.delete({
+      where: { id: gameId }
+    });
+
+    // Notify clients that the game was cancelled
+    await pusherServer.trigger(`game-${gameId}`, 'game-cancelled', {});
+    
+    revalidatePath("/dashboard/moderator");
+    revalidatePath("/dashboard/user");
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Cancel game error:", error);
+    return { error: "خطا در لغو بازی" };
+  }
+}
