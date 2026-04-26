@@ -7,8 +7,8 @@ import { revalidatePath } from "next/cache";
 
 async function checkModerator() {
   const session = await auth();
-  if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
-    throw new Error("Unauthorized: Moderator access required");
+  if (!session?.user?.id || session.user.role !== "MODERATOR") {
+    throw new Error("Unauthorized: Only moderators can perform this action");
   }
   return session.user.id;
 }
