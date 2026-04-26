@@ -18,10 +18,9 @@ export default function ModeratorDashboard() {
   }, []);
 
   const handleCreateGame = async () => {
-    if (!selectedScenarioId) return alert("لطفا یک سناریو انتخاب کنید");
     setLoading(true);
     try {
-      const res = await createGame(selectedScenarioId);
+      const res = await createGame();
       if (res.success) {
         router.push(`/dashboard/moderator/lobby/${res.gameId}`);
       } else {
@@ -56,28 +55,15 @@ export default function ModeratorDashboard() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-md p-8 border border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col gap-6 animate-in fade-in zoom-in duration-300">
              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold">تنظیمات بازی جدید</h3>
+                <h3 className="text-xl font-bold">ایجاد بازی جدید</h3>
                 <button onClick={() => setShowCreateModal(false)} className="material-symbols-outlined text-zinc-400 hover:text-red-500">close</button>
              </div>
 
              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1">
-                   <label className="text-xs text-zinc-500">انتخاب سناریو</label>
-                   <select 
-                     value={selectedScenarioId}
-                     onChange={(e) => setSelectedScenarioId(e.target.value)}
-                     className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 outline-none focus:border-lime-500"
-                   >
-                     <option value="">انتخاب کنید...</option>
-                     {scenarios.map(s => (
-                       <option key={s.id} value={s.id}>{s.name} ({s.roles.reduce((a:any, b:any) => a + b.count, 0)} نفره)</option>
-                     ))}
-                   </select>
-                </div>
-
+                <p className="text-sm text-zinc-400">یک لابی جدید ایجاد کنید. بازیکنان می‌توانند به لابی متصل شوند و پس از آن می‌توانید سناریو را تنظیم کنید.</p>
                 <button 
                   onClick={handleCreateGame}
-                  disabled={loading || !selectedScenarioId}
+                  disabled={loading}
                   className="bg-lime-500 text-zinc-950 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-lime-600 transition-all shadow-lg shadow-lime-500/20 disabled:opacity-50 mt-4"
                 >
                   {loading ? (
