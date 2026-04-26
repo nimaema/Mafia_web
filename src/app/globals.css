@@ -2,54 +2,24 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --color-secondary-container: #e1d4fd;
-  --color-surface-container-low: #f8f2fa;
-  --color-on-primary: #ffffff;
-  --color-surface-container-highest: #e6e0e9;
-  --color-on-secondary-fixed: #1f1635;
-  --color-error-container: #ffdad6;
-  --color-outline: #7a7582;
-  --color-background: #fdf7ff;
-  --color-secondary: #63597c;
-  --color-on-secondary-container: #645a7d;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-variant: #e6e0e9;
-  --color-surface-container-high: #ece6ee;
-  --color-on-tertiary: #ffffff;
-  --color-primary: #4f378a;
-  --color-on-tertiary-fixed-variant: #594400;
-  --color-tertiary-fixed: #ffdf93;
-  --color-surface: #fdf7ff;
-  --color-on-tertiary-container: #503d00;
-  --color-on-secondary-fixed-variant: #4b4263;
-  --color-inverse-primary: #cfbcff;
-  --color-surface-bright: #fdf7ff;
-  --color-on-tertiary-fixed: #241a00;
-  --color-inverse-on-surface: #f5eff7;
-  --color-on-error-container: #93000a;
-  --color-inverse-surface: #322f35;
-  --color-outline-variant: #cbc4d2;
-  --color-on-secondary: #ffffff;
-  --color-on-primary-fixed: #22005d;
-  --color-error: #ba1a1a;
-  --color-on-surface: #1d1b20;
-  --color-primary-container: #6750a4;
-  --color-tertiary-fixed-dim: #e7c365;
-  --color-tertiary-container: #c9a74d;
-  --color-primary-fixed: #e9ddff;
-  --color-surface-tint: #6750a4;
-  --color-on-surface-variant: #494551;
-  --color-secondary-fixed: #e9ddff;
-  --color-tertiary: #765b00;
-  --color-secondary-fixed-dim: #cdc0e9;
-  --color-surface-dim: #ded8e0;
-  --color-surface-container: #f2ecf4;
-  --color-on-error: #ffffff;
-  --color-on-primary-fixed-variant: #4f378a;
-  --color-on-primary-container: #e0d2ff;
-  --color-on-background: #1d1b20;
-  --color-primary-fixed-dim: #cfbcff;
-
+  /* Premium Dark Theme Palette */
+  --color-primary: #84cc16; /* Lime 500 */
+  --color-primary-dark: #65a30d;
+  --color-primary-light: #bef264;
+  
+  --color-accent: #3b82f6; /* Blue 500 */
+  --color-accent-dark: #1d4ed8;
+  
+  --color-bg-dark: #0a0a0c;
+  --color-bg-slate: #0f172a; /* Dark Blue */
+  --color-bg-zinc: #18181b; /* Dark Gray */
+  
+  --color-surface: #111114;
+  --color-surface-hover: #1a1a1e;
+  
+  --color-text-main: #f8fafc;
+  --color-text-dim: #94a3b8;
+  
   --spacing-base: 4px;
   --spacing-stack-gap: 0.75rem;
   --spacing-section-gap: 2rem;

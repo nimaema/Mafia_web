@@ -92,7 +92,7 @@ export async function getWaitingGames() {
   noStore();
   return await prisma.game.findMany({
     where: { 
-      status: "WAITING" 
+      status: { in: ["WAITING", "IN_PROGRESS"] }
     },
     include: {
       moderator: {
@@ -220,6 +220,10 @@ export async function startGame(gameId: string) {
     });
 
     await pusherServer.trigger(`game-${gameId}`, 'game-started', {});
+    
+    revalidatePath("/dashboard/user");
+    revalidatePath("/dashboard/moderator");
+    revalidatePath(`/dashboard/moderator/lobby/${gameId}`);
     
     return { success: true };
   } catch (error: any) {

@@ -8,13 +8,24 @@ import {
   installStandardScenarios 
 } from "@/actions/admin";
 import { Role, Alignment } from "@prisma/client";
+import { useSearchParams } from "next/navigation";
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<"users" | "scenarios" | "roles">("users");
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get("tab") as "users" | "scenarios" | "roles") || "users";
+  const [activeTab, setActiveTab] = useState<"users" | "scenarios" | "roles">(initialTab);
   const [users, setUsers] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [scenarios, setScenarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Sync tab with URL
+  useEffect(() => {
+    const tab = searchParams.get("tab") as any;
+    if (tab && (tab === "users" || tab === "scenarios" || tab === "roles")) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   // Role Form
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
@@ -163,40 +174,43 @@ export default function AdminDashboard() {
   return (
     <div className="flex flex-col gap-8 min-h-[80vh] font-sans" dir="rtl">
       {/* Premium Header */}
-      <header className="relative overflow-hidden rounded-3xl p-8 bg-zinc-900 border border-white/5 shadow-xl">
-        <div className="absolute top-[-50%] left-[-10%] w-[50%] h-[200%] bg-lime-500/10 blur-[100px] pointer-events-none rounded-full rotate-12"></div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-lime-400 to-emerald-600 p-[1px] shadow-lg shadow-lime-500/20">
-              <div className="w-full h-full bg-zinc-900 rounded-2xl flex items-center justify-center">
-                <span className="material-symbols-outlined text-3xl bg-gradient-to-br from-lime-400 to-emerald-500 bg-clip-text text-transparent">admin_panel_settings</span>
+      {/* Premium Header */}
+      <header className="relative overflow-hidden rounded-[2.5rem] p-10 bg-zinc-950 border border-white/5 shadow-2xl">
+        <div className="absolute top-[-50%] left-[-10%] w-[60%] h-[200%] bg-lime-500/5 blur-[120px] pointer-events-none rounded-full rotate-12"></div>
+        <div className="absolute bottom-[-50%] right-[-10%] w-[40%] h-[150%] bg-blue-600/5 blur-[100px] pointer-events-none rounded-full -rotate-12"></div>
+        
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+          <div className="flex items-center gap-6">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-lime-400 to-emerald-600 p-[2px] shadow-2xl shadow-lime-500/10 group">
+              <div className="w-full h-full bg-zinc-950 rounded-[22px] flex items-center justify-center transition-transform group-hover:scale-95 duration-500">
+                <span className="material-symbols-outlined text-4xl bg-gradient-to-br from-lime-400 via-lime-200 to-emerald-500 bg-clip-text text-transparent">admin_panel_settings</span>
               </div>
             </div>
-            <div>
-              <h2 className="text-3xl font-extrabold text-white tracking-tight">پنل مدیریت</h2>
-              <p className="text-sm text-zinc-400 mt-1">مدیریت کاربران، نقش‌ها و سناریوهای بازی</p>
+            <div className="flex flex-col gap-1">
+              <h2 className="text-4xl font-black text-white tracking-tighter italic">پنل مدیریت</h2>
+              <p className="text-zinc-500 font-medium">پیکربندی هسته بازی و نظارت بر کاربران</p>
             </div>
           </div>
           
           {/* Futuristic Tabs */}
-          <div className="flex p-1.5 bg-zinc-950/50 rounded-2xl border border-white/5 backdrop-blur-md">
+          <div className="flex p-2 bg-black/40 rounded-2xl border border-white/10 backdrop-blur-3xl shadow-inner">
             <button 
               onClick={() => setActiveTab("users")}
-              className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${activeTab === "users" ? "bg-zinc-800 text-white shadow-md border border-white/10" : "text-zinc-500 hover:text-zinc-300"}`}
+              className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2.5 ${activeTab === "users" ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.3)] scale-105" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"}`}
             >
               <span className="material-symbols-outlined text-lg">group</span>
               کاربران
             </button>
             <button 
               onClick={() => setActiveTab("scenarios")}
-              className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${activeTab === "scenarios" ? "bg-zinc-800 text-white shadow-md border border-white/10" : "text-zinc-500 hover:text-zinc-300"}`}
+              className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2.5 ${activeTab === "scenarios" ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.3)] scale-105" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"}`}
             >
               <span className="material-symbols-outlined text-lg">account_tree</span>
               سناریوها
             </button>
             <button 
               onClick={() => setActiveTab("roles")}
-              className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${activeTab === "roles" ? "bg-zinc-800 text-white shadow-md border border-white/10" : "text-zinc-500 hover:text-zinc-300"}`}
+              className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2.5 ${activeTab === "roles" ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.3)] scale-105" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"}`}
             >
               <span className="material-symbols-outlined text-lg">theater_comedy</span>
               نقش‌ها
