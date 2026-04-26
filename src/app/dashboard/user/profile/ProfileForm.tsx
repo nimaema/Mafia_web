@@ -10,22 +10,6 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
   const { update } = useSession();
   const { showToast, showAlert } = usePopup();
 
-  useEffect(() => {
-    if (result?.success) {
-      showToast("پروفایل با موفقیت بروزرسانی شد", "success");
-    } else if (result?.error) {
-      showAlert("خطا", result.error || "خطا در بروزرسانی", "error");
-    }
-  }, [result]);
-
-  useEffect(() => {
-    if (pwdResult?.success) {
-      showToast(hasPassword ? "رمز عبور تغییر یافت" : "رمز عبور ایجاد شد", "success");
-    } else if (pwdResult?.error) {
-      showAlert("خطا", pwdResult.error || "خطا در تغییر رمز عبور", "error");
-    }
-  }, [pwdResult]);
-
   const [result, action, isPending] = useActionState(
     async (prevState: any, formData: FormData) => {
       const res = await updateProfile(formData);
@@ -44,6 +28,22 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
     },
     null
   );
+
+  useEffect(() => {
+    if (result?.success) {
+      showToast("پروفایل با موفقیت بروزرسانی شد", "success");
+    } else if (result?.error) {
+      showAlert("خطا", result.error || "خطا در بروزرسانی", "error");
+    }
+  }, [result]);
+
+  useEffect(() => {
+    if (pwdResult?.success) {
+      showToast(hasPassword ? "رمز عبور تغییر یافت" : "رمز عبور ایجاد شد", "success");
+    } else if (pwdResult?.error) {
+      showAlert("خطا", pwdResult.error || "خطا در تغییر رمز عبور", "error");
+    }
+  }, [pwdResult]);
 
   return (
     <div className="flex flex-col gap-10">
