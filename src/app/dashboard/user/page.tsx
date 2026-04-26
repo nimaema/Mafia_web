@@ -19,6 +19,8 @@ export default function UserDashboard() {
     roleHistory: any[];
     recentGames: any[];
     currentActiveGame?: any;
+    userName?: string | null;
+    userEmail?: string | null;
   } | null>(null);
   const [activeGames, setActiveGames] = useState<any[]>([]);
   const [selectedHistoryGame, setSelectedHistoryGame] = useState<any | null>(null);
@@ -84,8 +86,8 @@ export default function UserDashboard() {
 
         <div className="flex flex-col items-center md:items-start z-10 gap-3">
           <div className="flex flex-col items-center md:items-start">
-            <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter italic">{session?.user?.name || "کاربر مهمان"}</h2>
-            <p className="text-slate-500 dark:text-zinc-500 font-medium tracking-tight mt-1">{session?.user?.email || "نامشخص"}</p>
+            <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter italic">{data?.userName || session?.user?.name || "کاربر مهمان"}</h2>
+            <p className="text-slate-500 dark:text-zinc-500 font-medium tracking-tight mt-1">{data?.userEmail || session?.user?.email || "نامشخص"}</p>
           </div>
           
           <div className="flex gap-3">

@@ -11,6 +11,11 @@ export async function getUserStats() {
 
   const userId = session.user.id;
 
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, email: true }
+  });
+
   const totalGames = await prisma.gameHistory.count({
     where: { userId }
   });
@@ -85,6 +90,8 @@ export async function getUserStats() {
   });
 
   return {
+    userName: dbUser?.name,
+    userEmail: dbUser?.email,
     currentActiveGame: activePlayerRecord?.game ? {
       id: activePlayerRecord.game.id,
       scenarioName: activePlayerRecord.game.scenario?.name || "ناشناس",

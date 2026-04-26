@@ -48,7 +48,7 @@ export default async function ProfilePage() {
             )}
           </div>
           <div>
-            <h2 className="font-bold text-lg">{session.user.name}</h2>
+            <h2 className="font-bold text-lg">{dbUser?.name || session.user.name}</h2>
             <p className="text-zinc-500 text-sm">{session.user.role === 'ADMIN' ? 'مدیر' : session.user.role === 'MODERATOR' ? 'گرداننده' : 'بازیکن'}</p>
           </div>
         </div>

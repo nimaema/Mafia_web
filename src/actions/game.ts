@@ -37,11 +37,24 @@ export async function joinGame(code: string, playerName: string, password?: stri
       return { error: "رمز عبور اشتباه است" };
     }
 
+    // If userId is provided, ensure we use the latest name from the database 
+    // instead of relying on the client-provided name (which might be stale from session)
+    let finalPlayerName = playerName;
+    if (userId) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true }
+      });
+      if (dbUser?.name) {
+        finalPlayerName = dbUser.name;
+      }
+    }
+
     // Save to DB
     const player = await prisma.gamePlayer.create({
       data: {
         gameId: game.id,
-        name: playerName,
+        name: finalPlayerName,
         userId: userId || null,
       }
     });
@@ -50,7 +63,7 @@ export async function joinGame(code: string, playerName: string, password?: stri
     await pusherServer.trigger(`game-${game.id}`, 'player-joined', {
       player: {
         id: player.id,
-        name: playerName
+        name: finalPlayerName
       }
     });
 
