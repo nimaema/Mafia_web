@@ -2,7 +2,10 @@ import { Vazirmatn } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const vazirmatn = Vazirmatn({ subsets: ["arabic", "latin"] });
+const vazirmatn = Vazirmatn({ 
+  subsets: ["arabic", "latin"],
+  variable: "--font-vazirmatn",
+});
 
 import type { Metadata, Viewport } from "next";
 
@@ -33,7 +36,7 @@ export default function RootLayout({
       <head>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
       </head>
-      <body className={`${vazirmatn.className} antialiased`}>
+      <body className={`${vazirmatn.variable} font-sans antialiased`}>
         <Providers>
           {children}
         </Providers>

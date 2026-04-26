@@ -26,6 +26,10 @@
   --spacing-gutter: 1rem;
   --spacing-container-padding: 1.5rem;
 
+  /* Fonts */
+  --font-sans: var(--font-vazirmatn), ui-sans-serif, system-ui, sans-serif;
+  --font-vazir: var(--font-vazirmatn), sans-serif;
+
   --font-h2: 1.5rem;
   --font-body-md: 1rem;
   --font-body-lg: 1.125rem;

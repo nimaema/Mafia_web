@@ -11,8 +11,8 @@ const config: Config = {
     extend: {
       fontFamily: {
         // Vazirmatn as the global RTL Persian font
-        sans: ["Vazirmatn", "ui-sans-serif", "system-ui", "sans-serif"],
-        vazir: ["Vazirmatn", "sans-serif"],
+        sans: ["var(--font-vazirmatn)", "ui-sans-serif", "system-ui", "sans-serif"],
+        vazir: ["var(--font-vazirmatn)", "sans-serif"],
       },
       colors: {
         // Design system lime accent
