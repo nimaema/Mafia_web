@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createGame, getModeratorGames } from "@/actions/game";
+import { createGame, getModeratorGames, cancelGame } from "@/actions/game";
 import { getScenarios } from "@/actions/admin";
 
 export default function ModeratorDashboard() {
@@ -37,6 +37,21 @@ export default function ModeratorDashboard() {
     } catch (error) {
       console.error(error);
       setLoading(false);
+    }
+  };
+
+  const handleCancelGame = async (gameId: string) => {
+    if (!confirm("آیا از لغو و حذف این لابی اطمینان دارید؟")) return;
+    try {
+      const res = await cancelGame(gameId);
+      if (res.success) {
+        refreshGames();
+      } else {
+        alert(res.error || "خطا در لغو بازی");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("خطای شبکه");
     }
   };
 
@@ -122,7 +137,7 @@ export default function ModeratorDashboard() {
                 <span className="material-symbols-outlined text-6xl text-zinc-700">videogame_asset_off</span>
               </div>
               <div className="flex flex-col gap-2">
-                <p className="text-xl font-bold text-zinc-500">هیچ نبردی در جریان نیست</p>
+                <p className="text-xl font-bold text-zinc-500">هیچ بازی در جریان نیست</p>
                 <p className="text-sm text-zinc-600">برای شروع هیجان، اولین لابی خود را بسازید</p>
               </div>
               <button onClick={() => setShowCreateModal(true)} className="px-8 py-3 bg-zinc-800 text-white rounded-xl font-bold hover:bg-lime-500 hover:text-zinc-950 transition-all">ایجاد اولین بازی</button>
@@ -170,6 +185,13 @@ export default function ModeratorDashboard() {
                   <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
 
                   <div className="flex gap-4 relative z-10">
+                    <button
+                      onClick={() => handleCancelGame(game.id)}
+                      className="flex-[0.3] bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-4 rounded-2xl text-center font-black text-sm transition-all flex items-center justify-center border border-red-500/20 hover:border-red-500"
+                      title="لغو لابی"
+                    >
+                      <span className="material-symbols-outlined text-xl">delete</span>
+                    </button>
                     <Link 
                       href={game.status === 'WAITING' ? `/dashboard/moderator/lobby/${game.id}` : `/dashboard/moderator/game/${game.id}`}
                       className="flex-1 bg-white/5 hover:bg-lime-500 text-white hover:text-zinc-950 py-4 rounded-2xl text-center font-black text-sm transition-all flex items-center justify-center gap-3 group border border-white/5 hover:border-lime-500/50"
