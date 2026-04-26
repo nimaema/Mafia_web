@@ -23,7 +23,7 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="bg-gray-300 dark:bg-[#0a0a0c] text-slate-900 dark:text-zinc-100 min-h-screen pb-20 md:pb-0 flex flex-col md:flex-row transition-all duration-500" dir="rtl">
+    <div className="bg-slate-100 dark:bg-[#0a0a0c] text-slate-900 dark:text-zinc-100 min-h-screen pb-20 md:pb-0 flex flex-col md:flex-row items-start transition-all duration-500" dir="rtl">
       {/* Premium Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-lime-500/5 blur-[150px] rounded-full animate-pulse-slow"></div>
@@ -31,7 +31,7 @@ export default async function DashboardLayout({
       </div>
 
       {/* Desktop Sidebar */}
-      <aside className="relative z-10 hidden md:flex flex-col w-80 bg-[#ffffffcc] dark:bg-black/40 backdrop-blur-3xl border-l border-[#0f172a]/10 dark:border-white/5 h-screen p-8 sticky top-0 transition-all duration-300 shadow-2xl">
+      <aside className="relative z-10 hidden md:flex flex-col w-80 bg-white/90 dark:bg-black/40 backdrop-blur-3xl border-l border-slate-300 dark:border-white/5 h-screen p-8 sticky top-0 transition-all duration-300 shadow-xl">
         <div className="flex items-center gap-4 mb-12 px-2">
           <div className="w-14 h-14 bg-gradient-to-br from-lime-400 to-lime-600 rounded-2xl flex items-center justify-center shadow-xl shadow-lime-500/20 rotate-3">
             <span className="material-symbols-outlined text-zinc-950 text-3xl font-black">theater_comedy</span>
@@ -111,7 +111,7 @@ export default async function DashboardLayout({
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-4 left-4 right-4 bg-[#ffffffcc] dark:bg-zinc-950/80 backdrop-blur-3xl border border-[#0f172a]/10 dark:border-white/10 flex justify-around items-center h-20 z-50 rounded-[2rem] px-4 shadow-[0_20px_50px_rgba(15,23,42,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all">
+      <nav className="md:hidden fixed bottom-4 left-4 right-4 bg-[#ffffffcc] dark:bg-zinc-950/80 backdrop-blur-3xl border border-slate-200 dark:border-white/10 flex justify-around items-center h-20 z-50 rounded-[2rem] px-4 shadow-[0_20px_50px_rgba(15,23,42,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all">
         <Link href="/dashboard/user" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-white">
           <span className="material-symbols-outlined text-2xl">dashboard</span>
           <span className="text-[9px] font-black uppercase tracking-tighter">داشبورد</span>

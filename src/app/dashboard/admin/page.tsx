@@ -180,7 +180,7 @@ export default function AdminDashboard() {
     <div className="flex flex-col gap-8 min-h-[80vh] font-sans" dir="rtl">
       {/* Premium Header */}
       {/* Premium Header */}
-      <header className="relative overflow-hidden rounded-[2.5rem] p-10 bg-white dark:bg-zinc-950 border border-[#0f172a]/10 dark:border-white/5 shadow-2xl">
+      <header className="relative overflow-hidden rounded-[2.5rem] p-10 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/5 shadow-2xl">
         <div className="absolute top-[-50%] left-[-10%] w-[60%] h-[200%] bg-lime-500/5 blur-[120px] pointer-events-none rounded-full rotate-12"></div>
         <div className="absolute bottom-[-50%] right-[-10%] w-[40%] h-[150%] bg-blue-600/5 blur-[100px] pointer-events-none rounded-full -rotate-12"></div>
         
@@ -227,9 +227,9 @@ export default function AdminDashboard() {
       </header>
 
       {/* Main Content Area */}
-      <main className="bg-gray-200 dark:bg-zinc-900/50 backdrop-blur-xl rounded-3xl border border-[#0f172a]/10 dark:border-white/5 shadow-2xl overflow-hidden min-h-[500px] relative">
+      <main className="bg-white dark:bg-zinc-900/50 backdrop-blur-xl rounded-3xl border border-slate-200 dark:border-white/5 shadow-2xl overflow-hidden min-h-[500px] relative">
         {loading ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-200 dark:bg-zinc-900/80 backdrop-blur-sm z-50 gap-4">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white dark:bg-zinc-900/80 backdrop-blur-sm z-50 gap-4">
             <div className="w-12 h-12 border-4 border-zinc-800 border-t-lime-500 rounded-full animate-spin"></div>
             <p className="text-slate-600 dark:text-zinc-400 font-medium">در حال بارگذاری اطلاعات...</p>
           </div>
@@ -239,7 +239,7 @@ export default function AdminDashboard() {
               <div className="overflow-x-auto p-2">
                 <table className="w-full text-right border-collapse">
                   <thead>
-                    <tr className="border-b border-[#0f172a]/10 dark:border-white/5">
+                    <tr className="border-b border-slate-200 dark:border-white/5">
                       <th className="p-5 font-semibold text-slate-600 dark:text-zinc-400 text-sm">کاربر</th>
                       <th className="p-5 font-semibold text-slate-600 dark:text-zinc-400 text-sm">ایمیل</th>
                       <th className="p-5 font-semibold text-slate-600 dark:text-zinc-400 text-sm">دسترسی</th>
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
                             {user.role !== "MODERATOR" && user.role !== "ADMIN" && (
                               <button 
                                 onClick={() => handleRoleUpdate(user.id, "MODERATOR")}
-                                className="text-xs px-3 py-1.5 bg-zinc-800 border border-[#0f172a]/10 dark:border-white/5 text-zinc-300 rounded-lg hover:bg-lime-500/20 hover:text-lime-400 hover:border-lime-500/30 transition-all"
+                                className="text-xs px-3 py-1.5 bg-zinc-800 border border-slate-200 dark:border-white/5 text-zinc-300 rounded-lg hover:bg-lime-500/20 hover:text-lime-400 hover:border-lime-500/30 transition-all"
                               >
                                 ارتقا به گرداننده
                               </button>
@@ -283,7 +283,7 @@ export default function AdminDashboard() {
                             {user.role !== "USER" && user.role !== "ADMIN" && (
                               <button 
                                 onClick={() => handleRoleUpdate(user.id, "USER")}
-                                className="text-xs px-3 py-1.5 bg-zinc-800 border border-[#0f172a]/10 dark:border-white/5 text-zinc-300 rounded-lg hover:bg-orange-500/20 hover:text-orange-600 dark:text-orange-400 hover:border-orange-500/30 transition-all"
+                                className="text-xs px-3 py-1.5 bg-zinc-800 border border-slate-200 dark:border-white/5 text-zinc-300 rounded-lg hover:bg-orange-500/20 hover:text-orange-600 dark:text-orange-400 hover:border-orange-500/30 transition-all"
                               >
                                 سلب دسترسی
                               </button>
@@ -297,7 +297,7 @@ export default function AdminDashboard() {
                                   } catch (e: any) { alert(e.message); }
                                 }
                               }}
-                              className={`text-xs px-3 py-1.5 bg-zinc-800 border border-[#0f172a]/10 dark:border-white/5 rounded-lg transition-all ${user.isBanned ? 'text-green-600 dark:text-green-400 hover:bg-green-500/20 hover:border-green-500/30' : 'text-red-600 dark:text-red-400 hover:bg-red-500/20 hover:border-red-500/30'}`}
+                              className={`text-xs px-3 py-1.5 bg-zinc-800 border border-slate-200 dark:border-white/5 rounded-lg transition-all ${user.isBanned ? 'text-green-600 dark:text-green-400 hover:bg-green-500/20 hover:border-green-500/30' : 'text-red-600 dark:text-red-400 hover:bg-red-500/20 hover:border-red-500/30'}`}
                             >
                               {user.isBanned ? 'رفع مسدودیت' : 'مسدود کردن'}
                             </button>
@@ -310,7 +310,7 @@ export default function AdminDashboard() {
                                   } catch (e: any) { alert(e.message); }
                                 }
                               }}
-                              className="text-xs px-3 py-1.5 bg-zinc-800 border border-[#0f172a]/10 dark:border-white/5 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/20 hover:border-red-500/30 transition-all"
+                              className="text-xs px-3 py-1.5 bg-zinc-800 border border-slate-200 dark:border-white/5 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/20 hover:border-red-500/30 transition-all"
                             >
                               حذف کامل
                             </button>
@@ -326,7 +326,7 @@ export default function AdminDashboard() {
             {activeTab === "roles" && (
               <div className="flex flex-col lg:flex-row h-full min-h-[600px]">
                 {/* Modern Form */}
-                <div className="w-full lg:w-96 p-8 border-l border-[#0f172a]/10 dark:border-white/5 bg-white dark:bg-zinc-950/30">
+                <div className="w-full lg:w-96 p-8 border-l border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-950/30">
                   <div className="flex items-center justify-between mb-8">
                     <h4 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <span className={`material-symbols-outlined ${editingRoleId ? 'text-blue-600 dark:text-blue-400' : 'text-lime-400'}`}>
@@ -342,7 +342,7 @@ export default function AdminDashboard() {
                           setNewRoleDesc("");
                           setNewRoleAlign("CITIZEN");
                         }}
-                        className="text-xs text-slate-500 dark:text-zinc-500 hover:text-red-600 dark:text-red-400 transition-colors bg-gray-200 dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-[#0f172a]/10 dark:border-white/5"
+                        className="text-xs text-slate-500 dark:text-zinc-500 hover:text-red-600 dark:text-red-400 transition-colors bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-slate-200 dark:border-white/5"
                       >
                         لغو ویرایش
                       </button>
@@ -355,7 +355,7 @@ export default function AdminDashboard() {
                         value={newRoleName}
                         onChange={(e) => setNewRoleName(e.target.value)}
                         required
-                        className="bg-gray-200 dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner" 
+                        className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner" 
                         placeholder="مثلا: تفنگدار"
                       />
                     </div>
@@ -364,7 +364,7 @@ export default function AdminDashboard() {
                       <select 
                         value={newRoleAlign}
                         onChange={(e) => setNewRoleAlign(e.target.value as Alignment)}
-                        className="bg-gray-200 dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white outline-none focus:border-lime-500/50 transition-all shadow-inner appearance-none"
+                        className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white outline-none focus:border-lime-500/50 transition-all shadow-inner appearance-none"
                       >
                         <option value="CITIZEN">شهروند</option>
                         <option value="MAFIA">مافیا</option>
@@ -376,7 +376,7 @@ export default function AdminDashboard() {
                       <textarea 
                         value={newRoleDesc}
                         onChange={(e) => setNewRoleDesc(e.target.value)}
-                        className="bg-gray-200 dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner h-28 resize-none" 
+                        className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner h-28 resize-none" 
                         placeholder="در شب چه کاری انجام میدهد؟"
                       />
                     </div>
@@ -387,10 +387,10 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Role List Cards */}
-                <div className="flex-1 p-8 overflow-y-auto max-h-[800px] bg-gray-200 dark:bg-zinc-900/20">
+                <div className="flex-1 p-8 overflow-y-auto max-h-[800px] bg-white dark:bg-zinc-900/20">
                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                       {roles.map((role) => (
-                        <div key={role.id} className="group p-5 rounded-2xl border border-[#0f172a]/10 dark:border-white/5 bg-gray-200 dark:bg-zinc-900 hover:bg-zinc-800 transition-all hover:border-[#0f172a]/20 dark:border-white/10 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden flex flex-col gap-3">
+                        <div key={role.id} className="group p-5 rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-900 hover:bg-zinc-800 transition-all hover:border-[#0f172a]/20 dark:border-white/10 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden flex flex-col gap-3">
                            {/* Alignment Glow */}
                            <div className={`absolute -top-10 -right-10 w-24 h-24 blur-3xl rounded-full opacity-20 transition-opacity group-hover:opacity-40 ${role.alignment === 'CITIZEN' ? 'bg-green-500' : role.alignment === 'MAFIA' ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
                            
@@ -404,7 +404,7 @@ export default function AdminDashboard() {
                            </div>
                            <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed relative z-10 flex-1">{role.description || "بدون توضیحات"}</p>
                            
-                           <div className="flex gap-2 mt-2 pt-3 border-t border-[#0f172a]/10 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 relative z-10">
+                           <div className="flex gap-2 mt-2 pt-3 border-t border-slate-200 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 relative z-10">
                               <button 
                                 onClick={() => handleEditRole(role)}
                                 className="flex-1 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors border border-transparent hover:border-blue-500/20"
@@ -430,7 +430,7 @@ export default function AdminDashboard() {
             {activeTab === "scenarios" && (
               <div className="flex flex-col lg:flex-row h-full min-h-[600px]">
                 {/* Form */}
-                <div className="w-full lg:w-[420px] p-8 border-l border-[#0f172a]/10 dark:border-white/5 bg-white dark:bg-zinc-950/30 flex flex-col h-full">
+                <div className="w-full lg:w-[420px] p-8 border-l border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-950/30 flex flex-col h-full">
                   <div className="flex justify-between items-center mb-8">
                     <h4 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <span className={`material-symbols-outlined ${editingScenarioId ? 'text-blue-600 dark:text-blue-400' : 'text-lime-400'}`}>
@@ -446,7 +446,7 @@ export default function AdminDashboard() {
                           setNewScenDesc("");
                           setSelectedRoles([]);
                         }}
-                        className="text-xs text-slate-500 dark:text-zinc-500 hover:text-red-600 dark:text-red-400 transition-colors bg-gray-200 dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-[#0f172a]/10 dark:border-white/5"
+                        className="text-xs text-slate-500 dark:text-zinc-500 hover:text-red-600 dark:text-red-400 transition-colors bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-slate-200 dark:border-white/5"
                       >
                         لغو
                       </button>
@@ -472,13 +472,13 @@ export default function AdminDashboard() {
                       onChange={(e) => setNewScenName(e.target.value)}
                       required
                       placeholder="نام سناریو (مثلا: تکاور ۱۵ نفره)"
-                      className="bg-gray-200 dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 outline-none transition-all"
+                      className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 outline-none transition-all"
                     />
                     <textarea 
                       value={newScenDesc}
                       onChange={(e) => setNewScenDesc(e.target.value)}
                       placeholder="توضیحات کوتاه در مورد قوانین این سناریو..."
-                      className="bg-gray-200 dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 outline-none transition-all h-20 resize-none"
+                      className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 outline-none transition-all h-20 resize-none"
                     />
                     
                     <div className="flex flex-col gap-3 flex-1 overflow-hidden">
@@ -490,7 +490,7 @@ export default function AdminDashboard() {
                       </div>
                       
                       {/* Role Selector Box */}
-                      <div className="flex-1 overflow-y-auto border border-[#0f172a]/10 dark:border-white/5 rounded-xl bg-gray-200 dark:bg-zinc-900/30 p-2 custom-scrollbar">
+                      <div className="flex-1 overflow-y-auto border border-slate-200 dark:border-white/5 rounded-xl bg-white dark:bg-zinc-900/30 p-2 custom-scrollbar">
                         <div className="flex flex-col gap-1">
                           {roles.map(role => {
                             const isSelected = !!selectedRoles.find(r => r.roleId === role.id);
@@ -512,7 +512,7 @@ export default function AdminDashboard() {
                                 </div>
                                 
                                 {isSelected && (
-                                  <div className="flex items-center gap-3 bg-white dark:bg-zinc-950 px-2 py-1 rounded-md border border-[#0f172a]/10 dark:border-white/5">
+                                  <div className="flex items-center gap-3 bg-white dark:bg-zinc-950 px-2 py-1 rounded-md border border-slate-200 dark:border-white/5">
                                     <button type="button" onClick={() => updateRoleCount(role.id, -1)} className="text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:text-white transition-colors"><span className="material-symbols-outlined text-[16px]">remove</span></button>
                                     <span className="text-sm font-bold text-slate-900 dark:text-white w-4 text-center">{selectedRoles.find(r => r.roleId === role.id)?.count}</span>
                                     <button type="button" onClick={() => updateRoleCount(role.id, 1)} className="text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:text-white transition-colors"><span className="material-symbols-outlined text-[16px]">add</span></button>
@@ -532,10 +532,10 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Scenario List */}
-                <div className="flex-1 p-8 overflow-y-auto max-h-[800px] bg-gray-200 dark:bg-zinc-900/20">
+                <div className="flex-1 p-8 overflow-y-auto max-h-[800px] bg-white dark:bg-zinc-900/20">
                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                       {scenarios.map((scen) => (
-                        <div key={scen.id} className="p-6 rounded-3xl border border-[#0f172a]/10 dark:border-white/5 bg-gray-200 dark:bg-zinc-900 hover:bg-zinc-800/80 transition-all hover:border-[#0f172a]/20 dark:border-white/10 hover:shadow-2xl relative overflow-hidden flex flex-col gap-4 group">
+                        <div key={scen.id} className="p-6 rounded-3xl border border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-900 hover:bg-zinc-800/80 transition-all hover:border-[#0f172a]/20 dark:border-white/10 hover:shadow-2xl relative overflow-hidden flex flex-col gap-4 group">
                            <div className="absolute top-0 right-0 w-32 h-32 bg-lime-500/5 blur-[80px] rounded-full pointer-events-none"></div>
                            
                            <div className="flex justify-between items-start relative z-10">
@@ -549,10 +549,10 @@ export default function AdminDashboard() {
                                 </span>
                                 
                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button onClick={() => handleEditScenario(scen)} className="w-8 h-8 rounded-full bg-zinc-800 border border-[#0f172a]/10 dark:border-white/5 flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors">
+                                  <button onClick={() => handleEditScenario(scen)} className="w-8 h-8 rounded-full bg-zinc-800 border border-slate-200 dark:border-white/5 flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors">
                                     <span className="material-symbols-outlined text-[16px]">edit</span>
                                   </button>
-                                  <button onClick={() => handleDeleteScenario(scen.id)} className="w-8 h-8 rounded-full bg-zinc-800 border border-[#0f172a]/10 dark:border-white/5 flex items-center justify-center text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors">
+                                  <button onClick={() => handleDeleteScenario(scen.id)} className="w-8 h-8 rounded-full bg-zinc-800 border border-slate-200 dark:border-white/5 flex items-center justify-center text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors">
                                     <span className="material-symbols-outlined text-[16px]">delete</span>
                                   </button>
                                 </div>

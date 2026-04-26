@@ -143,7 +143,7 @@ export default function GameLobbyPage() {
       </header>
 
       <section className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-gray-200 dark:bg-zinc-950/50">
+        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-white dark:bg-zinc-950/50">
           <h3 className="font-semibold text-zinc-700 dark:text-zinc-300">بازیکنان حاضر ({players.length})</h3>
         </div>
         
@@ -200,7 +200,7 @@ export default function GameLobbyPage() {
                onChange={(e) => handleSelectScenario(e.target.value)}
                value=""
                disabled={settingScenario}
-               className="bg-gray-200 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 outline-none focus:border-lime-500 w-full disabled:opacity-50"
+               className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 outline-none focus:border-lime-500 w-full disabled:opacity-50"
              >
                <option value="">یک سناریو از پیش تعریف شده انتخاب کنید...</option>
                {scenarios.map(s => (
@@ -248,7 +248,7 @@ export default function GameLobbyPage() {
                   {roles.map(role => {
                     const count = customRoles.find(r => r.roleId === role.id)?.count || 0;
                     return (
-                      <div key={role.id} className="flex items-center justify-between p-3 border border-zinc-100 dark:border-zinc-800 rounded-xl bg-gray-200 dark:bg-zinc-950/50">
+                      <div key={role.id} className="flex items-center justify-between p-3 border border-zinc-100 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950/50">
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${role.alignment === 'MAFIA' ? 'bg-red-500/10 text-red-600 dark:text-red-400' : role.alignment === 'CITIZEN' ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'}`}>
                             {role.name.substring(0, 1)}

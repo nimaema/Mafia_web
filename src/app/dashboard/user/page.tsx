@@ -64,7 +64,7 @@ export default function UserDashboard() {
   return (
     <div className="flex flex-col gap-10 font-sans">
       {/* Header Profile Section */}
-      <section className="bg-white dark:bg-zinc-950 rounded-[2.5rem] p-10 border border-[#0f172a]/10 dark:border-white/5 shadow-2xl flex flex-col md:flex-row items-center gap-10 relative overflow-hidden group">
+      <section className="bg-white dark:bg-zinc-950 rounded-[2.5rem] p-10 border border-slate-200 dark:border-white/5 shadow-2xl flex flex-col md:flex-row items-center gap-10 relative overflow-hidden group">
         <div className="absolute top-[-50%] right-[-10%] w-[50%] h-[200%] bg-lime-500/5 blur-[120px] pointer-events-none rounded-full rotate-12"></div>
         
         <div className="relative">
@@ -92,7 +92,7 @@ export default function UserDashboard() {
             <div className="px-4 py-2 bg-[#0f172a]/5 dark:bg-white/5 border border-[#0f172a]/20 dark:border-white/10 text-lime-600 dark:text-lime-400 text-xs font-black uppercase tracking-widest rounded-xl backdrop-blur-md">
               {session?.user?.role === 'ADMIN' ? 'مدیر سیستم' : session?.user?.role === 'MODERATOR' ? 'گرداننده رسمی' : 'بازیکن فعال'}
             </div>
-            <Link href="/dashboard/user/profile" className="px-4 py-2 bg-gray-200 dark:bg-zinc-900 border border-[#0f172a]/10 dark:border-white/5 text-slate-700 dark:text-zinc-300 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-zinc-950 transition-all flex items-center gap-2 shadow-lg">
+            <Link href="/dashboard/user/profile" className="px-4 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/5 text-slate-700 dark:text-zinc-300 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-zinc-950 transition-all flex items-center gap-2 shadow-lg">
               <span className="material-symbols-outlined text-sm">edit</span>
               ویرایش پروفایل
             </Link>
@@ -101,8 +101,8 @@ export default function UserDashboard() {
       </section>
 
       {/* Active Games / Lobby */}
-      <section className="bg-gray-200 dark:bg-zinc-900/40 rounded-[2.5rem] border border-lime-500/20 shadow-[0_0_50px_rgba(132,204,22,0.05)] overflow-hidden flex flex-col backdrop-blur-3xl">
-        <div className="p-8 border-b border-[#0f172a]/10 dark:border-white/5 flex justify-between items-center bg-[#0f172a]/5 dark:bg-black/20">
+      <section className="bg-white dark:bg-zinc-900/40 rounded-[2.5rem] border border-lime-500/20 shadow-[0_0_50px_rgba(132,204,22,0.05)] overflow-hidden flex flex-col backdrop-blur-3xl">
+        <div className="p-8 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-[#0f172a]/5 dark:bg-black/20">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-lime-500 font-black">sensors</span>
@@ -149,7 +149,7 @@ export default function UserDashboard() {
 
           {activeGames.length === 0 ? (
             <div className="py-20 text-center flex flex-col items-center gap-6 opacity-40">
-              <div className="w-20 h-20 rounded-full bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center border border-[#0f172a]/10 dark:border-white/5">
+              <div className="w-20 h-20 rounded-full bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center border border-slate-200 dark:border-white/5">
                 <span className="material-symbols-outlined text-4xl text-slate-400 dark:text-zinc-600">radar</span>
               </div>
               <div className="flex flex-col gap-2">
@@ -163,7 +163,7 @@ export default function UserDashboard() {
                 <Link 
                   key={game.id} 
                   href={`/lobby/${game.id}`}
-                  className="group p-8 rounded-[2rem] border border-[#0f172a]/10 dark:border-white/5 bg-white dark:bg-zinc-950 hover:border-lime-500/40 hover:shadow-2xl hover:shadow-lime-500/5 transition-all flex flex-col gap-6 relative overflow-hidden"
+                  className="group p-8 rounded-[2rem] border border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-950 hover:border-lime-500/40 hover:shadow-2xl hover:shadow-lime-500/5 transition-all flex flex-col gap-6 relative overflow-hidden"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-lime-500/5 blur-[40px] pointer-events-none"></div>
                   
@@ -175,7 +175,7 @@ export default function UserDashboard() {
                         {game.moderator?.name || "گرداننده"}
                       </span>
                     </div>
-                    <div className="bg-gray-200 dark:bg-zinc-900 border border-[#0f172a]/10 dark:border-white/5 text-lime-600 dark:text-lime-400 text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-inner">
+                    <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/5 text-lime-600 dark:text-lime-400 text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-inner">
                       {game.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0)} P
                     </div>
                   </div>
@@ -210,7 +210,7 @@ export default function UserDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Win/Loss Pie Chart */}
-        <section className="bg-white dark:bg-zinc-950 rounded-[2.5rem] p-10 border border-[#0f172a]/10 dark:border-white/5 shadow-2xl flex flex-col gap-8 group">
+        <section className="bg-white dark:bg-zinc-950 rounded-[2.5rem] p-10 border border-slate-200 dark:border-white/5 shadow-2xl flex flex-col gap-8 group">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-blue-500 font-black">pie_chart</span>
@@ -257,7 +257,7 @@ export default function UserDashboard() {
         </section>
 
         {/* Roles History Bar Chart */}
-        <section className="bg-white dark:bg-zinc-950 rounded-[2.5rem] p-10 border border-[#0f172a]/10 dark:border-white/5 shadow-2xl flex flex-col gap-8 group">
+        <section className="bg-white dark:bg-zinc-950 rounded-[2.5rem] p-10 border border-slate-200 dark:border-white/5 shadow-2xl flex flex-col gap-8 group">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-lime-500 font-black">bar_chart</span>
@@ -294,10 +294,10 @@ export default function UserDashboard() {
       </div>
 
       {/* Recent Games List */}
-      <section className="bg-white dark:bg-zinc-950 rounded-[2.5rem] border border-[#0f172a]/10 dark:border-white/5 shadow-2xl overflow-hidden flex flex-col">
-        <div className="p-8 border-b border-[#0f172a]/10 dark:border-white/5 flex justify-between items-center bg-[#0f172a]/5 dark:bg-black/20">
+      <section className="bg-white dark:bg-zinc-950 rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-2xl overflow-hidden flex flex-col">
+        <div className="p-8 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-[#0f172a]/5 dark:bg-black/20">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-[#0f172a]/10 dark:border-white/5 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-slate-200 dark:border-white/5 flex items-center justify-center">
               <span className="material-symbols-outlined text-slate-600 dark:text-zinc-400 font-black">history</span>
             </div>
             <div className="flex flex-col">
@@ -305,14 +305,14 @@ export default function UserDashboard() {
               <p className="text-xs text-slate-500 dark:text-zinc-500">تاریخچه آخرین فعالیت‌های شما در بازی</p>
             </div>
           </div>
-          <Link href="/dashboard/user/history" className="px-6 py-2.5 bg-[#0f172a]/5 dark:bg-white/5 hover:bg-white/10 text-slate-900 dark:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all border border-[#0f172a]/10 dark:border-white/5">مشاهده بایگانی</Link>
+          <Link href="/dashboard/user/history" className="px-6 py-2.5 bg-[#0f172a]/5 dark:bg-white/5 hover:bg-white/10 text-slate-900 dark:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all border border-slate-200 dark:border-white/5">مشاهده بایگانی</Link>
         </div>
         
         <div className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {recentGames.length === 0 ? (
               <div className="col-span-full py-20 text-center flex flex-col items-center gap-6 opacity-40">
-                <div className="w-20 h-20 rounded-full bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center border border-[#0f172a]/10 dark:border-white/5">
+                <div className="w-20 h-20 rounded-full bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center border border-slate-200 dark:border-white/5">
                   <span className="material-symbols-outlined text-4xl text-slate-400 dark:text-zinc-600">history_toggle_off</span>
                 </div>
                 <p className="text-sm font-black text-slate-500 dark:text-zinc-500 italic">هنوز در هیچ بازی شرکت نکرده‌اید</p>
@@ -322,7 +322,7 @@ export default function UserDashboard() {
                 <div 
                   key={game.id} 
                   onClick={() => setSelectedHistoryGame(game)}
-                  className="p-6 rounded-3xl border border-[#0f172a]/10 dark:border-white/5 bg-gray-200 dark:bg-zinc-900/50 hover:bg-zinc-800/80 transition-all cursor-pointer group flex items-center justify-between relative overflow-hidden"
+                  className="p-6 rounded-3xl border border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-900/50 hover:bg-zinc-800/80 transition-all cursor-pointer group flex items-center justify-between relative overflow-hidden"
                 >
                   <div className={`absolute left-0 top-0 bottom-0 w-1 ${game.result === 'WIN' ? 'bg-lime-500' : 'bg-red-500'}`}></div>
                   
@@ -354,7 +354,7 @@ export default function UserDashboard() {
       {/* Game History Details Modal */}
       {selectedHistoryGame && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[100] flex items-center justify-center p-6">
-          <div className="bg-gray-200 dark:bg-zinc-900 rounded-[3rem] w-full max-w-2xl p-10 border border-[#0f172a]/20 dark:border-white/10 shadow-3xl flex flex-col gap-10 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-500 relative">
+          <div className="bg-white dark:bg-zinc-900 rounded-[3rem] w-full max-w-2xl p-10 border border-[#0f172a]/20 dark:border-white/10 shadow-3xl flex flex-col gap-10 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-500 relative">
              <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-lime-500/5 blur-[100px] rounded-full"></div>
              
              <div className="flex justify-between items-start relative z-10">
@@ -371,11 +371,11 @@ export default function UserDashboard() {
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                <div className="bg-white dark:bg-zinc-950 p-6 rounded-3xl border border-[#0f172a]/10 dark:border-white/5 flex flex-col gap-1 shadow-inner">
+                <div className="bg-white dark:bg-zinc-950 p-6 rounded-3xl border border-slate-200 dark:border-white/5 flex flex-col gap-1 shadow-inner">
                    <p className="text-[10px] text-slate-400 dark:text-zinc-600 font-black uppercase tracking-widest">میدان بازی</p>
                    <p className="font-black text-xl text-slate-900 dark:text-white tracking-tighter">{selectedHistoryGame.scenarioName}</p>
                 </div>
-                <div className="bg-white dark:bg-zinc-950 p-6 rounded-3xl border border-[#0f172a]/10 dark:border-white/5 flex flex-col gap-1 shadow-inner">
+                <div className="bg-white dark:bg-zinc-950 p-6 rounded-3xl border border-slate-200 dark:border-white/5 flex flex-col gap-1 shadow-inner">
                    <p className="text-[10px] text-slate-400 dark:text-zinc-600 font-black uppercase tracking-widest">فرمانده (گرداننده)</p>
                    <p className="font-black text-xl text-slate-900 dark:text-white tracking-tighter">{selectedHistoryGame.moderatorName}</p>
                 </div>
@@ -411,7 +411,7 @@ export default function UserDashboard() {
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-3 custom-scrollbar p-1">
                   {selectedHistoryGame.players?.map((player: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-zinc-950 border border-[#0f172a]/10 dark:border-white/5 hover:border-[#0f172a]/20 dark:border-white/10 transition-all group">
+                    <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/5 hover:border-[#0f172a]/20 dark:border-white/10 transition-all group">
                       <div className="flex flex-col">
                         <span className="font-black text-sm text-slate-900 dark:text-white tracking-tight">{player.name}</span>
                         <span className="text-[9px] text-slate-400 dark:text-zinc-600 font-bold uppercase tracking-widest">{player.roleName}</span>

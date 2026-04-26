@@ -82,7 +82,7 @@ export default function ModeratorDashboard() {
       {/* Create Game Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
-          <div className="bg-gray-200 dark:bg-zinc-900 rounded-[2.5rem] w-full max-w-lg p-10 border border-[#0f172a]/20 dark:border-white/10 shadow-3xl flex flex-col gap-8 animate-in fade-in zoom-in duration-500 relative overflow-hidden">
+          <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] w-full max-w-lg p-10 border border-[#0f172a]/20 dark:border-white/10 shadow-3xl flex flex-col gap-8 animate-in fade-in zoom-in duration-500 relative overflow-hidden">
              <div className="absolute top-[-20%] right-[-10%] w-40 h-40 bg-lime-500/10 blur-[80px] rounded-full"></div>
              
              <div className="flex justify-between items-center relative z-10">
@@ -93,7 +93,7 @@ export default function ModeratorDashboard() {
              </div>
 
              <div className="flex flex-col gap-6 relative z-10">
-                <div className="p-6 rounded-2xl bg-white dark:bg-zinc-950 border border-[#0f172a]/10 dark:border-white/5 flex flex-col gap-3">
+                <div className="p-6 rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/5 flex flex-col gap-3">
                   <p className="text-slate-600 dark:text-zinc-400 leading-relaxed text-sm">شما در حال ایجاد یک لابی متمرکز هستید. پس از ایجاد، یک کد منحصر به فرد به بازی اختصاص می‌یابد که بازیکنان با استفاده از آن می‌توانند وارد شوند.</p>
                   <ul className="text-xs text-slate-500 dark:text-zinc-500 flex flex-col gap-2 mt-2">
                     <li className="flex items-center gap-2 italic"><span className="w-1.5 h-1.5 bg-lime-500 rounded-full"></span>انتخاب سناریو در داخل لابی</li>
@@ -119,8 +119,8 @@ export default function ModeratorDashboard() {
         </div>
       )}
 
-      <section className="bg-gray-200 dark:bg-zinc-900/40 rounded-[2.5rem] border border-[#0f172a]/10 dark:border-white/5 shadow-2xl overflow-hidden flex flex-col backdrop-blur-md">
-        <div className="p-8 border-b border-[#0f172a]/10 dark:border-white/5 flex justify-between items-center bg-[#0f172a]/5 dark:bg-black/20">
+      <section className="bg-white dark:bg-zinc-900/40 rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-2xl overflow-hidden flex flex-col backdrop-blur-md">
+        <div className="p-8 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-[#0f172a]/5 dark:bg-black/20">
           <div className="flex flex-col">
             <h3 className="font-black text-slate-900 dark:text-white italic text-lg tracking-tight">لیست بازی‌های فعال</h3>
             <p className="text-xs text-slate-500 dark:text-zinc-500">مشاهده و مدیریت لابی‌های در جریان شما</p>
@@ -133,7 +133,7 @@ export default function ModeratorDashboard() {
         <div className="p-8">
           {activeGames.length === 0 ? (
             <div className="text-center py-20 flex flex-col items-center gap-6 opacity-60">
-              <div className="w-24 h-24 rounded-full bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center border border-[#0f172a]/10 dark:border-white/5">
+              <div className="w-24 h-24 rounded-full bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center border border-slate-200 dark:border-white/5">
                 <span className="material-symbols-outlined text-6xl text-zinc-700">videogame_asset_off</span>
               </div>
               <div className="flex flex-col gap-2">
@@ -147,7 +147,7 @@ export default function ModeratorDashboard() {
               {activeGames.map((game) => (
                 <div 
                   key={game.id}
-                  className="bg-white dark:bg-zinc-950 border border-[#0f172a]/10 dark:border-white/5 p-8 rounded-[2rem] flex flex-col gap-6 hover:border-lime-500/30 transition-all group relative overflow-hidden shadow-lg"
+                  className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/5 p-8 rounded-[2rem] flex flex-col gap-6 hover:border-lime-500/30 transition-all group relative overflow-hidden shadow-lg"
                 >
                   <div className="absolute top-0 right-0 w-24 h-24 bg-lime-500/5 blur-[50px] pointer-events-none"></div>
                   
@@ -174,7 +174,7 @@ export default function ModeratorDashboard() {
                     </div>
                     
                     <div className="flex flex-col items-end">
-                       <div className="flex items-center gap-2 bg-gray-200 dark:bg-zinc-900 px-4 py-2 rounded-xl border border-[#0f172a]/10 dark:border-white/5">
+                       <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/5">
                           <span className="material-symbols-outlined text-lime-500 text-lg">group</span>
                           <span className="text-xl font-black text-slate-900 dark:text-white">{game._count.players}</span>
                           <span className="text-xs text-slate-400 dark:text-zinc-600">/ {game.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0) || '?'}</span>
@@ -194,7 +194,7 @@ export default function ModeratorDashboard() {
                     </button>
                     <Link 
                       href={game.status === 'WAITING' ? `/dashboard/moderator/lobby/${game.id}` : `/dashboard/moderator/game/${game.id}`}
-                      className="flex-1 bg-[#0f172a]/5 dark:bg-white/5 hover:bg-lime-500 text-slate-900 dark:text-white hover:text-zinc-950 py-4 rounded-2xl text-center font-black text-sm transition-all flex items-center justify-center gap-3 group border border-[#0f172a]/10 dark:border-white/5 hover:border-lime-500/50"
+                      className="flex-1 bg-[#0f172a]/5 dark:bg-white/5 hover:bg-lime-500 text-slate-900 dark:text-white hover:text-zinc-950 py-4 rounded-2xl text-center font-black text-sm transition-all flex items-center justify-center gap-3 group border border-slate-200 dark:border-white/5 hover:border-lime-500/50"
                     >
                       <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">login</span>
                       <span>ورود به مدیریت بازی</span>
