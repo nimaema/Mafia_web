@@ -30,12 +30,26 @@ export async function getAllUsers() {
 }
 
 export async function updateUserRole(userId: string, role: Role) {
-  await checkAdmin();
+  const adminId = await checkAdmin();
+  if (adminId === userId && role !== "ADMIN") {
+    throw new Error("شما نمی‌توانید نقش خودتان را تغییر دهید");
+  }
   await prisma.user.update({
     where: { id: userId },
     data: { role }
   });
-  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/admin/users");
+}
+
+export async function deleteUser(userId: string) {
+  const adminId = await checkAdmin();
+  if (adminId === userId) {
+    throw new Error("شما نمی‌توانید حساب کاربری خود را حذف کنید");
+  }
+  await prisma.user.delete({
+    where: { id: userId }
+  });
+  revalidatePath("/dashboard/admin/users");
 }
 
 // Role Management
@@ -105,7 +119,7 @@ export async function getScenarios() {
 }
 
 export async function createScenario(data: { name: string, description: string, roles: { roleId: string, count: number }[] }) {
-  await checkAdmin();
+  await checkModerator();
   
   const scenario = await prisma.scenario.create({
     data: {
@@ -120,12 +134,12 @@ export async function createScenario(data: { name: string, description: string, 
     }
   });
 
-  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/moderator/scenarios");
   return scenario;
 }
 
 export async function updateScenario(id: string, data: { name: string, description: string, roles: { roleId: string, count: number }[] }) {
-  await checkAdmin();
+  await checkModerator();
 
   // First delete old roles
   await prisma.scenarioRole.deleteMany({
@@ -146,7 +160,7 @@ export async function updateScenario(id: string, data: { name: string, descripti
     }
   });
 
-  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/moderator/scenarios");
   return scenario;
 }
 
@@ -306,12 +320,12 @@ export async function installStandardScenarios() {
     }
   }
 
-  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/moderator/scenarios");
   return { success: true };
 }
 
 export async function deleteScenario(id: string) {
-  await checkAdmin();
+  await checkModerator();
   await prisma.scenario.delete({ where: { id } });
-  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/moderator/scenarios");
 }
