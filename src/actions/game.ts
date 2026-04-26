@@ -128,10 +128,24 @@ export async function getWaitingGames(timestamp?: number) {
             include: { role: true }
           }
         }
-      }
+      },
+      _count: { select: { players: true } }
     },
     orderBy: { createdAt: 'desc' }
   });
+}
+
+export async function getWaitingGamesSafe(timestamp?: number) {
+  try {
+    return { success: true, data: await getWaitingGames(timestamp) };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      data: [],
+      error: "لابی‌های باز بارگذاری نشدند. اتصال پایگاه داده را بررسی کنید.",
+    };
+  }
 }
 
 export async function getModeratorGames(timestamp?: number) {

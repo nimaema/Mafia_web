@@ -99,9 +99,9 @@ export default async function DashboardLayout({
 
       <main className="relative z-10 w-full flex-1 overflow-x-hidden p-4 md:p-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-4 flex flex-col gap-2 md:hidden">
-            <ThemeToggle />
-            <InstallPWAButton />
+          <div className="mb-4 flex justify-end gap-2 md:hidden">
+            <ThemeToggle compact />
+            <InstallPWAButton compact />
           </div>
           {children}
         </div>

@@ -7,17 +7,14 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Legend,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import Link from "next/link";
-import { getUserStats } from "@/actions/dashboard";
-import { getWaitingGames } from "@/actions/game";
+import { getUserStatsSafe } from "@/actions/dashboard";
+import { getWaitingGamesSafe } from "@/actions/game";
 import { getPusherClient } from "@/lib/pusher";
 
 type DashboardData = {
@@ -63,6 +60,8 @@ export default function UserDashboard() {
   const [mounted, setMounted] = useState(false);
   const [data, setData] = useState<DashboardData | null>(null);
   const [activeGames, setActiveGames] = useState<any[]>([]);
+  const [dashboardError, setDashboardError] = useState("");
+  const [activeGamesError, setActiveGamesError] = useState("");
   const [selectedHistoryGame, setSelectedHistoryGame] = useState<any | null>(null);
 
   useEffect(() => {
@@ -79,15 +78,17 @@ export default function UserDashboard() {
   }, []);
 
   const refreshData = async () => {
-    getUserStats().then((res) => {
-      if (res) setData(res);
+    getUserStatsSafe().then((res) => {
+      if (res.data) setData(res.data);
+      setDashboardError(res.success ? "" : res.error || "اطلاعات داشبورد بارگذاری نشد.");
     });
     refreshActiveGames();
   };
 
   const refreshActiveGames = async () => {
-    const games = await getWaitingGames(Date.now());
-    setActiveGames(games);
+    const result = await getWaitingGamesSafe(Date.now());
+    setActiveGames(result.data);
+    setActiveGamesError(result.success ? "" : result.error || "لابی‌های باز بارگذاری نشدند.");
   };
 
   if (!mounted) {
@@ -115,6 +116,11 @@ export default function UserDashboard() {
   const winRate = totalGames ? Math.round((wins / totalGames) * 100) : 0;
   const displayName = data?.userName || session?.user?.name || "کاربر";
   const displayEmail = data?.userEmail || session?.user?.email || "نامشخص";
+  const mostPlayedRole = roleHistory.reduce((best: any | null, item: any) => {
+    if (!best || item.count > best.count) return item;
+    return best;
+  }, null);
+  const latestGame = recentGames[0];
 
   return (
     <div className="space-y-5 font-sans">
@@ -183,6 +189,13 @@ export default function UserDashboard() {
         </Link>
       )}
 
+      {dashboardError && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-300">
+          <span className="material-symbols-outlined text-xl">cloud_off</span>
+          <p className="leading-6">{dashboardError}</p>
+        </div>
+      )}
+
       <div className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
         <section className="ui-card overflow-hidden">
           <PanelHeader
@@ -192,41 +205,70 @@ export default function UserDashboard() {
             action={<span className="rounded-full bg-lime-500 px-3 py-1 text-xs font-black text-zinc-950">Live</span>}
           />
           <div className="p-5">
-            {activeGames.length === 0 ? (
+            {activeGamesError ? (
+              <EmptyState icon="cloud_off" title="لابی‌ها بارگذاری نشدند" text={activeGamesError} />
+            ) : activeGames.length === 0 ? (
               <EmptyState icon="radar" title="لابی فعالی پیدا نشد" text="وقتی گرداننده‌ای لابی بسازد، همین‌جا ظاهر می‌شود." />
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
-                {activeGames.map((game) => (
-                  <Link key={game.id} href={`/lobby/${game.id}`} className="group rounded-lg border border-zinc-200 bg-zinc-50 p-4 transition-all hover:border-lime-500/40 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.05]">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-black text-zinc-950 dark:text-white">{game.name}</h4>
-                          {game.password && <span className="material-symbols-outlined text-sm text-amber-500">lock</span>}
+                {activeGames.map((game) => {
+                  const capacity = game.scenario?.roles?.reduce((total: number, role: any) => total + role.count, 0) || 0;
+                  const joinedPlayers = game._count?.players || 0;
+                  const seatsLeft = capacity ? Math.max(capacity - joinedPlayers, 0) : null;
+                  const fillPercent = capacity ? Math.min(100, Math.round((joinedPlayers / capacity) * 100)) : 0;
+
+                  return (
+                    <Link key={game.id} href={`/lobby/${game.id}`} className="group rounded-lg border border-zinc-200 bg-zinc-50 p-4 transition-all hover:-translate-y-0.5 hover:border-lime-500/40 hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.05]">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="font-black text-zinc-950 dark:text-white">{game.name}</h4>
+                            {game.password && (
+                              <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-black text-amber-600 dark:text-amber-400">
+                                رمزدار
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                            <span className="inline-flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">account_tree</span>
+                              {game.scenario?.name || "سناریو انتخاب نشده"}
+                            </span>
+                            <span className="text-zinc-300 dark:text-zinc-700">•</span>
+                            <span className="inline-flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">person</span>
+                              {game.moderator?.name || "گرداننده"}
+                            </span>
+                          </p>
                         </div>
-                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                          #{game.code} | {game.moderator?.name || "گرداننده"}
-                        </p>
+                        <span className="shrink-0 rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-xs font-black text-lime-700 dark:text-lime-300">
+                          #{game.code}
+                        </span>
                       </div>
-                      <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-xs font-black text-lime-700 dark:text-lime-300">
-                        {game.scenario?.roles.reduce((a: any, b: any) => a + b.count, 0)} نفر
-                      </span>
-                    </div>
-                    <div className="mt-5 flex items-center justify-between">
-                      <div className="flex -space-x-2 space-x-reverse">
-                        {[1, 2, 3].map((i) => (
-                          <span key={i} className="flex size-7 items-center justify-center rounded-full border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-                            <span className="material-symbols-outlined text-sm text-zinc-400">person</span>
+
+                      <div className="mt-5 rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/70">
+                        <div className="flex items-center justify-between gap-3 text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                          <span>بازیکنان</span>
+                          <span className="font-black text-zinc-950 dark:text-white">
+                            {joinedPlayers}{capacity ? ` / ${capacity}` : ""}
                           </span>
-                        ))}
+                        </div>
+                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                          <div className="h-full rounded-full bg-lime-500 transition-all" style={{ width: `${fillPercent}%` }} />
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {seatsLeft === null ? "ظرفیت بعد از انتخاب سناریو مشخص می‌شود" : seatsLeft === 0 ? "لابی تکمیل است" : `${seatsLeft} جای خالی`}
+                          </span>
+                          <span className="flex items-center gap-1 text-xs font-black text-lime-700 dark:text-lime-300">
+                            ورود به لابی
+                            <span className="material-symbols-outlined text-base transition-transform group-hover:-translate-x-1">arrow_back</span>
+                          </span>
+                        </div>
                       </div>
-                      <span className="flex items-center gap-1 text-xs font-black text-lime-700 dark:text-lime-300">
-                        ورود
-                        <span className="material-symbols-outlined text-base transition-transform group-hover:-translate-x-1">arrow_back</span>
-                      </span>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -238,22 +280,48 @@ export default function UserDashboard() {
             {recentGames.length === 0 ? (
               <EmptyState icon="history_toggle_off" title="هنوز بازی ثبت نشده" text="بعد از پایان اولین بازی، خلاصه آن اینجا می‌آید." />
             ) : (
-              recentGames.slice(0, 5).map((game: any) => (
-                <button key={game.id} onClick={() => setSelectedHistoryGame(game)} className="flex w-full items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-right transition-colors hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
-                  <div className="flex items-center gap-3">
-                    <span className={`flex size-9 items-center justify-center rounded-lg ${game.result === "WIN" ? "bg-lime-500/10 text-lime-600" : "bg-red-500/10 text-red-500"}`}>
-                      <span className="material-symbols-outlined text-lg">{game.result === "WIN" ? "emoji_events" : "close"}</span>
-                    </span>
-                    <div>
-                      <p className="font-black text-zinc-950 dark:text-white">{game.scenarioName}</p>
-                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{game.roleName} | {game.date}</p>
+              recentGames.slice(0, 5).map((game: any) => {
+                const resultLabel = game.result === "WIN" ? "برد" : game.result === "LOSS" ? "باخت" : "در انتظار";
+                const resultClass = game.result === "WIN" ? "bg-lime-500/10 text-lime-600" : game.result === "LOSS" ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-500";
+
+                return (
+                  <button key={game.id} onClick={() => setSelectedHistoryGame(game)} className="w-full rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-right transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <span className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${resultClass}`}>
+                          <span className="material-symbols-outlined text-lg">{game.result === "WIN" ? "emoji_events" : game.result === "LOSS" ? "close" : "pending"}</span>
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate font-black text-zinc-950 dark:text-white">{game.scenarioName}</p>
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                            <span className="inline-flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">theater_comedy</span>
+                              {game.roleName}
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">person</span>
+                              {game.moderatorName}
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">event</span>
+                              {game.date}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-2">
+                        <span className={`rounded-lg px-2 py-1 text-[10px] font-black ${resultClass}`}>
+                          {resultLabel}
+                        </span>
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-zinc-400">
+                          {game.players?.length || 0} بازیکن
+                          <span className="material-symbols-outlined text-sm">chevron_left</span>
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <span className={`rounded-lg px-2 py-1 text-[10px] font-black ${game.result === "WIN" ? "bg-lime-500/10 text-lime-600" : "bg-red-500/10 text-red-500"}`}>
-                    {game.result === "WIN" ? "برد" : "باخت"}
-                  </span>
-                </button>
-              ))
+                  </button>
+                );
+              })
             )}
           </div>
         </section>
@@ -261,21 +329,46 @@ export default function UserDashboard() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <section className="ui-card overflow-hidden">
-          <PanelHeader icon="pie_chart" title="عملکرد بازی‌ها" subtitle="نسبت برد و باخت" />
-          <div className="h-72 p-4">
-            {totalGames === 0 ? (
-              <EmptyState icon="analytics" title="داده‌ای برای تحلیل نیست" text="با ثبت نتیجه بازی‌ها، نمودار عملکرد ساخته می‌شود." />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={statsData} cx="50%" cy="50%" innerRadius={72} outerRadius={96} paddingAngle={6} dataKey="value" stroke="none">
-                    {statsData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                  </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: "#09090b", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", fontFamily: "Vazirmatn" }} itemStyle={{ color: "#fff", fontSize: "12px" }} />
-                  <Legend verticalAlign="bottom" iconType="circle" formatter={(value) => <span className="px-2 text-xs font-bold text-zinc-500 dark:text-zinc-400">{value}</span>} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
+          <PanelHeader icon="query_stats" title="مرور سریع" subtitle="اطلاعات کاربردی بدون تکرار آمار سربرگ" />
+          <div className="grid gap-3 p-5 sm:grid-cols-2">
+            <div className="ui-muted p-4">
+              <span className={`material-symbols-outlined text-xl ${latestGame?.result === "WIN" ? "text-lime-500" : latestGame?.result === "LOSS" ? "text-red-500" : "text-zinc-400"}`}>
+                {latestGame?.result === "WIN" ? "emoji_events" : latestGame?.result === "LOSS" ? "close" : "history"}
+              </span>
+              <p className="mt-3 text-xs font-bold text-zinc-500 dark:text-zinc-400">آخرین نتیجه</p>
+              <p className="mt-1 font-black text-zinc-950 dark:text-white">
+                {latestGame ? `${latestGame.result === "WIN" ? "برد" : latestGame.result === "LOSS" ? "باخت" : "در انتظار"} در ${latestGame.scenarioName}` : "هنوز بازی ثبت نشده"}
+              </p>
+              {latestGame && <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{latestGame.roleName} | {latestGame.date}</p>}
+            </div>
+
+            <div className="ui-muted p-4">
+              <span className="material-symbols-outlined text-xl text-sky-500">theater_comedy</span>
+              <p className="mt-3 text-xs font-bold text-zinc-500 dark:text-zinc-400">نقش پرتکرار</p>
+              <p className="mt-1 font-black text-zinc-950 dark:text-white">
+                {mostPlayedRole ? mostPlayedRole.role : "هنوز نقشی ثبت نشده"}
+              </p>
+              <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                {mostPlayedRole ? `${mostPlayedRole.count} بار در تاریخچه` : "بعد از پایان بازی‌ها کامل می‌شود"}
+              </p>
+            </div>
+
+            <div className="ui-muted p-4">
+              <span className="material-symbols-outlined text-xl text-lime-500">radar</span>
+              <p className="mt-3 text-xs font-bold text-zinc-500 dark:text-zinc-400">لابی‌های قابل ورود</p>
+              <p className="mt-1 font-black text-zinc-950 dark:text-white">{activeGames.length} لابی باز</p>
+              <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">از بخش لابی‌های باز می‌توانید مستقیم وارد شوید.</p>
+            </div>
+
+            <Link href="/dashboard/user/profile" className="ui-muted group p-4 transition-colors hover:border-lime-500/30 hover:bg-white dark:hover:bg-white/[0.05]">
+              <span className="material-symbols-outlined text-xl text-purple-500">badge</span>
+              <p className="mt-3 text-xs font-bold text-zinc-500 dark:text-zinc-400">پروفایل بازیکن</p>
+              <p className="mt-1 truncate font-black text-zinc-950 dark:text-white">{displayName}</p>
+              <p className="mt-2 flex items-center gap-1 text-xs font-black text-lime-700 dark:text-lime-300">
+                ویرایش اطلاعات
+                <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>
+              </p>
+            </Link>
           </div>
         </section>
 

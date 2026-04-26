@@ -118,6 +118,19 @@ export async function getUserStats() {
   };
 }
 
+export async function getUserStatsSafe() {
+  try {
+    return { success: true, data: await getUserStats() };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      data: null,
+      error: "اطلاعات داشبورد بارگذاری نشد. اتصال پایگاه داده یا سطح دسترسی را بررسی کنید.",
+    };
+  }
+}
+
 export async function getAllUserHistory() {
   noStore();
   const session = await auth();
