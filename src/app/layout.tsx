@@ -1,14 +1,26 @@
-import type { Metadata } from "next";
 import { Vazirmatn } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
 const vazirmatn = Vazirmatn({ subsets: ["arabic", "latin"] });
 
+import type { Metadata, Viewport } from "next";
+
+export const viewport: Viewport = {
+  themeColor: "#84cc16",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
-  title: "مدیریت مافیا",
-  description: "دستیار دیجیتال بازی مافیا",
-  manifest: "/manifest.json",
+  title: "مافیا بورد - دستیار پیشرفته",
+  description: "دستیار دیجیتال برای مدیریت حرفه‌ای بازی مافیا",
+  appleWebApp: {
+    capable: true,
+    title: "مافیا بورد",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export default function RootLayout({
