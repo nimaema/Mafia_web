@@ -1,10 +1,8 @@
 "use server";
 
-import { PrismaClient } from "@prisma/client";
 import { saltAndHashPassword } from "@/lib/password";
 import { signIn, signOut } from "@/auth";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function registerUser(formData: FormData) {
   const name = formData.get("name") as string;

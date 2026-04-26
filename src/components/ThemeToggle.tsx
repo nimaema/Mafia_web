@@ -13,7 +13,7 @@ export function ThemeToggle() {
   }, []);
 
   if (!mounted) {
-    return <div className="w-full h-12 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-xl"></div>;
+    return <div className="h-10 w-full animate-pulse rounded-lg bg-zinc-100 dark:bg-zinc-800"></div>;
   }
 
   const isDark = theme === "dark";
@@ -21,12 +21,12 @@ export function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 w-full text-lg"
+      className="ui-button-secondary w-full justify-start px-3"
     >
-      <span className="material-symbols-outlined">
+      <span className="material-symbols-outlined text-xl">
         {isDark ? "light_mode" : "dark_mode"}
       </span>
-      <span className="font-medium">
+      <span className="truncate">
         {isDark ? "تم روشن" : "تم تاریک"}
       </span>
     </button>

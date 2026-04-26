@@ -47,10 +47,10 @@ export function InstallPWAButton() {
   return (
     <button 
       onClick={handleInstallClick}
-      className="flex items-center justify-center gap-3 px-5 py-4 mt-2 rounded-2xl bg-lime-500/10 text-lime-600 dark:text-lime-400 hover:bg-lime-500 hover:text-zinc-950 transition-all duration-300 w-full group shadow-sm shadow-lime-500/10"
+      className="flex items-center justify-center gap-3 px-5 py-4 mt-2 rounded-lg bg-lime-500/10 text-lime-600 dark:text-lime-400 hover:bg-lime-500 hover:text-zinc-950 transition-all duration-300 w-full group shadow-sm shadow-lime-500/10"
     >
       <span className="material-symbols-outlined group-hover:-translate-y-1 transition-transform">app_shortcut</span>
-      <span className="font-black text-sm tracking-wide">نصب اپلیکیشن</span>
+      <span className="font-black text-sm">نصب اپلیکیشن</span>
     </button>
   );
 }

@@ -22,12 +22,12 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
         className="absolute inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm transition-opacity" 
         onClick={onClose}
       />
-      <div className="relative bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+      <div className="relative bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-lg w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
         <div className="absolute top-0 right-0 w-32 h-32 bg-lime-500/5 blur-[60px] pointer-events-none"></div>
         
         <div className="p-8 flex flex-col gap-6 relative z-10">
           <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
               type === 'error' ? 'bg-red-500/10 text-red-500' : 
               type === 'warning' ? 'bg-amber-500/10 text-amber-500' : 
               type === 'success' ? 'bg-lime-500/10 text-lime-500' : 
@@ -37,7 +37,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
                 {type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'success' ? 'check_circle' : 'info'}
               </span>
             </div>
-            <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tighter">{title}</h3>
+            <h3 className="text-xl font-black text-slate-900 dark:text-white">{title}</h3>
           </div>
           
           <p className="text-slate-600 dark:text-zinc-400 leading-relaxed font-medium">
@@ -48,7 +48,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
             {onConfirm && (
               <button 
                 onClick={() => { onConfirm(); onClose(); }}
-                className={`flex-1 py-4 rounded-2xl font-black text-sm transition-all shadow-lg ${
+                className={`flex-1 py-4 rounded-lg font-black text-sm transition-all shadow-lg ${
                   type === 'error' ? 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20' :
                   type === 'warning' ? 'bg-amber-500 text-zinc-950 hover:bg-amber-400 shadow-amber-500/20' :
                   'bg-lime-500 text-zinc-950 hover:bg-lime-400 shadow-lime-500/20'
@@ -59,7 +59,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
             )}
             <button 
               onClick={onClose}
-              className={`flex-1 py-4 rounded-2xl font-black text-sm transition-all ${
+              className={`flex-1 py-4 rounded-lg font-black text-sm transition-all ${
                 onConfirm ? 'bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800' : 'bg-lime-500 text-zinc-950 hover:bg-lime-400 shadow-lime-500/20'
               }`}
             >
@@ -86,7 +86,7 @@ export const Toast = ({ message, type, onClose }: ToastProps) => {
 
   return (
     <div className="fixed bottom-24 md:bottom-8 right-4 left-4 md:left-auto md:w-96 z-[300] animate-in slide-in-from-bottom-10 duration-300">
-      <div className={`p-4 rounded-2xl border backdrop-blur-xl shadow-2xl flex items-center gap-4 ${
+      <div className={`p-4 rounded-lg border backdrop-blur-xl shadow-2xl flex items-center gap-4 ${
         type === 'success' ? 'bg-lime-500/10 border-lime-500/20 text-lime-600 dark:text-lime-400' :
         type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400' :
         'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'

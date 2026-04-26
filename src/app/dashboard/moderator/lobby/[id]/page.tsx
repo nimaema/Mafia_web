@@ -141,24 +141,24 @@ export default function GameLobbyPage() {
         </p>
         
         <div className="mt-4 flex flex-col md:flex-row gap-4 w-full">
-          <div className="flex-1 p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <div className="flex-1 p-5 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <p className="text-sm text-zinc-500 mb-2">کد بازی:</p>
-            <div className="text-4xl font-mono tracking-widest font-black text-transparent bg-clip-text bg-gradient-to-r from-lime-500 to-emerald-500">
+            <div className="text-4xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-lime-500 to-emerald-500">
               {game?.code}
             </div>
           </div>
           {game?.password && (
-            <div className="flex-1 p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm border-amber-500/30 flex items-center justify-center">
+            <div className="flex-1 p-5 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm border-amber-500/30 flex items-center justify-center">
               <div className="flex items-center gap-2 text-amber-500">
                 <span className="material-symbols-outlined">lock</span>
-                <span className="text-sm font-bold uppercase tracking-widest">دارای رمز عبور</span>
+                <span className="text-sm font-bold uppercase">دارای رمز عبور</span>
               </div>
             </div>
           )}
         </div>
       </header>
 
-      <section className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col">
+      <section className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-white dark:bg-zinc-950/50">
           <h3 className="font-semibold text-zinc-700 dark:text-zinc-300">بازیکنان حاضر ({players.length})</h3>
         </div>
@@ -182,11 +182,11 @@ export default function GameLobbyPage() {
         </div>
       </section>
 
-      <section className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-5 flex flex-col gap-4">
+      <section className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm p-5 flex flex-col gap-4">
         <h3 className="font-semibold text-zinc-700 dark:text-zinc-300">انتخاب سناریو</h3>
         
         {game?.scenario ? (
-          <div className="bg-lime-500/10 border border-lime-500/20 rounded-xl p-4 flex justify-between items-center">
+          <div className="bg-lime-500/10 border border-lime-500/20 rounded-lg p-4 flex justify-between items-center">
              <div>
                 <p className="font-bold text-lime-600 dark:text-lime-400">{game.scenario.name}</p>
                 <p className="text-xs text-lime-600/70 dark:text-lime-400/70 mt-1">{requiredPlayers} نفره</p>
@@ -204,7 +204,7 @@ export default function GameLobbyPage() {
                        key={s.id} 
                        onClick={() => handleSelectScenario(s.id)}
                        disabled={settingScenario}
-                       className="bg-lime-500 text-zinc-950 px-4 py-2 rounded-xl text-sm font-bold hover:bg-lime-600 shadow-sm shadow-lime-500/20 disabled:opacity-50"
+                       className="bg-lime-500 text-zinc-950 px-4 py-2 rounded-lg text-sm font-bold hover:bg-lime-600 shadow-sm shadow-lime-500/20 disabled:opacity-50"
                      >
                        {s.name}
                      </button>
@@ -216,7 +216,7 @@ export default function GameLobbyPage() {
                onChange={(e) => handleSelectScenario(e.target.value)}
                value=""
                disabled={settingScenario}
-               className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 outline-none focus:border-lime-500 w-full disabled:opacity-50"
+               className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 outline-none focus:border-lime-500 w-full disabled:opacity-50"
              >
                <option value="">یک سناریو از پیش تعریف شده انتخاب کنید...</option>
                {scenarios.map(s => (
@@ -233,7 +233,7 @@ export default function GameLobbyPage() {
              <button 
                onClick={() => setShowCustomModal(true)}
                disabled={settingScenario}
-               className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 py-3 rounded-xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+               className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 py-3 rounded-lg font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
              >
                <span className="material-symbols-outlined">dashboard_customize</span>
                طراحی سناریو در لحظه
@@ -244,18 +244,18 @@ export default function GameLobbyPage() {
       
       {showCustomModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-md max-h-[90vh] flex flex-col border border-zinc-200 dark:border-zinc-800 shadow-2xl animate-in fade-in zoom-in duration-300">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg w-full max-w-md max-h-[90vh] flex flex-col border border-zinc-200 dark:border-zinc-800 shadow-2xl animate-in fade-in zoom-in duration-300">
              <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
                 <h3 className="text-xl font-bold">طراحی سناریو سفارشی</h3>
                 <button onClick={() => setShowCustomModal(false)} className="material-symbols-outlined text-zinc-400 hover:text-red-600 dark:text-red-400">close</button>
              </div>
              
              <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-4">
-                <div className="flex justify-between items-center bg-zinc-100 dark:bg-zinc-800 p-4 rounded-xl">
+                <div className="flex justify-between items-center bg-zinc-100 dark:bg-zinc-800 p-4 rounded-lg">
                   <span className="font-semibold">تعداد بازیکنان حاضر:</span>
                   <span className="font-bold text-xl">{players.length}</span>
                 </div>
-                <div className="flex justify-between items-center bg-lime-500/10 text-lime-600 dark:text-lime-400 p-4 rounded-xl">
+                <div className="flex justify-between items-center bg-lime-500/10 text-lime-600 dark:text-lime-400 p-4 rounded-lg">
                   <span className="font-semibold">تعداد نقش‌های انتخاب شده:</span>
                   <span className="font-bold text-xl">{customRoles.reduce((a, b) => a + b.count, 0)}</span>
                 </div>
@@ -264,7 +264,7 @@ export default function GameLobbyPage() {
                   {roles.map(role => {
                     const count = customRoles.find(r => r.roleId === role.id)?.count || 0;
                     return (
-                      <div key={role.id} className="flex items-center justify-between p-3 border border-zinc-100 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950/50">
+                      <div key={role.id} className="flex items-center justify-between p-3 border border-zinc-100 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-950/50">
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${role.alignment === 'MAFIA' ? 'bg-red-500/10 text-red-600 dark:text-red-400' : role.alignment === 'CITIZEN' ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'}`}>
                             {role.name.substring(0, 1)}
@@ -290,7 +290,7 @@ export default function GameLobbyPage() {
                <button 
                  onClick={handleCreateCustomScenario}
                  disabled={customRoles.reduce((a, b) => a + b.count, 0) === 0}
-                 className="w-full bg-lime-500 text-zinc-950 py-3 rounded-xl font-bold hover:bg-lime-600 transition-colors shadow-lg shadow-lime-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                 className="w-full bg-lime-500 text-zinc-950 py-3 rounded-lg font-bold hover:bg-lime-600 transition-colors shadow-lg shadow-lime-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
                >
                  <span className="material-symbols-outlined">save</span>
                  اعمال سناریو
@@ -303,7 +303,7 @@ export default function GameLobbyPage() {
       <button 
         onClick={handleStartGame}
         disabled={!game?.scenario || players.length < requiredPlayers || loading}
-        className="w-full bg-lime-500 text-zinc-950 text-lg font-bold rounded-2xl py-4 hover:bg-lime-600 transition-colors shadow-lg shadow-lime-500/20 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full bg-lime-500 text-zinc-950 text-lg font-bold rounded-lg py-4 hover:bg-lime-600 transition-colors shadow-lg shadow-lime-500/20 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         <span className="material-symbols-outlined">play_arrow</span>
         تایید و شروع بازی

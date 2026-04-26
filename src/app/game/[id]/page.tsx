@@ -69,7 +69,7 @@ export default function UserGamePage() {
       <div className="flex flex-col items-center justify-center min-h-[70vh] gap-4">
         <span className="material-symbols-outlined text-6xl text-zinc-300">error</span>
         <h2 className="text-2xl font-bold">شما در این بازی حضور ندارید!</h2>
-        <Link href="/dashboard/user" className="px-6 py-2 bg-zinc-900 text-white rounded-xl mt-4">بازگشت به پیشخوان</Link>
+        <Link href="/dashboard/user" className="px-6 py-2 bg-zinc-900 text-white rounded-lg mt-4">بازگشت به پیشخوان</Link>
       </div>
     );
   }
@@ -78,7 +78,7 @@ export default function UserGamePage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden flex flex-col items-center p-8 relative">
+      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden flex flex-col items-center p-8 relative">
         
         {/* Background glow based on role alignment (only visible if revealed) */}
         {revealRole && (
@@ -97,11 +97,11 @@ export default function UserGamePage() {
         {/* The Card */}
         <div 
           onClick={() => setRevealRole(!revealRole)}
-          className={`w-full aspect-[2/3] rounded-2xl cursor-pointer transition-all duration-700 preserve-3d relative z-10 ${revealRole ? '[transform:rotateY(180deg)]' : ''}`}
+          className={`w-full aspect-[2/3] rounded-lg cursor-pointer transition-all duration-700 preserve-3d relative z-10 ${revealRole ? '[transform:rotateY(180deg)]' : ''}`}
           style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
         >
           {/* Card Back (Hidden) */}
-          <div className="absolute inset-0 bg-zinc-950 rounded-2xl border-4 border-zinc-800 flex flex-col items-center justify-center p-6 backface-hidden shadow-2xl" style={{ backfaceVisibility: 'hidden' }}>
+          <div className="absolute inset-0 bg-zinc-950 rounded-lg border-4 border-zinc-800 flex flex-col items-center justify-center p-6 backface-hidden shadow-2xl" style={{ backfaceVisibility: 'hidden' }}>
             <div className="w-24 h-24 rounded-full border border-zinc-800 flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-5xl text-zinc-700">visibility_off</span>
             </div>
@@ -110,13 +110,13 @@ export default function UserGamePage() {
           </div>
 
           {/* Card Front (Revealed) */}
-          <div className={`absolute inset-0 rounded-2xl border-4 flex flex-col items-center justify-center p-6 backface-hidden shadow-2xl overflow-hidden ${
+          <div className={`absolute inset-0 rounded-lg border-4 flex flex-col items-center justify-center p-6 backface-hidden shadow-2xl overflow-hidden ${
             role?.alignment === 'CITIZEN' ? 'bg-blue-950 border-blue-800' : 
             role?.alignment === 'MAFIA' ? 'bg-red-950 border-red-800' : 
             'bg-amber-950 border-amber-800'
           }`} style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
             
-            <div className={`absolute top-0 w-full py-2 text-center text-xs font-black tracking-widest uppercase text-white/50 bg-black/20`}>
+            <div className={`absolute top-0 w-full py-2 text-center text-xs font-black uppercase text-white/50 bg-black/20`}>
               {role?.alignment === 'CITIZEN' ? 'تیم شهروند' : 
                role?.alignment === 'MAFIA' ? 'تیم مافیا' : 'مستقل'}
             </div>
@@ -126,7 +126,7 @@ export default function UserGamePage() {
                 {role?.name || "بدون نقش"}
               </h2>
               
-              <div className="w-full bg-black/20 rounded-xl p-4 text-center border border-white/10">
+              <div className="w-full bg-black/20 rounded-lg p-4 text-center border border-white/10">
                 <p className="text-white/80 text-sm leading-relaxed">{role?.description || "توضیحی برای این نقش وجود ندارد."}</p>
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function UserGamePage() {
         </div>
 
         <div className="mt-8 w-full z-10">
-           <Link href="/dashboard/user" className="w-full py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-bold rounded-xl flex justify-center items-center gap-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
+           <Link href="/dashboard/user" className="w-full py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-bold rounded-lg flex justify-center items-center gap-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
               بازگشت به پیشخوان
            </Link>
         </div>

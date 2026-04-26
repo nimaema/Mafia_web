@@ -96,7 +96,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
       <div className="flex justify-end">
         <button 
           onClick={() => openForm()}
-          className="flex items-center gap-2 bg-lime-500 hover:bg-lime-600 text-black px-6 py-3 rounded-2xl font-black transition-all shadow-lg shadow-lime-500/20 active:translate-y-1"
+          className="flex items-center gap-2 bg-lime-500 hover:bg-lime-600 text-black px-6 py-3 rounded-lg font-black transition-all shadow-lg shadow-lime-500/20 active:translate-y-1"
         >
           <span className="material-symbols-outlined">add</span>
           سناریو جدید
@@ -105,7 +105,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {scenarios.map(scenario => (
-          <div key={scenario.id} className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+          <div key={scenario.id} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-xl font-black">{scenario.name}</h3>
@@ -121,8 +121,8 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
               </div>
             </div>
 
-            <div className="bg-gray-200 dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-               <div className="flex justify-between mb-3 text-xs font-bold text-zinc-400 uppercase tracking-widest">
+            <div className="bg-gray-200 dark:bg-zinc-950 p-4 rounded-lg border border-zinc-100 dark:border-zinc-800">
+               <div className="flex justify-between mb-3 text-xs font-bold text-zinc-400 uppercase">
                   <span>ترکیب نقش‌ها</span>
                   <span className="text-zinc-900 dark:text-white">تعداد کل: {scenario.roles.reduce((a:any, b:any) => a + b.count, 0)}</span>
                </div>
@@ -144,7 +144,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
 
       {showForm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white dark:bg-zinc-900 w-full max-w-2xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+          <div className="bg-white dark:bg-zinc-900 w-full max-w-2xl max-h-[90vh] rounded-lg shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
             <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
               <h2 className="text-2xl font-black">{editingScenario ? 'ویرایش سناریو' : 'ساخت سناریو جدید'}</h2>
               <button onClick={closeForm} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
@@ -160,7 +160,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
                     required
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-gray-200 dark:bg-zinc-800 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-lime-500/50"
+                    className="w-full bg-gray-200 dark:bg-zinc-800 p-4 rounded-lg border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-lime-500/50"
                     placeholder="مثال: کلاسیک ۱۲ نفره"
                   />
                 </div>
@@ -170,13 +170,13 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
                   <textarea 
                     value={formData.description}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full bg-gray-200 dark:bg-zinc-800 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-lime-500/50 min-h-[100px]"
+                    className="w-full bg-gray-200 dark:bg-zinc-800 p-4 rounded-lg border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-lime-500/50 min-h-[100px]"
                     placeholder="توضیحات کوتاهی درباره سناریو..."
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center bg-zinc-100 dark:bg-zinc-800/50 p-4 rounded-2xl">
+                  <div className="flex justify-between items-center bg-zinc-100 dark:bg-zinc-800/50 p-4 rounded-lg">
                     <span className="font-black">انتخاب نقش‌ها</span>
                     <span className="bg-lime-500 text-black px-3 py-1 rounded-full text-xs font-black">
                       مجموع بازیکنان: {totalPlayers}
@@ -190,7 +190,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
                       
                       return (
                         <div key={alignment} className="space-y-3">
-                          <h4 className={`text-xs font-black uppercase tracking-widest ${
+                          <h4 className={`text-xs font-black uppercase ${
                             alignment === 'CITIZEN' ? 'text-blue-500' : 
                             alignment === 'MAFIA' ? 'text-red-600 dark:text-red-400' : 
                             'text-zinc-500'
@@ -201,7 +201,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
                             {alignmentRoles.map(role => {
                               const currentCount = formData.roles.find(r => r.roleId === role.id)?.count || 0;
                               return (
-                                <div key={role.id} className="flex items-center justify-between bg-gray-200 dark:bg-zinc-800/50 p-2 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                                <div key={role.id} className="flex items-center justify-between bg-gray-200 dark:bg-zinc-800/50 p-2 rounded-lg border border-zinc-200 dark:border-zinc-800">
                                   <span className="text-sm font-bold px-2">{role.name}</span>
                                   <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-700">
                                     <button 
@@ -237,7 +237,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
               <button 
                 type="button"
                 onClick={closeForm}
-                className="px-6 py-3 font-bold rounded-xl text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                className="px-6 py-3 font-bold rounded-lg text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
               >
                 انصراف
               </button>
@@ -245,7 +245,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
                 type="submit"
                 form="scenario-form"
                 disabled={loading || formData.roles.length === 0}
-                className="px-6 py-3 font-bold rounded-xl bg-lime-500 hover:bg-lime-600 text-black disabled:opacity-50 transition-colors flex items-center gap-2"
+                className="px-6 py-3 font-bold rounded-lg bg-lime-500 hover:bg-lime-600 text-black disabled:opacity-50 transition-colors flex items-center gap-2"
               >
                 {loading ? 'در حال ذخیره...' : 'ذخیره سناریو'}
               </button>

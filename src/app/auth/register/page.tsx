@@ -23,28 +23,28 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4 bg-zinc-950 overflow-hidden font-sans" dir="rtl">
+    <div className="app-page flex min-h-screen items-center justify-center p-4 font-sans" dir="rtl">
       {/* Dynamic Background */}
-      <div className="absolute inset-0 z-0">
+      <div className="hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-lime-500/20 blur-[120px] mix-blend-screen animate-pulse"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-600/10 blur-[150px] mix-blend-screen"></div>
         <div className="absolute top-[20%] right-[20%] w-[30%] h-[30%] rounded-full bg-teal-500/10 blur-[100px] mix-blend-screen animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <main className="relative z-10 w-full max-w-[420px] backdrop-blur-2xl bg-zinc-900/60 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/10 p-10 flex flex-col gap-8 transition-all hover:border-white/20 hover:shadow-[0_8px_40px_rgba(132,204,22,0.1)]">
+      <main className="ui-card relative z-10 flex w-full max-w-[420px] flex-col gap-8 p-8 sm:p-10">
         
         <header className="flex flex-col gap-2 items-center text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-lime-400 to-emerald-600 p-[2px] shadow-lg shadow-lime-500/20 mb-2">
-            <div className="w-full h-full bg-zinc-950 rounded-2xl flex items-center justify-center">
+          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-lime-400 to-emerald-600 p-[2px] shadow-lg shadow-lime-500/20 mb-2">
+            <div className="w-full h-full bg-zinc-950 rounded-lg flex items-center justify-center">
               <span className="material-symbols-outlined text-3xl bg-gradient-to-br from-lime-400 to-emerald-500 bg-clip-text text-transparent">person_add</span>
             </div>
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">ساخت حساب کاربری</h1>
+          <h1 className="text-3xl font-extrabold text-white">ساخت حساب کاربری</h1>
           <p className="text-sm text-zinc-400 font-medium">به خانواده مافیا خوش آمدید</p>
         </header>
 
         {/* Tab Switcher */}
-        <div className="flex p-1 bg-zinc-950/50 rounded-xl w-full border border-white/5 relative">
+        <div className="flex p-1 bg-zinc-950/50 rounded-lg w-full border border-white/5 relative">
           <div className="w-1/2 absolute top-1 bottom-1 left-1 bg-white/10 rounded-lg shadow-sm border border-white/5 transition-all"></div>
           <Link href="/auth/login" className="flex-1 py-2.5 text-sm font-medium text-zinc-400 hover:text-zinc-200 text-center relative z-10 transition-colors">ورود</Link>
           <button className="flex-1 py-2.5 text-sm font-bold text-white relative z-10">ثبت نام</button>
@@ -56,7 +56,7 @@ export default function RegisterPage() {
             <div className="relative group">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-lime-400 transition-colors">badge</span>
               <input name="name" required type="text" placeholder="نام و نام خانوادگی" 
-                className="w-full bg-zinc-950/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner" 
+                className="w-full bg-zinc-950/50 border border-white/10 rounded-lg py-3.5 pl-12 pr-4 text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner" 
               />
             </div>
           </div>
@@ -66,7 +66,7 @@ export default function RegisterPage() {
             <div className="relative group">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-lime-400 transition-colors">mail</span>
               <input name="email" required type="email" dir="ltr" placeholder="name@example.com" 
-                className="w-full bg-zinc-950/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner" 
+                className="w-full bg-zinc-950/50 border border-white/10 rounded-lg py-3.5 pl-12 pr-4 text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner" 
               />
             </div>
           </div>
@@ -76,15 +76,15 @@ export default function RegisterPage() {
             <div className="relative group">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-lime-400 transition-colors">lock</span>
               <input name="password" required type="password" dir="ltr" placeholder="••••••••" 
-                className="w-full bg-zinc-950/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner" 
+                className="w-full bg-zinc-950/50 border border-white/10 rounded-lg py-3.5 pl-12 pr-4 text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner" 
               />
             </div>
           </div>
           
-          <button type="submit" className="w-full relative group overflow-hidden rounded-xl p-[1px] mt-2">
-            <span className="absolute inset-0 bg-gradient-to-r from-lime-400 to-emerald-600 rounded-xl opacity-80 group-hover:opacity-100 transition-opacity"></span>
-            <div className="relative flex items-center justify-center gap-2 bg-zinc-900 px-4 py-3.5 rounded-xl transition-all group-hover:bg-transparent">
-              <span className="text-white font-bold text-sm tracking-wide group-hover:text-zinc-950 transition-colors">ایجاد حساب کاربری</span>
+          <button type="submit" className="w-full relative group overflow-hidden rounded-lg p-[1px] mt-2">
+            <span className="absolute inset-0 bg-gradient-to-r from-lime-400 to-emerald-600 rounded-lg opacity-80 group-hover:opacity-100 transition-opacity"></span>
+            <div className="relative flex items-center justify-center gap-2 bg-zinc-900 px-4 py-3.5 rounded-lg transition-all group-hover:bg-transparent">
+              <span className="text-white font-bold text-sm group-hover:text-zinc-950 transition-colors">ایجاد حساب کاربری</span>
               <span className="material-symbols-outlined text-white text-sm group-hover:text-zinc-950 transition-colors">person_add</span>
             </div>
           </button>
@@ -96,7 +96,7 @@ export default function RegisterPage() {
           <div className="flex-1 h-px bg-gradient-to-r from-white/10 to-transparent"></div>
         </div>
 
-        <button onClick={() => signIn('google')} type="button" className="w-full flex items-center justify-center gap-3 bg-zinc-950/50 border border-white/10 hover:border-white/20 rounded-xl py-3.5 hover:bg-white/5 transition-all group shadow-sm">
+        <button onClick={() => signIn('google')} type="button" className="w-full flex items-center justify-center gap-3 bg-zinc-950/50 border border-white/10 hover:border-white/20 rounded-lg py-3.5 hover:bg-white/5 transition-all group shadow-sm">
           <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>

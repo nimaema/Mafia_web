@@ -13,13 +13,13 @@ import { useSession } from "next-auth/react";
 import { usePopup } from "@/components/PopupProvider";
 
 export default function AdminDashboard() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { showAlert, showConfirm, showToast } = usePopup();
   const isAdmin = session?.user?.role === "ADMIN";
   const isModerator = session?.user?.role === "MODERATOR";
 
   const searchParams = useSearchParams();
-  const initialTab = (searchParams.get("tab") as "users" | "scenarios" | "roles") || (isAdmin ? "users" : "roles");
+  const initialTab = (searchParams.get("tab") as "users" | "scenarios" | "roles") || "roles";
   const [activeTab, setActiveTab] = useState<"users" | "scenarios" | "roles">(initialTab);
   const [users, setUsers] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
@@ -31,8 +31,12 @@ export default function AdminDashboard() {
     const tab = searchParams.get("tab") as any;
     if (tab && (tab === "users" || tab === "scenarios" || tab === "roles")) {
       setActiveTab(tab);
+    } else if (isAdmin) {
+      setActiveTab("users");
+    } else if (activeTab === "users" && !isAdmin) {
+      setActiveTab("roles");
     }
-  }, [searchParams]);
+  }, [searchParams, isAdmin, activeTab]);
 
   // Role Form
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
@@ -47,8 +51,9 @@ export default function AdminDashboard() {
   const [selectedRoles, setSelectedRoles] = useState<{roleId: string, count: number}[]>([]);
 
   useEffect(() => {
+    if (status === "loading") return;
     refreshData();
-  }, [activeTab]);
+  }, [activeTab, isAdmin, status]);
 
   const refreshData = async () => {
     setLoading(true);
@@ -182,33 +187,33 @@ export default function AdminDashboard() {
     ));
   };
 
+  const userCounts = {
+    total: users.length,
+    admins: users.filter((user) => user.role === "ADMIN").length,
+    moderators: users.filter((user) => user.role === "MODERATOR").length,
+    banned: users.filter((user) => user.isBanned).length,
+  };
+
   return (
-    <div className="flex flex-col gap-8 min-h-[80vh] font-sans" dir="rtl">
-      {/* Premium Header */}
-      {/* Premium Header */}
-      <header className="relative overflow-hidden rounded-[2.5rem] p-10 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/5 shadow-2xl">
-        <div className="absolute top-[-50%] left-[-10%] w-[60%] h-[200%] bg-lime-500/5 blur-[120px] pointer-events-none rounded-full rotate-12"></div>
-        <div className="absolute bottom-[-50%] right-[-10%] w-[40%] h-[150%] bg-blue-600/5 blur-[100px] pointer-events-none rounded-full -rotate-12"></div>
-        
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-          <div className="flex items-center gap-6">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-lime-400 to-emerald-600 p-[2px] shadow-2xl shadow-lime-500/10 group">
-              <div className="w-full h-full bg-white dark:bg-zinc-950 rounded-[22px] flex items-center justify-center transition-transform group-hover:scale-95 duration-500">
-                <span className="material-symbols-outlined text-4xl bg-gradient-to-br from-lime-400 via-lime-200 to-emerald-500 bg-clip-text text-transparent">admin_panel_settings</span>
-              </div>
+    <div className="flex min-h-[80vh] flex-col gap-5 font-sans" dir="rtl">
+      <header className="ui-card overflow-hidden">
+        <div className="flex flex-col gap-5 p-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="ui-icon-accent size-14">
+              <span className="material-symbols-outlined text-3xl">admin_panel_settings</span>
             </div>
-            <div className="flex flex-col gap-1">
-              <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter italic">پنل مدیریت</h2>
-              <p className="text-slate-500 dark:text-zinc-500 font-medium">پیکربندی هسته بازی و نظارت بر کاربران</p>
+            <div>
+              <p className="ui-kicker">کنترل مدیریتی</p>
+              <h2 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">پنل مدیریت</h2>
+              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">کاربران، نقش‌ها و سناریوها را از یک نمای متمرکز مدیریت کنید.</p>
             </div>
           </div>
           
-          {/* Futuristic Tabs */}
-          <div className="flex p-2 bg-black/40 rounded-2xl border border-[#0f172a]/20 dark:border-white/10 backdrop-blur-3xl shadow-inner">
+          <div className="grid grid-cols-3 gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-white/10 dark:bg-zinc-950">
             {isAdmin && (
               <button 
                 onClick={() => setActiveTab("users")}
-                className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2.5 ${activeTab === "users" ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.3)] scale-105" : "text-slate-500 dark:text-zinc-500 hover:text-zinc-300 hover:bg-[#0f172a]/5 dark:bg-white/5"}`}
+                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${activeTab === "users" ? "bg-lime-500 text-zinc-950 shadow-sm" : "text-zinc-500 hover:bg-white dark:hover:bg-white/[0.06]"}`}
               >
                 <span className="material-symbols-outlined text-lg">group</span>
                 کاربران
@@ -216,14 +221,14 @@ export default function AdminDashboard() {
             )}
             <button 
               onClick={() => setActiveTab("scenarios")}
-              className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2.5 ${activeTab === "scenarios" ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.3)] scale-105" : "text-slate-500 dark:text-zinc-500 hover:text-zinc-300 hover:bg-[#0f172a]/5 dark:bg-white/5"}`}
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${activeTab === "scenarios" ? "bg-lime-500 text-zinc-950 shadow-sm" : "text-zinc-500 hover:bg-white dark:hover:bg-white/[0.06]"}`}
             >
               <span className="material-symbols-outlined text-lg">account_tree</span>
               سناریوها
             </button>
             <button 
               onClick={() => setActiveTab("roles")}
-              className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2.5 ${activeTab === "roles" ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.3)] scale-105" : "text-slate-500 dark:text-zinc-500 hover:text-zinc-300 hover:bg-[#0f172a]/5 dark:bg-white/5"}`}
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${activeTab === "roles" ? "bg-lime-500 text-zinc-950 shadow-sm" : "text-zinc-500 hover:bg-white dark:hover:bg-white/[0.06]"}`}
             >
               <span className="material-symbols-outlined text-lg">theater_comedy</span>
               نقش‌ها
@@ -233,110 +238,118 @@ export default function AdminDashboard() {
       </header>
 
       {/* Main Content Area */}
-      <main className="bg-white dark:bg-zinc-900/50 backdrop-blur-xl rounded-3xl border border-slate-200 dark:border-white/5 shadow-2xl overflow-hidden min-h-[500px] relative">
+      <main className="ui-card relative min-h-[500px] overflow-hidden">
         {loading ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white dark:bg-zinc-900/80 backdrop-blur-sm z-50 gap-4">
-            <div className="w-12 h-12 border-4 border-zinc-800 border-t-lime-500 rounded-full animate-spin"></div>
-            <p className="text-slate-600 dark:text-zinc-400 font-medium">در حال بارگذاری اطلاعات...</p>
+          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white/90 backdrop-blur-sm dark:bg-zinc-900/90">
+            <div className="size-10 animate-spin rounded-full border-4 border-zinc-200 border-t-lime-500 dark:border-zinc-800"></div>
+            <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">در حال بارگذاری اطلاعات...</p>
           </div>
         ) : (
           <>
             {activeTab === "users" && isAdmin && (
-              <div className="overflow-x-auto p-2">
-                <table className="w-full text-right border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-white/5">
-                      <th className="p-5 font-semibold text-slate-600 dark:text-zinc-400 text-sm">کاربر</th>
-                      <th className="p-5 font-semibold text-slate-600 dark:text-zinc-400 text-sm">ایمیل</th>
-                      <th className="p-5 font-semibold text-slate-600 dark:text-zinc-400 text-sm">دسترسی</th>
-                      <th className="p-5 font-semibold text-slate-600 dark:text-zinc-400 text-sm">عملیات</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
+              <div className="space-y-4 p-5">
+                <div className="grid gap-3 sm:grid-cols-4">
+                  {[
+                    ["کل کاربران", userCounts.total, "group", "text-lime-500"],
+                    ["مدیران", userCounts.admins, "admin_panel_settings", "text-purple-500"],
+                    ["گرداننده‌ها", userCounts.moderators, "sports_esports", "text-sky-500"],
+                    ["مسدود", userCounts.banned, "block", "text-red-500"],
+                  ].map(([label, value, icon, color]) => (
+                    <div key={label} className="ui-muted p-4">
+                      <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+                      <p className="mt-3 text-2xl font-black text-zinc-950 dark:text-white">{value}</p>
+                      <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-white/10">
+                  <div className="hidden grid-cols-[1.4fr_1.4fr_0.8fr_1.6fr] gap-4 border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-xs font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] md:grid">
+                    <span>کاربر</span>
+                    <span>ایمیل</span>
+                    <span>دسترسی</span>
+                    <span>عملیات</span>
+                  </div>
+
+                  <div className="divide-y divide-zinc-200 dark:divide-white/10">
                     {users.map((user) => (
-                      <tr key={user.id} className="hover:bg-zinc-800/50 transition-colors group">
-                        <td className="p-5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-zinc-800 border border-[#0f172a]/20 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-zinc-400 font-bold uppercase">
-                              {user.name ? user.name[0] : user.email[0]}
-                            </div>
-                            <span className="text-sm font-medium text-slate-900 dark:text-white">{user.name || "بدون نام"}</span>
+                      <div key={user.id} className="grid gap-4 p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-white/[0.03] md:grid-cols-[1.4fr_1.4fr_0.8fr_1.6fr] md:items-center">
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100 text-sm font-black text-zinc-600 dark:border-white/10 dark:bg-zinc-800 dark:text-zinc-300">
+                            {user.name ? user.name[0] : user.email?.[0]}
                           </div>
-                        </td>
-                        <td className="p-5 text-sm text-slate-500 dark:text-zinc-500 font-mono" dir="ltr">{user.email}</td>
-                        <td className="p-5">
-                          <div className="flex flex-col gap-1 items-end">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${user.role === 'ADMIN' ? 'bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400' : user.role === 'MODERATOR' ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400' : 'bg-zinc-800 border-zinc-700 text-slate-600 dark:text-zinc-400'}`}>
-                              {user.role}
-                            </span>
-                            {user.isBanned && (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
-                                مسدود شده
-                              </span>
-                            )}
+                          <div>
+                            <p className="font-black text-zinc-950 dark:text-white">{user.name || "بدون نام"}</p>
+                            <p className="mt-1 text-xs text-zinc-500 md:hidden" dir="ltr">{user.email}</p>
                           </div>
-                        </td>
-                        <td className="p-5">
-                          <div className="flex gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
-                            {user.role !== "MODERATOR" && user.role !== "ADMIN" && (
-                              <button 
-                                onClick={() => handleRoleUpdate(user.id, "MODERATOR")}
-                                className="text-xs px-3 py-1.5 bg-zinc-800 border border-slate-200 dark:border-white/5 text-zinc-300 rounded-lg hover:bg-lime-500/20 hover:text-lime-400 hover:border-lime-500/30 transition-all"
-                              >
-                                ارتقا به گرداننده
-                              </button>
-                            )}
-                            {user.role !== "USER" && user.role !== "ADMIN" && (
-                              <button 
-                                onClick={() => handleRoleUpdate(user.id, "USER")}
-                                className="text-xs px-3 py-1.5 bg-zinc-800 border border-slate-200 dark:border-white/5 text-zinc-300 rounded-lg hover:bg-orange-500/20 hover:text-orange-600 dark:text-orange-400 hover:border-orange-500/30 transition-all"
-                              >
-                                سلب دسترسی
-                              </button>
-                            )}
-                            <button
-                              onClick={() => {
-                                showConfirm(
-                                  user.isBanned ? 'رفع مسدودیت' : 'مسدود کردن',
-                                  `آیا از ${user.isBanned ? 'رفع مسدودیت' : 'مسدود کردن'} این کاربر اطمینان دارید؟`,
-                                  async () => {
-                                    try {
-                                      await banUser(user.id, !user.isBanned);
-                                      refreshData();
-                                      showToast(user.isBanned ? "کاربر فعال شد" : "کاربر مسدود شد");
-                                    } catch (e: any) { showAlert("خطا", e.message || "خطای نامشخص", "error"); }
-                                  }
-                                );
-                              }}
-                              className={`text-xs px-3 py-1.5 bg-zinc-800 border border-slate-200 dark:border-white/5 rounded-lg transition-all ${user.isBanned ? 'text-green-600 dark:text-green-400 hover:bg-green-500/20 hover:border-green-500/30' : 'text-red-600 dark:text-red-400 hover:bg-red-500/20 hover:border-red-500/30'}`}
-                            >
-                              {user.isBanned ? 'رفع مسدودیت' : 'مسدود کردن'}
+                        </div>
+
+                        <div className="hidden truncate text-sm font-mono text-zinc-500 dark:text-zinc-400 md:block" dir="ltr">{user.email}</div>
+
+                        <div className="flex flex-wrap gap-2">
+                          <span className={`rounded-lg border px-2.5 py-1 text-xs font-black ${
+                            user.role === "ADMIN" ? "border-purple-500/20 bg-purple-500/10 text-purple-500" :
+                            user.role === "MODERATOR" ? "border-sky-500/20 bg-sky-500/10 text-sky-500" :
+                            "border-zinc-500/20 bg-zinc-500/10 text-zinc-500"
+                          }`}>
+                            {user.role}
+                          </span>
+                          {user.isBanned && <span className="rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-xs font-black text-red-500">مسدود</span>}
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {user.role !== "MODERATOR" && user.role !== "ADMIN" && (
+                            <button onClick={() => handleRoleUpdate(user.id, "MODERATOR")} className="ui-button-secondary min-h-8 px-3 py-1.5 text-xs">
+                              گرداننده
                             </button>
-                            <button
-                              onClick={() => {
-                                showConfirm(
-                                  'حذف کامل کاربر',
-                                  'آیا از حذف کامل این کاربر اطمینان دارید؟ این عمل غیرقابل بازگشت است.',
-                                  async () => {
-                                    try {
-                                      await deleteUser(user.id);
-                                      refreshData();
-                                      showToast("کاربر با موفقیت حذف شد");
-                                    } catch (e: any) { showAlert("خطا", e.message || "خطای نامشخص", "error"); }
-                                  },
-                                  "error"
-                                );
-                              }}
-                              className="text-xs px-3 py-1.5 bg-zinc-800 border border-slate-200 dark:border-white/5 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/20 hover:border-red-500/30 transition-all"
-                            >
-                              حذف کامل
+                          )}
+                          {user.role !== "USER" && user.role !== "ADMIN" && (
+                            <button onClick={() => handleRoleUpdate(user.id, "USER")} className="ui-button-secondary min-h-8 px-3 py-1.5 text-xs text-amber-600 dark:text-amber-400">
+                              سلب دسترسی
                             </button>
-                          </div>
-                        </td>
-                      </tr>
+                          )}
+                          <button
+                            onClick={() => {
+                              showConfirm(
+                                user.isBanned ? "رفع مسدودیت" : "مسدود کردن",
+                                `آیا از ${user.isBanned ? "رفع مسدودیت" : "مسدود کردن"} این کاربر اطمینان دارید؟`,
+                                async () => {
+                                  try {
+                                    await banUser(user.id, !user.isBanned);
+                                    refreshData();
+                                    showToast(user.isBanned ? "کاربر فعال شد" : "کاربر مسدود شد");
+                                  } catch (e: any) { showAlert("خطا", e.message || "خطای نامشخص", "error"); }
+                                }
+                              );
+                            }}
+                            className={`min-h-8 rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors ${user.isBanned ? "border-green-500/20 bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white" : "border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"}`}
+                          >
+                            {user.isBanned ? "فعال کردن" : "مسدود"}
+                          </button>
+                          <button
+                            onClick={() => {
+                              showConfirm(
+                                "حذف کامل کاربر",
+                                "آیا از حذف کامل این کاربر اطمینان دارید؟ این عمل غیرقابل بازگشت است.",
+                                async () => {
+                                  try {
+                                    await deleteUser(user.id);
+                                    refreshData();
+                                    showToast("کاربر با موفقیت حذف شد");
+                                  } catch (e: any) { showAlert("خطا", e.message || "خطای نامشخص", "error"); }
+                                },
+                                "error"
+                              );
+                            }}
+                            className="min-h-8 rounded-lg border border-red-500/20 px-3 py-1.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-500 hover:text-white"
+                          >
+                            حذف
+                          </button>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -372,7 +385,7 @@ export default function AdminDashboard() {
                         value={newRoleName}
                         onChange={(e) => setNewRoleName(e.target.value)}
                         required
-                        className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner" 
+                        className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-lg p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner" 
                         placeholder="مثلا: تفنگدار"
                       />
                     </div>
@@ -381,7 +394,7 @@ export default function AdminDashboard() {
                       <select 
                         value={newRoleAlign}
                         onChange={(e) => setNewRoleAlign(e.target.value as Alignment)}
-                        className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white outline-none focus:border-lime-500/50 transition-all shadow-inner appearance-none"
+                        className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-lg p-3.5 text-sm text-slate-900 dark:text-white outline-none focus:border-lime-500/50 transition-all shadow-inner appearance-none"
                       >
                         <option value="CITIZEN">شهروند</option>
                         <option value="MAFIA">مافیا</option>
@@ -393,11 +406,11 @@ export default function AdminDashboard() {
                       <textarea 
                         value={newRoleDesc}
                         onChange={(e) => setNewRoleDesc(e.target.value)}
-                        className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner h-28 resize-none" 
+                        className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-lg p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 focus:ring-1 focus:ring-lime-500/50 outline-none transition-all shadow-inner h-28 resize-none" 
                         placeholder="در شب چه کاری انجام میدهد؟"
                       />
                     </div>
-                    <button type="submit" className={`mt-4 py-3.5 rounded-xl font-bold text-sm transition-all shadow-lg ${editingRoleId ? 'bg-blue-500 text-slate-900 dark:text-white hover:bg-blue-600 hover:shadow-blue-500/20' : 'bg-lime-500 text-zinc-950 hover:bg-lime-400 hover:shadow-lime-500/20'}`}>
+                    <button type="submit" className={`mt-4 py-3.5 rounded-lg font-bold text-sm transition-all shadow-lg ${editingRoleId ? 'bg-blue-500 text-slate-900 dark:text-white hover:bg-blue-600 hover:shadow-blue-500/20' : 'bg-lime-500 text-zinc-950 hover:bg-lime-400 hover:shadow-lime-500/20'}`}>
                       {editingRoleId ? 'بروزرسانی نقش' : 'ثبت نقش در سیستم'}
                     </button>
                   </form>
@@ -407,7 +420,7 @@ export default function AdminDashboard() {
                 <div className="flex-1 p-8 overflow-y-auto max-h-[800px] bg-white dark:bg-zinc-900/20">
                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                       {roles.map((role) => (
-                        <div key={role.id} className="group p-5 rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-900 hover:bg-zinc-800 transition-all hover:border-[#0f172a]/20 dark:border-white/10 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden flex flex-col gap-3">
+                        <div key={role.id} className="group p-5 rounded-lg border border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-900 hover:bg-zinc-800 transition-all hover:border-[#0f172a]/20 dark:border-white/10 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden flex flex-col gap-3">
                            {/* Alignment Glow */}
                            <div className={`absolute -top-10 -right-10 w-24 h-24 blur-3xl rounded-full opacity-20 transition-opacity group-hover:opacity-40 ${role.alignment === 'CITIZEN' ? 'bg-green-500' : role.alignment === 'MAFIA' ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
                            
@@ -489,13 +502,13 @@ export default function AdminDashboard() {
                       onChange={(e) => setNewScenName(e.target.value)}
                       required
                       placeholder="نام سناریو (مثلا: تکاور ۱۵ نفره)"
-                      className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 outline-none transition-all"
+                      className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-lg p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 outline-none transition-all"
                     />
                     <textarea 
                       value={newScenDesc}
                       onChange={(e) => setNewScenDesc(e.target.value)}
                       placeholder="توضیحات کوتاه در مورد قوانین این سناریو..."
-                      className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 outline-none transition-all h-20 resize-none"
+                      className="bg-white dark:bg-zinc-900/50 border border-[#0f172a]/20 dark:border-white/10 rounded-lg p-3.5 text-sm text-slate-900 dark:text-white placeholder-zinc-600 focus:border-lime-500/50 outline-none transition-all h-20 resize-none"
                     />
                     
                     <div className="flex flex-col gap-3 flex-1 overflow-hidden">
@@ -507,7 +520,7 @@ export default function AdminDashboard() {
                       </div>
                       
                       {/* Role Selector Box */}
-                      <div className="flex-1 overflow-y-auto border border-slate-200 dark:border-white/5 rounded-xl bg-white dark:bg-zinc-900/30 p-2 custom-scrollbar">
+                      <div className="flex-1 overflow-y-auto border border-slate-200 dark:border-white/5 rounded-lg bg-white dark:bg-zinc-900/30 p-2 custom-scrollbar">
                         <div className="flex flex-col gap-1">
                           {roles.map(role => {
                             const isSelected = !!selectedRoles.find(r => r.roleId === role.id);
@@ -542,7 +555,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     
-                    <button type="submit" className={`py-3.5 rounded-xl font-bold text-sm transition-all shadow-lg ${editingScenarioId ? 'bg-blue-500 text-slate-900 dark:text-white hover:bg-blue-600' : 'bg-lime-500 text-zinc-950 hover:bg-lime-400'}`}>
+                    <button type="submit" className={`py-3.5 rounded-lg font-bold text-sm transition-all shadow-lg ${editingScenarioId ? 'bg-blue-500 text-slate-900 dark:text-white hover:bg-blue-600' : 'bg-lime-500 text-zinc-950 hover:bg-lime-400'}`}>
                       {editingScenarioId ? 'بروزرسانی سناریو' : 'ذخیره سناریو جدید'}
                     </button>
                   </form>
@@ -552,7 +565,7 @@ export default function AdminDashboard() {
                 <div className="flex-1 p-8 overflow-y-auto max-h-[800px] bg-white dark:bg-zinc-900/20">
                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                       {scenarios.map((scen) => (
-                        <div key={scen.id} className="p-6 rounded-3xl border border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-900 hover:bg-zinc-800/80 transition-all hover:border-[#0f172a]/20 dark:border-white/10 hover:shadow-2xl relative overflow-hidden flex flex-col gap-4 group">
+                        <div key={scen.id} className="p-6 rounded-lg border border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-900 hover:bg-zinc-800/80 transition-all hover:border-[#0f172a]/20 dark:border-white/10 hover:shadow-2xl relative overflow-hidden flex flex-col gap-4 group">
                            <div className="absolute top-0 right-0 w-32 h-32 bg-lime-500/5 blur-[80px] rounded-full pointer-events-none"></div>
                            
                            <div className="flex justify-between items-start relative z-10">

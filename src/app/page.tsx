@@ -1,114 +1,129 @@
-import Link from 'next/link';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import Link from "next/link";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
+const features = [
+  { icon: "groups", title: "لابی زنده", text: "کد اختصاصی، ظرفیت بازیکن و وضعیت بازی در یک نمای سریع." },
+  { icon: "account_tree", title: "سناریوی دقیق", text: "نقش‌ها، تعداد نفرات و چینش بازی برای گرداننده شفاف می‌ماند." },
+  { icon: "analytics", title: "گزارش عملکرد", text: "تاریخچه بازی، برد و باخت و نقش‌های قبلی بازیکنان ثبت می‌شود." },
+];
 
 export default function Home() {
   return (
-    <div className="bg-gray-200 dark:bg-zinc-950 min-h-screen flex flex-col font-sans overflow-hidden transition-colors duration-300" dir="rtl">
-      {/* Abstract Background Elements */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-lime-500/10 blur-[150px] mix-blend-screen animate-pulse"></div>
-        <div className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-emerald-600/10 blur-[180px] mix-blend-screen"></div>
-        <div className="absolute top-[40%] left-[20%] w-[40%] h-[40%] rounded-full bg-teal-500/5 blur-[120px] mix-blend-screen animate-pulse" style={{ animationDelay: '3s' }}></div>
-        
-        {/* Subtle grid pattern */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9Im5vbmUiLz4KPHBhdGggZD0iTTAgNDBMMDAgMEw0MCAwIiBzdHJva2U9InJnYmEoMTYxLDE2MSwxNjEsMC4xKSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIi8+Cjwvc3ZnPg==')] dark:bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9Im5vbmUiLz4KPHBhdGggZD0iTTAgNDBMMDAgMEw0MCAwIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wMikiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIvPgo8L3N2Zz4=')] opacity-50"></div>
-      </div>
-
-      <header className="relative z-50 flex justify-between items-center w-full px-6 py-5 max-w-7xl mx-auto">
+    <div className="app-page flex min-h-screen flex-col" dir="rtl">
+      <header className="app-container flex items-center justify-between py-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-lime-400 to-emerald-600 p-[1px] shadow-lg shadow-lime-500/20">
-            <div className="w-full h-full bg-white dark:bg-zinc-950 rounded-xl flex items-center justify-center">
-              <span className="material-symbols-outlined text-xl bg-gradient-to-br from-lime-500 to-emerald-600 bg-clip-text text-transparent">domino_mask</span>
-            </div>
+          <div className="ui-icon-accent">
+            <span className="material-symbols-outlined text-xl">theater_comedy</span>
           </div>
-          <span className="text-xl font-black text-zinc-900 dark:text-white tracking-wider">MAFIA</span>
+          <div>
+            <p className="text-lg font-black text-zinc-950 dark:text-white">مافیا بورد</p>
+            <p className="ui-kicker">کنترل روم بازی</p>
+          </div>
         </div>
-        
-        <div className="flex items-center gap-2 sm:gap-4">
-          <div className="w-32 sm:w-40 hidden sm:block">
+
+        <div className="flex items-center gap-2">
+          <div className="hidden w-36 sm:block">
             <ThemeToggle />
           </div>
-          <div className="w-12 sm:hidden flex items-center justify-center overflow-hidden">
-             <ThemeToggle />
-          </div>
-          <Link href="/auth/register" className="hidden sm:block text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">ثبت‌نام</Link>
-          <Link href="/auth/login" className="relative group overflow-hidden rounded-xl p-[1px]">
-            <span className="absolute inset-0 bg-gradient-to-r from-lime-400 to-emerald-600 rounded-xl opacity-80 group-hover:opacity-100 transition-opacity"></span>
-            <div className="relative flex items-center justify-center gap-2 bg-white dark:bg-zinc-900 px-5 py-2.5 rounded-xl transition-all group-hover:bg-transparent">
-              <span className="text-zinc-900 dark:text-white font-bold text-sm tracking-wide group-hover:text-white dark:group-hover:text-zinc-950 transition-colors">ورود</span>
-            </div>
+          <Link href="/auth/login" className="ui-button-secondary">
+            ورود
+          </Link>
+          <Link href="/auth/register" className="ui-button-primary hidden sm:inline-flex">
+            شروع
           </Link>
         </div>
       </header>
-      
-      <main className="relative z-10 flex-grow w-full max-w-7xl mx-auto px-6 flex flex-col items-center justify-center min-h-[80vh]">
-        
-        <div className="flex flex-col items-center text-center max-w-3xl gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-zinc-900 dark:text-white leading-tight tracking-tight mt-4">
-            مافیا را <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-500 to-emerald-500">حرفه‌ای</span> <br className="hidden sm:block" /> تجربه کنید
-          </h1>
-          
-          <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-            سیستم هوشمند مدیریت بازی، ساخت لابی اختصاصی، پیشنهاد خودکار سناریوها و توزیع مخفی نقش‌ها.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto">
-            <Link href="/auth/register" className="relative group overflow-hidden rounded-2xl p-[1px] w-full sm:w-auto">
-              <span className="absolute inset-0 bg-gradient-to-r from-lime-400 to-emerald-600 rounded-2xl opacity-100 transition-opacity"></span>
-              <div className="relative flex items-center justify-center gap-2 bg-lime-500/10 dark:bg-lime-500/20 backdrop-blur-md px-8 py-4 rounded-2xl transition-all group-hover:bg-transparent">
-                <span className="text-zinc-900 dark:text-white font-bold text-lg tracking-wide group-hover:text-white dark:group-hover:text-zinc-950 transition-colors">شروع بازی</span>
-                <span className="material-symbols-outlined text-zinc-900 dark:text-white text-lg group-hover:text-white dark:group-hover:text-zinc-950 transition-colors group-hover:translate-x-[-4px]">arrow_back</span>
-              </div>
+
+      <main className="app-container grid flex-1 items-center gap-8 py-8 lg:grid-cols-[1fr_520px]">
+        <section className="flex max-w-2xl flex-col gap-6">
+          <div className="ui-muted inline-flex w-fit items-center gap-2 px-3 py-2">
+            <span className="material-symbols-outlined text-base text-lime-600 dark:text-lime-400">bolt</span>
+            <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">برای گرداننده‌ها و بازیکنان جدی</span>
+          </div>
+
+          <div className="space-y-4">
+            <h1 className="text-4xl font-black leading-tight text-zinc-950 dark:text-white sm:text-5xl lg:text-6xl">
+              مدیریت بازی مافیا، منظم‌تر و سریع‌تر.
+            </h1>
+            <p className="max-w-xl text-base leading-8 text-zinc-600 dark:text-zinc-400 sm:text-lg">
+              لابی بسازید، بازیکنان را هماهنگ کنید، نقش‌ها را مخفی توزیع کنید و بعد از بازی همه چیز را در داشبورد ببینید.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link href="/auth/register" className="ui-button-primary min-h-12 px-6">
+              <span className="material-symbols-outlined text-xl">play_arrow</span>
+              شروع بازی
+            </Link>
+            <Link href="/auth/login" className="ui-button-secondary min-h-12 px-6">
+              ورود به حساب
             </Link>
           </div>
-        </div>
 
-        {/* Floating Cards Demo */}
-        <div className="w-full max-w-4xl mt-24 relative h-64 sm:h-48 pointer-events-none hidden md:block">
-           <div className="absolute top-0 right-[15%] w-64 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200 dark:border-white/10 rounded-2xl p-5 shadow-2xl transform rotate-3 animate-[float_6s_ease-in-out_infinite]">
-              <div className="flex justify-between items-center mb-4">
-                 <span className="text-sm font-bold text-zinc-900 dark:text-white">بازپرس ویژه</span>
-                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-600 dark:text-green-400 border border-green-200 dark:border-green-500/20">شهروند</span>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {features.map((feature) => (
+              <div key={feature.title} className="ui-card p-4">
+                <span className="material-symbols-outlined mb-3 text-lime-600 dark:text-lime-400">{feature.icon}</span>
+                <h2 className="mb-1 font-black text-zinc-950 dark:text-white">{feature.title}</h2>
+                <p className="text-xs leading-6 text-zinc-500 dark:text-zinc-400">{feature.text}</p>
               </div>
-              <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden mb-2">
-                 <div className="w-3/4 h-full bg-lime-500"></div>
+            ))}
+          </div>
+        </section>
+
+        <section className="ui-card overflow-hidden">
+          <div className="border-b border-zinc-200 bg-zinc-50 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="ui-kicker">لابی فعال</p>
+                <h2 className="text-xl font-black text-zinc-950 dark:text-white">شب معارفه</h2>
               </div>
-              <p className="text-[10px] text-zinc-500">قابلیت بررسی مظنونین</p>
-           </div>
-           
-           <div className="absolute top-12 left-[15%] w-64 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200 dark:border-white/10 rounded-2xl p-5 shadow-2xl transform -rotate-3 animate-[float_8s_ease-in-out_infinite_reverse]">
-              <div className="flex justify-between items-center mb-4">
-                 <span className="text-sm font-bold text-zinc-900 dark:text-white">پدرخوانده</span>
-                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20">مافیا</span>
+              <span className="rounded-lg bg-lime-500 px-3 py-1 text-sm font-black text-zinc-950">8/12</span>
+            </div>
+          </div>
+
+          <div className="space-y-5 p-5">
+            <div className="grid grid-cols-3 gap-3">
+              {["کد", "سناریو", "وضعیت"].map((label, index) => (
+                <div key={label} className="ui-muted p-3">
+                  <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                  <p className="mt-1 font-black text-zinc-950 dark:text-white">
+                    {index === 0 ? "#402" : index === 1 ? "کلاسیک" : "در انتظار"}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="ui-muted p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <p className="font-black text-zinc-950 dark:text-white">ترکیب نقش‌ها</p>
+                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">12 نفره</span>
               </div>
-              <div className="flex items-center gap-2">
-                 <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/5 flex items-center justify-center text-xs text-zinc-900 dark:text-white">?</div>
-                 <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/5 flex items-center justify-center text-xs text-zinc-900 dark:text-white">?</div>
-                 <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/5 flex items-center justify-center text-xs text-zinc-900 dark:text-white">?</div>
+              <div className="space-y-3">
+                {[
+                  ["شهروند", "7", "bg-sky-500"],
+                  ["مافیا", "4", "bg-red-500"],
+                  ["مستقل", "1", "bg-amber-500"],
+                ].map(([name, count, color]) => (
+                  <div key={name} className="flex items-center gap-3">
+                    <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
+                    <span className="flex-1 text-sm font-bold text-zinc-700 dark:text-zinc-300">{name}</span>
+                    <span className="text-sm font-black text-zinc-950 dark:text-white">{count}</span>
+                  </div>
+                ))}
               </div>
-           </div>
-           
-           <div className="absolute -top-8 left-[40%] w-72 bg-white/90 dark:bg-zinc-900/80 backdrop-blur-2xl border border-lime-500/30 rounded-3xl p-6 shadow-[0_0_50px_rgba(132,204,22,0.15)] transform z-10 animate-[float_7s_ease-in-out_infinite]">
-              <div className="flex items-center gap-4 mb-4">
-                 <div className="w-12 h-12 rounded-xl bg-lime-500/20 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-lime-600 dark:text-lime-400">group</span>
-                 </div>
-                 <div>
-                    <h3 className="text-zinc-900 dark:text-white font-bold">لابی شماره #402</h3>
-                    <p className="text-xs text-lime-600 dark:text-lime-400">در حال عضوگیری (8/12)</p>
-                 </div>
-              </div>
-              <div className="flex -space-x-2 space-x-reverse">
-                 {[1,2,3,4,5].map(i => (
-                   <div key={i} className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[10px] font-bold text-zinc-500 dark:text-zinc-400">U{i}</div>
-                 ))}
-                 <div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[10px] font-bold text-zinc-900 dark:text-white">+3</div>
-              </div>
-           </div>
-        </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <div key={index} className="ui-muted flex aspect-square items-center justify-center">
+                  <span className="material-symbols-outlined text-zinc-400">person</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       </main>
-      
     </div>
   );
 }

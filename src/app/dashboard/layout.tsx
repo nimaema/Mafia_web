@@ -1,7 +1,6 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { headers } from "next/headers";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { InstallPWAButton } from "@/components/InstallPWAButton";
 
@@ -24,125 +23,116 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="bg-slate-100 dark:bg-[#0a0a0c] text-slate-900 dark:text-zinc-100 min-h-screen pb-20 md:pb-0 flex flex-col md:flex-row items-start transition-all duration-500" dir="rtl">
-      {/* Premium Background Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-lime-500/5 blur-[150px] rounded-full animate-pulse-slow"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 blur-[150px] rounded-full animate-pulse-slow" style={{animationDelay: '4s'}}></div>
-      </div>
-
-      {/* Desktop Sidebar */}
-      <aside className="relative z-10 hidden md:flex flex-col w-80 bg-white/90 dark:bg-black/40 backdrop-blur-3xl border-l border-slate-300 dark:border-white/5 h-screen p-8 sticky top-0 transition-all duration-300 shadow-xl">
-        <div className="flex items-center gap-4 mb-12 px-2">
-          <div className="w-14 h-14 bg-gradient-to-br from-lime-400 to-lime-600 rounded-2xl flex items-center justify-center shadow-xl shadow-lime-500/20 rotate-3">
-            <span className="material-symbols-outlined text-zinc-950 text-3xl font-black">theater_comedy</span>
+    <div className="app-page min-h-screen pb-24 md:pb-0 md:flex md:items-start" dir="rtl">
+      <aside className="sticky top-0 z-20 hidden h-screen w-72 shrink-0 flex-col border-l border-zinc-200 bg-white/90 p-5 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/80 md:flex">
+        <div className="mb-8 flex items-center gap-3 px-2">
+          <div className="ui-icon-accent size-12">
+            <span className="material-symbols-outlined text-2xl font-black">theater_comedy</span>
           </div>
           <div className="flex flex-col">
-            <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white">مافیا بورد</h1>
-            <span className="text-[10px] uppercase tracking-widest text-lime-600 dark:text-lime-400 font-bold">Premium Companion</span>
+            <h1 className="text-xl font-black text-slate-900 dark:text-white">مافیا بورد</h1>
+            <span className="ui-kicker">دستیار مدیریت بازی</span>
           </div>
         </div>
         
-        <nav className="flex flex-col gap-2 flex-1 overflow-y-auto custom-scrollbar">
-          <Link href="/dashboard/user" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-[#0f172a] dark:hover:text-white group">
+        <nav className="custom-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto">
+          <Link href="/dashboard/user" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-white">
             <span className="material-symbols-outlined group-hover:scale-110 transition-transform">dashboard</span>
-            <span className="font-bold text-sm tracking-wide">میز کار (داشبورد)</span>
+            <span>داشبورد</span>
           </Link>
 
-          <Link href="/dashboard/user/profile" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-[#0f172a] dark:hover:text-white group">
-            <span className="material-symbols-outlined group-hover:scale-110 transition-transform">person</span>
-            <span className="font-bold text-sm tracking-wide">پروفایل من</span>
+          <Link href="/dashboard/user/profile" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-white">
+            <span className="material-symbols-outlined">person</span>
+            <span>پروفایل من</span>
           </Link>
 
-          <Link href="/dashboard/user/history" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-[#0f172a] dark:hover:text-white group">
-            <span className="material-symbols-outlined group-hover:scale-110 transition-transform">history</span>
-            <span className="font-bold text-sm tracking-wide">تاریخچه بازی‌ها</span>
+          <Link href="/dashboard/user/history" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-white">
+            <span className="material-symbols-outlined">history</span>
+            <span>تاریخچه بازی‌ها</span>
           </Link>
 
           {isModerator && (
             <>
-              <div className="h-px bg-white/5 my-4 mx-4"></div>
-              <p className="text-[10px] text-zinc-500 px-5 font-black uppercase tracking-widest mb-2">گردانندگی</p>
-              <Link href="/dashboard/moderator" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-lime-600 dark:hover:text-lime-400 group">
-                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">sports_esports</span>
-                <span className="font-bold text-sm tracking-wide">لابی بازی‌ها</span>
+              <div className="my-4 h-px bg-zinc-200 dark:bg-white/10"></div>
+              <p className="px-4 pb-2 text-xs font-black text-zinc-400">گردانندگی</p>
+              <Link href="/dashboard/moderator" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-lime-500/10 hover:text-lime-700 dark:text-zinc-400 dark:hover:text-lime-300">
+                <span className="material-symbols-outlined">sports_esports</span>
+                <span>لابی بازی‌ها</span>
               </Link>
-              <Link href="/dashboard/admin?tab=scenarios" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-600 dark:text-emerald-400 group">
-                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">account_tree</span>
-                <span className="font-bold text-sm tracking-wide">سناریوها</span>
+              <Link href="/dashboard/admin?tab=scenarios" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-lime-500/10 hover:text-lime-700 dark:text-zinc-400 dark:hover:text-lime-300">
+                <span className="material-symbols-outlined">account_tree</span>
+                <span>سناریوها</span>
               </Link>
-              <Link href="/dashboard/admin?tab=roles" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-teal-600 dark:hover:text-teal-600 dark:text-teal-400 group">
-                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">theater_comedy</span>
-                <span className="font-bold text-sm tracking-wide">نقش‌ها</span>
+              <Link href="/dashboard/admin?tab=roles" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-lime-500/10 hover:text-lime-700 dark:text-zinc-400 dark:hover:text-lime-300">
+                <span className="material-symbols-outlined">theater_comedy</span>
+                <span>نقش‌ها</span>
               </Link>
             </>
           )}
 
           {isAdmin && (
             <>
-              <div className="h-px bg-white/5 my-4 mx-4"></div>
-              <p className="text-[10px] text-zinc-500 px-5 font-black uppercase tracking-widest mb-2">مدیریت کل</p>
-              <Link href="/dashboard/admin?tab=users" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 group">
-                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
-                <span className="font-bold text-sm tracking-wide">کاربران سیستم</span>
+              <div className="my-4 h-px bg-zinc-200 dark:bg-white/10"></div>
+              <p className="px-4 pb-2 text-xs font-black text-zinc-400">مدیریت کل</p>
+              <Link href="/dashboard/admin?tab=users" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-sky-500/10 hover:text-sky-700 dark:text-zinc-400 dark:hover:text-sky-300">
+                <span className="material-symbols-outlined">group</span>
+                <span>کاربران سیستم</span>
               </Link>
             </>
           )}
         </nav>
 
-        <div className="mt-auto pt-8 flex flex-col gap-4 border-t border-black/10 dark:border-white/5">
+        <div className="mt-auto flex flex-col gap-3 border-t border-zinc-200 pt-5 dark:border-white/10">
           <ThemeToggle />
           <InstallPWAButton />
           <form action={handleLogout} className="w-full">
             <button 
               type="submit"
-              className="flex items-center gap-3 px-5 py-4 rounded-2xl text-red-600 dark:text-red-400/80 hover:text-red-600 dark:text-red-400 hover:bg-red-500/5 transition-all duration-300 w-full group"
+              className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-black text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-400"
             >
-              <span className="material-symbols-outlined group-hover:-translate-x-1 transition-transform">logout</span>
-              <span className="font-black text-sm tracking-widest uppercase">خروج از سیستم</span>
+              <span className="material-symbols-outlined">logout</span>
+              <span>خروج از سیستم</span>
             </button>
           </form>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="relative z-10 flex-1 w-full p-4 md:p-12 overflow-x-hidden">
-        <div className="max-w-7xl mx-auto">
+      <main className="relative z-10 w-full flex-1 overflow-x-hidden p-4 md:p-8">
+        <div className="mx-auto max-w-7xl">
           {children}
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-4 left-4 right-4 bg-[#ffffffcc] dark:bg-zinc-950/80 backdrop-blur-3xl border border-slate-200 dark:border-white/10 flex justify-around items-center h-20 z-50 rounded-[2rem] px-4 shadow-[0_20px_50px_rgba(15,23,42,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all">
-        <Link href="/dashboard/user" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-white">
+      <nav className="fixed bottom-4 left-4 right-4 z-50 flex h-16 items-center justify-around rounded-lg border border-zinc-200 bg-white/90 px-2 shadow-lg shadow-zinc-950/10 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90 md:hidden">
+        <Link href="/dashboard/user" className="flex h-full flex-1 flex-col items-center justify-center gap-1 text-zinc-500 transition-colors hover:text-lime-600 dark:hover:text-lime-400">
           <span className="material-symbols-outlined text-2xl">dashboard</span>
-          <span className="text-[9px] font-black uppercase tracking-tighter">داشبورد</span>
+          <span className="text-[10px] font-black">داشبورد</span>
         </Link>
         {isModerator && (
           <>
-            <Link href="/dashboard/moderator" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-lime-400">
+            <Link href="/dashboard/moderator" className="flex h-full flex-1 flex-col items-center justify-center gap-1 text-zinc-500 transition-colors hover:text-lime-600 dark:hover:text-lime-400">
               <span className="material-symbols-outlined text-2xl">sports_esports</span>
-              <span className="text-[9px] font-black uppercase tracking-tighter">بازی‌ها</span>
+              <span className="text-[10px] font-black">بازی‌ها</span>
             </Link>
-            <Link href="/dashboard/admin?tab=roles" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-teal-600 dark:text-teal-400">
+            <Link href="/dashboard/admin?tab=roles" className="flex h-full flex-1 flex-col items-center justify-center gap-1 text-zinc-500 transition-colors hover:text-lime-600 dark:hover:text-lime-400">
               <span className="material-symbols-outlined text-2xl">theater_comedy</span>
-              <span className="text-[9px] font-black uppercase tracking-tighter">نقش‌ها</span>
+              <span className="text-[10px] font-black">نقش‌ها</span>
             </Link>
           </>
         )}
         {isAdmin && (
-          <Link href="/dashboard/admin?tab=users" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-white">
+          <Link href="/dashboard/admin?tab=users" className="flex h-full flex-1 flex-col items-center justify-center gap-1 text-zinc-500 transition-colors hover:text-sky-600 dark:hover:text-sky-400">
             <span className="material-symbols-outlined text-2xl">admin_panel_settings</span>
-            <span className="text-[9px] font-black uppercase tracking-tighter">مدیریت</span>
+            <span className="text-[10px] font-black">مدیریت</span>
           </Link>
         )}
         <form action={handleLogout} className="flex-1 h-full">
           <button 
             type="submit"
-            className="flex flex-col items-center justify-center w-full h-full gap-1 text-red-600 dark:text-red-400/60 hover:text-red-600 dark:text-red-400"
+            className="flex h-full w-full flex-col items-center justify-center gap-1 text-red-500 transition-colors hover:text-red-600"
           >
             <span className="material-symbols-outlined text-2xl">logout</span>
-            <span className="text-[9px] font-black uppercase tracking-tighter">خروج</span>
+            <span className="text-[10px] font-black">خروج</span>
           </button>
         </form>
       </nav>

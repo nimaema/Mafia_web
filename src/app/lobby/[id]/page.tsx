@@ -81,15 +81,15 @@ export default function UserLobbyPage() {
 
   return (
     <div className="min-h-screen bg-gray-200 dark:bg-zinc-950 p-4 flex flex-col items-center justify-center gap-8">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden flex flex-col">
         <header className="p-8 bg-lime-500/5 border-b border-zinc-200 dark:border-zinc-800 text-center flex flex-col gap-2">
-          <div className="w-16 h-16 bg-lime-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-lime-500/20 mb-2 rotate-3">
+          <div className="w-16 h-16 bg-lime-500 rounded-lg flex items-center justify-center mx-auto shadow-lg shadow-lime-500/20 mb-2 rotate-3">
              <span className="material-symbols-outlined text-zinc-950 text-3xl font-bold">groups</span>
           </div>
           <h1 className="text-2xl font-black">{game?.name || "لابی بازی مافیا"}</h1>
-          <p className="text-zinc-500 text-sm italic">سناریو: {game?.scenario?.name || "نامشخص"}</p>
-          <div className="mt-4 px-4 py-2 bg-white dark:bg-zinc-950 rounded-xl border border-dashed border-lime-500/50 flex flex-col">
-              <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">کد بازی</span>
+          <p className="text-zinc-500 text-sm">سناریو: {game?.scenario?.name || "نامشخص"}</p>
+          <div className="mt-4 px-4 py-2 bg-white dark:bg-zinc-950 rounded-lg border border-dashed border-lime-500/50 flex flex-col">
+              <span className="text-[10px] text-zinc-400 uppercase font-bold">کد بازی</span>
               <span className="text-xl font-mono font-black text-lime-600 dark:text-lime-400">#{game?.code}</span>
           </div>
         </header>
@@ -111,7 +111,7 @@ export default function UserLobbyPage() {
                </div>
              ) : (
                players.map((p, i) => (
-                 <div key={p.id} className="flex items-center gap-3 p-3 bg-gray-200 dark:bg-zinc-950/50 rounded-xl border border-zinc-100 dark:border-zinc-800/50 animate-in fade-in slide-in-from-right-4 duration-300" style={{ animationDelay: `${i * 100}ms` }}>
+                 <div key={p.id} className="flex items-center gap-3 p-3 bg-gray-200 dark:bg-zinc-950/50 rounded-lg border border-zinc-100 dark:border-zinc-800/50 animate-in fade-in slide-in-from-right-4 duration-300" style={{ animationDelay: `${i * 100}ms` }}>
                     <div className="w-8 h-8 rounded-full bg-lime-500 flex items-center justify-center text-zinc-950 font-bold text-xs">{i + 1}</div>
                     <span className="font-bold">{p.name}</span>
                     {p.id === session?.user?.id && <span className="text-[10px] bg-zinc-900 text-white px-2 py-0.5 rounded-lg mr-auto">شما</span>}
@@ -130,21 +130,21 @@ export default function UserLobbyPage() {
                     value={joinPassword}
                     onChange={(e) => setJoinPassword(e.target.value)}
                     placeholder="رمز عبور را وارد کنید"
-                    className="w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 px-4 outline-none focus:border-lime-500 transition-colors"
+                    className="w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 px-4 outline-none focus:border-lime-500 transition-colors"
                   />
                 </div>
               )}
               <button 
                 onClick={handleJoin}
                 disabled={loading}
-                className="w-full bg-lime-500 text-zinc-950 py-4 rounded-2xl font-black text-lg shadow-lg shadow-lime-500/20 hover:bg-lime-600 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-2"
+                className="w-full bg-lime-500 text-zinc-950 py-4 rounded-lg font-black text-lg shadow-lg shadow-lime-500/20 hover:bg-lime-600 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined">login</span>
                 پیوستن به بازی
               </button>
             </div>
           ) : (
-            <div className="bg-lime-100 dark:bg-lime-900/20 p-4 rounded-2xl flex flex-col items-center gap-2 border border-lime-200 dark:border-lime-800">
+            <div className="bg-lime-100 dark:bg-lime-900/20 p-4 rounded-lg flex flex-col items-center gap-2 border border-lime-200 dark:border-lime-800">
                <div className="flex items-center gap-2 text-lime-700 dark:text-lime-400 font-bold">
                   <span className="material-symbols-outlined animate-pulse">check_circle</span>
                   شما در لابی هستید

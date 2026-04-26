@@ -59,7 +59,7 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
             name="name" 
             defaultValue={user.name} 
             required
-            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:border-lime-500 transition-colors"
+            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 outline-none focus:border-lime-500 transition-colors"
           />
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
             required
             dir="ltr"
             readOnly={hasGoogleProvider}
-            className={`w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:border-lime-500 transition-colors ${hasGoogleProvider ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 outline-none focus:border-lime-500 transition-colors ${hasGoogleProvider ? 'opacity-60 cursor-not-allowed' : ''}`}
           />
         </div>
       </div>
@@ -83,7 +83,7 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
       <button 
         type="submit" 
         disabled={isPending}
-        className="w-full bg-lime-500 text-zinc-950 py-3 rounded-xl font-bold mt-2 hover:bg-lime-600 transition-colors shadow-lg shadow-lime-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+        className="w-full bg-lime-500 text-zinc-950 py-3 rounded-lg font-bold mt-2 hover:bg-lime-600 transition-colors shadow-lg shadow-lime-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {isPending ? (
           <span className="material-symbols-outlined animate-spin">refresh</span>
@@ -109,7 +109,7 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
               name="currentPassword" 
               required
               dir="ltr"
-              className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:border-blue-500 transition-colors"
+              className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 outline-none focus:border-blue-500 transition-colors"
             />
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
             name="newPassword" 
             required
             dir="ltr"
-            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:border-blue-500 transition-colors"
+            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 outline-none focus:border-blue-500 transition-colors"
           />
         </div>
       </div>
@@ -138,7 +138,7 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
             name="confirmPassword" 
             required
             dir="ltr"
-            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:border-blue-500 transition-colors"
+            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 outline-none focus:border-blue-500 transition-colors"
           />
         </div>
       </div>
@@ -146,7 +146,7 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
       <button 
         type="submit" 
         disabled={isPwdPending}
-        className="w-full bg-blue-500 text-white py-3 rounded-xl font-bold mt-2 hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+        className="w-full bg-blue-500 text-white py-3 rounded-lg font-bold mt-2 hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {isPwdPending ? (
           <span className="material-symbols-outlined animate-spin">refresh</span>
@@ -162,7 +162,7 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
     <div className="flex flex-col gap-5">
       <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">اتصال حساب‌ها</h3>
       {hasGoogleProvider ? (
-        <div className="bg-[#0f172a]/5 dark:bg-white/5 border border-slate-200 dark:border-white/5 p-4 rounded-xl flex items-center justify-between">
+        <div className="bg-[#0f172a]/5 dark:bg-white/5 border border-slate-200 dark:border-white/5 p-4 rounded-lg flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-6 h-6" />
             <span className="font-semibold text-slate-900 dark:text-white">حساب گوگل</span>
@@ -172,7 +172,7 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
       ) : (
         <button 
           onClick={() => signIn("google", { callbackUrl: "/dashboard/user/profile" })}
-          className="w-full bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/5 text-slate-900 dark:text-white py-3 rounded-xl font-bold hover:bg-[#0f172a]/5 dark:hover:bg-white/5 transition-colors flex items-center justify-center gap-3"
+          className="w-full bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/5 text-slate-900 dark:text-white py-3 rounded-lg font-bold hover:bg-[#0f172a]/5 dark:hover:bg-white/5 transition-colors flex items-center justify-center gap-3"
         >
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
           اتصال به حساب گوگل

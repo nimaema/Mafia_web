@@ -12,17 +12,17 @@ export default async function UserHistoryPage() {
       </div>
 
       {history.length === 0 ? (
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-12 text-center flex flex-col items-center gap-4">
+        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-12 text-center flex flex-col items-center gap-4">
           <span className="material-symbols-outlined text-6xl text-zinc-200">history</span>
           <p className="text-zinc-500 font-bold">هنوز هیچ بازی ثبت نشده است.</p>
-          <Link href="/dashboard/user" className="px-6 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl font-bold">
+          <Link href="/dashboard/user" className="px-6 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 rounded-lg font-bold">
             بازگشت به پیشخوان
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {history.map((game: any) => (
-            <div key={game.id} className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-4">
+            <div key={game.id} className="bg-white dark:bg-zinc-900 p-6 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-4">
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-xl font-black">{game.scenarioName}</h3>
@@ -36,12 +36,12 @@ export default async function UserHistoryPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 bg-white dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 shadow-sm">
+              <div className="flex items-center gap-4 bg-white dark:bg-zinc-950 p-4 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                <div className="w-10 h-10 rounded-lg bg-white dark:bg-zinc-900 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 shadow-sm">
                    <span className="material-symbols-outlined text-zinc-400">person</span>
                 </div>
                 <div>
-                   <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">نقش شما</p>
+                   <p className="text-[10px] text-zinc-400 font-bold uppercaser">نقش شما</p>
                    <p className="font-black text-lg">{game.roleName}</p>
                 </div>
               </div>
