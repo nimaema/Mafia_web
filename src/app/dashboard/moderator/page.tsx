@@ -41,102 +41,141 @@ export default function ModeratorDashboard() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <span className="material-symbols-outlined text-lime-500 text-3xl">sports_esports</span>
-          مدیریت بازی‌ها
-        </h2>
+    <div className="flex flex-col gap-10 font-sans">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-lime-400 to-emerald-600 p-[2px] shadow-2xl shadow-lime-500/20">
+             <div className="w-full h-full bg-zinc-950 rounded-[22px] flex items-center justify-center">
+                <span className="material-symbols-outlined text-3xl bg-gradient-to-br from-lime-400 to-emerald-500 bg-clip-text text-transparent">sports_esports</span>
+             </div>
+          </div>
+          <div className="flex flex-col">
+            <h2 className="text-3xl font-black text-white tracking-tighter italic">مدیریت بازی‌ها</h2>
+            <p className="text-zinc-500 font-medium">ایجاد لابی و مدیریت جریان بازی‌های در حال اجرا</p>
+          </div>
+        </div>
         
         <button 
           onClick={() => setShowCreateModal(true)}
-          className="bg-lime-500 text-zinc-950 px-4 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-lime-600 transition-colors shadow-sm"
+          className="bg-lime-500 text-zinc-950 px-8 py-4 rounded-2xl font-black text-sm flex items-center gap-3 hover:bg-lime-400 transition-all shadow-[0_0_30px_rgba(132,204,22,0.2)] hover:scale-105 active:scale-95"
         >
           <span className="material-symbols-outlined">add_circle</span>
-          <span>بازی جدید</span>
+          <span>ایجاد لابی جدید</span>
         </button>
       </div>
 
       {/* Create Game Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-md p-8 border border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col gap-6 animate-in fade-in zoom-in duration-300">
-             <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold">ایجاد بازی جدید</h3>
-                <button onClick={() => setShowCreateModal(false)} className="material-symbols-outlined text-zinc-400 hover:text-red-500">close</button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
+          <div className="bg-zinc-900 rounded-[2.5rem] w-full max-w-lg p-10 border border-white/10 shadow-3xl flex flex-col gap-8 animate-in fade-in zoom-in duration-500 relative overflow-hidden">
+             <div className="absolute top-[-20%] right-[-10%] w-40 h-40 bg-lime-500/10 blur-[80px] rounded-full"></div>
+             
+             <div className="flex justify-between items-center relative z-10">
+                <h3 className="text-2xl font-black text-white italic">ایجاد بازی جدید</h3>
+                <button onClick={() => setShowCreateModal(false)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:text-red-400 transition-colors">
+                  <span className="material-symbols-outlined">close</span>
+                </button>
              </div>
 
-             <div className="flex flex-col gap-4">
-                <p className="text-sm text-zinc-400">یک لابی جدید ایجاد کنید. بازیکنان می‌توانند به لابی متصل شوند و پس از آن می‌توانید سناریو را تنظیم کنید.</p>
+             <div className="flex flex-col gap-6 relative z-10">
+                <div className="p-6 rounded-2xl bg-zinc-950 border border-white/5 flex flex-col gap-3">
+                  <p className="text-zinc-400 leading-relaxed text-sm">شما در حال ایجاد یک لابی متمرکز هستید. پس از ایجاد، یک کد منحصر به فرد به بازی اختصاص می‌یابد که بازیکنان با استفاده از آن می‌توانند وارد شوند.</p>
+                  <ul className="text-xs text-zinc-500 flex flex-col gap-2 mt-2">
+                    <li className="flex items-center gap-2 italic"><span className="w-1.5 h-1.5 bg-lime-500 rounded-full"></span>انتخاب سناریو در داخل لابی</li>
+                    <li className="flex items-center gap-2 italic"><span className="w-1.5 h-1.5 bg-lime-500 rounded-full"></span>توزیع نقش هوشمند</li>
+                    <li className="flex items-center gap-2 italic"><span className="w-1.5 h-1.5 bg-lime-500 rounded-full"></span>مدیریت وضعیت‌های شب و روز</li>
+                  </ul>
+                </div>
+                
                 <button 
                   onClick={handleCreateGame}
                   disabled={loading}
-                  className="bg-lime-500 text-zinc-950 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-lime-600 transition-all shadow-lg shadow-lime-500/20 disabled:opacity-50 mt-4"
+                  className="bg-lime-500 text-zinc-950 py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:bg-lime-400 transition-all shadow-[0_0_40px_rgba(132,204,22,0.3)] disabled:opacity-50"
                 >
                   {loading ? (
                     <span className="material-symbols-outlined animate-spin">refresh</span>
                   ) : (
-                    <span className="material-symbols-outlined">play_circle</span>
+                    <span className="material-symbols-outlined font-black">bolt</span>
                   )}
-                  <span>ایجاد و شروع لابی</span>
+                  <span>تولید کد و شروع لابی</span>
                 </button>
              </div>
           </div>
         </div>
       )}
 
-      <section className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-zinc-50 dark:bg-zinc-950/50">
-          <h3 className="font-semibold text-zinc-700 dark:text-zinc-300">بازی‌های فعال شما</h3>
-          <button onClick={refreshGames} className="text-zinc-400 hover:text-lime-500 transition-colors">
-            <span className="material-symbols-outlined">refresh</span>
+      <section className="bg-zinc-900/40 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden flex flex-col backdrop-blur-md">
+        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
+          <div className="flex flex-col">
+            <h3 className="font-black text-white italic text-lg tracking-tight">لیست بازی‌های فعال</h3>
+            <p className="text-xs text-zinc-500">مشاهده و مدیریت لابی‌های در جریان شما</p>
+          </div>
+          <button onClick={refreshGames} className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-lime-400 hover:bg-lime-500/10 transition-all group">
+            <span className="material-symbols-outlined transition-transform group-hover:rotate-180 duration-500">refresh</span>
           </button>
         </div>
         
-        <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800 p-4">
+        <div className="p-8">
           {activeGames.length === 0 ? (
-            <div className="text-center py-12 text-zinc-500 flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                <span className="material-symbols-outlined text-4xl text-zinc-300 dark:text-zinc-600">videogame_asset_off</span>
+            <div className="text-center py-20 flex flex-col items-center gap-6 opacity-60">
+              <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
+                <span className="material-symbols-outlined text-6xl text-zinc-700">videogame_asset_off</span>
               </div>
-              <p className="text-sm">شما در حال حاضر هیچ بازی فعالی ندارید.</p>
-              <button onClick={() => setShowCreateModal(true)} className="bg-zinc-100 dark:bg-zinc-800 px-6 py-2 rounded-xl text-sm font-bold hover:bg-lime-500 hover:text-white transition-all">ایجاد اولین بازی</button>
+              <div className="flex flex-col gap-2">
+                <p className="text-xl font-bold text-zinc-500">هیچ نبردی در جریان نیست</p>
+                <p className="text-sm text-zinc-600">برای شروع هیجان، اولین لابی خود را بسازید</p>
+              </div>
+              <button onClick={() => setShowCreateModal(true)} className="px-8 py-3 bg-zinc-800 text-white rounded-xl font-bold hover:bg-lime-500 hover:text-zinc-950 transition-all">ایجاد اولین بازی</button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
               {activeGames.map((game) => (
                 <div 
                   key={game.id}
-                  className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col gap-4 hover:border-lime-500/50 transition-all group"
+                  className="bg-zinc-950 border border-white/5 p-8 rounded-[2rem] flex flex-col gap-6 hover:border-lime-500/30 transition-all group relative overflow-hidden shadow-lg"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-lg">بازی {game.id.slice(0, 6)}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                          game.status === 'WAITING' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-400'
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-lime-500/5 blur-[50px] pointer-events-none"></div>
+                  
+                  <div className="flex justify-between items-start relative z-10">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-3">
+                        <span className="font-black text-2xl text-white tracking-tighter italic">لابی {game.id.slice(0, 6)}</span>
+                        <span className={`text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-widest ${
+                          game.status === 'WAITING' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-lime-500/10 text-lime-400 border border-lime-500/20'
                         }`}>
-                          {game.status === 'WAITING' ? 'در انتظار بازیکن' : 'در جریان'}
+                          {game.status === 'WAITING' ? 'در انتظار' : 'در جریان'}
                         </span>
                       </div>
-                      <div className="flex flex-col text-sm text-zinc-500">
-                        <span>سناریو: {game.scenario?.name || 'انتخاب نشده'}</span>
-                        <span className="text-xs opacity-70">گرداننده: {game.moderator?.name || 'ناشناس'}</span>
+                      <div className="flex items-center gap-4 text-xs text-zinc-500">
+                        <div className="flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-sm">account_tree</span>
+                          <span className="font-medium text-zinc-400">{game.scenario?.name || 'سناریو نامشخص'}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-sm">person</span>
+                          <span className="font-medium text-zinc-400">گرداننده: {game.moderator?.name || '---'}</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-zinc-500">
-                      <span className="material-symbols-outlined text-sm">group</span>
-                      <span className="text-sm font-medium">{game._count.players} / {game.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0) || '?'}</span>
+                    
+                    <div className="flex flex-col items-end">
+                       <div className="flex items-center gap-2 bg-zinc-900 px-4 py-2 rounded-xl border border-white/5">
+                          <span className="material-symbols-outlined text-lime-500 text-lg">group</span>
+                          <span className="text-xl font-black text-white">{game._count.players}</span>
+                          <span className="text-xs text-zinc-600">/ {game.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0) || '?'}</span>
+                       </div>
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+
+                  <div className="flex gap-4 relative z-10">
                     <Link 
                       href={game.status === 'WAITING' ? `/dashboard/moderator/lobby/${game.id}` : `/dashboard/moderator/game/${game.id}`}
-                      className="flex-1 bg-lime-500 text-zinc-950 py-2 rounded-xl text-center font-bold text-sm hover:bg-lime-600 transition-all flex items-center justify-center gap-2"
+                      className="flex-1 bg-white/5 hover:bg-lime-500 text-white hover:text-zinc-950 py-4 rounded-2xl text-center font-black text-sm transition-all flex items-center justify-center gap-3 group border border-white/5 hover:border-lime-500/50"
                     >
-                      <span className="material-symbols-outlined text-lg">login</span>
-                      <span>ورود به بازی</span>
+                      <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">login</span>
+                      <span>ورود به مدیریت بازی</span>
                     </Link>
                   </div>
                 </div>

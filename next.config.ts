@@ -4,7 +4,7 @@ import withSerwistInit from "@serwist/next";
 const withSerwist = withSerwistInit({
   swSrc: "src/app/sw.ts",
   swDest: "public/sw.js",
-  disable: process.env.NODE_ENV === "development",
+  disable: process.env.NODE_ENV !== "production",
 });
 
 const nextConfig: NextConfig = {
@@ -14,12 +14,17 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/dashboard/admin/user-management',
-        destination: '/dashboard/admin/users',
+        destination: '/dashboard/admin?tab=users',
         permanent: true,
       },
       {
-        source: '/dashboard/admin/managemnet',
-        destination: '/dashboard/admin/users',
+        source: '/dashboard/admin/management',
+        destination: '/dashboard/admin?tab=users',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/admin/users',
+        destination: '/dashboard/admin?tab=users',
         permanent: true,
       }
     ];

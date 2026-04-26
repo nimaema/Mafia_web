@@ -62,25 +62,37 @@ export default function UserDashboard() {
   const recentGames = data?.recentGames || [];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10 font-sans">
       {/* Header Profile Section */}
-      <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row items-center gap-6 relative overflow-hidden">
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-lime-500/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="w-24 h-24 rounded-full bg-zinc-200 dark:bg-zinc-800 border-4 border-white dark:border-zinc-900 shadow-lg flex items-center justify-center relative z-10 overflow-hidden">
-          {session?.user?.image ? (
-            <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
-          ) : (
-            <span className="material-symbols-outlined text-4xl text-zinc-400">person</span>
-          )}
+      <section className="bg-zinc-950 rounded-[2.5rem] p-10 border border-white/5 shadow-2xl flex flex-col md:flex-row items-center gap-10 relative overflow-hidden group">
+        <div className="absolute top-[-50%] right-[-10%] w-[50%] h-[200%] bg-lime-500/5 blur-[120px] pointer-events-none rounded-full rotate-12"></div>
+        
+        <div className="relative">
+          <div className="w-32 h-32 rounded-full p-[3px] bg-gradient-to-br from-lime-400 to-emerald-600 shadow-2xl shadow-lime-500/20 group-hover:scale-105 transition-transform duration-500">
+            <div className="w-full h-full rounded-full bg-zinc-950 flex items-center justify-center overflow-hidden border-4 border-zinc-950">
+              {session?.user?.image ? (
+                <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="material-symbols-outlined text-5xl text-zinc-700 bg-gradient-to-br from-zinc-400 to-zinc-600 bg-clip-text text-transparent">person_filled</span>
+              )}
+            </div>
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-10 h-10 bg-lime-500 rounded-full border-4 border-zinc-950 flex items-center justify-center shadow-lg">
+            <span className="material-symbols-outlined text-zinc-950 text-xl font-black">verified</span>
+          </div>
         </div>
-        <div className="flex flex-col items-center md:items-start z-10">
-          <h2 className="text-2xl font-bold">{session?.user?.name || "کاربر مهمان"}</h2>
-          <p className="text-zinc-500 text-sm mt-1">{session?.user?.email || "نامشخص"}</p>
-          <div className="mt-3 flex gap-2">
-            <span className="px-3 py-1 bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-400 text-xs font-semibold rounded-full border border-lime-200 dark:border-lime-800">
-              نقش: {session?.user?.role === 'ADMIN' ? 'مدیر' : session?.user?.role === 'MODERATOR' ? 'گرداننده' : 'بازیکن'}
-            </span>
-            <Link href="/dashboard/user/profile" className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-xs font-semibold rounded-full border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1">
+
+        <div className="flex flex-col items-center md:items-start z-10 gap-3">
+          <div className="flex flex-col items-center md:items-start">
+            <h2 className="text-4xl font-black text-white tracking-tighter italic">{session?.user?.name || "کاربر مهمان"}</h2>
+            <p className="text-zinc-500 font-medium tracking-tight mt-1">{session?.user?.email || "نامشخص"}</p>
+          </div>
+          
+          <div className="flex gap-3">
+            <div className="px-4 py-2 bg-white/5 border border-white/10 text-lime-400 text-xs font-black uppercase tracking-widest rounded-xl backdrop-blur-md">
+              {session?.user?.role === 'ADMIN' ? 'مدیر سیستم' : session?.user?.role === 'MODERATOR' ? 'گرداننده رسمی' : 'بازیکن فعال'}
+            </div>
+            <Link href="/dashboard/user/profile" className="px-4 py-2 bg-zinc-900 border border-white/5 text-zinc-300 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-zinc-950 transition-all flex items-center gap-2 shadow-lg">
               <span className="material-symbols-outlined text-sm">edit</span>
               ویرایش پروفایل
             </Link>
@@ -89,75 +101,105 @@ export default function UserDashboard() {
       </section>
 
       {/* Active Games / Lobby */}
-      <section className="bg-white dark:bg-zinc-900 rounded-2xl border-2 border-lime-500/20 dark:border-lime-500/10 shadow-xl shadow-lime-500/5 overflow-hidden flex flex-col">
-        <div className="p-4 bg-lime-500/5 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
-          <h3 className="font-bold flex items-center gap-2">
-            <span className="material-symbols-outlined text-lime-500">sensors</span>
-            بازی‌های در انتظار بازیکن
-          </h3>
-          <span className="text-[10px] px-2 py-1 bg-lime-500 text-zinc-950 rounded-full font-black animate-pulse">زنده</span>
+      <section className="bg-zinc-900/40 rounded-[2.5rem] border border-lime-500/20 shadow-[0_0_50px_rgba(132,204,22,0.05)] overflow-hidden flex flex-col backdrop-blur-3xl">
+        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center">
+              <span className="material-symbols-outlined text-lime-500 font-black">sensors</span>
+            </div>
+            <div className="flex flex-col">
+              <h3 className="font-black text-white italic text-lg tracking-tight">نبردهای در انتظار فراخوان</h3>
+              <p className="text-xs text-zinc-500">لابی‌های فعال که منتظر حضور شما هستند</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] px-3 py-1.5 bg-lime-500 text-zinc-950 rounded-full font-black uppercase tracking-widest shadow-[0_0_20px_rgba(132,204,22,0.4)] animate-pulse">Live</span>
+          </div>
         </div>
-        <div className="p-4">
+        
+        <div className="p-8">
           {data?.currentActiveGame && (
-            <div className="mb-4">
+            <div className="mb-10">
                <Link 
                   href={`/game/${data.currentActiveGame.id}`}
-                  className="group relative overflow-hidden rounded-2xl p-[2px] w-full block animate-pulse"
+                  className="group relative overflow-hidden rounded-3xl p-[1px] w-full block shadow-2xl"
                 >
-                  <span className="absolute inset-0 bg-gradient-to-r from-amber-500 to-rose-500 rounded-2xl opacity-100"></span>
-                  <div className="relative flex items-center justify-between bg-zinc-950 px-4 py-3 rounded-2xl transition-all group-hover:bg-transparent">
-                    <div className="flex flex-col">
-                      <span className="text-white font-bold text-sm tracking-wide group-hover:text-zinc-950 transition-colors">
-                        بازی در جریان شما: {data.currentActiveGame.scenarioName}
-                      </span>
-                      <span className="text-xs text-white/70 group-hover:text-zinc-950/70 transition-colors mt-1">توسط {data.currentActiveGame.moderatorName}</span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-lime-400 via-emerald-500 to-blue-500 rounded-3xl opacity-100 group-hover:scale-105 transition-transform duration-1000"></span>
+                  <div className="relative flex items-center justify-between bg-zinc-950 px-8 py-6 rounded-[23px] transition-all group-hover:bg-transparent duration-500">
+                    <div className="flex items-center gap-6">
+                      <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-zinc-950 transition-colors">
+                        <span className="material-symbols-outlined text-lime-400 group-hover:text-white transition-colors text-3xl font-black animate-bounce">rocket_launch</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-white font-black text-xl tracking-tighter italic group-hover:text-zinc-950 transition-colors">
+                          شما در یک بازی فعال حضور دارید
+                        </span>
+                        <span className="text-sm text-zinc-500 group-hover:text-zinc-950/70 transition-colors mt-1 font-bold">سناریو: {data.currentActiveGame.scenarioName} • توسط {data.currentActiveGame.moderatorName}</span>
+                      </div>
                     </div>
-                    <span className="material-symbols-outlined text-white text-lg group-hover:text-zinc-950 transition-colors group-hover:translate-x-[4px]">arrow_forward</span>
+                    <div className="flex items-center gap-2 bg-lime-500 text-zinc-950 px-5 py-2.5 rounded-2xl font-black text-sm group-hover:bg-zinc-950 group-hover:text-white transition-all shadow-xl">
+                      <span>بازگشت به میدان</span>
+                      <span className="material-symbols-outlined text-lg font-black group-hover:translate-x-1 transition-transform">bolt</span>
+                    </div>
                   </div>
                </Link>
-               {activeGames.length > 0 && <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-4" />}
+               {activeGames.length > 0 && <div className="h-px bg-white/5 my-10" />}
             </div>
           )}
 
           {activeGames.length === 0 ? (
-            <div className="py-10 text-center flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center">
-                <span className="material-symbols-outlined text-zinc-300 dark:text-zinc-600">hourglass_empty</span>
+            <div className="py-20 text-center flex flex-col items-center gap-6 opacity-40">
+              <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
+                <span className="material-symbols-outlined text-4xl text-zinc-600">radar</span>
               </div>
-              <p className="text-sm text-zinc-500">در حال حاضر بازی جدیدی برای عضویت وجود ندارد.</p>
+              <div className="flex flex-col gap-2">
+                <p className="text-lg font-black text-zinc-400 italic">سیگنالی دریافت نشد</p>
+                <p className="text-xs text-zinc-600">در حال حاضر هیچ لابی فعالی در شبکه یافت نشد</p>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {activeGames.map((game) => (
                 <Link 
                   key={game.id} 
                   href={`/lobby/${game.id}`}
-                  className="group p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/30 hover:border-lime-500/50 hover:bg-white dark:hover:bg-zinc-800 transition-all flex flex-col gap-3"
+                  className="group p-8 rounded-[2rem] border border-white/5 bg-zinc-950 hover:border-lime-500/40 hover:shadow-2xl hover:shadow-lime-500/5 transition-all flex flex-col gap-6 relative overflow-hidden"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-sm">{game.scenario?.name || "سناریو نامشخص"}</span>
-                      <span className="text-[10px] text-zinc-500">توسط {game.moderator?.name || "گرداننده"}</span>
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-lime-500/5 blur-[40px] pointer-events-none"></div>
+                  
+                  <div className="flex justify-between items-start relative z-10">
+                    <div className="flex flex-col gap-1">
+                      <span className="font-black text-xl text-white tracking-tighter italic group-hover:text-lime-400 transition-colors">{game.scenario?.name || "نبرد ناگهانی"}</span>
+                      <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 bg-zinc-700 rounded-full"></span>
+                        {game.moderator?.name || "گرداننده"}
+                      </span>
                     </div>
-                    <span className="bg-zinc-900 text-white text-[10px] px-2 py-1 rounded-lg">
-                      {game.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0)} نفره
-                    </span>
+                    <div className="bg-zinc-900 border border-white/5 text-lime-400 text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-inner">
+                      {game.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0)} P
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex -space-x-2 rtl:space-x-reverse">
+
+                  <div className="flex items-center justify-between mt-4 relative z-10">
+                    <div className="flex -space-x-3 rtl:space-x-reverse">
                       {[1, 2, 3].map(i => (
-                        <div key={i} className="w-6 h-6 rounded-full border-2 border-white dark:border-zinc-900 bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-[10px] text-zinc-400">person</span>
+                        <div key={i} className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-800 flex items-center justify-center ring-1 ring-white/5">
+                          <span className="material-symbols-outlined text-sm text-zinc-500">person</span>
                         </div>
                       ))}
-                      <div className="w-6 h-6 rounded-full border-2 border-white dark:border-zinc-900 bg-lime-500 flex items-center justify-center text-[10px] font-bold text-zinc-950">
+                      <div className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-lime-500 flex items-center justify-center text-xs font-black text-zinc-950 shadow-lg ring-1 ring-white/10">
                         +
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-lime-600 dark:text-lime-400 group-hover:translate-x-[-4px] transition-transform flex items-center gap-1">
-                      ورود به لابی
-                      <span className="material-symbols-outlined text-sm">arrow_back</span>
-                    </span>
+                    <div className="flex items-center gap-3">
+                      {game.status === 'IN_PROGRESS' && (
+                        <span className="text-[9px] px-2 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-lg font-black uppercase tracking-tighter">در حال بازی</span>
+                      )}
+                      <div className="flex items-center gap-2 text-zinc-400 group-hover:text-lime-400 transition-all">
+                        <span className="text-xs font-black uppercase tracking-widest">{game.status === 'IN_PROGRESS' ? 'View' : 'Join'}</span>
+                        <span className="material-symbols-outlined text-lg font-black group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                      </div>
+                    </div>
                   </div>
                 </Link>
               ))}
@@ -166,16 +208,22 @@ export default function UserDashboard() {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Win/Loss Pie Chart */}
-        <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-4">
-          <h3 className="font-semibold text-lg flex items-center gap-2">
-            <span className="material-symbols-outlined text-lime-500">pie_chart</span>
-            آمار پیروزی‌ها
-          </h3>
-          <div className="h-64 w-full">
+        <section className="bg-zinc-950 rounded-[2.5rem] p-10 border border-white/5 shadow-2xl flex flex-col gap-8 group">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+              <span className="material-symbols-outlined text-blue-500 font-black">pie_chart</span>
+            </div>
+            <h3 className="font-black text-white italic text-lg tracking-tight">تحلیل عملکرد نبردها</h3>
+          </div>
+          
+          <div className="h-72 w-full">
             {statsData[0].value === 0 && statsData[1].value === 0 ? (
-              <div className="h-full flex items-center justify-center text-zinc-400 text-sm italic">داده‌ای برای نمایش وجود ندارد</div>
+              <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-4">
+                 <span className="material-symbols-outlined text-5xl opacity-20">analytics</span>
+                 <p className="text-sm font-medium italic">داده‌ای برای تحلیل نبردها موجود نیست</p>
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -183,20 +231,25 @@ export default function UserDashboard() {
                     data={statsData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
+                    innerRadius={80}
+                    outerRadius={100}
+                    paddingAngle={8}
                     dataKey="value"
+                    stroke="none"
                   >
                     {statsData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontFamily: 'Vazirmatn' }} 
-                    itemStyle={{ fontFamily: 'Vazirmatn' }}
+                    contentStyle={{ backgroundColor: '#09090b', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', fontFamily: 'Vazirmatn' }} 
+                    itemStyle={{ color: '#fff', fontSize: '12px' }}
                   />
-                  <Legend wrapperStyle={{ fontFamily: 'Vazirmatn', fontSize: '14px' }} />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    iconType="circle" 
+                    formatter={(value) => <span className="text-zinc-400 font-bold text-xs px-2">{value}</span>}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -204,25 +257,35 @@ export default function UserDashboard() {
         </section>
 
         {/* Roles History Bar Chart */}
-        <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-4">
-          <h3 className="font-semibold text-lg flex items-center gap-2">
-            <span className="material-symbols-outlined text-lime-500">bar_chart</span>
-            نقش‌های بازی شده
-          </h3>
-          <div className="h-64 w-full" dir="ltr">
+        <section className="bg-zinc-950 rounded-[2.5rem] p-10 border border-white/5 shadow-2xl flex flex-col gap-8 group">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center">
+              <span className="material-symbols-outlined text-lime-500 font-black">bar_chart</span>
+            </div>
+            <h3 className="font-black text-white italic text-lg tracking-tight">فراوانی نقش‌های دریافتی</h3>
+          </div>
+          
+          <div className="h-72 w-full" dir="ltr">
             {roleHistory.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-zinc-400 text-sm italic">داده‌ای برای نمایش وجود ندارد</div>
+              <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-4">
+                 <span className="material-symbols-outlined text-5xl opacity-20">troubleshoot</span>
+                 <p className="text-sm font-medium italic">هنوز نقشی به شما اختصاص نیافته است</p>
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={roleHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" opacity={0.5} />
-                  <XAxis dataKey="role" tick={{ fontSize: 12, fill: '#71717a', fontFamily: 'Vazirmatn' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: '#71717a' }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+                  <XAxis dataKey="role" tick={{ fontSize: 10, fill: '#52525b', fontWeight: 900, fontFamily: 'Vazirmatn' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: '#52525b' }} axisLine={false} tickLine={false} />
                   <Tooltip 
-                    cursor={{ fill: '#f4f4f5', opacity: 0.4 }}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontFamily: 'Vazirmatn' }}
+                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                    contentStyle={{ backgroundColor: '#09090b', borderRadius: '15px', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', fontFamily: 'Vazirmatn' }}
                   />
-                  <Bar dataKey="count" fill="#84cc16" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill="#84cc16" radius={[10, 10, 0, 0]} barSize={40}>
+                     {roleHistory.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#84cc16' : '#65a30d'} />
+                     ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -231,108 +294,144 @@ export default function UserDashboard() {
       </div>
 
       {/* Recent Games List */}
-      <section className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
-          <h3 className="font-semibold flex items-center gap-2">
-            <span className="material-symbols-outlined text-lime-500">history</span>
-            تاریخچه بازی‌ها
-          </h3>
-          <button className="text-sm text-lime-600 dark:text-lime-400 hover:underline">مشاهده همه</button>
-        </div>
-        <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800">
-          {recentGames.length === 0 ? (
-            <div className="p-12 text-center text-zinc-500 flex flex-col items-center gap-3">
-              <span className="material-symbols-outlined text-4xl opacity-20">history_toggle_off</span>
-              <p className="text-sm">هنوز در هیچ بازی شرکت نکرده‌اید</p>
+      <section className="bg-zinc-950 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden flex flex-col">
+        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-white/5 flex items-center justify-center">
+              <span className="material-symbols-outlined text-zinc-400 font-black">history</span>
             </div>
-          ) : (
-            recentGames.map((game: any) => (
-              <div 
-                key={game.id} 
-                onClick={() => setSelectedHistoryGame(game)}
-                className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${game.result === 'WIN' ? 'bg-lime-100 text-lime-600 dark:bg-lime-900/30 dark:text-lime-400 group-hover:bg-lime-200 dark:group-hover:bg-lime-900/50' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 group-hover:bg-red-200 dark:group-hover:bg-red-900/50'}`}>
-                    <span className="material-symbols-outlined">{game.result === 'WIN' ? 'emoji_events' : 'cancel'}</span>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">بازی {game.scenarioName}</p>
-                    <p className="text-xs text-zinc-500 mt-0.5">{game.roleName} • {game.date}</p>
-                  </div>
+            <div className="flex flex-col">
+              <h3 className="font-black text-white italic text-lg tracking-tight">گزارش نبردهای پیشین</h3>
+              <p className="text-xs text-zinc-500">تاریخچه آخرین فعالیت‌های شما در بازی</p>
+            </div>
+          </div>
+          <button className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all border border-white/5">مشاهده بایگانی</button>
+        </div>
+        
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {recentGames.length === 0 ? (
+              <div className="col-span-full py-20 text-center flex flex-col items-center gap-6 opacity-40">
+                <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
+                  <span className="material-symbols-outlined text-4xl text-zinc-600">history_toggle_off</span>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className={`text-xs px-2 py-0.5 rounded font-medium ${game.result === 'WIN' ? 'bg-lime-100 text-lime-700 dark:bg-lime-900/40 dark:text-lime-300' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'}`}>
-                    {game.result === 'WIN' ? 'برد' : 'باخت'}
-                  </span>
-                  <span className="material-symbols-outlined text-zinc-400 text-lg group-hover:-translate-x-1 transition-transform">chevron_left</span>
-                </div>
+                <p className="text-sm font-black text-zinc-500 italic">هنوز در هیچ نبردی شرکت نکرده‌اید</p>
               </div>
-            ))
-          )}
+            ) : (
+              recentGames.map((game: any) => (
+                <div 
+                  key={game.id} 
+                  onClick={() => setSelectedHistoryGame(game)}
+                  className="p-6 rounded-3xl border border-white/5 bg-zinc-900/50 hover:bg-zinc-800/80 transition-all cursor-pointer group flex items-center justify-between relative overflow-hidden"
+                >
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${game.result === 'WIN' ? 'bg-lime-500' : 'bg-red-500'}`}></div>
+                  
+                  <div className="flex items-center gap-5">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${game.result === 'WIN' ? 'bg-lime-500/10 text-lime-400 group-hover:scale-110 shadow-[0_0_20px_rgba(132,204,22,0.1)]' : 'bg-red-500/10 text-red-400 group-hover:scale-110 shadow-[0_0_20px_rgba(239,68,68,0.1)]'}`}>
+                      <span className="material-symbols-outlined text-2xl font-black">{game.result === 'WIN' ? 'emoji_events' : 'close'}</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <p className="font-black text-white text-base tracking-tighter group-hover:text-lime-400 transition-colors">{game.scenarioName}</p>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-2">
+                        {game.roleName} <span className="w-1 h-1 bg-zinc-800 rounded-full"></span> {game.date}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border ${game.result === 'WIN' ? 'bg-lime-500/10 text-lime-400 border-lime-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                      {game.result === 'WIN' ? 'Victory' : 'Defeat'}
+                    </span>
+                    <span className="material-symbols-outlined text-zinc-600 group-hover:translate-x-[-5px] transition-transform">arrow_back</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </section>
 
       {/* Game History Details Modal */}
       {selectedHistoryGame && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-lg p-6 md:p-8 border border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col gap-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-300">
-             <div className="flex justify-between items-start">
-                <div>
-                   <h3 className="text-xl font-bold flex items-center gap-2">
-                     <span className="material-symbols-outlined text-lime-500">sports_esports</span>
-                     جزئیات بازی
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[100] flex items-center justify-center p-6">
+          <div className="bg-zinc-900 rounded-[3rem] w-full max-w-2xl p-10 border border-white/10 shadow-3xl flex flex-col gap-10 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-500 relative">
+             <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-lime-500/5 blur-[100px] rounded-full"></div>
+             
+             <div className="flex justify-between items-start relative z-10">
+                <div className="flex flex-col gap-1">
+                   <h3 className="text-3xl font-black text-white tracking-tighter italic flex items-center gap-3">
+                     <span className="material-symbols-outlined text-lime-500 text-3xl font-black">receipt_long</span>
+                     خلاصه گزارش عملیات
                    </h3>
-                   <p className="text-sm text-zinc-500 mt-1">{selectedHistoryGame.date}</p>
+                   <p className="text-zinc-500 font-bold text-xs uppercase tracking-widest">{selectedHistoryGame.date}</p>
                 </div>
-                <button onClick={() => setSelectedHistoryGame(null)} className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                  <span className="material-symbols-outlined text-sm">close</span>
+                <button onClick={() => setSelectedHistoryGame(null)} className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-red-500/20 transition-all group">
+                  <span className="material-symbols-outlined group-hover:rotate-90 transition-transform">close</span>
                 </button>
              </div>
 
-             <div className="grid grid-cols-2 gap-4">
-               <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                  <p className="text-xs text-zinc-500 mb-1">سناریو</p>
-                  <p className="font-bold text-sm">{selectedHistoryGame.scenarioName}</p>
-               </div>
-               <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                  <p className="text-xs text-zinc-500 mb-1">گرداننده</p>
-                  <p className="font-bold text-sm">{selectedHistoryGame.moderatorName}</p>
-               </div>
-               <div className={`col-span-2 p-4 rounded-2xl border flex items-center justify-between ${
-                 selectedHistoryGame.result === 'WIN' 
-                   ? 'bg-lime-50 dark:bg-lime-900/20 border-lime-200 dark:border-lime-900/50' 
-                   : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/50'
-               }`}>
-                  <div>
-                    <p className="text-xs opacity-70 mb-1">نقش شما و نتیجه</p>
-                    <p className={`font-bold text-lg ${selectedHistoryGame.result === 'WIN' ? 'text-lime-700 dark:text-lime-400' : 'text-red-700 dark:text-red-400'}`}>
-                      {selectedHistoryGame.roleName} ({selectedHistoryGame.result === 'WIN' ? 'پیروزی' : 'شکست'})
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                <div className="bg-zinc-950 p-6 rounded-3xl border border-white/5 flex flex-col gap-1 shadow-inner">
+                   <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">میدان نبرد</p>
+                   <p className="font-black text-xl text-white tracking-tighter">{selectedHistoryGame.scenarioName}</p>
+                </div>
+                <div className="bg-zinc-950 p-6 rounded-3xl border border-white/5 flex flex-col gap-1 shadow-inner">
+                   <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">فرمانده (گرداننده)</p>
+                   <p className="font-black text-xl text-white tracking-tighter">{selectedHistoryGame.moderatorName}</p>
+                </div>
+                
+                <div className={`col-span-1 md:col-span-2 p-8 rounded-[2rem] border-2 flex items-center justify-between shadow-2xl ${
+                  selectedHistoryGame.result === 'WIN' 
+                    ? 'bg-lime-500/5 border-lime-500/20 shadow-lime-500/5' 
+                    : 'bg-red-500/5 border-red-500/20 shadow-red-500/5'
+                }`}>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">هویت شما در نبرد</p>
+                    <p className={`font-black text-3xl tracking-tighter italic ${selectedHistoryGame.result === 'WIN' ? 'text-lime-400' : 'text-red-400'}`}>
+                      {selectedHistoryGame.roleName}
                     </p>
+                    <div className="flex items-center gap-2 mt-1">
+                       <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${selectedHistoryGame.result === 'WIN' ? 'bg-lime-500 text-zinc-950 shadow-lime-500/20' : 'bg-red-500 text-white shadow-red-500/20'}`}>
+                         {selectedHistoryGame.result === 'WIN' ? 'Winner' : 'Defeated'}
+                       </span>
+                    </div>
                   </div>
-                  <span className={`material-symbols-outlined text-4xl ${selectedHistoryGame.result === 'WIN' ? 'text-lime-500' : 'text-red-500'}`}>
-                    {selectedHistoryGame.result === 'WIN' ? 'emoji_events' : 'sentiment_very_dissatisfied'}
-                  </span>
-               </div>
+                  <div className={`w-24 h-24 rounded-full flex items-center justify-center border-4 border-zinc-950 shadow-2xl ${selectedHistoryGame.result === 'WIN' ? 'bg-lime-500 shadow-lime-500/20' : 'bg-red-500 shadow-red-500/20'}`}>
+                    <span className="material-symbols-outlined text-5xl font-black text-zinc-950">
+                      {selectedHistoryGame.result === 'WIN' ? 'emoji_events' : 'warning'}
+                    </span>
+                  </div>
+                </div>
              </div>
 
-             <div>
-                <h4 className="font-bold text-zinc-700 dark:text-zinc-300 mb-3 text-sm flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg">group</span>
-                  بازیکنان این بازی ({selectedHistoryGame.players?.length} نفر)
+             <div className="relative z-10">
+                <h4 className="font-black text-zinc-400 mb-6 text-sm flex items-center gap-3 uppercase tracking-widest">
+                  <span className="material-symbols-outlined text-lime-500 font-black">group</span>
+                  ترکیب بازیکنان عملیات ({selectedHistoryGame.players?.length})
                 </h4>
-                <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-3 custom-scrollbar p-1">
                   {selectedHistoryGame.players?.map((player: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-100 dark:border-zinc-800">
-                      <span className="font-medium text-sm">{player.name}</span>
-                      <span className={`text-xs px-2 py-1 rounded-md font-bold ${
-                        player.alignment === 'CITIZEN' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                        player.alignment === 'MAFIA' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                        'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                    <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-zinc-950 border border-white/5 hover:border-white/10 transition-all group">
+                      <div className="flex flex-col">
+                        <span className="font-black text-sm text-white tracking-tight">{player.name}</span>
+                        <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{player.roleName}</span>
+                      </div>
+                      <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${
+                        player.alignment === 'CITIZEN' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                        player.alignment === 'MAFIA' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                        'bg-amber-500/10 text-amber-400 border-amber-500/20'
                       }`}>
-                        {player.roleName}
+                        {player.alignment}
                       </span>
                     </div>
+                  ))}
+                </div>
+             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
                   ))}
                 </div>
              </div>

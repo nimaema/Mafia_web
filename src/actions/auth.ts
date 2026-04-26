@@ -2,7 +2,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { saltAndHashPassword } from "@/lib/password";
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 
 const prisma = new PrismaClient();
 
@@ -56,4 +56,8 @@ export async function loginUser(formData: FormData) {
   } catch (error) {
     return { error: "Invalid credentials" };
   }
+}
+
+export async function logout() {
+  await signOut();
 }
