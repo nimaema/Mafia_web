@@ -21,6 +21,7 @@ export default function UserLobbyPage() {
   const [game, setGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [joined, setJoined] = useState(false);
+  const [joinPassword, setJoinPassword] = useState("");
 
   useEffect(() => {
     if (!gameId) return;
@@ -65,7 +66,7 @@ export default function UserLobbyPage() {
   const handleJoin = async () => {
     if (!session?.user?.name) return;
     setLoading(true);
-    const res = await joinGame(gameId, session.user.name, session.user.id);
+    const res = await joinGame(game.code, session.user.name, joinPassword, session.user.id);
     if (res.success) {
       setJoined(true);
     } else {
@@ -83,11 +84,11 @@ export default function UserLobbyPage() {
           <div className="w-16 h-16 bg-lime-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-lime-500/20 mb-2 rotate-3">
              <span className="material-symbols-outlined text-zinc-950 text-3xl font-bold">groups</span>
           </div>
-          <h1 className="text-2xl font-black">لابی بازی مافیا</h1>
-          <p className="text-zinc-500 text-sm">سناریو: {game?.scenario?.name}</p>
+          <h1 className="text-2xl font-black">{game?.name || "لابی بازی مافیا"}</h1>
+          <p className="text-zinc-500 text-sm italic">سناریو: {game?.scenario?.name || "نامشخص"}</p>
           <div className="mt-4 px-4 py-2 bg-white dark:bg-zinc-950 rounded-xl border border-dashed border-lime-500/50 flex flex-col">
              <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">کد اتاق</span>
-             <span className="text-xl font-mono font-black text-lime-600 dark:text-lime-400">{game?.password || gameId.slice(0, 6).toUpperCase()}</span>
+             <span className="text-xl font-mono font-black text-lime-600 dark:text-lime-400">#{game?.code}</span>
           </div>
         </header>
 
@@ -118,14 +119,28 @@ export default function UserLobbyPage() {
           </div>
 
           {!joined ? (
-            <button 
-              onClick={handleJoin}
-              disabled={loading}
-              className="w-full bg-lime-500 text-zinc-950 py-4 rounded-2xl font-black text-lg shadow-lg shadow-lime-500/20 hover:bg-lime-600 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined">login</span>
-              پیوستن به بازی
-            </button>
+            <div className="flex flex-col gap-4">
+              {game?.hasPassword && (
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-zinc-600 dark:text-zinc-400 px-1">رمز ورود به لابی</label>
+                  <input 
+                    type="password"
+                    value={joinPassword}
+                    onChange={(e) => setJoinPassword(e.target.value)}
+                    placeholder="رمز عبور را وارد کنید"
+                    className="w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 px-4 outline-none focus:border-lime-500 transition-colors"
+                  />
+                </div>
+              )}
+              <button 
+                onClick={handleJoin}
+                disabled={loading}
+                className="w-full bg-lime-500 text-zinc-950 py-4 rounded-2xl font-black text-lg shadow-lg shadow-lime-500/20 hover:bg-lime-600 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined">login</span>
+                پیوستن به بازی
+              </button>
+            </div>
           ) : (
             <div className="bg-lime-100 dark:bg-lime-900/20 p-4 rounded-2xl flex flex-col items-center gap-2 border border-lime-200 dark:border-lime-800">
                <div className="flex items-center gap-2 text-lime-700 dark:text-lime-400 font-bold">

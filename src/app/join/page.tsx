@@ -14,8 +14,9 @@ export default function JoinGamePage() {
     const formData = new FormData(e.currentTarget);
     const gameId = formData.get("gameId") as string;
     const name = formData.get("name") as string;
+    const password = formData.get("password") as string;
 
-    const result = await joinGame(gameId, name);
+    const result = await joinGame(gameId, name, password);
     
     if (result.success) {
       setJoined(true);
@@ -69,6 +70,14 @@ export default function JoinGamePage() {
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">person</span>
               <input name="name" required type="text" placeholder="نامی که سایر بازیکنان می‌بینند" className="w-full bg-gray-200 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors" />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-sm text-zinc-500 px-1">رمز عبور (اگر لابی قفل است)</label>
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
+              <input name="password" type="password" dir="ltr" placeholder="اختیاری" className="w-full bg-gray-200 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors" />
             </div>
           </div>
           

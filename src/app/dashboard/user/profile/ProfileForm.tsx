@@ -2,12 +2,16 @@
 
 import { useActionState } from "react";
 import { updateProfile, changePassword } from "@/actions/user";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { user: { name: string, email: string }, hasGoogleProvider?: boolean, hasPassword?: boolean }) {
+  const { update } = useSession();
   const [result, action, isPending] = useActionState(
     async (prevState: any, formData: FormData) => {
       const res = await updateProfile(formData);
+      if (res.success) {
+        await update(); // Refresh session
+      }
       return res;
     },
     null

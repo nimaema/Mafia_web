@@ -13,6 +13,7 @@ export default function ModeratorDashboard() {
   const [activeGames, setActiveGames] = useState<any[]>([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
 
   useEffect(() => {
@@ -28,9 +29,10 @@ export default function ModeratorDashboard() {
   const handleCreateGame = async () => {
     setLoading(true);
     try {
-      const res = await createGame(password);
+      const res = await createGame(name, password);
       if (res.success) {
         setShowCreateModal(false);
+        setName("");
         setPassword("");
         router.push(`/dashboard/moderator/lobby/${res.gameId}`);
       } else {
@@ -106,12 +108,23 @@ export default function ModeratorDashboard() {
                 </div>
                 
                 <div className="flex flex-col gap-2 relative z-10">
-                  <label className="text-sm text-slate-600 dark:text-zinc-400 font-bold px-1">رمز / کد اختصاصی بازی (اختیاری)</label>
+                  <label className="text-sm text-slate-600 dark:text-zinc-400 font-bold px-1">نام لابی (اختیاری)</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="مثلا: مافیای جمعه شب"
+                    className="w-full bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-xl py-3 px-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors text-slate-900 dark:text-white"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2 relative z-10">
+                  <label className="text-sm text-slate-600 dark:text-zinc-400 font-bold px-1">رمز عبور اختصاصی (اختیاری)</label>
                   <input
                     type="text"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="در صورت خالی بودن، یک کد تصادفی ۶ رقمی تولید می‌شود"
+                    placeholder="در صورت خالی بودن، ورود بدون رمز خواهد بود"
                     className="w-full bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-xl py-3 px-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors text-slate-900 dark:text-white"
                   />
                 </div>
@@ -168,7 +181,8 @@ export default function ModeratorDashboard() {
                   <div className="flex justify-between items-start relative z-10">
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-3">
-                        <span className="font-black text-2xl text-slate-900 dark:text-white tracking-tighter italic">کد ورود: {game.password || game.id.slice(0, 6)}</span>
+                        <span className="font-black text-2xl text-slate-900 dark:text-white tracking-tighter italic">{game.name}</span>
+                        <span className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-zinc-500 font-mono">#{game.code}</span>
                         <span className={`text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-widest ${
                           game.status === 'WAITING' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-lime-500/10 text-lime-400 border border-lime-500/20'
                         }`}>

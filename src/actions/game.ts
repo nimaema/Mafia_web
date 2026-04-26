@@ -15,21 +15,15 @@ async function checkModerator() {
   return session.user.id;
 }
 
-export async function joinGame(gameId: string, playerName: string, userId?: string) {
-  if (!gameId || !playerName) {
+export async function joinGame(code: string, playerName: string, password?: string, userId?: string) {
+  if (!code || !playerName) {
     return { error: "فیلدهای اجباری ناقص است" };
   }
 
   try {
-    let game = await prisma.game.findFirst({
-      where: { password: gameId },
+    const game = await prisma.game.findUnique({
+      where: { code: code },
     });
-
-    if (!game) {
-      game = await prisma.game.findUnique({
-        where: { id: gameId },
-      });
-    }
 
     if (!game) {
       return { error: "بازی یافت نشد" };
@@ -39,24 +33,28 @@ export async function joinGame(gameId: string, playerName: string, userId?: stri
       return { error: "بازی قبلاً شروع شده است" };
     }
 
+    if (game.password && game.password !== password) {
+      return { error: "رمز عبور اشتباه است" };
+    }
+
     // Save to DB
     const player = await prisma.gamePlayer.create({
       data: {
-        gameId,
+        gameId: game.id,
         name: playerName,
         userId: userId || null,
       }
     });
 
     // Trigger Pusher event
-    await pusherServer.trigger(`game-${gameId}`, 'player-joined', {
+    await pusherServer.trigger(`game-${game.id}`, 'player-joined', {
       player: {
         id: player.id,
         name: playerName
       }
     });
 
-    return { success: true, playerId: player.id };
+    return { success: true, gameId: game.id, playerId: player.id };
   } catch (error: any) {
     console.error("Join game error:", error);
     if (error.code === 'P2002') {
@@ -66,17 +64,19 @@ export async function joinGame(gameId: string, playerName: string, userId?: stri
   }
 }
 
-export async function createGame(password?: string) {
+export async function createGame(name?: string, password?: string) {
   try {
     const moderatorId = await checkModerator();
     
-    // Generate a random 6-digit code if password is not provided
-    const gamePassword = password || Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate a random 6-digit code for joining
+    const gameCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     const game = await prisma.game.create({
       data: {
         moderatorId,
-        password: gamePassword,
+        name: name || `بازی ${gameCode}`,
+        code: gameCode,
+        password: password || null,
         status: "WAITING",
       }
     });
@@ -84,7 +84,8 @@ export async function createGame(password?: string) {
     // Notify all users about the new game
     await pusherServer.trigger('lobby', 'game-created', {
       gameId: game.id,
-      moderatorName: "مدیر", // We could fetch this if needed
+      gameName: game.name,
+      moderatorName: "مدیر", 
     });
 
     revalidatePath("/dashboard/user");
@@ -152,7 +153,7 @@ export async function getModeratorGames(timestamp?: number) {
 
 export async function getGameStatus(gameId: string) {
   noStore();
-  return await prisma.game.findUnique({
+  const game = await prisma.game.findUnique({
     where: { id: gameId },
     include: {
       moderator: {
@@ -172,6 +173,15 @@ export async function getGameStatus(gameId: string) {
       }
     }
   });
+
+  if (!game) return null;
+
+  // Don't send the password to the client, just if it's required
+  const { password, ...safeGame } = game;
+  return {
+    ...safeGame,
+    hasPassword: !!password
+  };
 }
 
 export async function startGame(gameId: string) {

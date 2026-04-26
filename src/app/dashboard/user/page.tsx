@@ -169,9 +169,13 @@ export default function UserDashboard() {
                   
                   <div className="flex justify-between items-start relative z-10">
                     <div className="flex flex-col gap-1">
-                      <span className="font-black text-xl text-slate-900 dark:text-white tracking-tighter italic group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">{game.scenario?.name || "بازی ناگهانی"}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-xl text-slate-900 dark:text-white tracking-tighter italic group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">{game.name}</span>
+                        {game.password && <span className="material-symbols-outlined text-sm text-zinc-500">lock</span>}
+                      </div>
                       <span className="text-[10px] text-slate-500 dark:text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 bg-zinc-700 rounded-full"></span>
+                        <span className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-[9px] font-mono text-zinc-400">#{game.code}</span>
+                        <span className="w-1 h-1 bg-zinc-700 rounded-full"></span>
                         {game.moderator?.name || "گرداننده"}
                       </span>
                     </div>
@@ -361,7 +365,7 @@ export default function UserDashboard() {
                 <div className="flex flex-col gap-1">
                    <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter italic flex items-center gap-3">
                      <span className="material-symbols-outlined text-lime-500 text-3xl font-black">receipt_long</span>
-                     خلاصه گزارش عملیات
+                     خلاصه بازی
                    </h3>
                    <p className="text-slate-500 dark:text-zinc-500 font-bold text-xs uppercase tracking-widest">{selectedHistoryGame.date}</p>
                 </div>
@@ -372,11 +376,11 @@ export default function UserDashboard() {
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                 <div className="bg-white dark:bg-zinc-950 p-6 rounded-3xl border border-slate-200 dark:border-white/5 flex flex-col gap-1 shadow-inner">
-                   <p className="text-[10px] text-slate-400 dark:text-zinc-600 font-black uppercase tracking-widest">میدان بازی</p>
+                   <p className="text-[10px] text-slate-400 dark:text-zinc-600 font-black uppercase tracking-widest">سناریو</p>
                    <p className="font-black text-xl text-slate-900 dark:text-white tracking-tighter">{selectedHistoryGame.scenarioName}</p>
                 </div>
                 <div className="bg-white dark:bg-zinc-950 p-6 rounded-3xl border border-slate-200 dark:border-white/5 flex flex-col gap-1 shadow-inner">
-                   <p className="text-[10px] text-slate-400 dark:text-zinc-600 font-black uppercase tracking-widest">فرمانده (گرداننده)</p>
+                   <p className="text-[10px] text-slate-400 dark:text-zinc-600 font-black uppercase tracking-widest">گرداننده</p>
                    <p className="font-black text-xl text-slate-900 dark:text-white tracking-tighter">{selectedHistoryGame.moderatorName}</p>
                 </div>
                 
@@ -407,7 +411,7 @@ export default function UserDashboard() {
              <div className="relative z-10">
                 <h4 className="font-black text-slate-600 dark:text-zinc-400 mb-6 text-sm flex items-center gap-3 uppercase tracking-widest">
                   <span className="material-symbols-outlined text-lime-500 font-black">group</span>
-                  ترکیب بازیکنان عملیات ({selectedHistoryGame.players?.length})
+                  نقش‌های بازیکنان ({selectedHistoryGame.players?.length})
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-3 custom-scrollbar p-1">
                   {selectedHistoryGame.players?.map((player: any, idx: number) => (
@@ -421,7 +425,7 @@ export default function UserDashboard() {
                         player.alignment === 'MAFIA' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20' :
                         'bg-amber-500/10 text-amber-400 border-amber-500/20'
                       }`}>
-                        {player.alignment}
+                        {player.alignment === 'CITIZEN' ? 'شهروند' : player.alignment === 'MAFIA' ? 'مافیا' : player.alignment}
                       </span>
                     </div>
                   ))}

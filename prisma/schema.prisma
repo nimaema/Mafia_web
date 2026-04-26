@@ -134,6 +134,8 @@ model ScenarioRole {
 
 model Game {
   id           String      @id @default(cuid())
+  name         String?
+  code         String?     @unique
   moderatorId  String
   moderator    User        @relation("HostedGames", fields: [moderatorId], references: [id])
   password     String?
