@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-echo "⏳ Waiting for database to be ready..."
-until ./node_modules/.bin/prisma db push --accept-data-loss --dry-run > /dev/null 2>&1; do
+echo "⏳ Waiting for database to be ready (db:5432)..."
+until nc -z db 5432; do
   echo "  (Still waiting for database...)"
   sleep 2
 done
