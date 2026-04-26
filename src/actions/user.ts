@@ -49,7 +49,7 @@ export async function changePassword(formData: FormData) {
     const newPassword = formData.get("newPassword") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
 
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    if (!newPassword || !confirmPassword) {
       return { error: "لطفا تمامی فیلدها را پر کنید" };
     }
 
@@ -58,13 +58,18 @@ export async function changePassword(formData: FormData) {
     }
 
     const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-    if (!user || !user.password_hash) {
-      return { error: "کاربر یافت نشد یا رمز عبور تنظیم نشده است" };
+    if (!user) {
+      return { error: "کاربر یافت نشد" };
     }
 
-    const isValid = await verifyPassword(currentPassword, user.password_hash);
-    if (!isValid) {
-      return { error: "رمز عبور فعلی نادرست است" };
+    if (user.password_hash) {
+      if (!currentPassword) {
+        return { error: "لطفا رمز عبور فعلی را وارد کنید" };
+      }
+      const isValid = await verifyPassword(currentPassword, user.password_hash);
+      if (!isValid) {
+        return { error: "رمز عبور فعلی نادرست است" };
+      }
     }
 
     const newHashed = await hashPassword(newPassword);

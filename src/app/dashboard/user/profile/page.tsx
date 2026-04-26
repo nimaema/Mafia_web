@@ -14,6 +14,13 @@ export default async function ProfilePage() {
     where: { userId: session.user.id, provider: "google" }
   });
 
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { password_hash: true }
+  });
+
+  const hasPassword = !!dbUser?.password_hash;
+
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
       <div className="flex items-center gap-4">
@@ -41,6 +48,7 @@ export default async function ProfilePage() {
         <ProfileForm 
           user={{ name: session.user.name || "", email: session.user.email || "" }} 
           hasGoogleProvider={!!googleAccount}
+          hasPassword={hasPassword}
         />
       </section>
     </div>

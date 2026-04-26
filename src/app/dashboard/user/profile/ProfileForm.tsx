@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { updateProfile, changePassword } from "@/actions/user";
 import { signIn } from "next-auth/react";
 
-export default function ProfileForm({ user, hasGoogleProvider }: { user: { name: string, email: string }, hasGoogleProvider?: boolean }) {
+export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { user: { name: string, email: string }, hasGoogleProvider?: boolean, hasPassword?: boolean }) {
   const [result, action, isPending] = useActionState(
     async (prevState: any, formData: FormData) => {
       const res = await updateProfile(formData);
@@ -85,11 +85,11 @@ export default function ProfileForm({ user, hasGoogleProvider }: { user: { name:
     <div className="h-px w-full bg-zinc-200 dark:bg-zinc-800 my-2"></div>
 
     <form action={pwdAction} className="flex flex-col gap-5">
-      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">تغییر رمز عبور</h3>
+      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{hasPassword ? "تغییر رمز عبور" : "ایجاد رمز عبور"}</h3>
       {pwdResult?.success && (
         <div className="bg-lime-500/10 border border-lime-500/30 text-lime-600 dark:text-lime-400 text-sm py-3 px-4 rounded-xl flex items-center gap-3">
           <span className="material-symbols-outlined">check_circle</span>
-          <span>رمز عبور با موفقیت تغییر یافت</span>
+          <span>{hasPassword ? "رمز عبور با موفقیت تغییر یافت" : "رمز عبور با موفقیت ایجاد شد"}</span>
         </div>
       )}
       
@@ -100,19 +100,21 @@ export default function ProfileForm({ user, hasGoogleProvider }: { user: { name:
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">رمز عبور فعلی</label>
-        <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
-          <input 
-            type="password" 
-            name="currentPassword" 
-            required
-            dir="ltr"
-            className="w-full bg-gray-200 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:border-blue-500 transition-colors"
-          />
+      {hasPassword && (
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">رمز عبور فعلی</label>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
+            <input 
+              type="password" 
+              name="currentPassword" 
+              required
+              dir="ltr"
+              className="w-full bg-gray-200 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:border-blue-500 transition-colors"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-col gap-2">
         <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">رمز عبور جدید</label>
@@ -152,7 +154,7 @@ export default function ProfileForm({ user, hasGoogleProvider }: { user: { name:
         ) : (
           <span className="material-symbols-outlined">password</span>
         )}
-        تغییر رمز
+        {hasPassword ? "تغییر رمز" : "ایجاد رمز"}
       </button>
     </form>
 
