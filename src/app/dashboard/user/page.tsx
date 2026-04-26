@@ -305,7 +305,7 @@ export default function UserDashboard() {
               <p className="text-xs text-slate-500 dark:text-zinc-500">تاریخچه آخرین فعالیت‌های شما در بازی</p>
             </div>
           </div>
-          <button className="px-6 py-2.5 bg-[#0f172a]/5 dark:bg-white/5 hover:bg-white/10 text-slate-900 dark:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all border border-[#0f172a]/10 dark:border-white/5">مشاهده بایگانی</button>
+          <Link href="/dashboard/user/history" className="px-6 py-2.5 bg-[#0f172a]/5 dark:bg-white/5 hover:bg-white/10 text-slate-900 dark:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all border border-[#0f172a]/10 dark:border-white/5">مشاهده بایگانی</Link>
         </div>
         
         <div className="p-4">
