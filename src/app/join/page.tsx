@@ -23,7 +23,7 @@ export default function JoinGamePage() {
     if (result.success) {
       setJoined(true);
     } else {
-      showAlert("خطا", result.error, "error");
+      showAlert("خطا", result.error || "خطا در پیوستن به بازی", "error");
     }
     
     setLoading(false);

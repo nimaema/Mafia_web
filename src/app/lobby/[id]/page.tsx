@@ -72,7 +72,7 @@ export default function UserLobbyPage() {
     if (res.success) {
       setJoined(true);
     } else {
-      showAlert("خطا در ورود", res.error, "error");
+      showAlert("خطا در ورود", res.error || "خطا در پیوستن به لابی", "error");
     }
     setLoading(false);
   };

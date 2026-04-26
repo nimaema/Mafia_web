@@ -304,7 +304,7 @@ export default function AdminDashboard() {
                                       await banUser(user.id, !user.isBanned);
                                       refreshData();
                                       showToast(user.isBanned ? "کاربر فعال شد" : "کاربر مسدود شد");
-                                    } catch (e: any) { showAlert("خطا", e.message, "error"); }
+                                    } catch (e: any) { showAlert("خطا", e.message || "خطای نامشخص", "error"); }
                                   }
                                 );
                               }}
@@ -322,7 +322,7 @@ export default function AdminDashboard() {
                                       await deleteUser(user.id);
                                       refreshData();
                                       showToast("کاربر با موفقیت حذف شد");
-                                    } catch (e: any) { showAlert("خطا", e.message, "error"); }
+                                    } catch (e: any) { showAlert("خطا", e.message || "خطای نامشخص", "error"); }
                                   },
                                   "error"
                                 );

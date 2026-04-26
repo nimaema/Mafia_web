@@ -76,7 +76,7 @@ export default function GameLobbyPage() {
     setSettingScenario(true);
     const res = await setGameScenario(gameId, scenarioId);
     if (!res.success) {
-      showAlert("خطا", res.error, "error");
+      showAlert("خطا", res.error || "خطا در تنظیم سناریو", "error");
     } else if (scenarioId) {
       showToast("سناریو با موفقیت انتخاب شد", "success");
     }
@@ -89,7 +89,7 @@ export default function GameLobbyPage() {
     if (res.success) {
       router.push(`/dashboard/moderator/game/${gameId}`);
     } else {
-      showAlert("خطا در شروع بازی", res.error, "error");
+      showAlert("خطا در شروع بازی", res.error || "خطای نامشخص", "error");
       setLoading(false);
     }
   };
@@ -113,7 +113,7 @@ export default function GameLobbyPage() {
     setShowCustomModal(false);
     const res = await createCustomGameScenario(gameId, customRoles);
     if (!res.success) {
-      showAlert("خطا", res.error, "error");
+      showAlert("خطا", res.error || "خطا در ایجاد سناریو سفارشی", "error");
     } else {
       showToast("سناریو سفارشی اعمال شد", "success");
     }

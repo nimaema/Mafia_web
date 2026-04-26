@@ -14,7 +14,7 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
     if (result?.success) {
       showToast("پروفایل با موفقیت بروزرسانی شد", "success");
     } else if (result?.error) {
-      showAlert("خطا", result.error, "error");
+      showAlert("خطا", result.error || "خطا در بروزرسانی", "error");
     }
   }, [result]);
 
@@ -22,7 +22,7 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
     if (pwdResult?.success) {
       showToast(hasPassword ? "رمز عبور تغییر یافت" : "رمز عبور ایجاد شد", "success");
     } else if (pwdResult?.error) {
-      showAlert("خطا", pwdResult.error, "error");
+      showAlert("خطا", pwdResult.error || "خطا در تغییر رمز عبور", "error");
     }
   }, [pwdResult]);
 
