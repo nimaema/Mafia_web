@@ -30,6 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         })
 
         if (!user || !user.password_hash) return null
+        if (user.isBanned) throw new Error("حساب کاربری شما مسدود شده است")
 
         const isValid = await verifyPassword(credentials.password as string, user.password_hash)
 
@@ -42,6 +43,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     })
   ],
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (user.email) {
+        const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
+        if (dbUser?.isBanned) {
+          throw new Error("حساب کاربری شما مسدود شده است");
+        }
+      }
+      return true;
+    },
     jwt({ token, user }) {
       if (user) {
         token.role = user.role

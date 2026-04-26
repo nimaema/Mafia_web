@@ -77,7 +77,7 @@ export default function UserLobbyPage() {
   if (loading) return <div className="p-12 text-center animate-pulse">در حال بارگذاری لابی...</div>;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-4 flex flex-col items-center justify-center gap-8">
+    <div className="min-h-screen bg-gray-200 dark:bg-zinc-950 p-4 flex flex-col items-center justify-center gap-8">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden flex flex-col">
         <header className="p-8 bg-lime-500/5 border-b border-zinc-200 dark:border-zinc-800 text-center flex flex-col gap-2">
           <div className="w-16 h-16 bg-lime-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-lime-500/20 mb-2 rotate-3">
@@ -108,7 +108,7 @@ export default function UserLobbyPage() {
                </div>
              ) : (
                players.map((p, i) => (
-                 <div key={p.id} className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-950/50 rounded-xl border border-zinc-100 dark:border-zinc-800/50 animate-in fade-in slide-in-from-right-4 duration-300" style={{ animationDelay: `${i * 100}ms` }}>
+                 <div key={p.id} className="flex items-center gap-3 p-3 bg-gray-200 dark:bg-zinc-950/50 rounded-xl border border-zinc-100 dark:border-zinc-800/50 animate-in fade-in slide-in-from-right-4 duration-300" style={{ animationDelay: `${i * 100}ms` }}>
                     <div className="w-8 h-8 rounded-full bg-lime-500 flex items-center justify-center text-zinc-950 font-bold text-xs">{i + 1}</div>
                     <span className="font-bold">{p.name}</span>
                     {p.id === session?.user?.id && <span className="text-[10px] bg-zinc-900 text-white px-2 py-0.5 rounded-lg mr-auto">شما</span>}

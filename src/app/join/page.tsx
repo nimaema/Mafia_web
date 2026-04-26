@@ -60,7 +60,7 @@ export default function JoinGamePage() {
             <label className="text-sm text-zinc-500 px-1">کد بازی</label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">tag</span>
-              <input name="gameId" required type="text" dir="ltr" placeholder="مثلاً: 123456" className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors uppercase font-mono tracking-wider" />
+              <input name="gameId" required type="text" dir="ltr" placeholder="مثلاً: 123456" className="w-full bg-gray-200 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors uppercase font-mono tracking-wider" />
             </div>
           </div>
           
@@ -68,7 +68,7 @@ export default function JoinGamePage() {
             <label className="text-sm text-zinc-500 px-1">نام شما</label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">person</span>
-              <input name="name" required type="text" placeholder="نامی که سایر بازیکنان می‌بینند" className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors" />
+              <input name="name" required type="text" placeholder="نامی که سایر بازیکنان می‌بینند" className="w-full bg-gray-200 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors" />
             </div>
           </div>
           

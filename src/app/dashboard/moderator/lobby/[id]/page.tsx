@@ -143,7 +143,7 @@ export default function GameLobbyPage() {
       </header>
 
       <section className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-zinc-50 dark:bg-zinc-950/50">
+        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-gray-200 dark:bg-zinc-950/50">
           <h3 className="font-semibold text-zinc-700 dark:text-zinc-300">بازیکنان حاضر ({players.length})</h3>
         </div>
         
@@ -175,7 +175,7 @@ export default function GameLobbyPage() {
                 <p className="font-bold text-lime-600 dark:text-lime-400">{game.scenario.name}</p>
                 <p className="text-xs text-lime-600/70 dark:text-lime-400/70 mt-1">{requiredPlayers} نفره</p>
              </div>
-             <button onClick={() => handleSelectScenario("")} className="text-xs bg-red-500/10 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-500/20">تغییر</button>
+             <button onClick={() => handleSelectScenario("")} className="text-xs bg-red-500/10 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-lg hover:bg-red-500/20">تغییر</button>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -200,7 +200,7 @@ export default function GameLobbyPage() {
                onChange={(e) => handleSelectScenario(e.target.value)}
                value=""
                disabled={settingScenario}
-               className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 outline-none focus:border-lime-500 w-full disabled:opacity-50"
+               className="bg-gray-200 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 outline-none focus:border-lime-500 w-full disabled:opacity-50"
              >
                <option value="">یک سناریو از پیش تعریف شده انتخاب کنید...</option>
                {scenarios.map(s => (
@@ -231,7 +231,7 @@ export default function GameLobbyPage() {
           <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-md max-h-[90vh] flex flex-col border border-zinc-200 dark:border-zinc-800 shadow-2xl animate-in fade-in zoom-in duration-300">
              <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
                 <h3 className="text-xl font-bold">طراحی سناریو سفارشی</h3>
-                <button onClick={() => setShowCustomModal(false)} className="material-symbols-outlined text-zinc-400 hover:text-red-500">close</button>
+                <button onClick={() => setShowCustomModal(false)} className="material-symbols-outlined text-zinc-400 hover:text-red-600 dark:text-red-400">close</button>
              </div>
              
              <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-4">
@@ -248,9 +248,9 @@ export default function GameLobbyPage() {
                   {roles.map(role => {
                     const count = customRoles.find(r => r.roleId === role.id)?.count || 0;
                     return (
-                      <div key={role.id} className="flex items-center justify-between p-3 border border-zinc-100 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-950/50">
+                      <div key={role.id} className="flex items-center justify-between p-3 border border-zinc-100 dark:border-zinc-800 rounded-xl bg-gray-200 dark:bg-zinc-950/50">
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${role.alignment === 'MAFIA' ? 'bg-red-500/10 text-red-500' : role.alignment === 'CITIZEN' ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${role.alignment === 'MAFIA' ? 'bg-red-500/10 text-red-600 dark:text-red-400' : role.alignment === 'CITIZEN' ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'}`}>
                             {role.name.substring(0, 1)}
                           </div>
                           <span className="font-medium text-sm">{role.name}</span>
@@ -294,7 +294,7 @@ export default function GameLobbyPage() {
       </button>
 
       {game?.scenario && players.length < requiredPlayers && (
-        <p className="text-center text-sm text-red-500 font-bold bg-red-500/10 py-2 rounded-lg">حداقل {requiredPlayers} بازیکن برای این سناریو نیاز است.</p>
+        <p className="text-center text-sm text-red-600 dark:text-red-400 font-bold bg-red-500/10 py-2 rounded-lg">حداقل {requiredPlayers} بازیکن برای این سناریو نیاز است.</p>
       )}
     </div>
   );

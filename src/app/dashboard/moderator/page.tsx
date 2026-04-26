@@ -82,12 +82,12 @@ export default function ModeratorDashboard() {
       {/* Create Game Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
-          <div className="bg-slate-50 dark:bg-zinc-900 rounded-[2.5rem] w-full max-w-lg p-10 border border-[#0f172a]/20 dark:border-white/10 shadow-3xl flex flex-col gap-8 animate-in fade-in zoom-in duration-500 relative overflow-hidden">
+          <div className="bg-gray-200 dark:bg-zinc-900 rounded-[2.5rem] w-full max-w-lg p-10 border border-[#0f172a]/20 dark:border-white/10 shadow-3xl flex flex-col gap-8 animate-in fade-in zoom-in duration-500 relative overflow-hidden">
              <div className="absolute top-[-20%] right-[-10%] w-40 h-40 bg-lime-500/10 blur-[80px] rounded-full"></div>
              
              <div className="flex justify-between items-center relative z-10">
                 <h3 className="text-2xl font-black text-slate-900 dark:text-white italic">ایجاد بازی جدید</h3>
-                <button onClick={() => setShowCreateModal(false)} className="w-10 h-10 rounded-full bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-zinc-400 hover:text-red-400 transition-colors">
+                <button onClick={() => setShowCreateModal(false)} className="w-10 h-10 rounded-full bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-zinc-400 hover:text-red-600 dark:text-red-400 transition-colors">
                   <span className="material-symbols-outlined">close</span>
                 </button>
              </div>
@@ -119,7 +119,7 @@ export default function ModeratorDashboard() {
         </div>
       )}
 
-      <section className="bg-slate-50 dark:bg-zinc-900/40 rounded-[2.5rem] border border-[#0f172a]/10 dark:border-white/5 shadow-2xl overflow-hidden flex flex-col backdrop-blur-md">
+      <section className="bg-gray-200 dark:bg-zinc-900/40 rounded-[2.5rem] border border-[#0f172a]/10 dark:border-white/5 shadow-2xl overflow-hidden flex flex-col backdrop-blur-md">
         <div className="p-8 border-b border-[#0f172a]/10 dark:border-white/5 flex justify-between items-center bg-[#0f172a]/5 dark:bg-black/20">
           <div className="flex flex-col">
             <h3 className="font-black text-slate-900 dark:text-white italic text-lg tracking-tight">لیست بازی‌های فعال</h3>
@@ -174,7 +174,7 @@ export default function ModeratorDashboard() {
                     </div>
                     
                     <div className="flex flex-col items-end">
-                       <div className="flex items-center gap-2 bg-slate-50 dark:bg-zinc-900 px-4 py-2 rounded-xl border border-[#0f172a]/10 dark:border-white/5">
+                       <div className="flex items-center gap-2 bg-gray-200 dark:bg-zinc-900 px-4 py-2 rounded-xl border border-[#0f172a]/10 dark:border-white/5">
                           <span className="material-symbols-outlined text-lime-500 text-lg">group</span>
                           <span className="text-xl font-black text-slate-900 dark:text-white">{game._count.players}</span>
                           <span className="text-xs text-slate-400 dark:text-zinc-600">/ {game.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0) || '?'}</span>
@@ -187,7 +187,7 @@ export default function ModeratorDashboard() {
                   <div className="flex gap-4 relative z-10">
                     <button
                       onClick={() => handleCancelGame(game.id)}
-                      className="flex-[0.3] bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-slate-900 dark:text-white py-4 rounded-2xl text-center font-black text-sm transition-all flex items-center justify-center border border-red-500/20 hover:border-red-500"
+                      className="flex-[0.3] bg-red-500/10 hover:bg-red-500 text-red-600 dark:text-red-400 hover:text-slate-900 dark:text-white py-4 rounded-2xl text-center font-black text-sm transition-all flex items-center justify-center border border-red-500/20 hover:border-red-500"
                       title="لغو لابی"
                     >
                       <span className="material-symbols-outlined text-xl">delete</span>

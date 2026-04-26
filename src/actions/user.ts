@@ -35,3 +35,48 @@ export async function updateProfile(formData: FormData) {
     return { error: "خطا در بروزرسانی پروفایل" };
   }
 }
+
+import { hashPassword, verifyPassword } from "@/lib/password";
+
+export async function changePassword(formData: FormData) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { error: "شما وارد نشده‌اید" };
+    }
+
+    const currentPassword = formData.get("currentPassword") as string;
+    const newPassword = formData.get("newPassword") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return { error: "لطفا تمامی فیلدها را پر کنید" };
+    }
+
+    if (newPassword !== confirmPassword) {
+      return { error: "رمز عبور جدید و تکرار آن یکسان نیستند" };
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (!user || !user.password_hash) {
+      return { error: "کاربر یافت نشد یا رمز عبور تنظیم نشده است" };
+    }
+
+    const isValid = await verifyPassword(currentPassword, user.password_hash);
+    if (!isValid) {
+      return { error: "رمز عبور فعلی نادرست است" };
+    }
+
+    const newHashed = await hashPassword(newPassword);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password_hash: newHashed }
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Change password error:", error);
+    return { error: "خطا در تغییر رمز عبور" };
+  }
+}

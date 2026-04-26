@@ -57,7 +57,7 @@ export default function LoginPage() {
 
         <form action={setError} className="flex flex-col gap-5">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm py-3 px-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm py-3 px-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
               <span className="material-symbols-outlined text-lg">error</span>
               <span className="font-medium">{error}</span>
             </div>

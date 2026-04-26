@@ -44,7 +44,7 @@ export function UsersTable({ users, currentUserId }: { users: any[], currentUser
     <div className="overflow-x-auto">
       <table className="w-full text-right border-collapse min-w-[800px]">
         <thead>
-          <tr className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800 text-sm font-bold">
+          <tr className="bg-gray-200 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800 text-sm font-bold">
             <th className="p-4">نام کاربر</th>
             <th className="p-4">ایمیل</th>
             <th className="p-4">سطح دسترسی</th>
@@ -54,7 +54,7 @@ export function UsersTable({ users, currentUserId }: { users: any[], currentUser
         </thead>
         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
           {users.map(user => (
-            <tr key={user.id} className={`hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors ${loadingId === user.id ? 'opacity-50' : ''}`}>
+            <tr key={user.id} className={`hover:bg-gray-200 dark:hover:bg-zinc-800/30 transition-colors ${loadingId === user.id ? 'opacity-50' : ''}`}>
               <td className="p-4 font-medium">{user.name || "بدون نام"}</td>
               <td className="p-4 text-sm text-zinc-500" dir="ltr">{user.email}</td>
               <td className="p-4">
@@ -63,7 +63,7 @@ export function UsersTable({ users, currentUserId }: { users: any[], currentUser
                   onChange={(e) => handleRoleChange(user.id, e.target.value as any)}
                   disabled={loadingId === user.id || user.id === currentUserId}
                   className={`text-xs px-2 py-1.5 rounded-md font-bold cursor-pointer border-0 ring-1 focus:ring-2 focus:outline-none transition-all ${
-                    user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:ring-purple-800' :
+                    user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-600 dark:text-purple-400 dark:ring-purple-800' :
                     user.role === 'MODERATOR' ? 'bg-lime-100 text-lime-700 ring-lime-200 dark:bg-lime-900/30 dark:text-lime-400 dark:ring-lime-800' :
                     'bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700'
                   }`}
@@ -78,7 +78,7 @@ export function UsersTable({ users, currentUserId }: { users: any[], currentUser
                 <button 
                   onClick={() => handleDelete(user.id, user.name || user.email)}
                   disabled={loadingId === user.id || user.id === currentUserId}
-                  className="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white dark:bg-red-900/20 dark:hover:bg-red-900 dark:text-red-400 transition-colors flex items-center justify-center disabled:opacity-50 mx-auto"
+                  className="w-8 h-8 rounded-full bg-red-50 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white dark:bg-red-900/20 dark:hover:bg-red-900 dark:text-red-600 dark:text-red-400 transition-colors flex items-center justify-center disabled:opacity-50 mx-auto"
                   title="حذف کاربر"
                 >
                   <span className="material-symbols-outlined text-sm">delete</span>

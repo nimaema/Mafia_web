@@ -3,7 +3,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Home() {
   return (
-    <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen flex flex-col font-sans overflow-hidden transition-colors duration-300" dir="rtl">
+    <div className="bg-gray-200 dark:bg-zinc-950 min-h-screen flex flex-col font-sans overflow-hidden transition-colors duration-300" dir="rtl">
       {/* Abstract Background Elements */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-lime-500/10 blur-[150px] mix-blend-screen animate-pulse"></div>
@@ -69,7 +69,7 @@ export default function Home() {
            <div className="absolute top-0 right-[15%] w-64 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200 dark:border-white/10 rounded-2xl p-5 shadow-2xl transform rotate-3 animate-[float_6s_ease-in-out_infinite]">
               <div className="flex justify-between items-center mb-4">
                  <span className="text-sm font-bold text-zinc-900 dark:text-white">بازپرس ویژه</span>
-                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/20">شهروند</span>
+                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-600 dark:text-green-400 border border-green-200 dark:border-green-500/20">شهروند</span>
               </div>
               <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden mb-2">
                  <div className="w-3/4 h-full bg-lime-500"></div>
@@ -80,7 +80,7 @@ export default function Home() {
            <div className="absolute top-12 left-[15%] w-64 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200 dark:border-white/10 rounded-2xl p-5 shadow-2xl transform -rotate-3 animate-[float_8s_ease-in-out_infinite_reverse]">
               <div className="flex justify-between items-center mb-4">
                  <span className="text-sm font-bold text-zinc-900 dark:text-white">پدرخوانده</span>
-                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/20">مافیا</span>
+                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20">مافیا</span>
               </div>
               <div className="flex items-center gap-2">
                  <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/5 flex items-center justify-center text-xs text-zinc-900 dark:text-white">?</div>

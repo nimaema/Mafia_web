@@ -71,8 +71,8 @@ export default function ModeratorGamePage() {
             </div>
 
             <div className={`mt-2 p-3 rounded-xl border ${
-              player.role?.alignment === 'CITIZEN' ? 'bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400' : 
-              player.role?.alignment === 'MAFIA' ? 'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400' : 
+              player.role?.alignment === 'CITIZEN' ? 'bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-600 dark:text-blue-400' : 
+              player.role?.alignment === 'MAFIA' ? 'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-600 dark:text-red-400' : 
               'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400'
             }`}>
               <div className="flex justify-between items-center mb-1">
@@ -87,7 +87,7 @@ export default function ModeratorGamePage() {
             
             {/* Action buttons (for future implementation like Kill, etc) */}
             <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-               <button className="flex-1 bg-red-500/10 text-red-500 text-xs font-bold py-2 rounded-lg hover:bg-red-500/20 transition-colors border border-red-500/20">
+               <button className="flex-1 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold py-2 rounded-lg hover:bg-red-500/20 transition-colors border border-red-500/20">
                  حذف از بازی
                </button>
             </div>
@@ -97,7 +97,7 @@ export default function ModeratorGamePage() {
 
       <div className="mt-8 bg-zinc-100 dark:bg-zinc-800/50 rounded-3xl p-6 border border-zinc-200 dark:border-zinc-700/50 flex flex-col gap-4">
         <div className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
-          <span className="material-symbols-outlined text-red-500">stop_circle</span>
+          <span className="material-symbols-outlined text-red-600 dark:text-red-400">stop_circle</span>
           <h3 className="font-bold text-lg">پایان بازی</h3>
         </div>
         <p className="text-sm text-zinc-500">برای پایان بازی، یکی از گروه‌های برنده را انتخاب کنید. نتیجه بازی در پروفایل بازیکنان ثبت خواهد شد.</p>

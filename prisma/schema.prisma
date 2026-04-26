@@ -40,6 +40,7 @@ model User {
   image         String?
   password_hash String?
   role          Role      @default(USER)
+  isBanned      Boolean   @default(false)
 
   accounts      Account[]
   sessions      Session[]

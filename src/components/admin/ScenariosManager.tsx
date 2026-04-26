@@ -110,13 +110,13 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
                 <button onClick={() => openForm(scenario)} className="p-2 text-zinc-400 hover:text-blue-500 transition-colors">
                   <span className="material-symbols-outlined">edit</span>
                 </button>
-                <button onClick={() => handleDelete(scenario.id)} className="p-2 text-zinc-400 hover:text-red-500 transition-colors">
+                <button onClick={() => handleDelete(scenario.id)} className="p-2 text-zinc-400 hover:text-red-600 dark:text-red-400 transition-colors">
                   <span className="material-symbols-outlined">delete</span>
                 </button>
               </div>
             </div>
 
-            <div className="bg-zinc-50 dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+            <div className="bg-gray-200 dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
                <div className="flex justify-between mb-3 text-xs font-bold text-zinc-400 uppercase tracking-widest">
                   <span>ترکیب نقش‌ها</span>
                   <span className="text-zinc-900 dark:text-white">تعداد کل: {scenario.roles.reduce((a:any, b:any) => a + b.count, 0)}</span>
@@ -124,8 +124,8 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
                <div className="flex flex-wrap gap-2">
                   {scenario.roles.map((sr: any) => (
                     <div key={sr.id} className={`px-3 py-1 rounded-lg text-xs font-bold border ${
-                      sr.role.alignment === 'CITIZEN' ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800' :
-                      sr.role.alignment === 'MAFIA' ? 'bg-red-50 text-red-600 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' :
+                      sr.role.alignment === 'CITIZEN' ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:text-blue-600 dark:text-blue-400 dark:border-blue-800' :
+                      sr.role.alignment === 'MAFIA' ? 'bg-red-50 text-red-600 border-red-100 dark:bg-red-900/20 dark:text-red-600 dark:text-red-400 dark:border-red-800' :
                       'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
                     }`}>
                       {sr.role.name} × {sr.count}
@@ -155,7 +155,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
                     required
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-lime-500/50"
+                    className="w-full bg-gray-200 dark:bg-zinc-800 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-lime-500/50"
                     placeholder="مثال: کلاسیک ۱۲ نفره"
                   />
                 </div>
@@ -165,7 +165,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
                   <textarea 
                     value={formData.description}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-lime-500/50 min-h-[100px]"
+                    className="w-full bg-gray-200 dark:bg-zinc-800 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-lime-500/50 min-h-[100px]"
                     placeholder="توضیحات کوتاهی درباره سناریو..."
                   />
                 </div>
@@ -187,7 +187,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
                         <div key={alignment} className="space-y-3">
                           <h4 className={`text-xs font-black uppercase tracking-widest ${
                             alignment === 'CITIZEN' ? 'text-blue-500' : 
-                            alignment === 'MAFIA' ? 'text-red-500' : 
+                            alignment === 'MAFIA' ? 'text-red-600 dark:text-red-400' : 
                             'text-zinc-500'
                           }`}>
                             {alignment === 'CITIZEN' ? 'تیم شهروند' : alignment === 'MAFIA' ? 'تیم مافیا' : 'نقش‌های مستقل'}
@@ -196,7 +196,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
                             {alignmentRoles.map(role => {
                               const currentCount = formData.roles.find(r => r.roleId === role.id)?.count || 0;
                               return (
-                                <div key={role.id} className="flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                                <div key={role.id} className="flex items-center justify-between bg-gray-200 dark:bg-zinc-800/50 p-2 rounded-xl border border-zinc-200 dark:border-zinc-800">
                                   <span className="text-sm font-bold px-2">{role.name}</span>
                                   <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-700">
                                     <button 
@@ -228,7 +228,7 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
               </form>
             </div>
 
-            <div className="p-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3 bg-zinc-50 dark:bg-zinc-800/50">
+            <div className="p-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3 bg-gray-200 dark:bg-zinc-800/50">
               <button 
                 type="button"
                 onClick={closeForm}

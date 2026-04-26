@@ -30,13 +30,13 @@ export default async function UserHistoryPage() {
                 </div>
                 <div className={`px-4 py-1 rounded-full text-xs font-black ${
                   game.result === 'WIN' ? 'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-400' : 
-                  'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-600 dark:text-red-400'
                 }`}>
                   {game.result === 'WIN' ? 'پیروزی' : 'شکست'}
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-4 bg-gray-200 dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
                 <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 shadow-sm">
                    <span className="material-symbols-outlined text-zinc-400">person</span>
                 </div>

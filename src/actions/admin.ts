@@ -41,6 +41,18 @@ export async function updateUserRole(userId: string, role: Role) {
   revalidatePath("/dashboard/admin/users");
 }
 
+export async function banUser(userId: string, isBanned: boolean) {
+  const adminId = await checkAdmin();
+  if (adminId === userId) {
+    throw new Error("شما نمی‌توانید خودتان را مسدود کنید");
+  }
+  await prisma.user.update({
+    where: { id: userId },
+    data: { isBanned }
+  });
+  revalidatePath("/dashboard/admin/users");
+}
+
 export async function deleteUser(userId: string) {
   const adminId = await checkAdmin();
   if (adminId === userId) {
