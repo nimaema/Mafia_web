@@ -61,6 +61,14 @@ export default async function DashboardLayout({
                 <span className="material-symbols-outlined group-hover:scale-110 transition-transform">sports_esports</span>
                 <span className="font-bold text-sm tracking-wide">لابی بازی‌ها</span>
               </Link>
+              <Link href="/dashboard/admin?tab=scenarios" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 group">
+                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">account_tree</span>
+                <span className="font-bold text-sm tracking-wide">سناریوها</span>
+              </Link>
+              <Link href="/dashboard/admin?tab=roles" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-teal-600 dark:hover:text-teal-400 group">
+                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">theater_comedy</span>
+                <span className="font-bold text-sm tracking-wide">نقش‌ها</span>
+              </Link>
             </>
           )}
 
@@ -71,10 +79,6 @@ export default async function DashboardLayout({
               <Link href="/dashboard/admin?tab=users" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 group">
                 <span className="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
                 <span className="font-bold text-sm tracking-wide">کاربران</span>
-              </Link>
-              <Link href="/dashboard/admin?tab=roles" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-lime-600 dark:hover:text-lime-400 group">
-                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">theater_comedy</span>
-                <span className="font-bold text-sm tracking-wide">نقش‌ها</span>
               </Link>
               <Link href="/dashboard/admin" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-[#0f172a] dark:hover:text-white group">
                 <span className="material-symbols-outlined group-hover:scale-110 transition-transform">settings</span>
@@ -112,16 +116,16 @@ export default async function DashboardLayout({
           <span className="text-[9px] font-black uppercase tracking-tighter">پروفایل</span>
         </Link>
         {isModerator && (
-          <Link href="/dashboard/moderator" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-lime-400">
-            <span className="material-symbols-outlined text-2xl">sports_esports</span>
-            <span className="text-[9px] font-black uppercase tracking-tighter">بازی‌ها</span>
-          </Link>
-        )}
-        {isAdmin && (
-          <Link href="/dashboard/admin?tab=roles" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-lime-400">
-            <span className="material-symbols-outlined text-2xl">theater_comedy</span>
-            <span className="text-[9px] font-black uppercase tracking-tighter">نقش‌ها</span>
-          </Link>
+          <>
+            <Link href="/dashboard/moderator" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-lime-400">
+              <span className="material-symbols-outlined text-2xl">sports_esports</span>
+              <span className="text-[9px] font-black uppercase tracking-tighter">بازی‌ها</span>
+            </Link>
+            <Link href="/dashboard/admin?tab=roles" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-teal-400">
+              <span className="material-symbols-outlined text-2xl">theater_comedy</span>
+              <span className="text-[9px] font-black uppercase tracking-tighter">نقش‌ها</span>
+            </Link>
+          </>
         )}
         {isAdmin && (
           <Link href="/dashboard/admin" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-white">

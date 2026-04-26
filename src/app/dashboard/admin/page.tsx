@@ -9,10 +9,15 @@ import {
 } from "@/actions/admin";
 import { Role, Alignment } from "@prisma/client";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function AdminDashboard() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
+  const isModerator = session?.user?.role === "MODERATOR";
+
   const searchParams = useSearchParams();
-  const initialTab = (searchParams.get("tab") as "users" | "scenarios" | "roles") || "users";
+  const initialTab = (searchParams.get("tab") as "users" | "scenarios" | "roles") || (isAdmin ? "users" : "roles");
   const [activeTab, setActiveTab] = useState<"users" | "scenarios" | "roles">(initialTab);
   const [users, setUsers] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
@@ -46,7 +51,7 @@ export default function AdminDashboard() {
   const refreshData = async () => {
     setLoading(true);
     try {
-      if (activeTab === "users") {
+      if (activeTab === "users" && isAdmin) {
         const data = await getAllUsers();
         setUsers(data);
       } else if (activeTab === "roles") {
@@ -194,13 +199,15 @@ export default function AdminDashboard() {
           
           {/* Futuristic Tabs */}
           <div className="flex p-2 bg-black/40 rounded-2xl border border-[#0f172a]/20 dark:border-white/10 backdrop-blur-3xl shadow-inner">
-            <button 
-              onClick={() => setActiveTab("users")}
-              className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2.5 ${activeTab === "users" ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.3)] scale-105" : "text-slate-500 dark:text-zinc-500 hover:text-zinc-300 hover:bg-[#0f172a]/5 dark:bg-white/5"}`}
-            >
-              <span className="material-symbols-outlined text-lg">group</span>
-              کاربران
-            </button>
+            {isAdmin && (
+              <button 
+                onClick={() => setActiveTab("users")}
+                className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2.5 ${activeTab === "users" ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.3)] scale-105" : "text-slate-500 dark:text-zinc-500 hover:text-zinc-300 hover:bg-[#0f172a]/5 dark:bg-white/5"}`}
+              >
+                <span className="material-symbols-outlined text-lg">group</span>
+                کاربران
+              </button>
+            )}
             <button 
               onClick={() => setActiveTab("scenarios")}
               className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2.5 ${activeTab === "scenarios" ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.3)] scale-105" : "text-slate-500 dark:text-zinc-500 hover:text-zinc-300 hover:bg-[#0f172a]/5 dark:bg-white/5"}`}
@@ -228,7 +235,7 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <>
-            {activeTab === "users" && (
+            {activeTab === "users" && isAdmin && (
               <div className="overflow-x-auto p-2">
                 <table className="w-full text-right border-collapse">
                   <thead>

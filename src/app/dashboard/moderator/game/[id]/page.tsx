@@ -108,6 +108,7 @@ export default function ModeratorGamePage() {
               if (confirm("آیا مطمئن هستید که شهروندان پیروز شده‌اند؟")) {
                 const { endGame } = await import('@/actions/game');
                 await endGame(gameId, 'CITIZEN');
+                router.refresh();
                 router.push("/dashboard/moderator");
               }
             }}
@@ -119,6 +120,7 @@ export default function ModeratorGamePage() {
               if (confirm("آیا مطمئن هستید که مافیا پیروز شده‌است؟")) {
                 const { endGame } = await import('@/actions/game');
                 await endGame(gameId, 'MAFIA');
+                router.refresh();
                 router.push("/dashboard/moderator");
               }
             }}
@@ -130,6 +132,7 @@ export default function ModeratorGamePage() {
               if (confirm("آیا مطمئن هستید که مستقل‌ها پیروز شده‌اند؟")) {
                 const { endGame } = await import('@/actions/game');
                 await endGame(gameId, 'NEUTRAL');
+                router.refresh();
                 router.push("/dashboard/moderator");
               }
             }}

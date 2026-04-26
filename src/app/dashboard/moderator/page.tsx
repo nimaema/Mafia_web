@@ -20,7 +20,7 @@ export default function ModeratorDashboard() {
   }, []);
 
   const refreshGames = async () => {
-    const games = await getModeratorGames();
+    const games = await getModeratorGames(Date.now());
     setActiveGames(games);
   };
 

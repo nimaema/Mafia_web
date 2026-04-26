@@ -47,7 +47,7 @@ export default function UserDashboard() {
   };
 
   const refreshActiveGames = async () => {
-    const games = await getWaitingGames();
+    const games = await getWaitingGames(Date.now());
     setActiveGames(games);
   };
 

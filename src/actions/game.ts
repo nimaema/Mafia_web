@@ -88,11 +88,11 @@ export async function createGame(password?: string) {
   }
 }
 
-export async function getWaitingGames() {
+export async function getWaitingGames(timestamp?: number) {
   noStore();
   return await prisma.game.findMany({
     where: { 
-      status: { in: ["WAITING", "IN_PROGRESS"] }
+      status: "WAITING"
     },
     include: {
       moderator: {
@@ -111,7 +111,7 @@ export async function getWaitingGames() {
   });
 }
 
-export async function getModeratorGames() {
+export async function getModeratorGames(timestamp?: number) {
   noStore();
   const session = await auth();
   if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {

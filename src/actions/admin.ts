@@ -61,7 +61,7 @@ export async function getMafiaRoles() {
 }
 
 export async function createMafiaRole(data: { name: string; description: string; alignment: Alignment }) {
-  await checkAdmin();
+  await checkModerator();
   const role = await prisma.mafiaRole.create({
     data: {
       name: data.name,
@@ -75,7 +75,7 @@ export async function createMafiaRole(data: { name: string; description: string;
 }
 
 export async function updateMafiaRole(id: string, data: { name: string; description: string; alignment: Alignment }) {
-  await checkAdmin();
+  await checkModerator();
   const role = await prisma.mafiaRole.update({
     where: { id },
     data: {
@@ -89,7 +89,7 @@ export async function updateMafiaRole(id: string, data: { name: string; descript
 }
 
 export async function deleteMafiaRole(id: string) {
-  await checkAdmin();
+  await checkModerator();
   // Check if role is permanent
   const role = await prisma.mafiaRole.findUnique({ where: { id } });
   if (role?.is_permanent) {
@@ -165,7 +165,7 @@ export async function updateScenario(id: string, data: { name: string, descripti
 }
 
 export async function installStandardScenarios() {
-  await checkAdmin();
+  await checkModerator();
 
   const allRoles = await prisma.mafiaRole.findMany();
   const id = (name: string) => allRoles.find(r => r.name === name)?.id;
