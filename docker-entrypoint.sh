@@ -1,11 +1,17 @@
 #!/bin/sh
 set -e
 
+echo "⏳ Waiting for database to be ready..."
+until ./node_modules/.bin/prisma db push --accept-data-loss --dry-run > /dev/null 2>&1; do
+  echo "  (Still waiting for database...)"
+  sleep 2
+done
+
 echo "🔧 Running database migrations..."
-npx prisma db push --skip-generate
+./node_modules/.bin/prisma db push --accept-data-loss
 
 echo "🌱 Running database seed..."
-npx tsx prisma/seed.ts || echo "⚠️ Seed may have already been applied, continuing..."
+./node_modules/.bin/prisma db seed || echo "⚠️ Seed may have already been applied, continuing..."
 
 echo "🚀 Starting application..."
 exec node server.js
