@@ -5,6 +5,8 @@ import { pusherServer } from "@/lib/pusher";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
+import { unstable_noStore as noStore } from "next/cache";
+
 async function checkModerator() {
   const session = await auth();
   if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
@@ -87,6 +89,7 @@ export async function createGame(password?: string) {
 }
 
 export async function getWaitingGames() {
+  noStore();
   return await prisma.game.findMany({
     where: { status: "WAITING" },
     include: {
@@ -107,6 +110,7 @@ export async function getWaitingGames() {
 }
 
 export async function getGameStatus(gameId: string) {
+  noStore();
   return await prisma.game.findUnique({
     where: { id: gameId },
     include: {

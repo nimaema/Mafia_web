@@ -21,6 +21,7 @@ export default function UserDashboard() {
     currentActiveGame?: any;
   } | null>(null);
   const [activeGames, setActiveGames] = useState<any[]>([]);
+  const [selectedHistoryGame, setSelectedHistoryGame] = useState<any | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -245,14 +246,18 @@ export default function UserDashboard() {
               <p className="text-sm">هنوز در هیچ بازی شرکت نکرده‌اید</p>
             </div>
           ) : (
-            recentGames.map((game, i) => (
-              <div key={game.id} className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
+            recentGames.map((game: any) => (
+              <div 
+                key={game.id} 
+                onClick={() => setSelectedHistoryGame(game)}
+                className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer group"
+              >
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${game.result === 'WIN' ? 'bg-lime-100 text-lime-600 dark:bg-lime-900/30 dark:text-lime-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${game.result === 'WIN' ? 'bg-lime-100 text-lime-600 dark:bg-lime-900/30 dark:text-lime-400 group-hover:bg-lime-200 dark:group-hover:bg-lime-900/50' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 group-hover:bg-red-200 dark:group-hover:bg-red-900/50'}`}>
                     <span className="material-symbols-outlined">{game.result === 'WIN' ? 'emoji_events' : 'cancel'}</span>
                   </div>
                   <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">بازی شماره {game.id.slice(-4)}</p>
+                    <p className="font-medium text-sm truncate">بازی {game.scenarioName}</p>
                     <p className="text-xs text-zinc-500 mt-0.5">{game.roleName} • {game.date}</p>
                   </div>
                 </div>
@@ -260,13 +265,80 @@ export default function UserDashboard() {
                   <span className={`text-xs px-2 py-0.5 rounded font-medium ${game.result === 'WIN' ? 'bg-lime-100 text-lime-700 dark:bg-lime-900/40 dark:text-lime-300' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'}`}>
                     {game.result === 'WIN' ? 'برد' : 'باخت'}
                   </span>
-                  <span className="material-symbols-outlined text-zinc-400 text-lg">chevron_left</span>
+                  <span className="material-symbols-outlined text-zinc-400 text-lg group-hover:-translate-x-1 transition-transform">chevron_left</span>
                 </div>
               </div>
             ))
           )}
         </div>
       </section>
+
+      {/* Game History Details Modal */}
+      {selectedHistoryGame && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-lg p-6 md:p-8 border border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col gap-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-300">
+             <div className="flex justify-between items-start">
+                <div>
+                   <h3 className="text-xl font-bold flex items-center gap-2">
+                     <span className="material-symbols-outlined text-lime-500">sports_esports</span>
+                     جزئیات بازی
+                   </h3>
+                   <p className="text-sm text-zinc-500 mt-1">{selectedHistoryGame.date}</p>
+                </div>
+                <button onClick={() => setSelectedHistoryGame(null)} className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+             </div>
+
+             <div className="grid grid-cols-2 gap-4">
+               <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <p className="text-xs text-zinc-500 mb-1">سناریو</p>
+                  <p className="font-bold text-sm">{selectedHistoryGame.scenarioName}</p>
+               </div>
+               <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <p className="text-xs text-zinc-500 mb-1">گرداننده</p>
+                  <p className="font-bold text-sm">{selectedHistoryGame.moderatorName}</p>
+               </div>
+               <div className={`col-span-2 p-4 rounded-2xl border flex items-center justify-between ${
+                 selectedHistoryGame.result === 'WIN' 
+                   ? 'bg-lime-50 dark:bg-lime-900/20 border-lime-200 dark:border-lime-900/50' 
+                   : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/50'
+               }`}>
+                  <div>
+                    <p className="text-xs opacity-70 mb-1">نقش شما و نتیجه</p>
+                    <p className={`font-bold text-lg ${selectedHistoryGame.result === 'WIN' ? 'text-lime-700 dark:text-lime-400' : 'text-red-700 dark:text-red-400'}`}>
+                      {selectedHistoryGame.roleName} ({selectedHistoryGame.result === 'WIN' ? 'پیروزی' : 'شکست'})
+                    </p>
+                  </div>
+                  <span className={`material-symbols-outlined text-4xl ${selectedHistoryGame.result === 'WIN' ? 'text-lime-500' : 'text-red-500'}`}>
+                    {selectedHistoryGame.result === 'WIN' ? 'emoji_events' : 'sentiment_very_dissatisfied'}
+                  </span>
+               </div>
+             </div>
+
+             <div>
+                <h4 className="font-bold text-zinc-700 dark:text-zinc-300 mb-3 text-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg">group</span>
+                  بازیکنان این بازی ({selectedHistoryGame.players?.length} نفر)
+                </h4>
+                <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                  {selectedHistoryGame.players?.map((player: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-100 dark:border-zinc-800">
+                      <span className="font-medium text-sm">{player.name}</span>
+                      <span className={`text-xs px-2 py-1 rounded-md font-bold ${
+                        player.alignment === 'CITIZEN' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                        player.alignment === 'MAFIA' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                        'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                      }`}>
+                        {player.roleName}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

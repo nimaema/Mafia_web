@@ -2,8 +2,10 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { unstable_noStore as noStore } from "next/cache";
 
 export async function getUserStats() {
+  noStore();
   const session = await auth();
   if (!session?.user?.id) return null;
 
@@ -48,11 +50,19 @@ export async function getUserStats() {
 
   const recentGames = await prisma.gameHistory.findMany({
     where: { userId },
-    take: 5,
+    take: 10,
     orderBy: { createdAt: 'desc' },
     include: {
       role: true,
-      game: true
+      game: {
+        include: {
+          scenario: true,
+          moderator: true,
+          players: {
+            include: { role: true }
+          }
+        }
+      }
     }
   });
 
@@ -89,7 +99,14 @@ export async function getUserStats() {
       id: rg.gameId,
       roleName: rg.role.name,
       result: rg.result || "PENDING",
-      date: rg.createdAt.toLocaleDateString('fa-IR')
+      date: rg.createdAt.toLocaleDateString('fa-IR'),
+      scenarioName: rg.game.scenario?.name || "بدون سناریو",
+      moderatorName: rg.game.moderator?.name || "ناشناس",
+      players: rg.game.players.map(p => ({
+        name: p.name,
+        roleName: p.role?.name || "بدون نقش",
+        alignment: p.role?.alignment || "NEUTRAL"
+      }))
     }))
   };
 }
