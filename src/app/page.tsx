@@ -1,5 +1,3 @@
-"use client";
-
 import Link from 'next/link';
 
 export default function Home() {
@@ -107,14 +105,6 @@ export default function Home() {
            </div>
         </div>
       </main>
-      
-      <style jsx global>{`
-        @keyframes float {
-          0% { transform: translateY(0px) rotate(var(--tw-rotate)); }
-          50% { transform: translateY(-15px) rotate(var(--tw-rotate)); }
-          100% { transform: translateY(0px) rotate(var(--tw-rotate)); }
-        }
-      `}</style>
     </div>
   );
 }

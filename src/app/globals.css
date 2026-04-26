@@ -85,3 +85,9 @@
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
 }
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(var(--tw-rotate)); }
+  50% { transform: translateY(-15px) rotate(var(--tw-rotate)); }
+  100% { transform: translateY(0px) rotate(var(--tw-rotate)); }
+}
