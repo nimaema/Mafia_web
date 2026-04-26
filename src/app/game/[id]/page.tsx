@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getGameStatus } from "@/actions/game";
+import { getPusherClient } from "@/lib/pusher";
 import Link from "next/link";
 
 export default function UserGamePage() {
@@ -36,6 +37,18 @@ export default function UserGamePage() {
       
       setLoading(false);
     });
+
+    const pusher = getPusherClient();
+    const channel = pusher.subscribe(`game-${gameId}`);
+    channel.bind('game-ended', (data: { winningAlignment: string }) => {
+      const winnerStr = data.winningAlignment === 'CITIZEN' ? 'شهروندان' : data.winningAlignment === 'MAFIA' ? 'مافیا' : 'مستقل‌ها';
+      alert(`بازی به پایان رسید! تیم پیروز: ${winnerStr}`);
+      router.push("/dashboard/user");
+    });
+
+    return () => {
+      pusher.unsubscribe(`game-${gameId}`);
+    };
   }, [gameId, session?.user?.id, router]);
 
   if (loading) return <div className="p-12 text-center animate-pulse text-zinc-500">در حال دریافت نقش شما...</div>;

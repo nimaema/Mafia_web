@@ -26,7 +26,7 @@ export default function ModeratorGamePage() {
   if (loading) return <div className="p-12 text-center animate-pulse text-zinc-500">در حال بارگذاری اطلاعات بازی...</div>;
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+    <div className="flex flex-col gap-6 max-w-4xl mx-auto mb-16">
       <header className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -93,6 +93,50 @@ export default function ModeratorGamePage() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-8 bg-zinc-100 dark:bg-zinc-800/50 rounded-3xl p-6 border border-zinc-200 dark:border-zinc-700/50 flex flex-col gap-4">
+        <div className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
+          <span className="material-symbols-outlined text-red-500">stop_circle</span>
+          <h3 className="font-bold text-lg">پایان بازی</h3>
+        </div>
+        <p className="text-sm text-zinc-500">برای پایان بازی، یکی از گروه‌های برنده را انتخاب کنید. نتیجه بازی در پروفایل بازیکنان ثبت خواهد شد.</p>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+          <button 
+            onClick={async () => {
+              if (confirm("آیا مطمئن هستید که شهروندان پیروز شده‌اند؟")) {
+                const { endGame } = await import('@/actions/game');
+                await endGame(gameId, 'CITIZEN');
+                router.push("/dashboard/moderator");
+              }
+            }}
+            className="bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:translate-y-1">
+            پیروزی شهروندان
+          </button>
+          <button 
+            onClick={async () => {
+              if (confirm("آیا مطمئن هستید که مافیا پیروز شده‌است؟")) {
+                const { endGame } = await import('@/actions/game');
+                await endGame(gameId, 'MAFIA');
+                router.push("/dashboard/moderator");
+              }
+            }}
+            className="bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-red-500/20 active:translate-y-1">
+            پیروزی مافیا
+          </button>
+          <button 
+            onClick={async () => {
+              if (confirm("آیا مطمئن هستید که مستقل‌ها پیروز شده‌اند؟")) {
+                const { endGame } = await import('@/actions/game');
+                await endGame(gameId, 'NEUTRAL');
+                router.push("/dashboard/moderator");
+              }
+            }}
+            className="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 active:translate-y-1">
+            پیروزی مستقل‌ها
+          </button>
+        </div>
       </div>
     </div>
   );

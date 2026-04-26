@@ -242,3 +242,54 @@ export async function createCustomGameScenario(gameId: string, roles: { roleId: 
     return { error: "خطا در ایجاد سناریوی سفارشی" };
   }
 }
+
+export async function endGame(gameId: string, winningAlignment: string) {
+  try {
+    await checkModerator();
+
+    const game = await prisma.game.findUnique({
+      where: { id: gameId },
+      include: {
+        players: {
+          include: { role: true }
+        }
+      }
+    });
+
+    if (!game) throw new Error("بازی یافت نشد");
+
+    // Close game
+    await prisma.game.update({
+      where: { id: gameId },
+      data: { status: "FINISHED" }
+    });
+
+    // Record histories for players that are registered users and have roles
+    const historyData = game.players
+      .filter(p => p.userId && p.roleId)
+      .map(p => ({
+        gameId,
+        userId: p.userId as string,
+        roleId: p.roleId as string,
+        result: (p.role?.alignment === winningAlignment) ? "WIN" as const : "LOSS" as const
+      }));
+
+    if (historyData.length > 0) {
+      await prisma.gameHistory.createMany({
+        data: historyData,
+        skipDuplicates: true
+      });
+    }
+
+    // Trigger end game
+    await pusherServer.trigger(`game-${gameId}`, 'game-ended', { winningAlignment });
+    
+    revalidatePath("/dashboard/moderator");
+    revalidatePath("/dashboard/user");
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("End game error:", error);
+    return { error: "خطا در پایان دادن به بازی" };
+  }
+}
