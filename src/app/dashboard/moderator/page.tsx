@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createGame, getModeratorGames, cancelGame } from "@/actions/game";
+import { createGame, getModeratorGamesSafe, cancelGame } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
 
 export default function ModeratorDashboard() {
   const router = useRouter();
   const { showAlert, showConfirm, showToast } = usePopup();
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
   const [activeGames, setActiveGames] = useState<any[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [name, setName] = useState("");
@@ -20,8 +22,18 @@ export default function ModeratorDashboard() {
   }, []);
 
   const refreshGames = async () => {
-    const games = await getModeratorGames(Date.now());
-    setActiveGames(games);
+    setIsRefreshing(true);
+    setErrorMessage("");
+    try {
+      const result = await getModeratorGamesSafe(Date.now());
+      setActiveGames(result.data);
+      if (!result.success) setErrorMessage(result.error || "لیست بازی‌ها بارگذاری نشد.");
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("لیست بازی‌ها بارگذاری نشد. اتصال پایگاه داده یا سطح دسترسی را بررسی کنید.");
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleCreateGame = async () => {
@@ -59,28 +71,48 @@ export default function ModeratorDashboard() {
     }, "error");
   };
 
+  const waitingGames = activeGames.filter((game) => game.status === "WAITING").length;
+  const inProgressGames = activeGames.filter((game) => game.status === "IN_PROGRESS").length;
+  const protectedGames = activeGames.filter((game) => game.password).length;
+
   return (
-    <div className="flex flex-col gap-10 font-sans">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="flex flex-col gap-5 font-sans">
+      <section className="ui-card overflow-hidden p-5">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
         <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-lime-400 to-emerald-600 p-[2px] shadow-2xl shadow-lime-500/20">
-             <div className="w-full h-full bg-white dark:bg-zinc-950 rounded-lg flex items-center justify-center">
-                <span className="material-symbols-outlined text-3xl bg-gradient-to-br from-lime-400 to-emerald-500 bg-clip-text text-transparent">sports_esports</span>
-             </div>
+          <div className="ui-icon-accent size-14">
+            <span className="material-symbols-outlined text-3xl">sports_esports</span>
           </div>
           <div className="flex flex-col">
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white">مدیریت بازی‌ها</h2>
-            <p className="text-slate-500 dark:text-zinc-500 font-medium">ایجاد لابی و مدیریت جریان بازی‌های در حال اجرا</p>
+            <p className="ui-kicker">مرکز گردانندگی</p>
+            <h2 className="mt-1 text-3xl font-black text-slate-900 dark:text-white">مدیریت بازی‌ها</h2>
+            <p className="mt-1 text-sm font-medium text-slate-500 dark:text-zinc-500">لابی‌ها، وضعیت‌ها و ورود به بازی‌های در جریان را از اینجا کنترل کنید.</p>
           </div>
         </div>
         
         <button 
           onClick={() => setShowCreateModal(true)}
-          className="bg-lime-500 text-zinc-950 px-8 py-4 rounded-lg font-black text-sm flex items-center gap-3 hover:bg-lime-400 transition-all shadow-[0_0_30px_rgba(132,204,22,0.2)] hover:scale-105 active:scale-95"
+          className="ui-button-primary min-h-12 px-6"
         >
           <span className="material-symbols-outlined">add_circle</span>
           <span>ایجاد لابی جدید</span>
         </button>
+        </div>
+      </section>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          ["کل لابی‌ها", activeGames.length, "sports_esports", "text-lime-500"],
+          ["در انتظار", waitingGames, "hourglass_top", "text-amber-500"],
+          ["در جریان", inProgressGames, "bolt", "text-sky-500"],
+          ["دارای رمز", protectedGames, "lock", "text-purple-500"],
+        ].map(([label, value, icon, color]) => (
+          <div key={label} className="ui-card p-4">
+            <span className={`material-symbols-outlined text-xl ${color}`}>{icon}</span>
+            <p className="mt-3 text-2xl font-black text-zinc-950 dark:text-white">{value}</p>
+            <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+          </div>
+        ))}
       </div>
 
       {/* Create Game Modal */}
@@ -145,28 +177,42 @@ export default function ModeratorDashboard() {
         </div>
       )}
 
-      <section className="bg-white dark:bg-zinc-900/40 rounded-lg border border-slate-200 dark:border-white/5 shadow-2xl overflow-hidden flex flex-col backdrop-blur-md">
+      <section className="ui-card overflow-hidden flex flex-col">
         <div className="p-8 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-[#0f172a]/5 dark:bg-black/20">
           <div className="flex flex-col">
             <h3 className="font-black text-slate-900 dark:text-white text-lg">لیست بازی‌های فعال</h3>
             <p className="text-xs text-slate-500 dark:text-zinc-500">مشاهده و مدیریت لابی‌های در جریان شما</p>
           </div>
-          <button onClick={refreshGames} className="w-12 h-12 rounded-lg bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-zinc-400 hover:text-lime-400 hover:bg-lime-500/10 transition-all group">
-            <span className="material-symbols-outlined transition-transform group-hover:rotate-180 duration-500">refresh</span>
+          <button onClick={refreshGames} className="ui-button-secondary size-12 p-0" disabled={isRefreshing}>
+            <span className={`material-symbols-outlined ${isRefreshing ? "animate-spin" : ""}`}>refresh</span>
           </button>
         </div>
         
         <div className="p-8">
-          {activeGames.length === 0 ? (
-            <div className="text-center py-20 flex flex-col items-center gap-6 opacity-60">
-              <div className="w-24 h-24 rounded-full bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center border border-slate-200 dark:border-white/5">
-                <span className="material-symbols-outlined text-6xl text-zinc-700">videogame_asset_off</span>
+          {errorMessage ? (
+            <div className="flex flex-col items-center gap-5 py-20 text-center">
+              <div className="ui-icon size-20 text-red-500">
+                <span className="material-symbols-outlined text-4xl">cloud_off</span>
               </div>
               <div className="flex flex-col gap-2">
-                <p className="text-xl font-bold text-slate-500 dark:text-zinc-500">هیچ بازی در جریان نیست</p>
-                <p className="text-sm text-slate-400 dark:text-zinc-600">برای شروع هیجان، اولین لابی خود را بسازید</p>
+                <p className="text-xl font-black text-slate-800 dark:text-white">بارگذاری لابی‌ها ناموفق بود</p>
+                <p className="max-w-md text-sm leading-6 text-slate-500 dark:text-zinc-400">{errorMessage}</p>
               </div>
-              <button onClick={() => setShowCreateModal(true)} className="px-8 py-3 bg-zinc-800 text-slate-900 dark:text-white rounded-lg font-bold hover:bg-lime-500 hover:text-zinc-950 transition-all">ایجاد اولین بازی</button>
+              <button onClick={refreshGames} className="ui-button-primary">
+                <span className="material-symbols-outlined text-xl">refresh</span>
+                تلاش دوباره
+              </button>
+            </div>
+          ) : activeGames.length === 0 ? (
+            <div className="text-center py-20 flex flex-col items-center gap-6">
+              <div className="ui-icon size-24">
+                <span className="material-symbols-outlined text-6xl text-zinc-400">videogame_asset_off</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <p className="text-xl font-black text-slate-700 dark:text-zinc-200">هیچ بازی در جریان نیست</p>
+                <p className="text-sm text-slate-400 dark:text-zinc-500">اولین لابی را بسازید تا بازیکن‌ها با کد بازی وارد شوند.</p>
+              </div>
+              <button onClick={() => setShowCreateModal(true)} className="ui-button-primary">ایجاد اولین بازی</button>
             </div>
           ) : (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">

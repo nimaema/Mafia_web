@@ -5,6 +5,14 @@ import { prisma } from "@/lib/prisma";
 import { Role, Alignment } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
+type SafeListResult<T> = {
+  success: boolean;
+  data: T[];
+  error?: string;
+};
+
+const READ_ERROR = "اطلاعات این بخش بارگذاری نشد. اتصال پایگاه داده یا سطح دسترسی کاربر را بررسی کنید.";
+
 async function checkAdmin() {
   const session = await auth();
   if (!session?.user?.id || session.user.role !== "ADMIN") {
@@ -27,6 +35,15 @@ export async function getAllUsers() {
   return await prisma.user.findMany({
     orderBy: { id: 'desc' }
   });
+}
+
+export async function getAllUsersSafe(): Promise<SafeListResult<any>> {
+  try {
+    return { success: true, data: await getAllUsers() };
+  } catch (error) {
+    console.error(error);
+    return { success: false, data: [], error: READ_ERROR };
+  }
 }
 
 export async function updateUserRole(userId: string, role: Role) {
@@ -70,6 +87,15 @@ export async function getMafiaRoles() {
   return await prisma.mafiaRole.findMany({
     orderBy: { alignment: 'asc' }
   });
+}
+
+export async function getMafiaRolesSafe(): Promise<SafeListResult<any>> {
+  try {
+    return { success: true, data: await getMafiaRoles() };
+  } catch (error) {
+    console.error(error);
+    return { success: false, data: [], error: READ_ERROR };
+  }
 }
 
 export async function createMafiaRole(data: { name: string; description: string; alignment: Alignment }) {
@@ -128,6 +154,15 @@ export async function getScenarios() {
     },
     orderBy: { createdAt: 'desc' }
   });
+}
+
+export async function getScenariosSafe(): Promise<SafeListResult<any>> {
+  try {
+    return { success: true, data: await getScenarios() };
+  } catch (error) {
+    console.error(error);
+    return { success: false, data: [], error: READ_ERROR };
+  }
 }
 
 export async function createScenario(data: { name: string, description: string, roles: { roleId: string, count: number }[] }) {

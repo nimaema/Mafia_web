@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { 
-  getAllUsers, updateUserRole, 
-  getMafiaRoles, createMafiaRole, updateMafiaRole, deleteMafiaRole,
-  getScenarios, createScenario, updateScenario, deleteScenario,
-  installStandardScenarios, banUser, deleteUser
+  updateUserRole, 
+  createMafiaRole, updateMafiaRole, deleteMafiaRole,
+  createScenario, updateScenario, deleteScenario,
+  installStandardScenarios, banUser, deleteUser,
+  getAllUsersSafe, getMafiaRolesSafe, getScenariosSafe
 } from "@/actions/admin";
 import { Role, Alignment } from "@prisma/client";
 import { useSearchParams } from "next/navigation";
@@ -16,7 +17,6 @@ export default function AdminDashboard() {
   const { data: session, status } = useSession();
   const { showAlert, showConfirm, showToast } = usePopup();
   const isAdmin = session?.user?.role === "ADMIN";
-  const isModerator = session?.user?.role === "MODERATOR";
 
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get("tab") as "users" | "scenarios" | "roles") || "roles";
@@ -25,18 +25,24 @@ export default function AdminDashboard() {
   const [roles, setRoles] = useState<any[]>([]);
   const [scenarios, setScenarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Sync tab with URL
   useEffect(() => {
+    if (status === "loading") return;
+
     const tab = searchParams.get("tab") as any;
-    if (tab && (tab === "users" || tab === "scenarios" || tab === "roles")) {
-      setActiveTab(tab);
-    } else if (isAdmin) {
-      setActiveTab("users");
-    } else if (activeTab === "users" && !isAdmin) {
-      setActiveTab("roles");
-    }
-  }, [searchParams, isAdmin, activeTab]);
+    const nextTab =
+      tab === "users" && isAdmin
+        ? "users"
+        : tab === "scenarios" || tab === "roles"
+          ? tab
+          : isAdmin
+            ? "users"
+            : "roles";
+
+    setActiveTab((currentTab) => currentTab === nextTab ? currentTab : nextTab);
+  }, [searchParams, isAdmin, status]);
 
   // Role Form
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
@@ -57,23 +63,31 @@ export default function AdminDashboard() {
 
   const refreshData = async () => {
     setLoading(true);
+    setErrorMessage("");
     try {
       if (activeTab === "users" && isAdmin) {
-        const data = await getAllUsers();
-        setUsers(data);
+        const result = await getAllUsersSafe();
+        setUsers(result.data);
+        if (!result.success) setErrorMessage(result.error || "اطلاعات کاربران بارگذاری نشد.");
       } else if (activeTab === "roles") {
-        const data = await getMafiaRoles();
-        setRoles(data);
+        const result = await getMafiaRolesSafe();
+        setRoles(result.data);
+        if (!result.success) setErrorMessage(result.error || "اطلاعات نقش‌ها بارگذاری نشد.");
       } else if (activeTab === "scenarios") {
-        const data = await getScenarios();
-        setScenarios(data);
-        const rolesData = await getMafiaRoles();
-        setRoles(rolesData);
+        const scenarioResult = await getScenariosSafe();
+        const rolesResult = await getMafiaRolesSafe();
+        setScenarios(scenarioResult.data);
+        setRoles(rolesResult.data);
+        if (!scenarioResult.success || !rolesResult.success) {
+          setErrorMessage(scenarioResult.error || rolesResult.error || "اطلاعات سناریوها بارگذاری نشد.");
+        }
       }
     } catch (error) {
       console.error(error);
+      setErrorMessage("اطلاعات این بخش بارگذاری نشد. اتصال پایگاه داده یا سطح دسترسی کاربر را بررسی کنید.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleRoleUpdate = async (userId: string, role: Role) => {
@@ -209,7 +223,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           
-          <div className="grid grid-cols-3 gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-white/10 dark:bg-zinc-950">
+          <div className={`grid gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-white/10 dark:bg-zinc-950 ${isAdmin ? "grid-cols-3" : "grid-cols-2"}`}>
             {isAdmin && (
               <button 
                 onClick={() => setActiveTab("users")}
@@ -243,6 +257,20 @@ export default function AdminDashboard() {
           <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white/90 backdrop-blur-sm dark:bg-zinc-900/90">
             <div className="size-10 animate-spin rounded-full border-4 border-zinc-200 border-t-lime-500 dark:border-zinc-800"></div>
             <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">در حال بارگذاری اطلاعات...</p>
+          </div>
+        ) : errorMessage ? (
+          <div className="flex min-h-[500px] flex-col items-center justify-center gap-5 p-6 text-center">
+            <div className="ui-icon size-16 text-red-500">
+              <span className="material-symbols-outlined text-3xl">cloud_off</span>
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-zinc-950 dark:text-white">بارگذاری اطلاعات ناموفق بود</h3>
+              <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500 dark:text-zinc-400">{errorMessage}</p>
+            </div>
+            <button onClick={refreshData} className="ui-button-primary">
+              <span className="material-symbols-outlined text-xl">refresh</span>
+              تلاش دوباره
+            </button>
           </div>
         ) : (
           <>
@@ -419,8 +447,18 @@ export default function AdminDashboard() {
                 {/* Role List Cards */}
                 <div className="flex-1 p-8 overflow-y-auto max-h-[800px] bg-white dark:bg-zinc-900/20">
                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                      {roles.map((role) => (
-                        <div key={role.id} className="group p-5 rounded-lg border border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-900 hover:bg-zinc-800 transition-all hover:border-[#0f172a]/20 dark:border-white/10 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden flex flex-col gap-3">
+                      {roles.length === 0 ? (
+                        <div className="col-span-full flex min-h-72 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-zinc-200 p-8 text-center dark:border-white/10">
+                          <div className="ui-icon size-16">
+                            <span className="material-symbols-outlined text-3xl text-zinc-400">theater_comedy</span>
+                          </div>
+                          <div>
+                            <p className="font-black text-zinc-950 dark:text-white">هنوز نقشی ثبت نشده است</p>
+                            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">برای ساخت سناریو، اول چند نقش تعریف کنید.</p>
+                          </div>
+                        </div>
+                      ) : roles.map((role) => (
+                        <div key={role.id} className="group p-5 rounded-lg border border-slate-200 bg-white transition-all hover:-translate-y-1 hover:border-lime-500/30 hover:bg-zinc-50 hover:shadow-xl dark:border-white/10 dark:bg-zinc-900 dark:hover:bg-zinc-800/60 relative overflow-hidden flex flex-col gap-3">
                            {/* Alignment Glow */}
                            <div className={`absolute -top-10 -right-10 w-24 h-24 blur-3xl rounded-full opacity-20 transition-opacity group-hover:opacity-40 ${role.alignment === 'CITIZEN' ? 'bg-green-500' : role.alignment === 'MAFIA' ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
                            
@@ -522,7 +560,12 @@ export default function AdminDashboard() {
                       {/* Role Selector Box */}
                       <div className="flex-1 overflow-y-auto border border-slate-200 dark:border-white/5 rounded-lg bg-white dark:bg-zinc-900/30 p-2 custom-scrollbar">
                         <div className="flex flex-col gap-1">
-                          {roles.map(role => {
+                          {roles.length === 0 ? (
+                            <div className="flex min-h-40 flex-col items-center justify-center gap-2 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                              <span className="material-symbols-outlined text-3xl text-zinc-400">playlist_add</span>
+                              برای طراحی سناریو ابتدا نقش‌ها را اضافه کنید.
+                            </div>
+                          ) : roles.map(role => {
                             const isSelected = !!selectedRoles.find(r => r.roleId === role.id);
                             return (
                               <div key={role.id} className={`flex items-center justify-between p-2 rounded-lg transition-colors ${isSelected ? 'bg-[#0f172a]/5 dark:bg-white/5 border border-[#0f172a]/20 dark:border-white/10' : 'hover:bg-[#0f172a]/5 dark:bg-white/5 border border-transparent'}`}>
@@ -564,8 +607,18 @@ export default function AdminDashboard() {
                 {/* Scenario List */}
                 <div className="flex-1 p-8 overflow-y-auto max-h-[800px] bg-white dark:bg-zinc-900/20">
                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                      {scenarios.map((scen) => (
-                        <div key={scen.id} className="p-6 rounded-lg border border-slate-200 dark:border-white/5 bg-white dark:bg-zinc-900 hover:bg-zinc-800/80 transition-all hover:border-[#0f172a]/20 dark:border-white/10 hover:shadow-2xl relative overflow-hidden flex flex-col gap-4 group">
+                      {scenarios.length === 0 ? (
+                        <div className="col-span-full flex min-h-96 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-zinc-200 p-8 text-center dark:border-white/10">
+                          <div className="ui-icon size-16">
+                            <span className="material-symbols-outlined text-3xl text-zinc-400">account_tree</span>
+                          </div>
+                          <div>
+                            <p className="font-black text-zinc-950 dark:text-white">سناریویی برای نمایش وجود ندارد</p>
+                            <p className="mt-1 max-w-md text-sm leading-6 text-zinc-500 dark:text-zinc-400">سناریوهای پیش‌فرض را نصب کنید یا با انتخاب نقش‌ها یک سناریوی تازه بسازید.</p>
+                          </div>
+                        </div>
+                      ) : scenarios.map((scen) => (
+                        <div key={scen.id} className="p-6 rounded-lg border border-slate-200 bg-white transition-all hover:border-lime-500/30 hover:bg-zinc-50 hover:shadow-2xl dark:border-white/10 dark:bg-zinc-900 dark:hover:bg-zinc-800/60 relative overflow-hidden flex flex-col gap-4 group">
                            <div className="absolute top-0 right-0 w-32 h-32 bg-lime-500/5 blur-[80px] rounded-full pointer-events-none"></div>
                            
                            <div className="flex justify-between items-start relative z-10">
@@ -574,15 +627,15 @@ export default function AdminDashboard() {
                                 <p className="text-sm text-slate-600 dark:text-zinc-400">{scen.description}</p>
                               </div>
                               <div className="flex flex-col items-end gap-2">
-                                <span className="bg-zinc-800 text-lime-400 border border-lime-500/20 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
+                                <span className="border border-lime-500/20 bg-lime-500/10 px-3 py-1.5 text-xs font-bold text-lime-700 shadow-sm dark:text-lime-300 rounded-full">
                                   {scen.roles.reduce((acc: number, r: any) => acc + r.count, 0)} نفره
                                 </span>
                                 
                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button onClick={() => handleEditScenario(scen)} className="w-8 h-8 rounded-full bg-zinc-800 border border-slate-200 dark:border-white/5 flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors">
+                                  <button onClick={() => handleEditScenario(scen)} className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-blue-600 transition-colors hover:bg-blue-500/10 dark:border-white/10 dark:bg-zinc-950 dark:text-blue-400">
                                     <span className="material-symbols-outlined text-[16px]">edit</span>
                                   </button>
-                                  <button onClick={() => handleDeleteScenario(scen.id)} className="w-8 h-8 rounded-full bg-zinc-800 border border-slate-200 dark:border-white/5 flex items-center justify-center text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors">
+                                  <button onClick={() => handleDeleteScenario(scen.id)} className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-red-600 transition-colors hover:bg-red-500/10 dark:border-white/10 dark:bg-zinc-950 dark:text-red-400">
                                     <span className="material-symbols-outlined text-[16px]">delete</span>
                                   </button>
                                 </div>

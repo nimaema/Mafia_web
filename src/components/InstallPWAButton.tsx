@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export function InstallPWAButton() {
   const [isInstallable, setIsInstallable] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -29,7 +30,10 @@ export function InstallPWAButton() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      setShowHelp((value) => !value);
+      return;
+    }
 
     // Show the install prompt
     deferredPrompt.prompt();
@@ -42,15 +46,20 @@ export function InstallPWAButton() {
     setIsInstallable(false);
   };
 
-  if (!isInstallable) return null;
-
   return (
-    <button 
-      onClick={handleInstallClick}
-      className="flex items-center justify-center gap-3 px-5 py-4 mt-2 rounded-lg bg-lime-500/10 text-lime-600 dark:text-lime-400 hover:bg-lime-500 hover:text-zinc-950 transition-all duration-300 w-full group shadow-sm shadow-lime-500/10"
-    >
-      <span className="material-symbols-outlined group-hover:-translate-y-1 transition-transform">app_shortcut</span>
-      <span className="font-black text-sm">نصب اپلیکیشن</span>
-    </button>
+    <div className="w-full">
+      <button 
+        onClick={handleInstallClick}
+        className="ui-button-secondary w-full justify-start px-3"
+      >
+        <span className="material-symbols-outlined text-xl">{isInstallable ? "install_mobile" : "app_shortcut"}</span>
+        <span className="truncate">{isInstallable ? "نصب اپلیکیشن" : "راهنمای نصب"}</span>
+      </button>
+      {showHelp && !isInstallable && (
+        <div className="mt-2 rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 text-xs leading-6 text-zinc-600 dark:text-zinc-300">
+          از منوی مرورگر گزینه Add to Home Screen یا Install App را انتخاب کنید.
+        </div>
+      )}
+    </div>
   );
 }

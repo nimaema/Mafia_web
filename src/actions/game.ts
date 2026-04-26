@@ -164,6 +164,19 @@ export async function getModeratorGames(timestamp?: number) {
   });
 }
 
+export async function getModeratorGamesSafe(timestamp?: number) {
+  try {
+    return { success: true, data: await getModeratorGames(timestamp) };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      data: [],
+      error: "لیست بازی‌ها بارگذاری نشد. اتصال پایگاه داده یا سطح دسترسی را بررسی کنید.",
+    };
+  }
+}
+
 export async function getGameStatus(gameId: string) {
   noStore();
   const game = await prisma.game.findUnique({

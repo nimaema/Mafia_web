@@ -23,7 +23,7 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="app-page min-h-screen pb-24 md:pb-0 md:flex md:items-start" dir="rtl">
+    <div className="app-page min-h-screen pb-28 md:pb-0 md:flex md:items-start" dir="rtl">
       <aside className="sticky top-0 z-20 hidden h-screen w-72 shrink-0 flex-col border-l border-zinc-200 bg-white/90 p-5 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/80 md:flex">
         <div className="mb-8 flex items-center gap-3 px-2">
           <div className="ui-icon-accent size-12">
@@ -99,37 +99,45 @@ export default async function DashboardLayout({
 
       <main className="relative z-10 w-full flex-1 overflow-x-hidden p-4 md:p-8">
         <div className="mx-auto max-w-7xl">
+          <div className="mb-4 flex flex-col gap-2 md:hidden">
+            <ThemeToggle />
+            <InstallPWAButton />
+          </div>
           {children}
         </div>
       </main>
 
-      <nav className="fixed bottom-4 left-4 right-4 z-50 flex h-16 items-center justify-around rounded-lg border border-zinc-200 bg-white/90 px-2 shadow-lg shadow-zinc-950/10 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90 md:hidden">
-        <Link href="/dashboard/user" className="flex h-full flex-1 flex-col items-center justify-center gap-1 text-zinc-500 transition-colors hover:text-lime-600 dark:hover:text-lime-400">
+      <nav className="fixed bottom-4 left-4 right-4 z-50 flex h-[4.5rem] items-stretch gap-1 overflow-x-auto rounded-lg border border-zinc-200 bg-white/90 px-2 py-2 shadow-lg shadow-zinc-950/10 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90 md:hidden">
+        <Link href="/dashboard/user" className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 transition-colors hover:bg-lime-500/10 hover:text-lime-600 dark:hover:text-lime-400">
           <span className="material-symbols-outlined text-2xl">dashboard</span>
           <span className="text-[10px] font-black">داشبورد</span>
         </Link>
         {isModerator && (
           <>
-            <Link href="/dashboard/moderator" className="flex h-full flex-1 flex-col items-center justify-center gap-1 text-zinc-500 transition-colors hover:text-lime-600 dark:hover:text-lime-400">
+            <Link href="/dashboard/moderator" className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 transition-colors hover:bg-lime-500/10 hover:text-lime-600 dark:hover:text-lime-400">
               <span className="material-symbols-outlined text-2xl">sports_esports</span>
               <span className="text-[10px] font-black">بازی‌ها</span>
             </Link>
-            <Link href="/dashboard/admin?tab=roles" className="flex h-full flex-1 flex-col items-center justify-center gap-1 text-zinc-500 transition-colors hover:text-lime-600 dark:hover:text-lime-400">
+            <Link href="/dashboard/admin?tab=scenarios" className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 transition-colors hover:bg-lime-500/10 hover:text-lime-600 dark:hover:text-lime-400">
+              <span className="material-symbols-outlined text-2xl">account_tree</span>
+              <span className="text-[10px] font-black">سناریو</span>
+            </Link>
+            <Link href="/dashboard/admin?tab=roles" className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 transition-colors hover:bg-lime-500/10 hover:text-lime-600 dark:hover:text-lime-400">
               <span className="material-symbols-outlined text-2xl">theater_comedy</span>
               <span className="text-[10px] font-black">نقش‌ها</span>
             </Link>
           </>
         )}
         {isAdmin && (
-          <Link href="/dashboard/admin?tab=users" className="flex h-full flex-1 flex-col items-center justify-center gap-1 text-zinc-500 transition-colors hover:text-sky-600 dark:hover:text-sky-400">
+          <Link href="/dashboard/admin?tab=users" className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 transition-colors hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400">
             <span className="material-symbols-outlined text-2xl">admin_panel_settings</span>
             <span className="text-[10px] font-black">مدیریت</span>
           </Link>
         )}
-        <form action={handleLogout} className="flex-1 h-full">
+        <form action={handleLogout} className="min-w-16 flex-1">
           <button 
             type="submit"
-            className="flex h-full w-full flex-col items-center justify-center gap-1 text-red-500 transition-colors hover:text-red-600"
+            className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg text-red-500 transition-colors hover:bg-red-500/10 hover:text-red-600"
           >
             <span className="material-symbols-outlined text-2xl">logout</span>
             <span className="text-[10px] font-black">خروج</span>
