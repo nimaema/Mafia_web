@@ -46,6 +46,7 @@ model User {
   scenarios     Scenario[]
   gamesHosted   Game[]        @relation("HostedGames")
   gameHistories GameHistory[]
+  gamePlayers   GamePlayer[]
   passwordResetTokens PasswordResetToken[]
 }
 
@@ -103,6 +104,7 @@ model MafiaRole {
 
   scenarios    ScenarioRole[]
   gameHistories GameHistory[]
+  gamePlayers   GamePlayer[]
 }
 
 model Scenario {
@@ -139,6 +141,7 @@ model Game {
   scenario     Scenario?   @relation(fields: [scenarioId], references: [id])
 
   histories    GameHistory[]
+  players      GamePlayer[]
   createdAt    DateTime    @default(now())
 }
 
@@ -154,4 +157,18 @@ model GameHistory {
   createdAt DateTime    @default(now())
 
   @@unique([gameId, userId])
+}
+
+model GamePlayer {
+  id        String     @id @default(cuid())
+  gameId    String
+  game      Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  roleId    String?
+  role      MafiaRole? @relation(fields: [roleId], references: [id])
+  createdAt DateTime   @default(now())
+
+  @@unique([gameId, name])
 }
