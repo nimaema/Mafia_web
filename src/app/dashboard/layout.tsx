@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { InstallPWAButton } from "@/components/InstallPWAButton";
 
 
 export default async function DashboardLayout({
@@ -91,6 +92,7 @@ export default async function DashboardLayout({
 
         <div className="mt-auto pt-8 flex flex-col gap-4 border-t border-black/10 dark:border-white/5">
           <ThemeToggle />
+          <InstallPWAButton />
           <form action={handleLogout} className="w-full">
             <button 
               type="submit"

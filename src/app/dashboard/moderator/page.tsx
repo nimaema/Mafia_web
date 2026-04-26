@@ -13,6 +13,7 @@ export default function ModeratorDashboard() {
   const [activeGames, setActiveGames] = useState<any[]>([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     getScenarios().then(setScenarios);
@@ -27,8 +28,10 @@ export default function ModeratorDashboard() {
   const handleCreateGame = async () => {
     setLoading(true);
     try {
-      const res = await createGame();
+      const res = await createGame(password);
       if (res.success) {
+        setShowCreateModal(false);
+        setPassword("");
         router.push(`/dashboard/moderator/lobby/${res.gameId}`);
       } else {
         alert(res.error || "خطا در ایجاد بازی");
@@ -102,6 +105,17 @@ export default function ModeratorDashboard() {
                   </ul>
                 </div>
                 
+                <div className="flex flex-col gap-2 relative z-10">
+                  <label className="text-sm text-slate-600 dark:text-zinc-400 font-bold px-1">رمز / کد اختصاصی بازی (اختیاری)</label>
+                  <input
+                    type="text"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="در صورت خالی بودن، یک کد تصادفی ۶ رقمی تولید می‌شود"
+                    className="w-full bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-xl py-3 px-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors text-slate-900 dark:text-white"
+                  />
+                </div>
+                
                 <button 
                   onClick={handleCreateGame}
                   disabled={loading}
@@ -154,7 +168,7 @@ export default function ModeratorDashboard() {
                   <div className="flex justify-between items-start relative z-10">
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-3">
-                        <span className="font-black text-2xl text-slate-900 dark:text-white tracking-tighter italic">لابی {game.id.slice(0, 6)}</span>
+                        <span className="font-black text-2xl text-slate-900 dark:text-white tracking-tighter italic">کد ورود: {game.password || game.id.slice(0, 6)}</span>
                         <span className={`text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-widest ${
                           game.status === 'WAITING' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-lime-500/10 text-lime-400 border border-lime-500/20'
                         }`}>

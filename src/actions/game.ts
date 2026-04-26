@@ -21,9 +21,15 @@ export async function joinGame(gameId: string, playerName: string, userId?: stri
   }
 
   try {
-    const game = await prisma.game.findUnique({
-      where: { id: gameId },
+    let game = await prisma.game.findFirst({
+      where: { password: gameId },
     });
+
+    if (!game) {
+      game = await prisma.game.findUnique({
+        where: { id: gameId },
+      });
+    }
 
     if (!game) {
       return { error: "بازی یافت نشد" };
@@ -63,11 +69,14 @@ export async function joinGame(gameId: string, playerName: string, userId?: stri
 export async function createGame(password?: string) {
   try {
     const moderatorId = await checkModerator();
+    
+    // Generate a random 6-digit code if password is not provided
+    const gamePassword = password || Math.floor(100000 + Math.random() * 900000).toString();
 
     const game = await prisma.game.create({
       data: {
         moderatorId,
-        password: password || null,
+        password: gamePassword,
         status: "WAITING",
       }
     });
