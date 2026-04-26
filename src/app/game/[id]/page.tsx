@@ -6,11 +6,13 @@ import { useSession } from "next-auth/react";
 import { getGameStatus } from "@/actions/game";
 import { getPusherClient } from "@/lib/pusher";
 import Link from "next/link";
+import { usePopup } from "@/components/PopupProvider";
 
 export default function UserGamePage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
+  const { showAlert } = usePopup();
   const gameId = params.id as string;
   
   const [game, setGame] = useState<any>(null);
@@ -45,13 +47,13 @@ export default function UserGamePage() {
     // Listen for game end
     channel.bind('game-ended', (data: { winningAlignment: string }) => {
       const winnerStr = data.winningAlignment === 'CITIZEN' ? 'شهروندان' : data.winningAlignment === 'MAFIA' ? 'مافیا' : 'مستقل‌ها';
-      alert(`بازی به پایان رسید! تیم پیروز: ${winnerStr}`);
+      showAlert("پایان بازی", `بازی به پایان رسید! تیم پیروز: ${winnerStr}`, "info");
       router.push("/dashboard/user");
     });
 
     // Listen for game cancellation
     channel.bind('game-cancelled', () => {
-      alert("بازی توسط گرداننده لغو شد.");
+      showAlert("لغو بازی", "بازی توسط گرداننده لغو شد.", "warning");
       router.push("/dashboard/user");
     });
 

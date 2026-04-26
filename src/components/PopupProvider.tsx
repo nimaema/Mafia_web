@@ -1,0 +1,77 @@
+"use client";
+
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { Modal, Toast } from './ThemedPopups';
+
+type PopupContextType = {
+  showAlert: (title: string, message: string, type?: 'info' | 'error' | 'warning' | 'success') => void;
+  showConfirm: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'error') => void;
+  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+};
+
+const PopupContext = createContext<PopupContextType | undefined>(undefined);
+
+export function PopupProvider({ children }: { children: ReactNode }) {
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'info' | 'error' | 'warning' | 'success';
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
+
+  const [toasts, setToasts] = useState<{ id: number; message: string; type: 'success' | 'error' | 'info' }[]>([]);
+
+  const showAlert = (title: string, message: string, type: 'info' | 'error' | 'warning' | 'success' = 'info') => {
+    setModal({ isOpen: true, title, message, type });
+  };
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void, type: 'warning' | 'error' = 'warning') => {
+    setModal({ isOpen: true, title, message, type, onConfirm });
+  };
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+  };
+
+  const removeToast = (id: number) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
+  return (
+    <PopupContext.Provider value={{ showAlert, showConfirm, showToast }}>
+      {children}
+      <Modal 
+        isOpen={modal.isOpen} 
+        onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+      />
+      <div className="fixed bottom-24 md:bottom-8 right-0 left-0 flex flex-col items-center gap-2 z-[300] pointer-events-none">
+        {toasts.map(toast => (
+          <div key={toast.id} className="pointer-events-auto">
+            <Toast 
+              message={toast.message} 
+              type={toast.type} 
+              onClose={() => removeToast(toast.id)} 
+            />
+          </div>
+        ))}
+      </div>
+    </PopupContext.Provider>
+  );
+}
+
+export function usePopup() {
+  const context = useContext(PopupContext);
+  if (!context) throw new Error("usePopup must be used within a PopupProvider");
+  return context;
+}

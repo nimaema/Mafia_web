@@ -10,9 +10,11 @@ import {
 import { Role, Alignment } from "@prisma/client";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { usePopup } from "@/components/PopupProvider";
 
 export default function AdminDashboard() {
   const { data: session } = useSession();
+  const { showAlert, showConfirm, showToast } = usePopup();
   const isAdmin = session?.user?.role === "ADMIN";
   const isModerator = session?.user?.role === "MODERATOR";
 
@@ -74,7 +76,7 @@ export default function AdminDashboard() {
       await updateUserRole(userId, role);
       refreshData();
     } catch (error) {
-      alert("خطا در تغییر دسترسی");
+      showAlert("خطا", "خطا در تغییر دسترسی", "error");
     }
   };
 
@@ -92,18 +94,20 @@ export default function AdminDashboard() {
       setEditingRoleId(null);
       refreshData();
     } catch (error) {
-      alert("خطا در ثبت نقش");
+      showAlert("خطا", "خطا در ثبت نقش", "error");
     }
   };
 
   const handleDeleteRole = async (id: string) => {
-    if (!confirm("آیا از حذف این نقش اطمینان دارید؟")) return;
-    try {
-      await deleteMafiaRole(id);
-      refreshData();
-    } catch (error: any) {
-      alert(error.message || "خطا در حذف نقش");
-    }
+    showConfirm("حذف نقش", "آیا از حذف این نقش اطمینان دارید؟", async () => {
+      try {
+        await deleteMafiaRole(id);
+        refreshData();
+        showToast("نقش با موفقیت حذف شد", "success");
+      } catch (error: any) {
+        showAlert("خطا", error.message || "خطا در حذف نقش", "error");
+      }
+    }, "error");
   };
 
   const handleEditRole = (role: any) => {
@@ -116,7 +120,7 @@ export default function AdminDashboard() {
 
   const handleAddScenario = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedRoles.length === 0) return alert("حداقل یک نقش انتخاب کنید");
+    if (selectedRoles.length === 0) return showAlert("هشدار", "حداقل یک نقش انتخاب کنید", "warning");
     try {
       if (editingScenarioId) {
         await updateScenario(editingScenarioId, { 
@@ -137,18 +141,20 @@ export default function AdminDashboard() {
       setEditingScenarioId(null);
       refreshData();
     } catch (error) {
-      alert("خطا در ثبت سناریو");
+      showAlert("خطا", "خطا در ثبت سناریو", "error");
     }
   };
 
   const handleDeleteScenario = async (id: string) => {
-    if (!confirm("آیا از حذف این سناریو اطمینان دارید؟")) return;
-    try {
-      await deleteScenario(id);
-      refreshData();
-    } catch (error) {
-      alert("خطا در حذف سناریو");
-    }
+    showConfirm("حذف سناریو", "آیا از حذف این سناریو اطمینان دارید؟", async () => {
+      try {
+        await deleteScenario(id);
+        refreshData();
+        showToast("سناریو حذف شد", "success");
+      } catch (error) {
+        showAlert("خطا", "خطا در حذف سناریو", "error");
+      }
+    }, "error");
   };
 
   const handleEditScenario = (scen: any) => {
@@ -289,26 +295,37 @@ export default function AdminDashboard() {
                               </button>
                             )}
                             <button
-                              onClick={async () => {
-                                if (confirm(`آیا از ${user.isBanned ? 'رفع مسدودیت' : 'مسدود کردن'} این کاربر اطمینان دارید؟`)) {
-                                  try {
-                                    await banUser(user.id, !user.isBanned);
-                                    refreshData();
-                                  } catch (e: any) { alert(e.message); }
-                                }
+                              onClick={() => {
+                                showConfirm(
+                                  user.isBanned ? 'رفع مسدودیت' : 'مسدود کردن',
+                                  `آیا از ${user.isBanned ? 'رفع مسدودیت' : 'مسدود کردن'} این کاربر اطمینان دارید؟`,
+                                  async () => {
+                                    try {
+                                      await banUser(user.id, !user.isBanned);
+                                      refreshData();
+                                      showToast(user.isBanned ? "کاربر فعال شد" : "کاربر مسدود شد");
+                                    } catch (e: any) { showAlert("خطا", e.message, "error"); }
+                                  }
+                                );
                               }}
                               className={`text-xs px-3 py-1.5 bg-zinc-800 border border-slate-200 dark:border-white/5 rounded-lg transition-all ${user.isBanned ? 'text-green-600 dark:text-green-400 hover:bg-green-500/20 hover:border-green-500/30' : 'text-red-600 dark:text-red-400 hover:bg-red-500/20 hover:border-red-500/30'}`}
                             >
                               {user.isBanned ? 'رفع مسدودیت' : 'مسدود کردن'}
                             </button>
                             <button
-                              onClick={async () => {
-                                if (confirm('آیا از حذف کامل این کاربر اطمینان دارید؟ این عمل غیرقابل بازگشت است.')) {
-                                  try {
-                                    await deleteUser(user.id);
-                                    refreshData();
-                                  } catch (e: any) { alert(e.message); }
-                                }
+                              onClick={() => {
+                                showConfirm(
+                                  'حذف کامل کاربر',
+                                  'آیا از حذف کامل این کاربر اطمینان دارید؟ این عمل غیرقابل بازگشت است.',
+                                  async () => {
+                                    try {
+                                      await deleteUser(user.id);
+                                      refreshData();
+                                      showToast("کاربر با موفقیت حذف شد");
+                                    } catch (e: any) { showAlert("خطا", e.message, "error"); }
+                                  },
+                                  "error"
+                                );
                               }}
                               className="text-xs px-3 py-1.5 bg-zinc-800 border border-slate-200 dark:border-white/5 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/20 hover:border-red-500/30 transition-all"
                             >
@@ -455,7 +472,7 @@ export default function AdminDashboard() {
                         onClick={async () => {
                           const res = await installStandardScenarios();
                           if (res?.success) {
-                            alert("سناریوها با موفقیت نصب شدند");
+                            showAlert("موفقیت", "سناریوها با موفقیت نصب شدند", "success");
                             refreshData();
                           }
                         }}

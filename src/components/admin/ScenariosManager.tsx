@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { createScenario, updateScenario, deleteScenario } from "@/actions/admin";
+import { usePopup } from "@/components/PopupProvider";
 
 export function ScenariosManager({ initialRoles, initialScenarios }: { initialRoles: any[], initialScenarios: any[] }) {
   const [scenarios, setScenarios] = useState(initialScenarios);
   const [loading, setLoading] = useState(false);
   const [editingScenario, setEditingScenario] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
+  const { showAlert, showConfirm, showToast } = usePopup();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -66,22 +68,25 @@ export function ScenariosManager({ initialRoles, initialScenarios }: { initialRo
         const created = await createScenario(formData);
         setScenarios(prev => [created, ...prev]);
       }
+      showToast(editingScenario ? "سناریو بروزرسانی شد" : "سناریو جدید ساخته شد", "success");
       closeForm();
     } catch (err: any) {
-      alert(err.message || "خطا در ذخیره سناریو");
+      showAlert("خطا", err.message || "خطا در ذخیره سناریو", "error");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("آیا از حذف این سناریو اطمینان دارید؟")) return;
-    try {
-      await deleteScenario(id);
-      setScenarios(prev => prev.filter(s => s.id !== id));
-    } catch (err: any) {
-      alert(err.message || "خطا در حذف سناریو");
-    }
+    showConfirm("حذف سناریو", "آیا از حذف این سناریو اطمینان دارید؟", async () => {
+      try {
+        await deleteScenario(id);
+        setScenarios(prev => prev.filter(s => s.id !== id));
+        showToast("سناریو با موفقیت حذف شد", "success");
+      } catch (err: any) {
+        showAlert("خطا", err.message || "خطا در حذف سناریو", "error");
+      }
+    }, "error");
   };
 
   const totalPlayers = formData.roles.reduce((a, b) => a + b.count, 0);

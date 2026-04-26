@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { joinGame } from "@/actions/game";
+import { usePopup } from "@/components/PopupProvider";
 
 export default function JoinGamePage() {
   const [loading, setLoading] = useState(false);
   const [joined, setJoined] = useState(false);
+  const { showAlert } = usePopup();
 
   const handleJoin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,7 +23,7 @@ export default function JoinGamePage() {
     if (result.success) {
       setJoined(true);
     } else {
-      alert(result.error);
+      showAlert("خطا", result.error, "error");
     }
     
     setLoading(false);

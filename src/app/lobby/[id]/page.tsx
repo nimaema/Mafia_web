@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { getPusherClient } from "@/lib/pusher";
 import { useSession } from "next-auth/react";
 import { joinGame, getGameStatus } from "@/actions/game";
+import { usePopup } from "@/components/PopupProvider";
 
 type Player = {
   id: string;
@@ -15,6 +16,7 @@ export default function UserLobbyPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
+  const { showAlert } = usePopup();
   const gameId = params.id as string;
   
   const [players, setPlayers] = useState<Player[]>([]);
@@ -70,7 +72,7 @@ export default function UserLobbyPage() {
     if (res.success) {
       setJoined(true);
     } else {
-      alert(res.error);
+      showAlert("خطا در ورود", res.error, "error");
     }
     setLoading(false);
   };

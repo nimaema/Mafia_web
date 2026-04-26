@@ -4,9 +4,11 @@ import Link from "next/link";
 import { registerUser } from "@/actions/auth";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { usePopup } from "@/components/PopupProvider";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { showAlert } = usePopup();
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,7 +18,7 @@ export default function RegisterPage() {
     if (result.success) {
       router.push("/auth/login");
     } else {
-      alert(result.error);
+      showAlert("خطا در ثبت نام", result.error || "مشکلی در ایجاد حساب رخ داد", "error");
     }
   };
 

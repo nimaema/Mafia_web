@@ -6,6 +6,7 @@ import { getPusherClient } from "@/lib/pusher";
 import { getGameStatus, startGame, setGameScenario, createCustomGameScenario } from "@/actions/game";
 import { getScenarios } from "@/actions/admin";
 import { getRoles } from "@/actions/role";
+import { usePopup } from "@/components/PopupProvider";
 
 type Player = {
   id: string;
@@ -15,6 +16,7 @@ type Player = {
 export default function GameLobbyPage() {
   const params = useParams();
   const router = useRouter();
+  const { showAlert, showToast } = usePopup();
   const gameId = params.id as string;
   const [players, setPlayers] = useState<Player[]>([]);
   const [game, setGame] = useState<any>(null);
@@ -74,7 +76,9 @@ export default function GameLobbyPage() {
     setSettingScenario(true);
     const res = await setGameScenario(gameId, scenarioId);
     if (!res.success) {
-      alert(res.error);
+      showAlert("خطا", res.error, "error");
+    } else if (scenarioId) {
+      showToast("سناریو با موفقیت انتخاب شد", "success");
     }
     setSettingScenario(false);
   };
@@ -85,7 +89,7 @@ export default function GameLobbyPage() {
     if (res.success) {
       router.push(`/dashboard/moderator/game/${gameId}`);
     } else {
-      alert(res.error);
+      showAlert("خطا در شروع بازی", res.error, "error");
       setLoading(false);
     }
   };
@@ -109,7 +113,9 @@ export default function GameLobbyPage() {
     setShowCustomModal(false);
     const res = await createCustomGameScenario(gameId, customRoles);
     if (!res.success) {
-      alert(res.error);
+      showAlert("خطا", res.error, "error");
+    } else {
+      showToast("سناریو سفارشی اعمال شد", "success");
     }
     setSettingScenario(false);
   };
@@ -142,13 +148,10 @@ export default function GameLobbyPage() {
             </div>
           </div>
           {game?.password && (
-            <div className="flex-1 p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm border-amber-500/30">
-              <p className="text-sm text-zinc-500 mb-2 flex items-center justify-center gap-2">
-                <span className="material-symbols-outlined text-sm">lock</span>
-                رمز ورود:
-              </p>
-              <div className="text-4xl font-mono tracking-widest font-black text-amber-500">
-                {game.password}
+            <div className="flex-1 p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm border-amber-500/30 flex items-center justify-center">
+              <div className="flex items-center gap-2 text-amber-500">
+                <span className="material-symbols-outlined">lock</span>
+                <span className="text-sm font-bold uppercase tracking-widest">دارای رمز عبور</span>
               </div>
             </div>
           )}

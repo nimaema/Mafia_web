@@ -2,21 +2,24 @@
 
 import { useState } from "react";
 import { updateUserRole, deleteUser } from "@/actions/admin";
+import { usePopup } from "@/components/PopupProvider";
 
 export function UsersTable({ users, currentUserId }: { users: any[], currentUserId: string }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const { showAlert, showConfirm, showToast } = usePopup();
 
   const handleRoleChange = async (userId: string, newRole: "USER" | "MODERATOR" | "ADMIN") => {
     if (userId === currentUserId && newRole !== "ADMIN") {
-      alert("شما نمی‌توانید نقش مدیریت خود را لغو کنید.");
+      showAlert("خطا", "شما نمی‌توانید نقش مدیریت خود را لغو کنید.", "error");
       return;
     }
     
     setLoadingId(userId);
     try {
       await updateUserRole(userId, newRole);
+      showToast("نقش کاربر با موفقیت تغییر کرد", "success");
     } catch (err: any) {
-      alert(err.message || "خطا در تغییر نقش");
+      showAlert("خطا", err.message || "خطا در تغییر نقش", "error");
     } finally {
       setLoadingId(null);
     }
@@ -24,20 +27,21 @@ export function UsersTable({ users, currentUserId }: { users: any[], currentUser
 
   const handleDelete = async (userId: string, name: string) => {
     if (userId === currentUserId) {
-      alert("نمی‌توانید حساب خودتان را حذف کنید.");
+      showAlert("خطا", "نمی‌توانید حساب خودتان را حذف کنید.", "error");
       return;
     }
 
-    if (!confirm(`آیا از حذف دائم کاربر "${name}" اطمینان دارید؟`)) return;
-
-    setLoadingId(userId);
-    try {
-      await deleteUser(userId);
-    } catch (err: any) {
-      alert(err.message || "خطا در حذف کاربر");
-    } finally {
-      setLoadingId(null);
-    }
+    showConfirm("حذف کاربر", `آیا از حذف دائم کاربر "${name}" اطمینان دارید؟`, async () => {
+      setLoadingId(userId);
+      try {
+        await deleteUser(userId);
+        showToast("کاربر با موفقیت حذف شد", "success");
+      } catch (err: any) {
+        showAlert("خطا", err.message || "خطا در حذف کاربر", "error");
+      } finally {
+        setLoadingId(null);
+      }
+    }, "error");
   };
 
   return (

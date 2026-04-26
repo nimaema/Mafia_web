@@ -3,14 +3,34 @@
 import { useActionState } from "react";
 import { updateProfile, changePassword } from "@/actions/user";
 import { signIn, useSession } from "next-auth/react";
+import { usePopup } from "@/components/PopupProvider";
+import { useEffect } from "react";
 
 export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { user: { name: string, email: string }, hasGoogleProvider?: boolean, hasPassword?: boolean }) {
   const { update } = useSession();
+  const { showToast, showAlert } = usePopup();
+
+  useEffect(() => {
+    if (result?.success) {
+      showToast("پروفایل با موفقیت بروزرسانی شد", "success");
+    } else if (result?.error) {
+      showAlert("خطا", result.error, "error");
+    }
+  }, [result]);
+
+  useEffect(() => {
+    if (pwdResult?.success) {
+      showToast(hasPassword ? "رمز عبور تغییر یافت" : "رمز عبور ایجاد شد", "success");
+    } else if (pwdResult?.error) {
+      showAlert("خطا", pwdResult.error, "error");
+    }
+  }, [pwdResult]);
+
   const [result, action, isPending] = useActionState(
     async (prevState: any, formData: FormData) => {
       const res = await updateProfile(formData);
       if (res.success) {
-        await update(); // Refresh session
+        await update(); 
       }
       return res;
     },
@@ -29,19 +49,6 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
     <div className="flex flex-col gap-10">
     <form action={action} className="flex flex-col gap-5">
       <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">اطلاعات پروفایل</h3>
-      {result?.success && (
-        <div className="bg-lime-500/10 border border-lime-500/30 text-lime-600 dark:text-lime-400 text-sm py-3 px-4 rounded-xl flex items-center gap-3">
-          <span className="material-symbols-outlined">check_circle</span>
-          <span>پروفایل با موفقیت بروزرسانی شد</span>
-        </div>
-      )}
-      
-      {result?.error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm py-3 px-4 rounded-xl flex items-center gap-3">
-          <span className="material-symbols-outlined">error</span>
-          <span>{result.error}</span>
-        </div>
-      )}
 
       <div className="flex flex-col gap-2">
         <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">نام و نام خانوادگی</label>
@@ -90,19 +97,6 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
 
     <form action={pwdAction} className="flex flex-col gap-5">
       <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{hasPassword ? "تغییر رمز عبور" : "ایجاد رمز عبور"}</h3>
-      {pwdResult?.success && (
-        <div className="bg-lime-500/10 border border-lime-500/30 text-lime-600 dark:text-lime-400 text-sm py-3 px-4 rounded-xl flex items-center gap-3">
-          <span className="material-symbols-outlined">check_circle</span>
-          <span>{hasPassword ? "رمز عبور با موفقیت تغییر یافت" : "رمز عبور با موفقیت ایجاد شد"}</span>
-        </div>
-      )}
-      
-      {pwdResult?.error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm py-3 px-4 rounded-xl flex items-center gap-3">
-          <span className="material-symbols-outlined">error</span>
-          <span>{pwdResult.error}</span>
-        </div>
-      )}
 
       {hasPassword && (
         <div className="flex flex-col gap-2">

@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getGameStatus } from "@/actions/game";
 import Link from "next/link";
+import { usePopup } from "@/components/PopupProvider";
 
 export default function ModeratorGamePage() {
   const params = useParams();
   const router = useRouter();
+  const { showConfirm, showToast } = usePopup();
   const gameId = params.id as string;
   const [game, setGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -104,37 +106,40 @@ export default function ModeratorGamePage() {
         
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
           <button 
-            onClick={async () => {
-              if (confirm("آیا مطمئن هستید که شهروندان پیروز شده‌اند؟")) {
+            onClick={() => {
+              showConfirm("پایان بازی", "آیا مطمئن هستید که شهروندان پیروز شده‌اند؟", async () => {
                 const { endGame } = await import('@/actions/game');
                 await endGame(gameId, 'CITIZEN');
+                showToast("بازی با پیروزی شهروندان به پایان رسید", "success");
                 router.refresh();
                 router.push("/dashboard/moderator");
-              }
+              });
             }}
             className="bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:translate-y-1">
             پیروزی شهروندان
           </button>
           <button 
-            onClick={async () => {
-              if (confirm("آیا مطمئن هستید که مافیا پیروز شده‌است؟")) {
+            onClick={() => {
+              showConfirm("پایان بازی", "آیا مطمئن هستید که مافیا پیروز شده‌است؟", async () => {
                 const { endGame } = await import('@/actions/game');
                 await endGame(gameId, 'MAFIA');
+                showToast("بازی با پیروزی مافیا به پایان رسید", "success");
                 router.refresh();
                 router.push("/dashboard/moderator");
-              }
+              }, "error");
             }}
             className="bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-red-500/20 active:translate-y-1">
             پیروزی مافیا
           </button>
           <button 
-            onClick={async () => {
-              if (confirm("آیا مطمئن هستید که مستقل‌ها پیروز شده‌اند؟")) {
+            onClick={() => {
+              showConfirm("پایان بازی", "آیا مطمئن هستید که مستقل‌ها پیروز شده‌اند؟", async () => {
                 const { endGame } = await import('@/actions/game');
                 await endGame(gameId, 'NEUTRAL');
+                showToast("بازی با پیروزی مستقل‌ها به پایان رسید", "success");
                 router.refresh();
                 router.push("/dashboard/moderator");
-              }
+              });
             }}
             className="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 active:translate-y-1">
             پیروزی مستقل‌ها

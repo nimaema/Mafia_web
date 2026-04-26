@@ -5,9 +5,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createGame, getModeratorGames, cancelGame } from "@/actions/game";
 import { getScenarios } from "@/actions/admin";
+import { usePopup } from "@/components/PopupProvider";
 
 export default function ModeratorDashboard() {
   const router = useRouter();
+  const { showAlert, showConfirm, showToast } = usePopup();
   const [loading, setLoading] = useState(false);
   const [scenarios, setScenarios] = useState<any[]>([]);
   const [activeGames, setActiveGames] = useState<any[]>([]);
@@ -36,7 +38,7 @@ export default function ModeratorDashboard() {
         setPassword("");
         router.push(`/dashboard/moderator/lobby/${res.gameId}`);
       } else {
-        alert(res.error || "خطا در ایجاد بازی");
+        showAlert("خطا", res.error || "خطا در ایجاد بازی", "error");
         setLoading(false);
       }
     } catch (error) {
@@ -46,18 +48,19 @@ export default function ModeratorDashboard() {
   };
 
   const handleCancelGame = async (gameId: string) => {
-    if (!confirm("آیا از لغو و حذف این لابی اطمینان دارید؟")) return;
-    try {
-      const res = await cancelGame(gameId);
-      if (res.success) {
-        refreshGames();
-      } else {
-        alert(res.error || "خطا در لغو بازی");
+    showConfirm("لغو بازی", "آیا از لغو و حذف این لابی اطمینان دارید؟", async () => {
+      try {
+        const res = await cancelGame(gameId);
+        if (res.success) {
+          refreshGames();
+          showToast("لابی با موفقیت لغو شد", "success");
+        } else {
+          showAlert("خطا", res.error || "خطا در لغو بازی", "error");
+        }
+      } catch (error) {
+        showAlert("خطا", "خطای شبکه", "error");
       }
-    } catch (error) {
-      console.error(error);
-      alert("خطای شبکه");
-    }
+    }, "error");
   };
 
   return (
@@ -197,7 +200,6 @@ export default function ModeratorDashboard() {
                         {game.password && (
                           <div className="flex items-center gap-1.5 text-amber-500">
                             <span className="material-symbols-outlined text-sm">lock</span>
-                            <span className="font-black">رمز: {game.password}</span>
                           </div>
                         )}
                       </div>
