@@ -194,10 +194,12 @@ export default function ModeratorDashboard() {
                           <span className="material-symbols-outlined text-sm">account_tree</span>
                           <span className="font-medium text-slate-600 dark:text-zinc-400">{game.scenario?.name || 'سناریو نامشخص'}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-sm">person</span>
-                          <span className="font-medium text-slate-600 dark:text-zinc-400">گرداننده: {game.moderator?.name || '---'}</span>
-                        </div>
+                        {game.password && (
+                          <div className="flex items-center gap-1.5 text-amber-500">
+                            <span className="material-symbols-outlined text-sm">lock</span>
+                            <span className="font-black">رمز: {game.password}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     

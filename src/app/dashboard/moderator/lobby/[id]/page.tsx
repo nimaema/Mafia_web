@@ -134,11 +134,24 @@ export default function GameLobbyPage() {
           {status}
         </p>
         
-        <div className="mt-4 p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 w-full shadow-sm">
-          <p className="text-sm text-zinc-500 mb-2">کد ورود به بازی:</p>
-          <div className="text-4xl font-mono tracking-widest font-black text-transparent bg-clip-text bg-gradient-to-r from-lime-500 to-emerald-500">
-            {game?.password || gameId.substring(0, 6).toUpperCase()}
+        <div className="mt-4 flex flex-col md:flex-row gap-4 w-full">
+          <div className="flex-1 p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <p className="text-sm text-zinc-500 mb-2">کد بازی:</p>
+            <div className="text-4xl font-mono tracking-widest font-black text-transparent bg-clip-text bg-gradient-to-r from-lime-500 to-emerald-500">
+              {game?.code}
+            </div>
           </div>
+          {game?.password && (
+            <div className="flex-1 p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm border-amber-500/30">
+              <p className="text-sm text-zinc-500 mb-2 flex items-center justify-center gap-2">
+                <span className="material-symbols-outlined text-sm">lock</span>
+                رمز ورود:
+              </p>
+              <div className="text-4xl font-mono tracking-widest font-black text-amber-500">
+                {game.password}
+              </div>
+            </div>
+          )}
         </div>
       </header>
 

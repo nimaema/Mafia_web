@@ -87,8 +87,8 @@ export default function UserLobbyPage() {
           <h1 className="text-2xl font-black">{game?.name || "لابی بازی مافیا"}</h1>
           <p className="text-zinc-500 text-sm italic">سناریو: {game?.scenario?.name || "نامشخص"}</p>
           <div className="mt-4 px-4 py-2 bg-white dark:bg-zinc-950 rounded-xl border border-dashed border-lime-500/50 flex flex-col">
-             <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">کد اتاق</span>
-             <span className="text-xl font-mono font-black text-lime-600 dark:text-lime-400">#{game?.code}</span>
+              <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">کد بازی</span>
+              <span className="text-xl font-mono font-black text-lime-600 dark:text-lime-400">#{game?.code}</span>
           </div>
         </header>
 
