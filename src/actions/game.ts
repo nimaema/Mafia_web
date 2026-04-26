@@ -31,31 +31,40 @@ export async function joinGame(gameId: string, playerName: string, userId?: stri
       return { error: "Game has already started" };
     }
 
-    const playerId = userId || `guest-${Math.random().toString(36).substr(2, 9)}`;
+    // Save to DB
+    const player = await prisma.gamePlayer.create({
+      data: {
+        gameId,
+        name: playerName,
+        userId: userId || null,
+      }
+    });
 
     // Trigger Pusher event
     await pusherServer.trigger(`game-${gameId}`, 'player-joined', {
       player: {
-        id: playerId,
+        id: player.id,
         name: playerName
       }
     });
 
-    return { success: true, playerId };
-  } catch (error) {
+    return { success: true, playerId: player.id };
+  } catch (error: any) {
     console.error("Join game error:", error);
+    if (error.code === 'P2002') {
+       return { error: "شما قبلا با این نام وارد شده‌اید" };
+    }
     return { error: "Failed to join game" };
   }
 }
 
-export async function createGame(scenarioId: string, password?: string) {
+export async function createGame(password?: string) {
   try {
     const moderatorId = await checkModerator();
 
     const game = await prisma.game.create({
       data: {
         moderatorId,
-        scenarioId,
         password: password || null,
         status: "WAITING",
       }
@@ -130,5 +139,56 @@ export async function startGame(gameId: string) {
   } catch (error: any) {
     console.error("Start game error:", error);
     return { error: error.message || "Failed to start game" };
+  }
+}
+
+export async function setGameScenario(gameId: string, scenarioId: string) {
+  try {
+    await checkModerator();
+    await prisma.game.update({
+      where: { id: gameId },
+      data: { scenarioId }
+    });
+    
+    // Fetch updated game status with scenario to push to clients
+    const updatedGame = await getGameStatus(gameId);
+    
+    // Notify users that scenario was updated
+    await pusherServer.trigger(`game-${gameId}`, 'scenario-updated', {
+      scenario: updatedGame?.scenario
+    });
+    
+    revalidatePath(`/dashboard/moderator/lobby/${gameId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error("Set scenario error:", error);
+    return { error: "Failed to set scenario" };
+  }
+}
+
+export async function createCustomGameScenario(gameId: string, roles: { roleId: string, count: number }[]) {
+  try {
+    const moderatorId = await checkModerator();
+    
+    // Create a temporary scenario specific to this game
+    const scenario = await prisma.scenario.create({
+      data: {
+        name: `بازی سفارشی ${gameId.slice(0, 6)}`,
+        description: "سناریو ساخته شده در لحظه",
+        createdBy: moderatorId,
+        roles: {
+          create: roles.map(r => ({
+            count: r.count,
+            role: { connect: { id: r.roleId } }
+          }))
+        }
+      }
+    });
+
+    // Assign it to the game
+    return await setGameScenario(gameId, scenario.id);
+  } catch (error: any) {
+    console.error("Create custom scenario error:", error);
+    return { error: "Failed to create custom scenario" };
   }
 }
