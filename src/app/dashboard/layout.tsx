@@ -23,7 +23,7 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="bg-gray-300 dark:bg-[#0a0a0c] text-slate-900 dark:text-zinc-100 min-h-screen pb-20 md:pb-0 flex flex-col md:flex-row transition-all duration-500 overflow-hidden" dir="rtl">
+    <div className="bg-gray-300 dark:bg-[#0a0a0c] text-slate-900 dark:text-zinc-100 min-h-screen pb-20 md:pb-0 flex flex-col md:flex-row transition-all duration-500" dir="rtl">
       {/* Premium Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-lime-500/5 blur-[150px] rounded-full animate-pulse-slow"></div>
@@ -81,7 +81,7 @@ export default async function DashboardLayout({
             <>
               <div className="h-px bg-white/5 my-4 mx-4"></div>
               <p className="text-[10px] text-zinc-500 px-5 font-black uppercase tracking-widest mb-2">مدیریت کل</p>
-              <Link href="/dashboard/admin?tab=users" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-600 dark:text-blue-400 group">
+              <Link href="/dashboard/admin?tab=users" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 group">
                 <span className="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
                 <span className="font-bold text-sm tracking-wide">کاربران سیستم</span>
               </Link>

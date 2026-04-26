@@ -89,10 +89,10 @@ export default function UserDashboard() {
           </div>
           
           <div className="flex gap-3">
-            <div className="px-4 py-2 bg-[#0f172a]/5 dark:bg-white/5 border border-[#0f172a]/20 dark:border-white/10 text-lime-400 text-xs font-black uppercase tracking-widest rounded-xl backdrop-blur-md">
+            <div className="px-4 py-2 bg-[#0f172a]/5 dark:bg-white/5 border border-[#0f172a]/20 dark:border-white/10 text-lime-600 dark:text-lime-400 text-xs font-black uppercase tracking-widest rounded-xl backdrop-blur-md">
               {session?.user?.role === 'ADMIN' ? 'مدیر سیستم' : session?.user?.role === 'MODERATOR' ? 'گرداننده رسمی' : 'بازیکن فعال'}
             </div>
-            <Link href="/dashboard/user/profile" className="px-4 py-2 bg-gray-200 dark:bg-zinc-900 border border-[#0f172a]/10 dark:border-white/5 text-zinc-300 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-zinc-950 transition-all flex items-center gap-2 shadow-lg">
+            <Link href="/dashboard/user/profile" className="px-4 py-2 bg-gray-200 dark:bg-zinc-900 border border-[#0f172a]/10 dark:border-white/5 text-slate-700 dark:text-zinc-300 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-zinc-950 transition-all flex items-center gap-2 shadow-lg">
               <span className="material-symbols-outlined text-sm">edit</span>
               ویرایش پروفایل
             </Link>
@@ -128,7 +128,7 @@ export default function UserDashboard() {
                   <div className="relative flex items-center justify-between bg-white dark:bg-zinc-950 px-8 py-6 rounded-[23px] transition-all group-hover:bg-transparent duration-500">
                     <div className="flex items-center gap-6">
                       <div className="w-14 h-14 rounded-2xl bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center group-hover:bg-white dark:bg-zinc-950 transition-colors">
-                        <span className="material-symbols-outlined text-lime-400 group-hover:text-slate-900 dark:text-white transition-colors text-3xl font-black animate-bounce">rocket_launch</span>
+                        <span className="material-symbols-outlined text-lime-600 dark:text-lime-400 group-hover:text-slate-900 dark:text-white transition-colors text-3xl font-black animate-bounce">rocket_launch</span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-slate-900 dark:text-white font-black text-xl tracking-tighter italic group-hover:text-zinc-950 transition-colors">
@@ -169,13 +169,13 @@ export default function UserDashboard() {
                   
                   <div className="flex justify-between items-start relative z-10">
                     <div className="flex flex-col gap-1">
-                      <span className="font-black text-xl text-slate-900 dark:text-white tracking-tighter italic group-hover:text-lime-400 transition-colors">{game.scenario?.name || "بازی ناگهانی"}</span>
+                      <span className="font-black text-xl text-slate-900 dark:text-white tracking-tighter italic group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">{game.scenario?.name || "بازی ناگهانی"}</span>
                       <span className="text-[10px] text-slate-500 dark:text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-zinc-700 rounded-full"></span>
                         {game.moderator?.name || "گرداننده"}
                       </span>
                     </div>
-                    <div className="bg-gray-200 dark:bg-zinc-900 border border-[#0f172a]/10 dark:border-white/5 text-lime-400 text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-inner">
+                    <div className="bg-gray-200 dark:bg-zinc-900 border border-[#0f172a]/10 dark:border-white/5 text-lime-600 dark:text-lime-400 text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-inner">
                       {game.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0)} P
                     </div>
                   </div>
@@ -195,7 +195,7 @@ export default function UserDashboard() {
                       {game.status === 'IN_PROGRESS' && (
                         <span className="text-[9px] px-2 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-lg font-black uppercase tracking-tighter">در حال بازی</span>
                       )}
-                      <div className="flex items-center gap-2 text-slate-600 dark:text-zinc-400 group-hover:text-lime-400 transition-all">
+                      <div className="flex items-center gap-2 text-slate-600 dark:text-zinc-400 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-all">
                         <span className="text-xs font-black uppercase tracking-widest">{game.status === 'IN_PROGRESS' ? 'View' : 'Join'}</span>
                         <span className="material-symbols-outlined text-lg font-black group-hover:translate-x-1 transition-transform">arrow_forward</span>
                       </div>
@@ -327,11 +327,11 @@ export default function UserDashboard() {
                   <div className={`absolute left-0 top-0 bottom-0 w-1 ${game.result === 'WIN' ? 'bg-lime-500' : 'bg-red-500'}`}></div>
                   
                   <div className="flex items-center gap-5">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${game.result === 'WIN' ? 'bg-lime-500/10 text-lime-400 group-hover:scale-110 shadow-[0_0_20px_rgba(132,204,22,0.1)]' : 'bg-red-500/10 text-red-600 dark:text-red-400 group-hover:scale-110 shadow-[0_0_20px_rgba(239,68,68,0.1)]'}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${game.result === 'WIN' ? 'bg-lime-500/10 text-lime-600 dark:text-lime-400 group-hover:scale-110 shadow-[0_0_20px_rgba(132,204,22,0.1)]' : 'bg-red-500/10 text-red-600 dark:text-red-400 group-hover:scale-110 shadow-[0_0_20px_rgba(239,68,68,0.1)]'}`}>
                       <span className="material-symbols-outlined text-2xl font-black">{game.result === 'WIN' ? 'emoji_events' : 'close'}</span>
                     </div>
                     <div className="flex flex-col gap-0.5">
-                      <p className="font-black text-slate-900 dark:text-white text-base tracking-tighter group-hover:text-lime-400 transition-colors">{game.scenarioName}</p>
+                      <p className="font-black text-slate-900 dark:text-white text-base tracking-tighter group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">{game.scenarioName}</p>
                       <p className="text-[10px] text-slate-500 dark:text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-2">
                         {game.roleName} <span className="w-1 h-1 bg-zinc-800 rounded-full"></span> {game.date}
                       </p>
@@ -339,7 +339,7 @@ export default function UserDashboard() {
                   </div>
                   
                   <div className="flex items-center gap-4">
-                    <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border ${game.result === 'WIN' ? 'bg-lime-500/10 text-lime-400 border-lime-500/20' : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'}`}>
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border ${game.result === 'WIN' ? 'bg-lime-500/10 text-lime-600 dark:text-lime-400 border-lime-500/20' : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'}`}>
                       {game.result === 'WIN' ? 'Victory' : 'Defeat'}
                     </span>
                     <span className="material-symbols-outlined text-slate-400 dark:text-zinc-600 group-hover:translate-x-[-5px] transition-transform">arrow_back</span>
@@ -387,7 +387,7 @@ export default function UserDashboard() {
                 }`}>
                   <div className="flex flex-col gap-2">
                     <p className="text-[10px] text-slate-500 dark:text-zinc-500 font-black uppercase tracking-widest">هویت شما در بازی</p>
-                    <p className={`font-black text-3xl tracking-tighter italic ${selectedHistoryGame.result === 'WIN' ? 'text-lime-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <p className={`font-black text-3xl tracking-tighter italic ${selectedHistoryGame.result === 'WIN' ? 'text-lime-600 dark:text-lime-400' : 'text-red-600 dark:text-red-400'}`}>
                       {selectedHistoryGame.roleName}
                     </p>
                     <div className="flex items-center gap-2 mt-1">

@@ -459,7 +459,7 @@ export default function AdminDashboard() {
                             refreshData();
                           }
                         }}
-                        className="text-[10px] font-bold px-3 py-1.5 bg-lime-500/10 text-lime-400 rounded-full hover:bg-lime-500 hover:text-zinc-950 transition-all border border-lime-500/20"
+                        className="text-[10px] font-bold px-3 py-1.5 bg-lime-500/10 text-lime-600 dark:text-lime-400 rounded-full hover:bg-lime-500 hover:text-zinc-950 transition-all border border-lime-500/20"
                       >
                         نصب پیش‌فرض‌ها
                       </button>
@@ -564,7 +564,7 @@ export default function AdminDashboard() {
                            {/* Role Tags */}
                            <div className="flex flex-wrap gap-2 relative z-10">
                               {scen.roles.map((r: any) => (
-                                <span key={r.role.id} className={`text-[11px] font-medium px-2.5 py-1 rounded-md border flex items-center gap-1.5 ${r.role.alignment === 'CITIZEN' ? 'border-green-500/20 bg-green-500/5 text-green-300' : r.role.alignment === 'MAFIA' ? 'border-red-500/20 bg-red-500/5 text-red-300' : 'border-yellow-500/20 bg-yellow-500/5 text-yellow-300'}`}>
+                                <span key={r.role.id} className={`text-[11px] font-medium px-2.5 py-1 rounded-md border flex items-center gap-1.5 ${r.role.alignment === 'CITIZEN' ? 'border-green-500/20 bg-green-500/5 text-green-700 dark:text-green-300' : r.role.alignment === 'MAFIA' ? 'border-red-500/20 bg-red-500/5 text-red-600 dark:text-red-300' : 'border-yellow-500/20 bg-yellow-500/5 text-amber-600 dark:text-yellow-300'}`}>
                                   {r.role.name} 
                                   <span className={`text-[10px] w-4 h-4 rounded flex items-center justify-center font-bold ${r.role.alignment === 'CITIZEN' ? 'bg-green-500/20' : r.role.alignment === 'MAFIA' ? 'bg-red-500/20' : 'bg-yellow-500/20'}`}>
                                     {r.count}
