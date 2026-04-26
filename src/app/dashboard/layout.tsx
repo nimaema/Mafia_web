@@ -2,7 +2,7 @@ import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { headers } from "next/headers";
-import { ThemeToggle } from "@/components/ThemeToggle";
+
 
 export default async function DashboardLayout({
   children,
@@ -25,8 +25,8 @@ export default async function DashboardLayout({
     <div className="bg-bg-dark text-text-main min-h-screen pb-20 md:pb-0 flex flex-col md:flex-row transition-all duration-500 overflow-hidden" dir="rtl">
       {/* Premium Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-lime-500/5 blur-[150px] rounded-full"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 blur-[150px] rounded-full"></div>
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-lime-500/5 blur-[150px] rounded-full animate-pulse-slow"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 blur-[150px] rounded-full animate-pulse-slow" style={{animationDelay: '4s'}}></div>
       </div>
 
       {/* Desktop Sidebar */}
@@ -84,7 +84,7 @@ export default async function DashboardLayout({
         </nav>
 
         <div className="mt-auto pt-8 flex flex-col gap-4 border-t border-white/5">
-          <ThemeToggle />
+
 
           <form action={handleLogout} className="w-full">
             <button 

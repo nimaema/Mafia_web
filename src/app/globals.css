@@ -62,3 +62,16 @@
   50% { transform: translateY(-15px) rotate(var(--tw-rotate)); }
   100% { transform: translateY(0px) rotate(var(--tw-rotate)); }
 }
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.05); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 8s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
