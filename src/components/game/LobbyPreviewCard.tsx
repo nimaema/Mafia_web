@@ -80,6 +80,111 @@ export function LobbyPreviewCard({
   const mafiaCount = roleBreakdown.filter((role) => role.alignment === "MAFIA").reduce((sum, role) => sum + role.count, 0);
   const neutralCount = roleBreakdown.filter((role) => role.alignment === "NEUTRAL").reduce((sum, role) => sum + role.count, 0);
 
+  if (compact) {
+    const previewPlayers = players.slice(0, 6);
+    const previewRoles = roleBreakdown.slice(0, 4);
+
+    return (
+      <article className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-xl shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950/95 dark:shadow-black/35">
+        <div className="border-b border-zinc-200 bg-zinc-50/90 p-4 dark:border-white/10 dark:bg-white/[0.04]">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-zinc-950 shadow-sm shadow-lime-500/20">
+                <span className="material-symbols-outlined text-2xl">groups</span>
+              </div>
+              <div className="min-w-0">
+                <p className="ui-kicker">اتاق انتظار</p>
+                <h2 className="mt-1 truncate text-2xl font-black text-zinc-950 dark:text-white">{title}</h2>
+                <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                  {subtitle || "نمای زنده لابی، ظرفیت و ترکیب سناریو."}
+                </p>
+              </div>
+            </div>
+            <span className="shrink-0 rounded-lg bg-lime-500 px-2.5 py-1.5 text-[10px] font-black text-zinc-950">
+              {statusLabel}
+            </span>
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="rounded-lg border border-zinc-200 bg-white p-2.5 dark:border-white/10 dark:bg-zinc-950/70">
+              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">کد</p>
+              <p className="mt-1 font-mono text-lg font-black text-zinc-950 dark:text-white">#{code}</p>
+            </div>
+            <div className="col-span-2 rounded-lg border border-zinc-200 bg-white p-2.5 dark:border-white/10 dark:bg-zinc-950/70">
+              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">سناریو</p>
+              <p className="mt-1 truncate text-sm font-black text-zinc-950 dark:text-white">{scenarioName}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_180px]">
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between gap-3 text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                <span>ظرفیت لابی</span>
+                <span className="font-black text-zinc-950 dark:text-white">
+                  {capacity ? `${playerCount} / ${capacity}` : `${playerCount} بازیکن`}
+                </span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                <div className="h-full rounded-full bg-lime-500 transition-[width]" style={{ width: `${progress}%` }} />
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-2 text-[11px] font-bold">
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  {seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "لابی تکمیل" : `${seatsLeft} جای خالی`}
+                </span>
+                <span className="text-lime-700 dark:text-lime-300">{progress}% تکمیل</span>
+              </div>
+            </div>
+
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-xs font-black text-zinc-950 dark:text-white">بازیکنان</p>
+                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{moderatorName || "گرداننده"}</p>
+              </div>
+              <div className="grid grid-cols-6 gap-2">
+                {previewPlayers.map((player) => (
+                  <div key={player.id} className="flex aspect-square items-center justify-center rounded-lg bg-zinc-100 text-xs font-black text-zinc-700 dark:bg-white/[0.07] dark:text-zinc-200">
+                    {getInitial(player.name)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <aside className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                ["شهروند", citizenCount, "text-sky-500"],
+                ["مافیا", mafiaCount, "text-red-500"],
+                ["مستقل", neutralCount, "text-amber-500"],
+              ].map(([label, value, color]) => (
+                <div key={label} className="rounded-lg bg-white p-2 text-center dark:bg-zinc-950/70">
+                  <p className={`text-sm font-black ${color}`}>{value}</p>
+                  <p className="mt-1 text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-3 space-y-2">
+              {previewRoles.map((role) => (
+                <div key={role.id || role.name} className="flex items-center justify-between gap-2">
+                  <span className="truncate text-xs font-bold text-zinc-700 dark:text-zinc-300">{role.name}</span>
+                  <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
+                    x{role.count}
+                  </span>
+                </div>
+              ))}
+              {roleBreakdown.length > previewRoles.length && (
+                <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">+{roleBreakdown.length - previewRoles.length} نقش دیگر</p>
+              )}
+            </div>
+          </aside>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article className="ui-card overflow-hidden">
       <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_360px]">
