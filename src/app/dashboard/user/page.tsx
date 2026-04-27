@@ -348,25 +348,31 @@ export default function UserDashboard() {
         </section>
 
         <section className="ui-card overflow-hidden">
-          <PanelHeader icon="insights" title="خلاصه عملکرد" subtitle="چند نشانه سریع از روند بازی‌ها" />
+          <PanelHeader icon="near_me" title="میانبرهای سریع" subtitle="کارهای پرکاربرد بدون تکرار آمار" />
           <div className="space-y-3 p-4">
             {[
-              ["آخرین بازی", latestGame ? latestGame.scenarioName : "ثبت نشده", latestGame ? `${resultMeta(latestGame.result).label} | ${latestGame.roleName}` : "بعد از پایان بازی کامل می‌شود", "history"],
-              ["نقش پرتکرار", mostPlayedRole ? mostPlayedRole.role : "نامشخص", mostPlayedRole ? `${mostPlayedRole.count} بار در ۷ نقش برتر` : "هنوز داده کافی نیست", "theater_comedy"],
-              ["تعادل نتیجه", `${wins} برد / ${losses} باخت`, totalGames ? `${winRate}% درصد برد` : "بدون بازی ثبت‌شده", "balance"],
-            ].map(([label, value, text, icon]) => (
-              <div key={label} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                <div className="flex items-start gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
-                    <span className="material-symbols-outlined text-lg">{icon}</span>
+              ["/join", "ورود با کد", "پیوستن مستقیم به یک لابی", "login"],
+              ["/dashboard/user/history", "تاریخچه کامل", "مرور بازی‌ها با جزئیات نقش‌ها", "history"],
+              ["/dashboard/user/profile", "پروفایل بازیکن", "ویرایش نام و تصویر حساب", "badge"],
+            ].map(([href, label, text, icon]) => (
+              <Link
+                key={href}
+                href={href}
+                className="group block rounded-lg border border-zinc-200 bg-zinc-50 p-3 transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                      <span className="material-symbols-outlined text-lg">{icon}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-black text-zinc-950 dark:text-white">{label}</p>
+                      <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">{text}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
-                    <p className="mt-1 truncate font-black text-zinc-950 dark:text-white">{value}</p>
-                    <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{text}</p>
-                  </div>
+                  <span className="material-symbols-outlined text-base text-zinc-400 transition-transform group-hover:-translate-x-1">arrow_back</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
