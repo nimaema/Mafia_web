@@ -34,6 +34,7 @@ function getMailConfig() {
   const user = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
   const pass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
   const from = process.env.SMTP_FROM || process.env.EMAIL_FROM || user || "no-reply@localhost";
+  const resendApiKey = process.env.RESEND_API_KEY || (host === "smtp.resend.com" && pass?.startsWith("re_") ? pass : "");
 
   return {
     host,
@@ -42,6 +43,7 @@ function getMailConfig() {
     user,
     pass,
     from,
+    resendApiKey,
   };
 }
 
@@ -50,9 +52,7 @@ function buildResetUrl(baseUrl: string, token: string) {
   return `${normalizedBaseUrl}/auth/reset-password?token=${token}`;
 }
 
-function getTransporter() {
-  const config = getMailConfig();
-
+function getTransporter(config = getMailConfig()) {
   if (!config.host) {
     return null;
   }
@@ -81,22 +81,9 @@ function getTransporter() {
   });
 }
 
-export async function sendPasswordResetEmail(
-  email: string,
-  token: string,
-  baseUrl: string
-): Promise<PasswordResetEmailResult> {
-  const config = getMailConfig();
-  const resetUrl = buildResetUrl(baseUrl, token);
-  const transporter = getTransporter();
-
-  if (!transporter) {
-    console.info("[PASSWORD_RESET_PREVIEW]", { email, resetUrl, reason: "mail transport is not configured" });
-    return { delivered: false, previewUrl: resetUrl, reason: "mail transport is not configured" };
-  }
-
-  const message = {
-    from: config.from,
+function buildResetMessage(email: string, resetUrl: string, from: string) {
+  return {
+    from,
     to: email,
     subject: "بازیابی رمز عبور - مافیا",
     html: `
@@ -133,6 +120,66 @@ export async function sendPasswordResetEmail(
     `,
     text: `برای بازیابی رمز عبور خود، به این لینک مراجعه کنید: ${resetUrl}\n\nاین لینک تا ۱ ساعت دیگر معتبر است.`,
   };
+}
+
+async function sendWithResendApi(
+  message: ReturnType<typeof buildResetMessage>,
+  apiKey: string,
+  resetUrl: string
+): Promise<PasswordResetEmailResult> {
+  try {
+    const response = await withTimeout(
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "User-Agent": "MafiaApp/1.0",
+        },
+        body: JSON.stringify(message),
+      }),
+      MAIL_TIMEOUT_MS
+    );
+
+    if (response.ok) {
+      return { delivered: true };
+    }
+
+    const body = await response.text();
+    console.warn("[PASSWORD_RESET_RESEND_FAILED]", {
+      status: response.status,
+      body,
+      resetUrl: process.env.NODE_ENV !== "production" ? resetUrl : undefined,
+    });
+    return { delivered: false, reason: `Resend API returned ${response.status}` };
+  } catch (error) {
+    console.warn("[PASSWORD_RESET_RESEND_FAILED]", {
+      error,
+      resetUrl: process.env.NODE_ENV !== "production" ? resetUrl : undefined,
+    });
+    return { delivered: false, reason: "Resend API request failed" };
+  }
+}
+
+export async function sendPasswordResetEmail(
+  email: string,
+  token: string,
+  baseUrl: string
+): Promise<PasswordResetEmailResult> {
+  const config = getMailConfig();
+  const resetUrl = buildResetUrl(baseUrl, token);
+  const message = buildResetMessage(email, resetUrl, config.from);
+
+  if (config.resendApiKey) {
+    return sendWithResendApi(message, config.resendApiKey, resetUrl);
+  }
+
+  const transporter = getTransporter(config);
+
+  if (!transporter) {
+    console.info("[PASSWORD_RESET_PREVIEW]", { email, resetUrl, reason: "mail transport is not configured" });
+    return { delivered: false, previewUrl: resetUrl, reason: "mail transport is not configured" };
+  }
 
   try {
     await withTimeout(transporter.sendMail(message), MAIL_TIMEOUT_MS);
