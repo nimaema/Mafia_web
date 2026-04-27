@@ -43,7 +43,28 @@ export async function getAllUsers() {
           gameHistories: true,
           gamesHosted: true,
         }
-      }
+      },
+      gamePlayers: {
+        where: {
+          game: {
+            status: { in: ["WAITING", "IN_PROGRESS"] },
+          },
+        },
+        select: {
+          game: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              status: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 1,
+      },
     },
     orderBy: [
       { role: "desc" },

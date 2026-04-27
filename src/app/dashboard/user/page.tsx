@@ -121,49 +121,103 @@ export default function UserDashboard() {
     return best;
   }, null);
   const latestGame = recentGames[0];
+  const activityState = data?.currentActiveGame
+    ? {
+        label: "در بازی فعال",
+        text: data.currentActiveGame.scenarioName,
+        icon: "rocket_launch",
+        className: "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300",
+      }
+    : activeGames.length > 0
+      ? {
+          label: "لابی آماده",
+          text: `${activeGames.length} لابی قابل ورود`,
+          icon: "sensors",
+          className: "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+        }
+      : {
+          label: "در انتظار بازی",
+          text: "لابی جدید هنوز ساخته نشده",
+          icon: "radar",
+          className: "border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400",
+        };
 
   return (
     <div className="space-y-5 font-sans">
       <section className="ui-card overflow-hidden">
-        <div className="grid gap-5 p-5 lg:grid-cols-[1fr_360px] lg:items-center">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-            <div className="relative size-20 shrink-0">
-              <div className="flex size-20 items-center justify-center overflow-hidden rounded-lg border border-lime-500/30 bg-lime-500/10">
-                {displayImage ? (
-                  <img src={displayImage} alt="Profile" className="size-full object-cover" />
-                ) : (
-                  <span className="material-symbols-outlined text-4xl text-lime-500">person</span>
-                )}
+        <div className="h-1.5 bg-gradient-to-l from-lime-500 via-sky-500 to-amber-400" />
+        <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_460px] xl:items-stretch">
+          <div className="flex min-w-0 flex-col justify-between gap-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+              <div className="relative size-24 shrink-0">
+                <div className="flex size-24 items-center justify-center overflow-hidden rounded-lg border border-lime-500/30 bg-lime-500/10 shadow-inner">
+                  {displayImage ? (
+                    <img src={displayImage} alt="Profile" className="size-full object-cover" />
+                  ) : (
+                    <span className="material-symbols-outlined text-5xl text-lime-500">person</span>
+                  )}
+                </div>
+                <span className={`absolute -bottom-2 -right-2 flex min-h-8 items-center gap-1 rounded-lg border px-2 text-[10px] font-black ${activityState.className}`}>
+                  <span className="material-symbols-outlined text-sm">{activityState.icon}</span>
+                  {activityState.label}
+                </span>
               </div>
-              <span className="absolute -bottom-2 -right-2 flex size-8 items-center justify-center rounded-lg bg-lime-500 text-zinc-950 shadow-sm">
-                <span className="material-symbols-outlined text-base">verified</span>
-              </span>
+
+              <div className="min-w-0">
+                <p className="ui-kicker">داشبورد بازیکن</p>
+                <h1 className="mt-1 text-4xl font-black text-zinc-950 dark:text-white">{displayName}</h1>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                  وضعیت بازی، عملکرد و مسیرهای سریع شما در یک نمای زنده و فشرده جمع شده است.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-3 py-1.5 text-xs font-black text-lime-700 dark:text-lime-300">
+                    {session?.user?.role === "ADMIN" ? "مدیر سیستم" : session?.user?.role === "MODERATOR" ? "گرداننده رسمی" : "بازیکن فعال"}
+                  </span>
+                  <span className={`rounded-lg border px-3 py-1.5 text-xs font-black ${activityState.className}`}>
+                    {activityState.text}
+                  </span>
+                  <Link href="/dashboard/user/profile" className="ui-button-secondary min-h-8 px-3 py-1.5 text-xs">
+                    <span className="material-symbols-outlined text-base">edit</span>
+                    ویرایش پروفایل
+                  </Link>
+                </div>
+              </div>
             </div>
 
-            <div className="min-w-0">
-              <p className="ui-kicker">داشبورد بازیکن</p>
-              <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">{displayName}</h1>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-3 py-1.5 text-xs font-black text-lime-700 dark:text-lime-300">
-                  {session?.user?.role === "ADMIN" ? "مدیر سیستم" : session?.user?.role === "MODERATOR" ? "گرداننده رسمی" : "بازیکن فعال"}
-                </span>
-                <Link href="/dashboard/user/profile" className="ui-button-secondary min-h-8 px-3 py-1.5 text-xs">
-                  <span className="material-symbols-outlined text-base">edit</span>
-                  ویرایش پروفایل
-                </Link>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">آخرین نتیجه</p>
+                <p className={`mt-2 truncate font-black ${latestGame?.result === "WIN" ? "text-lime-600 dark:text-lime-300" : latestGame?.result === "LOSS" ? "text-red-500" : "text-zinc-950 dark:text-white"}`}>
+                  {latestGame ? `${latestGame.result === "WIN" ? "برد" : latestGame.result === "LOSS" ? "باخت" : "در انتظار"} | ${latestGame.roleName}` : "هنوز بازی ثبت نشده"}
+                </p>
+              </div>
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">نقش پرتکرار</p>
+                <p className="mt-2 truncate font-black text-zinc-950 dark:text-white">
+                  {mostPlayedRole ? `${mostPlayedRole.role} (${mostPlayedRole.count})` : "بعد از چند بازی مشخص می‌شود"}
+                </p>
+              </div>
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">ورود سریع</p>
+                <p className="mt-2 truncate font-black text-zinc-950 dark:text-white">
+                  {activeGames.length > 0 ? `${activeGames.length} لابی باز` : "بدون لابی فعال"}
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
             {[
-              ["کل بازی", totalGames, "sports_esports"],
-              ["برد", wins, "emoji_events"],
-              ["درصد برد", `${winRate}%`, "trending_up"],
+              ["کل بازی", totalGames, "sports_esports", "text-lime-500"],
+              ["برد", wins, "emoji_events", "text-amber-500"],
+              ["درصد برد", `${winRate}%`, "trending_up", "text-sky-500"],
             ].map(([label, value, icon]) => (
-              <div key={label} className="ui-muted p-4">
-                <span className="material-symbols-outlined text-lg text-zinc-400">{icon}</span>
-                <p className="mt-3 text-2xl font-black text-zinc-950 dark:text-white">{value}</p>
+              <div key={label} className="group overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 p-4 transition-colors hover:border-lime-500/30 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="flex items-center justify-between gap-3">
+                  <span className={`material-symbols-outlined text-xl ${icon === "sports_esports" ? "text-lime-500" : icon === "emoji_events" ? "text-amber-500" : "text-sky-500"}`}>{icon}</span>
+                  <span className="h-1.5 w-12 rounded-full bg-zinc-200 transition-colors group-hover:bg-lime-500 dark:bg-white/10" />
+                </div>
+                <p className="mt-4 text-3xl font-black text-zinc-950 dark:text-white">{value}</p>
                 <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
               </div>
             ))}

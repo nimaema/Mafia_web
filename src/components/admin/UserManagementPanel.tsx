@@ -1,6 +1,6 @@
 "use client";
 
-import { Role } from "@prisma/client";
+import { GameStatus, Role } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { banUser, deleteUser, getAllUsersSafe, updateUserRole } from "@/actions/admin";
@@ -16,13 +16,21 @@ type UserRecord = {
   emailVerified: Date | null;
   password_hash: string | null;
   accounts: { provider: string }[];
+  gamePlayers: {
+    game: {
+      id: string;
+      name: string | null;
+      code: string | null;
+      status: GameStatus;
+    };
+  }[];
   _count: {
     gameHistories: number;
     gamesHosted: number;
   };
 };
 
-type StatusFilter = "ALL" | "ACTIVE" | "BANNED" | "PASSWORD" | "GOOGLE" | "VERIFIED" | "UNVERIFIED";
+type StatusFilter = "ALL" | "ACTIVE" | "BANNED" | "ONLINE" | "PASSWORD" | "GOOGLE" | "VERIFIED" | "UNVERIFIED";
 type RoleFilter = "ALL" | Role;
 type SortMode = "ROLE" | "EMAIL" | "PLAYED" | "HOSTED";
 
@@ -41,6 +49,33 @@ function roleClass(role: Role) {
   if (role === "ADMIN") return "border-purple-500/20 bg-purple-500/10 text-purple-600 dark:text-purple-300";
   if (role === "MODERATOR") return "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-300";
   return "border-zinc-500/20 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300";
+}
+
+function getUserPresence(user: UserRecord) {
+  const activeGame =
+    user.gamePlayers.find((player) => player.game.status === "IN_PROGRESS")?.game ||
+    user.gamePlayers.find((player) => player.game.status === "WAITING")?.game;
+
+  if (!activeGame) {
+    return {
+      label: "آفلاین",
+      detail: "بدون حضور فعال",
+      icon: "radio_button_unchecked",
+      online: false,
+      className: "border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400",
+    };
+  }
+
+  const isPlaying = activeGame.status === "IN_PROGRESS";
+  return {
+    label: isPlaying ? "در بازی" : "در لابی",
+    detail: activeGame.name || (activeGame.code ? `#${activeGame.code}` : "بازی فعال"),
+    icon: isPlaying ? "sports_esports" : "sensors",
+    online: true,
+    className: isPlaying
+      ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+      : "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  };
 }
 
 export function UserManagementPanel() {
@@ -90,11 +125,13 @@ export function UserManagementPanel() {
 
       const hasPassword = Boolean(user.password_hash);
       const hasGoogle = user.accounts.some((account) => account.provider === "google");
+      const presence = getUserPresence(user);
 
       const matchesStatus =
         statusFilter === "ALL" ||
         (statusFilter === "ACTIVE" && !user.isBanned) ||
         (statusFilter === "BANNED" && user.isBanned) ||
+        (statusFilter === "ONLINE" && presence.online) ||
         (statusFilter === "PASSWORD" && hasPassword) ||
         (statusFilter === "GOOGLE" && hasGoogle) ||
         (statusFilter === "VERIFIED" && Boolean(user.emailVerified)) ||
@@ -130,9 +167,11 @@ export function UserManagementPanel() {
     admins: users.filter((user) => user.role === "ADMIN").length,
     moderators: users.filter((user) => user.role === "MODERATOR").length,
     banned: users.filter((user) => user.isBanned).length,
+    onlineUsers: users.filter((user) => getUserPresence(user).online).length,
     googleUsers: users.filter((user) => user.accounts.some((account) => account.provider === "google")).length,
   };
   const selectedUser = filteredUsers.find((user) => user.id === selectedUserId) || filteredUsers[0] || null;
+  const selectedPresence = selectedUser ? getUserPresence(selectedUser) : null;
 
   const handleRoleChange = async (userId: string, nextRole: Role) => {
     if (userId === currentUserId && nextRole !== "ADMIN") {
@@ -251,7 +290,7 @@ export function UserManagementPanel() {
               ["کل کاربران", counts.total, "group", "text-lime-500"],
               ["مدیر و گرداننده", counts.admins + counts.moderators, "admin_panel_settings", "text-sky-500"],
               ["حساب فعال", counts.total - counts.banned, "verified", "text-emerald-500"],
-              ["ورود گوگل", counts.googleUsers, "account_circle", "text-amber-500"],
+              ["حضور فعال", counts.onlineUsers, "sensors", "text-amber-500"],
             ].map(([label, value, icon, color]) => (
               <div key={label} className="ui-muted p-4">
                 <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
@@ -286,6 +325,7 @@ export function UserManagementPanel() {
             <option value="ALL">همه وضعیت‌ها</option>
             <option value="ACTIVE">فعال</option>
             <option value="BANNED">مسدود</option>
+            <option value="ONLINE">در لابی/بازی</option>
             <option value="PASSWORD">رمزدار</option>
             <option value="GOOGLE">گوگل</option>
             <option value="VERIFIED">ایمیل تایید شده</option>
@@ -351,6 +391,7 @@ export function UserManagementPanel() {
                   const hasGoogle = user.accounts.some((account) => account.provider === "google");
                   const hasPassword = Boolean(user.password_hash);
                   const isSelected = selectedUser?.id === user.id;
+                  const presence = getUserPresence(user);
 
                   return (
                     <button
@@ -377,6 +418,10 @@ export function UserManagementPanel() {
                             <div className="mt-2 flex flex-wrap gap-1.5">
                               <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${roleClass(user.role)}`}>
                                 {roleLabel(user.role)}
+                              </span>
+                              <span className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-black ${presence.className}`}>
+                                <span className="material-symbols-outlined text-[13px]">{presence.icon}</span>
+                                {presence.label}
                               </span>
                               {user.isBanned && (
                                 <span className="rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[10px] font-black text-red-500">
@@ -478,7 +523,16 @@ export function UserManagementPanel() {
                   </div>
                   <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm dark:border-white/10">
                     <span className="font-bold text-zinc-500 dark:text-zinc-400">حضور آنلاین</span>
-                    <span className="font-black text-zinc-950 dark:text-white">در دسترس نیست</span>
+                    <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-black ${selectedPresence?.className || ""}`}>
+                      <span className="material-symbols-outlined text-sm">{selectedPresence?.icon}</span>
+                      {selectedPresence?.label || "آفلاین"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm dark:border-white/10">
+                    <span className="font-bold text-zinc-500 dark:text-zinc-400">محل حضور</span>
+                    <span className="truncate pr-3 text-left font-black text-zinc-950 dark:text-white">
+                      {selectedPresence?.detail || "بدون حضور فعال"}
+                    </span>
                   </div>
                 </div>
 

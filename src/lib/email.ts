@@ -93,38 +93,44 @@ function buildResetMessage(email: string, resetUrl: string, from: string) {
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style>
-          body { margin: 0; padding: 0; background: #eef2f3; color: #18181b; direction: rtl; font-family: Tahoma, Arial, sans-serif; }
-          .shell { padding: 28px 14px; }
-          .container { max-width: 560px; margin: 0 auto; overflow: hidden; border-radius: 24px; background: #ffffff; border: 1px solid #e4e4e7; box-shadow: 0 20px 60px rgba(24, 24, 27, 0.12); }
-          .hero { padding: 30px 28px; background: linear-gradient(135deg, #18181b 0%, #27272a 44%, #3f6212 100%); color: #ffffff; }
-          .brand { display: inline-block; margin-bottom: 18px; padding: 8px 12px; border-radius: 999px; background: rgba(132, 204, 22, 0.16); color: #bef264; font-size: 12px; font-weight: 800; letter-spacing: 0; }
-          h1 { margin: 0; font-size: 26px; line-height: 1.6; font-weight: 900; }
-          .hero p { margin: 10px 0 0; color: #d4d4d8; font-size: 14px; line-height: 1.9; }
-          .content { padding: 28px; }
-          p { margin: 0 0 16px; line-height: 1.9; }
-          .action { margin: 26px 0; text-align: center; }
-          .btn { display: inline-block; min-width: 210px; padding: 15px 26px; border-radius: 16px; background: #84cc16; color: #18181b !important; text-decoration: none; font-weight: 900; box-shadow: 0 14px 28px rgba(132, 204, 22, 0.28); }
-          .grid { display: table; width: 100%; border-spacing: 0 10px; margin: 18px 0 4px; }
+          body { margin: 0; padding: 0; background: #eef2f3; color: #18181b; direction: rtl; font-family: Vazirmatn, IRANSans, Tahoma, Arial, sans-serif; }
+          .preheader { display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent; }
+          .shell { padding: 34px 14px; }
+          .container { max-width: 584px; margin: 0 auto; overflow: hidden; border-radius: 28px; background: #ffffff; border: 1px solid #e4e4e7; box-shadow: 0 24px 70px rgba(24, 24, 27, 0.15); }
+          .topbar { height: 6px; background: linear-gradient(90deg, #84cc16, #0ea5e9, #f59e0b); }
+          .hero { padding: 36px 32px 34px; background: linear-gradient(135deg, #111113 0%, #27272a 48%, #365314 100%); color: #ffffff; }
+          .brand { display: inline-block; margin-bottom: 22px; padding: 9px 13px; border-radius: 999px; background: rgba(132, 204, 22, 0.16); color: #d9f99d; font-size: 12px; line-height: 1; font-weight: 900; }
+          h1 { margin: 0; max-width: 420px; font-size: 34px; line-height: 1.45; font-weight: 950; }
+          .hero p { margin: 14px 0 0; max-width: 440px; color: #e4e4e7; font-size: 16px; line-height: 2; font-weight: 700; }
+          .content { padding: 32px; }
+          .hello { margin: 0 0 10px; font-size: 20px; line-height: 1.7; font-weight: 950; color: #18181b; }
+          .body-copy { margin: 0 0 18px; color: #3f3f46; font-size: 15px; line-height: 2.05; font-weight: 700; }
+          .action { margin: 30px 0; text-align: center; }
+          .btn { display: inline-block; min-width: 238px; padding: 17px 30px; border-radius: 18px; background: #84cc16; color: #18181b !important; text-decoration: none; font-size: 16px; font-weight: 950; box-shadow: 0 16px 34px rgba(132, 204, 22, 0.34); }
+          .grid { display: table; width: 100%; border-spacing: 0 12px; margin: 20px 0 4px; }
           .item { display: table-row; }
-          .item span { display: table-cell; padding: 12px; border-top: 1px solid #e4e4e7; border-bottom: 1px solid #e4e4e7; font-size: 12px; }
-          .item span:first-child { border-right: 1px solid #e4e4e7; border-radius: 14px 0 0 14px; color: #71717a; font-weight: 700; }
-          .item span:last-child { border-left: 1px solid #e4e4e7; border-radius: 0 14px 14px 0; color: #18181b; font-weight: 900; text-align: left; direction: ltr; }
-          .link-box { margin-top: 18px; padding: 14px; border-radius: 14px; background: #f4f4f5; border: 1px solid #e4e4e7; }
-          .link-label { margin: 0 0 8px; color: #71717a; font-size: 12px; font-weight: 800; }
-          .link { margin: 0; word-break: break-all; color: #2563eb; direction: ltr; text-align: left; font-size: 12px; line-height: 1.7; }
-          .notice { margin-top: 22px; padding: 16px; border-radius: 16px; background: #fefce8; border: 1px solid #fde68a; color: #854d0e; font-size: 13px; line-height: 1.9; }
-          .footer { padding: 18px 28px 26px; color: #71717a; font-size: 12px; line-height: 1.8; text-align: center; }
+          .item span { display: table-cell; padding: 14px 15px; border-top: 1px solid #e4e4e7; border-bottom: 1px solid #e4e4e7; font-size: 13px; }
+          .item span:first-child { border-right: 1px solid #e4e4e7; border-radius: 16px 0 0 16px; color: #71717a; font-weight: 900; }
+          .item span:last-child { border-left: 1px solid #e4e4e7; border-radius: 0 16px 16px 0; color: #18181b; font-weight: 950; text-align: left; direction: ltr; }
+          .link-box { margin-top: 20px; padding: 16px; border-radius: 18px; background: #f4f4f5; border: 1px solid #e4e4e7; }
+          .link-label { margin: 0 0 9px; color: #71717a; font-size: 12px; font-weight: 900; }
+          .link { margin: 0; word-break: break-all; color: #2563eb; direction: ltr; text-align: left; font-size: 12px; line-height: 1.8; font-weight: 700; }
+          .notice { margin-top: 24px; padding: 17px; border-radius: 18px; background: #fefce8; border: 1px solid #fde68a; color: #854d0e; font-size: 14px; line-height: 2; font-weight: 800; }
+          .footer { padding: 18px 32px 28px; color: #71717a; font-size: 12px; line-height: 1.8; text-align: center; font-weight: 700; }
           @media (max-width: 520px) {
             .shell { padding: 14px 8px; }
             .hero, .content, .footer { padding-left: 18px; padding-right: 18px; }
-            h1 { font-size: 22px; }
+            h1 { font-size: 26px; }
+            .hero p { font-size: 14px; }
             .btn { display: block; min-width: 0; }
           }
         </style>
       </head>
       <body>
+        <div class="preheader">لینک امن تنظیم رمز جدید حساب مافیا تا ۱ ساعت معتبر است.</div>
         <div class="shell">
           <div class="container">
+            <div class="topbar"></div>
             <div class="hero">
               <div class="brand">Mafia Board</div>
               <h1>بازیابی امن رمز عبور</h1>
@@ -132,8 +138,8 @@ function buildResetMessage(email: string, resetUrl: string, from: string) {
             </div>
 
             <div class="content">
-              <p>سلام،</p>
-              <p>این ایمیل فقط برای تایید درخواست بازیابی رمز ارسال شده است. اگر درخواست از طرف شما بوده، روی دکمه زیر بزنید.</p>
+              <p class="hello">سلام،</p>
+              <p class="body-copy">این ایمیل فقط برای تایید درخواست بازیابی رمز ارسال شده است. اگر درخواست از طرف شما بوده، روی دکمه زیر بزنید.</p>
 
               <div class="action">
                 <a href="${resetUrl}" class="btn">تنظیم رمز جدید</a>

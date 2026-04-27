@@ -4,6 +4,27 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { unstable_noStore as noStore } from "next/cache";
 
+function formatHistoryRecord(rg: any) {
+  return {
+    id: rg.gameId,
+    gameName: rg.game.name || "بازی مافیا",
+    gameCode: rg.game.code,
+    roleName: rg.role.name,
+    roleAlignment: rg.role.alignment,
+    result: rg.result || "PENDING",
+    date: rg.createdAt.toLocaleDateString("fa-IR"),
+    scenarioName: rg.game.scenario?.name || "بدون سناریو",
+    scenarioDescription: rg.game.scenario?.description || "",
+    moderatorName: rg.game.moderator?.name || "ناشناس",
+    playerCount: rg.game.players.length,
+    players: rg.game.players.map((p: any) => ({
+      name: p.name,
+      roleName: p.role?.name || "بدون نقش",
+      alignment: p.role?.alignment || "NEUTRAL",
+    })),
+  };
+}
+
 export async function getUserStats() {
   noStore();
   const session = await auth();
@@ -102,19 +123,7 @@ export async function getUserStats() {
       { name: 'شکست‌ها', value: losses, color: '#ef4444' }
     ],
     roleHistory,
-    recentGames: recentGames.map(rg => ({
-      id: rg.gameId,
-      roleName: rg.role.name,
-      result: rg.result || "PENDING",
-      date: rg.createdAt.toLocaleDateString('fa-IR'),
-      scenarioName: rg.game.scenario?.name || "بدون سناریو",
-      moderatorName: rg.game.moderator?.name || "ناشناس",
-      players: rg.game.players.map(p => ({
-        name: p.name,
-        roleName: p.role?.name || "بدون نقش",
-        alignment: p.role?.alignment || "NEUTRAL"
-      }))
-    }))
+    recentGames: recentGames.map(formatHistoryRecord)
   };
 }
 
@@ -154,19 +163,62 @@ export async function getAllUserHistory() {
     }
   });
 
-  return history.map(rg => ({
-    id: rg.gameId,
-    roleName: rg.role.name,
-    result: rg.result || "PENDING",
-    date: rg.createdAt.toLocaleDateString('fa-IR'),
-    scenarioName: rg.game.scenario?.name || "بدون سناریو",
-    moderatorName: rg.game.moderator?.name || "ناشناس",
-    players: rg.game.players.map(p => ({
-      name: p.name,
-      roleName: p.role?.name || "بدون نقش",
-      alignment: p.role?.alignment || "NEUTRAL"
-    }))
-  }));
+  return history.map(formatHistoryRecord);
+}
+
+export async function getUserHistoryPage(page = 0, pageSize = 10) {
+  noStore();
+  const session = await auth();
+  if (!session?.user?.id) {
+    return {
+      items: [],
+      total: 0,
+      page: 0,
+      pageSize,
+      totalPages: 0,
+      hasNext: false,
+      hasPrevious: false,
+    };
+  }
+
+  const safePageSize = Math.max(1, Math.min(10, pageSize));
+  const safePage = Math.max(0, page);
+  const userId = session.user.id;
+
+  const [total, history] = await Promise.all([
+    prisma.gameHistory.count({ where: { userId } }),
+    prisma.gameHistory.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      skip: safePage * safePageSize,
+      take: safePageSize,
+      include: {
+        role: true,
+        game: {
+          include: {
+            scenario: true,
+            moderator: true,
+            players: {
+              include: { role: true },
+              orderBy: { createdAt: "asc" },
+            },
+          },
+        },
+      },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(total / safePageSize);
+
+  return {
+    items: history.map(formatHistoryRecord),
+    total,
+    page: safePage,
+    pageSize: safePageSize,
+    totalPages,
+    hasNext: safePage + 1 < totalPages,
+    hasPrevious: safePage > 0,
+  };
 }
 
 export async function deleteGameHistory(gameId: string) {
