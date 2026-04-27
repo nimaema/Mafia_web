@@ -69,10 +69,13 @@ export async function getUserStats() {
     }
   });
 
-  const roleHistory = roleCounts.map(rc => ({
-    role: roles.find(r => r.id === rc.roleId)?.name || "ناشناس",
-    count: rc._count.roleId
-  }));
+  const roleHistory = roleCounts
+    .map(rc => ({
+      role: roles.find(r => r.id === rc.roleId)?.name || "ناشناس",
+      count: rc._count.roleId
+    }))
+    .sort((left, right) => right.count - left.count)
+    .slice(0, 7);
 
   const recentGames = await prisma.gameHistory.findMany({
     where: { userId },

@@ -320,31 +320,57 @@ export default function UserDashboard() {
         </section>
       </div>
 
-      <section className="ui-card overflow-hidden">
-        <PanelHeader
-          icon="bar_chart"
-          title="نقش‌های دریافتی"
-          subtitle={mostPlayedRole ? `پرتکرارترین نقش: ${mostPlayedRole.role}` : "بعد از چند بازی کامل‌تر می‌شود"}
-          action={<Link href="/dashboard/user/profile" className="ui-button-secondary min-h-9 px-3 text-xs">پروفایل</Link>}
-        />
-        <div className="h-72 p-4" dir="ltr">
-          {roleHistory.length === 0 ? (
-            <EmptyState icon="troubleshoot" title="نقشی ثبت نشده" text="بعد از حضور در بازی، نقش‌های دریافتی اینجا دیده می‌شوند." />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={roleHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148,163,184,0.15)" />
-                <XAxis dataKey="role" tick={{ fontSize: 10, fill: "#71717a", fontFamily: "Vazirmatn" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "#71717a" }} axisLine={false} tickLine={false} />
-                <Tooltip cursor={{ fill: "rgba(132,204,22,0.05)" }} contentStyle={{ backgroundColor: "#09090b", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", fontFamily: "Vazirmatn" }} />
-                <Bar dataKey="count" radius={[8, 8, 0, 0]} barSize={36}>
-                  {roleHistory.map((entry, index) => <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "#84cc16" : "#0ea5e9"} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </section>
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <section className="ui-card overflow-hidden">
+          <PanelHeader
+            icon="bar_chart"
+            title="نقش‌های دریافتی"
+            subtitle={mostPlayedRole ? `۷ نقش پرتکرار | اول: ${mostPlayedRole.role}` : "بعد از چند بازی کامل‌تر می‌شود"}
+            action={<Link href="/dashboard/user/profile" className="ui-button-secondary min-h-9 px-3 text-xs">پروفایل</Link>}
+          />
+          <div className="h-72 p-4" dir="ltr">
+            {roleHistory.length === 0 ? (
+              <EmptyState icon="troubleshoot" title="نقشی ثبت نشده" text="بعد از حضور در بازی، نقش‌های دریافتی اینجا دیده می‌شوند." />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={roleHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148,163,184,0.15)" />
+                  <XAxis dataKey="role" tick={{ fontSize: 10, fill: "#71717a", fontFamily: "Vazirmatn" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "#71717a" }} axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{ fill: "rgba(132,204,22,0.05)" }} contentStyle={{ backgroundColor: "#09090b", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", fontFamily: "Vazirmatn" }} />
+                  <Bar dataKey="count" radius={[8, 8, 0, 0]} barSize={36}>
+                    {roleHistory.map((entry, index) => <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "#84cc16" : "#0ea5e9"} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </section>
+
+        <section className="ui-card overflow-hidden">
+          <PanelHeader icon="insights" title="خلاصه عملکرد" subtitle="چند نشانه سریع از روند بازی‌ها" />
+          <div className="space-y-3 p-4">
+            {[
+              ["آخرین بازی", latestGame ? latestGame.scenarioName : "ثبت نشده", latestGame ? `${resultMeta(latestGame.result).label} | ${latestGame.roleName}` : "بعد از پایان بازی کامل می‌شود", "history"],
+              ["نقش پرتکرار", mostPlayedRole ? mostPlayedRole.role : "نامشخص", mostPlayedRole ? `${mostPlayedRole.count} بار در ۷ نقش برتر` : "هنوز داده کافی نیست", "theater_comedy"],
+              ["تعادل نتیجه", `${wins} برد / ${losses} باخت`, totalGames ? `${winRate}% درصد برد` : "بدون بازی ثبت‌شده", "balance"],
+            ].map(([label, value, text, icon]) => (
+              <div key={label} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                    <span className="material-symbols-outlined text-lg">{icon}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                    <p className="mt-1 truncate font-black text-zinc-950 dark:text-white">{value}</p>
+                    <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{text}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
 
       {selectedHistoryGame && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur">
