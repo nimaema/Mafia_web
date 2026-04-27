@@ -528,12 +528,6 @@ export function UserManagementPanel() {
                       {selectedPresence?.label || "آفلاین"}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm dark:border-white/10">
-                    <span className="font-bold text-zinc-500 dark:text-zinc-400">محل حضور</span>
-                    <span className="truncate pr-3 text-left font-black text-zinc-950 dark:text-white">
-                      {selectedPresence?.detail || "بدون حضور فعال"}
-                    </span>
-                  </div>
                 </div>
 
                 <div className="flex flex-col gap-2 border-t border-zinc-200 pt-4 dark:border-white/10">
