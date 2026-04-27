@@ -74,7 +74,7 @@ export default async function DashboardLayout({
             <>
               <div className="my-4 h-px bg-zinc-200 dark:bg-white/10"></div>
               <p className="px-4 pb-2 text-xs font-black text-zinc-400">مدیریت کل</p>
-              <Link href="/dashboard/admin?tab=users" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-sky-500/10 hover:text-sky-700 dark:text-zinc-400 dark:hover:text-sky-300">
+              <Link href="/dashboard/admin/users" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-sky-500/10 hover:text-sky-700 dark:text-zinc-400 dark:hover:text-sky-300">
                 <span className="material-symbols-outlined">group</span>
                 <span>کاربران سیستم</span>
               </Link>
@@ -99,10 +99,6 @@ export default async function DashboardLayout({
 
       <main className="relative z-10 w-full flex-1 overflow-x-hidden p-4 md:p-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-4 flex justify-end gap-2 md:hidden">
-            <ThemeToggle compact />
-            <InstallPWAButton compact />
-          </div>
           {children}
         </div>
       </main>
@@ -129,11 +125,13 @@ export default async function DashboardLayout({
           </>
         )}
         {isAdmin && (
-          <Link href="/dashboard/admin?tab=users" className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 transition-colors hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400">
+          <Link href="/dashboard/admin/users" className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 transition-colors hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400">
             <span className="material-symbols-outlined text-2xl">admin_panel_settings</span>
-            <span className="text-[10px] font-black">مدیریت</span>
+            <span className="text-[10px] font-black">کاربران</span>
           </Link>
         )}
+        <ThemeToggle nav />
+        <InstallPWAButton nav />
         <form action={handleLogout} className="min-w-16 flex-1">
           <button 
             type="submit"

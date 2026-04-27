@@ -55,6 +55,17 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const errorCode =
+      typeof err === "object" && err && "code" in err ? String((err as { code?: unknown }).code) : "";
+
+    if (errorCode === "P1001" || errorCode === "ECONNREFUSED") {
+      return NextResponse.json(
+        { error: "اتصال پایگاه داده برقرار نیست. ابتدا سرویس دیتابیس را اجرا کنید." },
+        { status: 503 }
+      );
+    }
+
     console.error("[RESET_PASSWORD]", err);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }

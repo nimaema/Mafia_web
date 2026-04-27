@@ -33,7 +33,22 @@ async function checkModerator() {
 export async function getAllUsers() {
   await checkAdmin();
   return await prisma.user.findMany({
-    orderBy: { id: 'desc' }
+    include: {
+      accounts: {
+        select: { provider: true }
+      },
+      _count: {
+        select: {
+          gameHistories: true,
+          gamesHosted: true,
+          passwordResetTokens: true,
+        }
+      }
+    },
+    orderBy: [
+      { role: "desc" },
+      { email: "asc" },
+    ]
   });
 }
 

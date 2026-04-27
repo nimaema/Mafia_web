@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getPusherClient } from "@/lib/pusher";
 import { useSession } from "next-auth/react";
 import { joinGame, getGameStatus } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
+import { LobbyPreviewCard } from "@/components/game/LobbyPreviewCard";
 
 type Player = {
   id: string;
   name: string;
+  userId?: string | null;
 };
 
 export default function UserLobbyPage() {
@@ -18,7 +20,7 @@ export default function UserLobbyPage() {
   const { data: session } = useSession();
   const { showAlert } = usePopup();
   const gameId = params.id as string;
-  
+
   const [players, setPlayers] = useState<Player[]>([]);
   const [game, setGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -28,35 +30,40 @@ export default function UserLobbyPage() {
   useEffect(() => {
     if (!gameId) return;
 
-    // Initial fetch
-    getGameStatus(gameId).then(res => {
-      if (res) {
-        setGame(res);
-        if (res.players) {
-          setPlayers(res.players);
-          // Check if current user is already in the players list
-          if (session?.user?.id && res.players.some((p: any) => p.userId === session.user.id)) {
-            setJoined(true);
-          }
-        }
-      } else {
+    getGameStatus(gameId).then((result) => {
+      if (!result) {
         router.push("/dashboard/user");
+        return;
       }
+
+      setGame(result);
+      if (result.players) {
+        const nextPlayers = result.players.map((player: any) => ({
+          id: player.id,
+          name: player.name,
+          userId: player.userId,
+        }));
+
+        setPlayers(nextPlayers);
+        if (session?.user?.id && nextPlayers.some((player: Player) => player.userId === session.user.id)) {
+          setJoined(true);
+        }
+      }
+
       setLoading(false);
     });
 
-    // Initialize Pusher
     const pusher = getPusherClient();
     const channel = pusher.subscribe(`game-${gameId}`);
 
-    channel.bind('player-joined', (data: { player: Player }) => {
-      setPlayers((prev) => {
-        if (prev.find(p => p.id === data.player.id)) return prev;
-        return [...prev, data.player];
+    channel.bind("player-joined", (data: { player: Player }) => {
+      setPlayers((previous) => {
+        if (previous.find((player) => player.id === data.player.id)) return previous;
+        return [...previous, data.player];
       });
     });
 
-    channel.bind('game-started', () => {
+    channel.bind("game-started", () => {
       router.push(`/game/${gameId}`);
     });
 
@@ -66,102 +73,127 @@ export default function UserLobbyPage() {
   }, [gameId, router, session?.user?.id]);
 
   const handleJoin = async () => {
-    if (!session?.user?.name) return;
+    if (!session?.user?.name || !game?.code) return;
+
     setLoading(true);
-    const res = await joinGame(game.code, session.user.name, joinPassword, session.user.id);
-    if (res.success) {
+    const result = await joinGame(game.code, session.user.name, joinPassword, session.user.id);
+
+    if (result.success) {
       setJoined(true);
+      setPlayers((previous) =>
+        previous.some((player) => player.id === result.playerId)
+          ? previous
+          : [
+              ...previous,
+              {
+                id: result.playerId,
+                name: session.user?.name || "شما",
+                userId: session.user?.id,
+              },
+            ]
+      );
     } else {
-      showAlert("خطا در ورود", res.error || "خطا در پیوستن به لابی", "error");
+      showAlert("خطا در ورود", result.error || "خطا در پیوستن به لابی", "error");
     }
+
     setLoading(false);
   };
 
-  if (loading) return <div className="p-12 text-center animate-pulse">در حال بارگذاری لابی...</div>;
+  const capacity = useMemo(
+    () =>
+      game?.scenario?.roles?.reduce((sum: number, role: any) => {
+        return sum + role.count;
+      }, 0) || 0,
+    [game]
+  );
+
+  const playerItems = useMemo(
+    () =>
+      players.map((player) => ({
+        id: player.id,
+        name: player.name,
+        current: Boolean(session?.user?.id && player.userId === session.user.id),
+      })),
+    [players, session?.user?.id]
+  );
+
+  const roleBreakdown = useMemo(
+    () =>
+      (game?.scenario?.roles || []).map((role: any) => ({
+        id: role.roleId,
+        name: role.role?.name || "نقش",
+        count: role.count,
+        alignment: role.role?.alignment,
+      })),
+    [game]
+  );
+
+  if (loading) {
+    return (
+      <div className="app-page min-h-screen py-8" dir="rtl">
+        <div className="app-container">
+          <div className="ui-card h-[680px] animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-200 dark:bg-zinc-950 p-4 flex flex-col items-center justify-center gap-8">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden flex flex-col">
-        <header className="p-8 bg-lime-500/5 border-b border-zinc-200 dark:border-zinc-800 text-center flex flex-col gap-2">
-          <div className="w-16 h-16 bg-lime-500 rounded-lg flex items-center justify-center mx-auto shadow-lg shadow-lime-500/20 mb-2 rotate-3">
-             <span className="material-symbols-outlined text-zinc-950 text-3xl font-bold">groups</span>
-          </div>
-          <h1 className="text-2xl font-black">{game?.name || "لابی بازی مافیا"}</h1>
-          <p className="text-zinc-500 text-sm">سناریو: {game?.scenario?.name || "نامشخص"}</p>
-          <div className="mt-4 px-4 py-2 bg-white dark:bg-zinc-950 rounded-lg border border-dashed border-lime-500/50 flex flex-col">
-              <span className="text-[10px] text-zinc-400 uppercase font-bold">کد بازی</span>
-              <span className="text-xl font-mono font-black text-lime-600 dark:text-lime-400">#{game?.code}</span>
-          </div>
-        </header>
+    <div className="app-page min-h-screen py-8" dir="rtl">
+      <div className="app-container space-y-5">
+        <LobbyPreviewCard
+          title={game?.name || "لابی بازی مافیا"}
+          subtitle="بازیکنان حاضر، ظرفیت، سناریو و کد ورود در همین نما در دسترس هستند."
+          scenarioName={game?.scenario?.name || "سناریوی تعیین نشده"}
+          code={game?.code || "------"}
+          statusLabel="در انتظار شروع"
+          playerCount={players.length}
+          capacity={capacity}
+          moderatorName={game?.moderator?.name || "گرداننده"}
+          locked={game?.hasPassword}
+          players={playerItems}
+          roleBreakdown={roleBreakdown}
+          actionArea={
+            !joined ? (
+              <div className="flex flex-col gap-4">
+                {game?.hasPassword && (
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">رمز ورود به لابی</label>
+                    <input
+                      type="password"
+                      value={joinPassword}
+                      onChange={(event) => setJoinPassword(event.target.value)}
+                      placeholder="رمز عبور را وارد کنید"
+                    />
+                  </div>
+                )}
 
-        <main className="p-6 flex flex-col gap-6">
-          <div className="flex justify-between items-center px-2">
-            <h3 className="font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-lime-500">person</span>
-              بازیکنان حاضر
-            </h3>
-            <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-xs font-bold">{players.length} / {game?.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0)}</span>
-          </div>
-
-          <div className="flex flex-col gap-2 min-h-[200px]">
-             {players.length === 0 ? (
-               <div className="flex-1 flex flex-col items-center justify-center opacity-30 gap-2">
-                  <span className="material-symbols-outlined text-4xl">hourglass_empty</span>
-                  <p className="text-sm">در انتظار ورود بازیکنان...</p>
-               </div>
-             ) : (
-               players.map((p, i) => (
-                 <div key={p.id} className="flex items-center gap-3 p-3 bg-gray-200 dark:bg-zinc-950/50 rounded-lg border border-zinc-100 dark:border-zinc-800/50 animate-in fade-in slide-in-from-right-4 duration-300" style={{ animationDelay: `${i * 100}ms` }}>
-                    <div className="w-8 h-8 rounded-full bg-lime-500 flex items-center justify-center text-zinc-950 font-bold text-xs">{i + 1}</div>
-                    <span className="font-bold">{p.name}</span>
-                    {p.id === session?.user?.id && <span className="text-[10px] bg-zinc-900 text-white px-2 py-0.5 rounded-lg mr-auto">شما</span>}
-                 </div>
-               ))
-             )}
-          </div>
-
-          {!joined ? (
-            <div className="flex flex-col gap-4">
-              {game?.hasPassword && (
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-zinc-600 dark:text-zinc-400 px-1">رمز ورود به لابی</label>
-                  <input 
-                    type="password"
-                    value={joinPassword}
-                    onChange={(e) => setJoinPassword(e.target.value)}
-                    placeholder="رمز عبور را وارد کنید"
-                    className="w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 px-4 outline-none focus:border-lime-500 transition-colors"
-                  />
-                </div>
-              )}
-              <button 
-                onClick={handleJoin}
-                disabled={loading}
-                className="w-full bg-lime-500 text-zinc-950 py-4 rounded-lg font-black text-lg shadow-lg shadow-lime-500/20 hover:bg-lime-600 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-2"
-              >
-                <span className="material-symbols-outlined">login</span>
-                پیوستن به بازی
-              </button>
-            </div>
-          ) : (
-            <div className="bg-lime-100 dark:bg-lime-900/20 p-4 rounded-lg flex flex-col items-center gap-2 border border-lime-200 dark:border-lime-800">
-               <div className="flex items-center gap-2 text-lime-700 dark:text-lime-400 font-bold">
-                  <span className="material-symbols-outlined animate-pulse">check_circle</span>
+                <button onClick={handleJoin} disabled={loading} className="ui-button-primary min-h-12 w-full sm:w-auto">
+                  <span className="material-symbols-outlined text-xl">login</span>
+                  پیوستن به بازی
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-4 text-lime-700 dark:text-lime-300">
+                <div className="flex items-center gap-2 font-black">
+                  <span className="material-symbols-outlined">check_circle</span>
                   شما در لابی هستید
-               </div>
-               <p className="text-xs text-lime-600 dark:text-lime-500">منتظر شروع بازی توسط گرداننده باشید...</p>
-            </div>
-          )}
-        </main>
+                </div>
+                <p className="mt-2 text-sm leading-6">منتظر شروع بازی توسط گرداننده بمانید. با شروع بازی، خودکار وارد صفحه نقش می‌شوید.</p>
+              </div>
+            )
+          }
+          footer={
+            <button
+              onClick={() => router.push("/dashboard/user")}
+              className="inline-flex items-center gap-2 text-sm font-bold text-zinc-500 transition-colors hover:text-zinc-950 dark:hover:text-white"
+            >
+              <span className="material-symbols-outlined text-lg">arrow_forward</span>
+              بازگشت به پیشخوان
+            </button>
+          }
+        />
       </div>
-
-      <button 
-        onClick={() => router.push("/dashboard/user")}
-        className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 font-bold text-sm flex items-center gap-2"
-      >
-        <span className="material-symbols-outlined">arrow_forward</span>
-        بازگشت به پیشخوان
-      </button>
     </div>
   );
 }
