@@ -7,6 +7,7 @@ import { getGameStatus, startGame, setGameScenario, createCustomGameScenario } f
 import { getScenarios } from "@/actions/admin";
 import { getRoles } from "@/actions/role";
 import { usePopup } from "@/components/PopupProvider";
+import { LobbyPreviewCard } from "@/components/game/LobbyPreviewCard";
 
 type Player = {
   id: string;
@@ -115,6 +116,15 @@ export default function GameLobbyPage() {
     [game]
   );
 
+  const lobbyPlayers = useMemo(
+    () =>
+      players.map((player) => ({
+        id: player.id,
+        name: player.name,
+      })),
+    [players]
+  );
+
   const filteredCustomRoles = useMemo(() => {
     const query = customRoleSearch.trim().toLowerCase();
     if (!query) return roles;
@@ -215,178 +225,20 @@ export default function GameLobbyPage() {
 
   return (
     <div className="flex flex-col gap-5" dir="rtl">
-      <section className="ui-card overflow-hidden">
-        <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="flex items-start gap-4">
-            <div className="ui-icon-accent size-14">
-              <span className="material-symbols-outlined text-3xl">groups</span>
-            </div>
-            <div>
-              <p className="ui-kicker">اتاق انتظار</p>
-              <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">{game?.name || "لابی بازی مافیا"}</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                بازیکن‌ها، کد ورود، سناریو و شروع بازی از همین صفحه کنترل می‌شود.
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button onClick={copyJoinLink} className="ui-button-secondary min-h-11 px-4">
-                  <span className="material-symbols-outlined text-xl">content_copy</span>
-                  کپی لینک ورود
-                </button>
-                <button onClick={() => router.push("/dashboard/moderator")} className="ui-button-secondary min-h-11 px-4">
-                  <span className="material-symbols-outlined text-xl">arrow_forward</span>
-                  بازگشت
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="ui-muted p-3">
-              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">کد بازی</p>
-              <p className="mt-2 font-mono text-2xl font-black text-zinc-950 dark:text-white">#{game?.code}</p>
-            </div>
-            <div className="ui-muted p-3">
-              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">ورود</p>
-              <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">{game?.hasPassword ? "خصوصی" : "باز"}</p>
-            </div>
-            <div className="ui-muted p-3">
-              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">بازیکن</p>
-              <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">{players.length}</p>
-            </div>
-            <div className="ui-muted p-3">
-              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">ظرفیت</p>
-              <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">{requiredPlayers || "سناریو ندارد"}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <main className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <section className="ui-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-            <div>
-              <p className="font-black text-zinc-950 dark:text-white">بازیکنان حاضر</p>
-              <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                {requiredPlayers ? `${players.length} از ${requiredPlayers}` : `${players.length} بازیکن وارد شده`}
-              </p>
-            </div>
-            <span className={`rounded-lg px-3 py-1 text-xs font-black ${seatsRemaining <= 0 && requiredPlayers ? "bg-lime-500 text-zinc-950" : "border border-zinc-200 bg-white text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400"}`}>
-              {requiredPlayers ? (seatsRemaining > 0 ? `${seatsRemaining} جای خالی` : "آماده") : "در انتظار سناریو"}
-            </span>
-          </div>
-
-          <div className="custom-scrollbar max-h-[620px] overflow-y-auto p-4">
-            {players.length === 0 ? (
-              <div className="flex min-h-[360px] flex-col items-center justify-center gap-4 text-center">
-                <div className="ui-icon size-16">
-                  <span className="material-symbols-outlined text-3xl text-zinc-400">person_add</span>
-                </div>
-                <div>
-                  <p className="font-black text-zinc-950 dark:text-white">هنوز کسی وارد نشده</p>
-                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">لینک یا کد بازی را برای بازیکنان بفرستید.</p>
-                </div>
-              </div>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {players.map((player, index) => (
-                  <div key={player.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-lime-500 font-black text-zinc-950">
-                        {index + 1}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate font-black text-zinc-950 dark:text-white">{player.name}</p>
-                        <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">جایگاه {index + 1}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        <aside className="space-y-5">
-          <section className="ui-card overflow-hidden">
-            <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-              <p className="font-black text-zinc-950 dark:text-white">سناریوی بازی</p>
-              <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">ظرفیت سناریو باید با تعداد بازیکنان برابر باشد.</p>
-            </div>
-
-            <div className="space-y-4 p-5">
-              {game?.scenario ? (
-                <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-lg font-black text-zinc-950 dark:text-white">{game.scenario.name}</p>
-                      <p className="mt-1 text-xs font-bold text-lime-700 dark:text-lime-300">{requiredPlayers} نفره</p>
-                    </div>
-                    <button onClick={() => handleSelectScenario("")} className="ui-button-secondary min-h-9 px-3 text-xs" disabled={settingScenario}>
-                      تغییر
-                    </button>
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {scenarioRoles.map((role: any) => (
-                      <span key={role.roleId} className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
-                        {role.name} x{role.count}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {players.length > 0 && recommendedScenarios.length > 0 && (
-                    <div>
-                      <p className="mb-2 text-xs font-black text-zinc-500 dark:text-zinc-400">پیشنهاد مناسب تعداد فعلی</p>
-                      <div className="grid gap-2">
-                        {recommendedScenarios.slice(0, 3).map((scenario) => (
-                          <button
-                            key={scenario.id}
-                            onClick={() => handleSelectScenario(scenario.id)}
-                            disabled={settingScenario}
-                            className="rounded-lg border border-lime-500/25 bg-lime-500/10 p-3 text-right transition-all hover:bg-lime-500/15 disabled:opacity-50"
-                          >
-                            <p className="font-black text-zinc-950 dark:text-white">{scenario.name}</p>
-                            <p className="mt-1 text-xs text-lime-700 dark:text-lime-300">
-                              {scenario.roles.reduce((sum: number, item: any) => sum + item.count, 0)} نفره
-                            </p>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <label className="flex flex-col gap-2">
-                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">همه سناریوها</span>
-                    <select onChange={(event) => handleSelectScenario(event.target.value)} value="" disabled={settingScenario}>
-                      <option value="">انتخاب سناریو...</option>
-                      {scenarios.map((scenario) => (
-                        <option key={scenario.id} value={scenario.id}>
-                          {scenario.name} ({scenario.roles.reduce((sum: number, item: any) => sum + item.count, 0)} نفره)
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <button
-                    onClick={() => {
-                      setCustomRoleSearch("");
-                      setSaveCustomScenario(false);
-                      setShowCustomModal(true);
-                    }}
-                    disabled={settingScenario}
-                    className="ui-button-secondary min-h-12 w-full"
-                  >
-                    <span className="material-symbols-outlined text-xl">dashboard_customize</span>
-                    طراحی سناریو در لحظه
-                  </button>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section className="ui-card p-5">
+      <LobbyPreviewCard
+        title={game?.name || "لابی بازی مافیا"}
+        subtitle="اتاق انتظار گرداننده برای کنترل ظرفیت، بازیکنان، سناریو و شروع بازی."
+        scenarioName={game?.scenario?.name || "سناریوی تعیین نشده"}
+        code={game?.code || "------"}
+        statusLabel={seatsRemaining <= 0 && requiredPlayers ? "آماده شروع" : "در حال تکمیل"}
+        playerCount={players.length}
+        capacity={requiredPlayers}
+        moderatorName={game?.moderator?.name || "گرداننده"}
+        locked={game?.hasPassword}
+        players={lobbyPlayers}
+        roleBreakdown={scenarioRoles}
+        actionArea={
+          <div className="space-y-3">
             <button
               onClick={handleStartGame}
               disabled={Boolean(startDisabledReason) || loading}
@@ -396,13 +248,120 @@ export default function GameLobbyPage() {
               شروع بازی
             </button>
             {startDisabledReason && (
-              <p className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm font-bold leading-6 text-amber-700 dark:text-amber-300">
+              <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm font-bold leading-6 text-amber-700 dark:text-amber-300">
                 {startDisabledReason}
               </p>
             )}
-          </section>
-        </aside>
-      </main>
+          </div>
+        }
+        footer={
+          <div className="flex flex-wrap gap-2">
+            <button onClick={copyJoinLink} className="ui-button-secondary min-h-10 px-3 text-xs">
+              <span className="material-symbols-outlined text-base">content_copy</span>
+              کپی لینک ورود
+            </button>
+            <button onClick={() => router.push("/dashboard/moderator")} className="ui-button-secondary min-h-10 px-3 text-xs">
+              <span className="material-symbols-outlined text-base">arrow_forward</span>
+              بازگشت
+            </button>
+          </div>
+        }
+      />
+
+      <section className="ui-card overflow-hidden">
+        <div className="flex flex-col gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="ui-kicker">تنظیم سناریو</p>
+            <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">چینش بازی</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+              سناریو را از کتابخانه انتخاب کنید یا یک ترکیب موقت برای همین لابی بسازید.
+            </p>
+          </div>
+          {game?.scenario && (
+            <button onClick={() => handleSelectScenario("")} className="ui-button-secondary min-h-10 px-4" disabled={settingScenario}>
+              <span className="material-symbols-outlined text-lg">swap_horiz</span>
+              تغییر سناریو
+            </button>
+          )}
+        </div>
+
+        <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="space-y-4">
+            {game?.scenario ? (
+              <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-lg font-black text-zinc-950 dark:text-white">{game.scenario.name}</p>
+                    <p className="mt-1 text-xs font-bold text-lime-700 dark:text-lime-300">{requiredPlayers} نفره</p>
+                  </div>
+                  <span className="rounded-lg bg-lime-500 px-2.5 py-1 text-[10px] font-black text-zinc-950">فعال</span>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {scenarioRoles.map((role: any) => (
+                    <span key={role.roleId} className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
+                      {role.name} x{role.count}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-5 text-center dark:border-white/10 dark:bg-white/[0.03]">
+                <span className="material-symbols-outlined text-4xl text-zinc-400">account_tree</span>
+                <p className="mt-3 font-black text-zinc-950 dark:text-white">سناریو هنوز انتخاب نشده</p>
+                <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">برای شروع بازی، ظرفیت و نقش‌ها باید مشخص باشند.</p>
+              </div>
+            )}
+
+            {players.length > 0 && recommendedScenarios.length > 0 && !game?.scenario && (
+              <div>
+                <p className="mb-2 text-xs font-black text-zinc-500 dark:text-zinc-400">پیشنهاد مناسب تعداد فعلی</p>
+                <div className="grid gap-2 md:grid-cols-3">
+                  {recommendedScenarios.slice(0, 3).map((scenario) => (
+                    <button
+                      key={scenario.id}
+                      onClick={() => handleSelectScenario(scenario.id)}
+                      disabled={settingScenario}
+                      className="rounded-lg border border-lime-500/25 bg-lime-500/10 p-3 text-right transition-all hover:bg-lime-500/15 disabled:opacity-50"
+                    >
+                      <p className="font-black text-zinc-950 dark:text-white">{scenario.name}</p>
+                      <p className="mt-1 text-xs text-lime-700 dark:text-lime-300">
+                        {scenario.roles.reduce((sum: number, item: any) => sum + item.count, 0)} نفره
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <label className="flex flex-col gap-2">
+              <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">انتخاب از کتابخانه</span>
+              <select onChange={(event) => handleSelectScenario(event.target.value)} value="" disabled={settingScenario}>
+                <option value="">انتخاب سناریو...</option>
+                {scenarios.map((scenario) => (
+                  <option key={scenario.id} value={scenario.id}>
+                    {scenario.name} ({scenario.roles.reduce((sum: number, item: any) => sum + item.count, 0)} نفره)
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button
+              onClick={() => {
+                setCustomRoleSearch("");
+                setSaveCustomScenario(false);
+                setShowCustomModal(true);
+              }}
+              disabled={settingScenario}
+              className="ui-button-secondary min-h-12 w-full"
+            >
+              <span className="material-symbols-outlined text-xl">dashboard_customize</span>
+              طراحی سناریو در لحظه
+            </button>
+          </div>
+        </div>
+      </section>
 
       {showCustomModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-xl">

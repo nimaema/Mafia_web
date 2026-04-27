@@ -72,135 +72,163 @@ export function LobbyPreviewCard({
   footer,
   compact = false,
 }: LobbyPreviewCardProps) {
-  const shownSeatCount = capacity > 0 ? Math.min(Math.max(capacity, players.length), 12) : Math.min(Math.max(players.length, 6), 12);
+  const shownSeatCount = capacity > 0 ? Math.min(Math.max(capacity, players.length), 15) : Math.min(Math.max(players.length, 6), 12);
   const seatItems = Array.from({ length: shownSeatCount }, (_, index) => players[index] || null);
   const progress = capacity > 0 ? Math.min(100, Math.round((playerCount / capacity) * 100)) : 0;
+  const seatsLeft = capacity > 0 ? Math.max(capacity - playerCount, 0) : null;
+  const citizenCount = roleBreakdown.filter((role) => role.alignment === "CITIZEN").reduce((sum, role) => sum + role.count, 0);
+  const mafiaCount = roleBreakdown.filter((role) => role.alignment === "MAFIA").reduce((sum, role) => sum + role.count, 0);
+  const neutralCount = roleBreakdown.filter((role) => role.alignment === "NEUTRAL").reduce((sum, role) => sum + role.count, 0);
 
   return (
     <article className="ui-card overflow-hidden">
-      <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="ui-icon-accent size-14">
-              <span className="material-symbols-outlined text-3xl">groups</span>
-            </div>
-            <div>
-              <p className="ui-kicker">جزئیات بازی</p>
-              <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">{title}</h2>
-              <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                {subtitle || "همه اطلاعات اصلی لابی از همین‌جا دیده می‌شود."}
-              </p>
-            </div>
-          </div>
+      <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="border-b border-zinc-200 dark:border-white/10 xl:border-b-0 xl:border-l">
+          <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex min-w-0 items-start gap-4">
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-zinc-950 shadow-sm shadow-lime-500/20">
+                  <span className="material-symbols-outlined text-3xl">groups</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="ui-kicker">اتاق انتظار</p>
+                  <h2 className="mt-1 truncate text-3xl font-black text-zinc-950 dark:text-white">{title}</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                    {subtitle || "وضعیت لابی، ظرفیت، بازیکنان و ترکیب سناریو در یک نمای منظم دیده می‌شود."}
+                  </p>
+                </div>
+              </div>
 
-          <div className="flex flex-wrap gap-2">
-            <span className="rounded-lg bg-lime-500 px-3 py-1 text-xs font-black text-zinc-950">
-              {statusLabel}
-            </span>
-            {locked && (
-              <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-black text-amber-600 dark:text-amber-300">
-                رمزدار
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="ui-muted p-3">
-            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">کد بازی</p>
-            <p className="mt-2 font-mono text-lg font-black text-zinc-950 dark:text-white">#{code}</p>
-          </div>
-          <div className="ui-muted p-3">
-            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">سناریو</p>
-            <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">{scenarioName}</p>
-          </div>
-          <div className="ui-muted p-3">
-            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">گرداننده</p>
-            <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">{moderatorName || "نامشخص"}</p>
-          </div>
-          <div className="ui-muted p-3">
-            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">ظرفیت</p>
-            <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">
-              {capacity ? `${playerCount} / ${capacity}` : `${playerCount} بازیکن`}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <div className="mb-2 flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400">
-            <span>پیشرفت تکمیل لابی</span>
-            <span>{progress}%</span>
-          </div>
-          <div className="h-2 rounded-full bg-zinc-200 dark:bg-white/10">
-            <div className="h-2 rounded-full bg-lime-500 transition-[width]" style={{ width: `${progress}%` }}></div>
-          </div>
-        </div>
-      </div>
-
-      {!compact && (
-        <div className="grid gap-5 p-5 lg:grid-cols-[1.1fr_0.9fr]">
-          <section>
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-black text-zinc-950 dark:text-white">بازیکنان حاضر</h3>
-              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                {capacity - playerCount > 0 ? `${capacity - playerCount} جای خالی` : "تکمیل شده"}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-lg bg-lime-500 px-3 py-1.5 text-xs font-black text-zinc-950">
+                  {statusLabel}
+                </span>
+                {locked && (
+                  <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-xs font-black text-amber-600 dark:text-amber-300">
+                    رمزدار
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              {seatItems.map((player, index) =>
-                player ? (
-                  <div key={player.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-sm font-black text-zinc-950">
-                        {getInitial(player.name)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{player.name}</p>
-                        <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">جایگاه {index + 1}</p>
-                      </div>
-                      {player.current && (
-                        <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-600 dark:text-lime-300">
-                          شما
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    key={`empty-seat-${index}`}
-                    className="rounded-lg border border-dashed border-zinc-200 bg-white/70 p-3 dark:border-white/10 dark:bg-zinc-950/30"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-400 dark:border-white/10 dark:bg-white/[0.03]">
-                        <span className="material-symbols-outlined text-base">person_add</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">صندلی آزاد</p>
-                        <p className="mt-1 text-[10px] text-zinc-400">جایگاه {index + 1}</p>
+            <div className="mt-6 grid gap-3 md:grid-cols-3">
+              <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/50">
+                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">کد ورود</p>
+                <p className="mt-2 font-mono text-2xl font-black tracking-wide text-zinc-950 dark:text-white">#{code}</p>
+              </div>
+              <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/50">
+                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">سناریو</p>
+                <p className="mt-2 truncate text-sm font-black text-zinc-950 dark:text-white">{scenarioName}</p>
+              </div>
+              <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/50">
+                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">گرداننده</p>
+                <p className="mt-2 truncate text-sm font-black text-zinc-950 dark:text-white">{moderatorName || "نامشخص"}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/50">
+              <div className="flex items-center justify-between gap-3 text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                <span>ظرفیت لابی</span>
+                <span className="font-black text-zinc-950 dark:text-white">
+                  {capacity ? `${playerCount} / ${capacity}` : `${playerCount} بازیکن`}
+                </span>
+              </div>
+              <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                <div className="h-full rounded-full bg-lime-500 transition-[width]" style={{ width: `${progress}%` }} />
+              </div>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="font-bold text-zinc-500 dark:text-zinc-400">
+                  {seatsLeft === null ? "ظرفیت بعد از انتخاب سناریو مشخص می‌شود" : seatsLeft === 0 ? "لابی تکمیل است" : `${seatsLeft} جای خالی`}
+                </span>
+                <span className="font-black text-lime-700 dark:text-lime-300">{progress}% تکمیل</span>
+              </div>
+            </div>
+          </div>
+
+          {!compact && (
+            <div className="p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="font-black text-zinc-950 dark:text-white">بازیکنان حاضر</h3>
+                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                  {capacity > 0 ? `${playerCount} از ${capacity}` : `${playerCount} نفر`}
+                </span>
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {seatItems.map((player, index) =>
+                  player ? (
+                    <div key={player.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-sm font-black text-zinc-950">
+                          {getInitial(player.name)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{player.name}</p>
+                          <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">جایگاه {index + 1}</p>
+                        </div>
+                        {player.current && (
+                          <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-600 dark:text-lime-300">
+                            شما
+                          </span>
+                        )}
                       </div>
                     </div>
-                  </div>
-                )
-              )}
+                  ) : (
+                    <div
+                      key={`empty-seat-${index}`}
+                      className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/60 p-3 dark:border-white/10 dark:bg-white/[0.02]"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-400 dark:border-white/10 dark:bg-zinc-950">
+                          <span className="material-symbols-outlined text-base">person_add</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">صندلی آزاد</p>
+                          <p className="mt-1 text-[10px] text-zinc-400">جایگاه {index + 1}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
             </div>
-          </section>
+          )}
+        </div>
 
-          <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-black text-zinc-950 dark:text-white">ترکیب سناریو</h3>
-              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                {roleBreakdown.length ? `${roleBreakdown.length} نقش` : "در انتظار انتخاب"}
-              </span>
+        <aside className="flex flex-col bg-white dark:bg-zinc-950/20">
+          <div className="border-b border-zinc-200 p-5 dark:border-white/10">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-black text-zinc-950 dark:text-white">ترکیب سناریو</p>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  {roleBreakdown.length ? `${roleBreakdown.length} نقش تعریف شده` : "در انتظار انتخاب"}
+                </p>
+              </div>
+              <span className="material-symbols-outlined text-zinc-400">account_tree</span>
             </div>
 
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {[
+                ["شهروند", citizenCount, "text-sky-500"],
+                ["مافیا", mafiaCount, "text-red-500"],
+                ["مستقل", neutralCount, "text-amber-500"],
+              ].map(([label, value, color]) => (
+                <div key={label} className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
+                  <p className={`text-sm font-black ${color}`}>{value}</p>
+                  <p className="mt-1 text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="custom-scrollbar flex-1 overflow-y-auto p-5">
             {roleBreakdown.length ? (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                {roleBreakdown.map((role) => (
-                  <div key={role.id || role.name} className="ui-muted p-3">
+              <div className={compact ? "flex flex-wrap gap-2" : "grid gap-2"}>
+                {(compact ? roleBreakdown.slice(0, 5) : roleBreakdown).map((role) => (
+                  <div key={role.id || role.name} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
                     <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-black text-zinc-950 dark:text-white">{role.name}</p>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{role.name}</p>
                         <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
                       </div>
                       <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
@@ -209,42 +237,25 @@ export function LobbyPreviewCard({
                     </div>
                   </div>
                 ))}
+                {compact && roleBreakdown.length > 5 && (
+                  <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                    +{roleBreakdown.length - 5} نقش دیگر
+                  </span>
+                )}
               </div>
             ) : (
-              <div className="flex min-h-48 flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
+              <div className="flex min-h-52 flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
                 <span className="material-symbols-outlined text-3xl text-zinc-400">account_tree</span>
-                <p className="mt-3 text-sm font-black text-zinc-950 dark:text-white">سناریو هنوز انتخاب نشده</p>
-                <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">بعد از انتخاب سناریو، ترکیب نقش‌ها اینجا دیده می‌شود.</p>
+                <p className="mt-3 text-sm font-black text-zinc-950 dark:text-white">سناریو انتخاب نشده</p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">بعد از انتخاب سناریو، نقش‌ها اینجا دیده می‌شوند.</p>
               </div>
             )}
-          </section>
-        </div>
-      )}
-
-      {compact && (
-        <div className="border-t border-zinc-200 p-5 dark:border-white/10">
-          <div className="flex flex-wrap items-center gap-2">
-            {roleBreakdown.length === 0 && (
-              <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
-                سناریو انتخاب نشده
-              </span>
-            )}
-            {roleBreakdown.slice(0, 3).map((role) => (
-              <span key={role.id || role.name} className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
-                {role.name} x{role.count}
-              </span>
-            ))}
-            {roleBreakdown.length > 3 && (
-              <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
-                +{roleBreakdown.length - 3} نقش
-              </span>
-            )}
           </div>
-        </div>
-      )}
 
-      {actionArea && <div className="border-t border-zinc-200 p-5 dark:border-white/10">{actionArea}</div>}
-      {footer && <div className="border-t border-zinc-200 px-5 py-4 dark:border-white/10">{footer}</div>}
+          {actionArea && <div className="border-t border-zinc-200 p-5 dark:border-white/10">{actionArea}</div>}
+          {footer && <div className="border-t border-zinc-200 px-5 py-4 dark:border-white/10">{footer}</div>}
+        </aside>
+      </div>
     </article>
   );
 }
