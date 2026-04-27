@@ -2,6 +2,12 @@ import { auth } from "./auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+function requestUrl(req: NextRequest, path: string) {
+  const proto = req.headers.get("x-forwarded-proto") || req.nextUrl.protocol.replace(":", "") || "http";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  return new URL(path, host ? `${proto}://${host}` : req.url);
+}
+
 // Next.js 16+ Proxy pattern (replaces middleware.ts)
 export default auth((req: NextRequest & { auth: any }) => {
   const { nextUrl } = req;
@@ -26,13 +32,13 @@ export default auth((req: NextRequest & { auth: any }) => {
             ? "/dashboard/moderator"
             : "/dashboard/user";
 
-      return NextResponse.redirect(new URL(target, nextUrl));
+      return NextResponse.redirect(requestUrl(req, target));
     }
     return NextResponse.next();
   }
 
   if (!isLoggedIn && !isPublicRoute) {
-    return NextResponse.redirect(new URL("/auth/login", nextUrl));
+    return NextResponse.redirect(requestUrl(req, "/auth/login"));
   }
 
   return NextResponse.next();

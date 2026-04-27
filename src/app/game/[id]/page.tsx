@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { getGameStatus } from "@/actions/game";
+import { getPlayerGameView } from "@/actions/game";
 import { getPusherClient } from "@/lib/pusher";
 import Link from "next/link";
 import { usePopup } from "@/components/PopupProvider";
@@ -23,20 +23,14 @@ export default function UserGamePage() {
   useEffect(() => {
     if (!gameId || !session?.user?.id) return;
 
-    getGameStatus(gameId).then((res) => {
-      // If game is finished or doesn't exist, player shouldn't be here
+    getPlayerGameView(gameId).then((res) => {
       if (!res || res.status !== "IN_PROGRESS") {
-        router.push("/dashboard/user");
+        router.push(res?.status === "WAITING" ? `/lobby/${gameId}` : "/dashboard/user");
         return;
       }
       
       setGame(res);
-      
-      // Find current user's player record in this game
-      const me = res.players?.find((p: any) => p.userId === session.user?.id);
-      if (me) {
-        setMyPlayerInfo(me);
-      }
+      setMyPlayerInfo(res.myPlayer);
       
       setLoading(false);
     });
@@ -60,7 +54,7 @@ export default function UserGamePage() {
     return () => {
       pusher.unsubscribe(`game-${gameId}`);
     };
-  }, [gameId, session?.user?.id, router]);
+  }, [gameId, session?.user?.id, router, showAlert]);
 
   if (loading) return <div className="p-12 text-center animate-pulse text-zinc-500">در حال دریافت نقش شما...</div>;
 
@@ -69,7 +63,7 @@ export default function UserGamePage() {
       <div className="flex flex-col items-center justify-center min-h-[70vh] gap-4">
         <span className="material-symbols-outlined text-6xl text-zinc-300">error</span>
         <h2 className="text-2xl font-bold">شما در این بازی حضور ندارید!</h2>
-        <Link href="/dashboard/user" className="px-6 py-2 bg-zinc-900 text-white rounded-lg mt-4">بازگشت به پیشخوان</Link>
+        <Link href={`/lobby/${gameId}`} className="px-6 py-2 bg-zinc-900 text-white rounded-lg mt-4">بازگشت به لابی</Link>
       </div>
     );
   }

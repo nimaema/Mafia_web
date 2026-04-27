@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { sendPasswordResetEmail } from "@/lib/email";
 
-const schema = z.object({
-  email: z.string().email("ایمیل معتبر وارد کنید"),
-});
+function getErrorCode(error: unknown): string {
+  if (!error || typeof error !== "object") return "";
+  const record = error as { code?: unknown; cause?: unknown };
+  return String(record.code || getErrorCode(record.cause));
+}
+
+function isValidEmail(value: unknown): value is string {
+  return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
 
 function getBaseUrl(request: Request) {
   const envBaseUrl = process.env.NEXTAUTH_URL || process.env.AUTH_URL;
@@ -28,7 +33,11 @@ function getBaseUrl(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email } = schema.parse(body);
+    const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+
+    if (!isValidEmail(email)) {
+      return NextResponse.json({ error: "ایمیل معتبر وارد کنید" }, { status: 400 });
+    }
 
     const user = await prisma.user.findUnique({ where: { email } });
 
@@ -57,15 +66,7 @@ export async function POST(request: Request) {
         : {}),
     });
   } catch (err) {
-    if (err instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: err.issues[0]?.message || "اطلاعات وارد شده معتبر نیست" },
-        { status: 400 }
-      );
-    }
-
-    const errorCode =
-      typeof err === "object" && err && "code" in err ? String((err as { code?: unknown }).code) : "";
+    const errorCode = getErrorCode(err);
 
     if (errorCode === "P1001" || errorCode === "ECONNREFUSED") {
       return NextResponse.json(

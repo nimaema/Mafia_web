@@ -1,10 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createGame, getModeratorGamesSafe, cancelGame } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
+
+function statusLabel(status: string) {
+  if (status === "WAITING") return "در انتظار";
+  if (status === "IN_PROGRESS") return "در جریان";
+  return "بسته شده";
+}
+
+function scenarioCapacity(game: any) {
+  return game.scenario?.roles?.reduce((sum: number, item: any) => sum + item.count, 0) || 0;
+}
 
 export default function ModeratorDashboard() {
   const router = useRouter();
@@ -16,6 +26,7 @@ export default function ModeratorDashboard() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
 
   useEffect(() => {
     refreshGames();
@@ -37,13 +48,22 @@ export default function ModeratorDashboard() {
   };
 
   const handleCreateGame = async () => {
+    const lobbyName = name.trim();
+    const lobbyPassword = isPrivate ? password.trim() : "";
+
+    if (isPrivate && !lobbyPassword) {
+      showAlert("رمز لابی", "برای لابی خصوصی یک رمز کوتاه وارد کنید.", "error");
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await createGame(name, password);
+      const res = await createGame(lobbyName, lobbyPassword);
       if (res.success) {
         setShowCreateModal(false);
         setName("");
         setPassword("");
+        setIsPrivate(false);
         router.push(`/dashboard/moderator/lobby/${res.gameId}`);
       } else {
         showAlert("خطا", res.error || "خطا در ایجاد بازی", "error");
@@ -51,6 +71,7 @@ export default function ModeratorDashboard() {
       }
     } catch (error) {
       console.error(error);
+      showAlert("خطا", "ایجاد لابی ناموفق بود. اتصال سرور و دیتابیس را بررسی کنید.", "error");
       setLoading(false);
     }
   };
@@ -66,6 +87,7 @@ export default function ModeratorDashboard() {
           showAlert("خطا", res.error || "خطا در لغو بازی", "error");
         }
       } catch (error) {
+        console.error(error);
         showAlert("خطا", "خطای شبکه", "error");
       }
     }, "error");
@@ -74,129 +96,175 @@ export default function ModeratorDashboard() {
   const waitingGames = activeGames.filter((game) => game.status === "WAITING").length;
   const inProgressGames = activeGames.filter((game) => game.status === "IN_PROGRESS").length;
   const protectedGames = activeGames.filter((game) => game.password).length;
+  const totalPlayers = activeGames.reduce((sum, game) => sum + (game._count?.players || 0), 0);
 
   return (
-    <div className="flex flex-col gap-5 font-sans">
-      <section className="ui-card overflow-hidden p-5">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
-        <div className="flex items-center gap-5">
-          <div className="ui-icon-accent size-14">
-            <span className="material-symbols-outlined text-3xl">sports_esports</span>
+    <div className="flex flex-col gap-5 font-sans" dir="rtl">
+      <section className="ui-card overflow-hidden">
+        <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="flex items-start gap-4">
+            <div className="ui-icon-accent size-14">
+              <span className="material-symbols-outlined text-3xl">sports_esports</span>
+            </div>
+            <div>
+              <p className="ui-kicker">مرکز گردانندگی</p>
+              <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">اتاق کنترل بازی‌ها</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                لابی را بسازید، سناریو را داخل اتاق انتظار تنظیم کنید و بازی‌های فعال را بدون شلوغی مدیریت کنید.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button onClick={() => setShowCreateModal(true)} className="ui-button-primary min-h-11 px-5">
+                  <span className="material-symbols-outlined text-xl">add_circle</span>
+                  لابی جدید
+                </button>
+                <button onClick={refreshGames} className="ui-button-secondary min-h-11 px-4" disabled={isRefreshing}>
+                  <span className={`material-symbols-outlined text-xl ${isRefreshing ? "animate-spin" : ""}`}>refresh</span>
+                  بروزرسانی
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <p className="ui-kicker">مرکز گردانندگی</p>
-            <h2 className="mt-1 text-3xl font-black text-slate-900 dark:text-white">مدیریت بازی‌ها</h2>
-            <p className="mt-1 text-sm font-medium text-slate-500 dark:text-zinc-500">لابی‌ها، وضعیت‌ها و ورود به بازی‌های در جریان را از اینجا کنترل کنید.</p>
+
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              ["لابی‌ها", activeGames.length, "dashboard"],
+              ["بازیکن‌ها", totalPlayers, "group"],
+              ["در انتظار", waitingGames, "hourglass_top"],
+              ["در جریان", inProgressGames, "bolt"],
+            ].map(([label, value, icon]) => (
+              <div key={label} className="ui-muted p-3">
+                <span className="material-symbols-outlined text-lg text-lime-600 dark:text-lime-400">{icon}</span>
+                <p className="mt-2 text-xl font-black text-zinc-950 dark:text-white">{value}</p>
+                <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+              </div>
+            ))}
           </div>
-        </div>
-        
-        <button 
-          onClick={() => setShowCreateModal(true)}
-          className="ui-button-primary min-h-12 px-6"
-        >
-          <span className="material-symbols-outlined">add_circle</span>
-          <span>ایجاد لابی جدید</span>
-        </button>
         </div>
       </section>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          ["کل لابی‌ها", activeGames.length, "sports_esports", "text-lime-500"],
-          ["در انتظار", waitingGames, "hourglass_top", "text-amber-500"],
-          ["در جریان", inProgressGames, "bolt", "text-sky-500"],
-          ["دارای رمز", protectedGames, "lock", "text-purple-500"],
-        ].map(([label, value, icon, color]) => (
-          <div key={label} className="ui-card p-4">
-            <span className={`material-symbols-outlined text-xl ${color}`}>{icon}</span>
-            <p className="mt-3 text-2xl font-black text-zinc-950 dark:text-white">{value}</p>
-            <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Create Game Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
-          <div className="bg-white dark:bg-zinc-900 rounded-lg w-full max-w-lg p-10 border border-[#0f172a]/20 dark:border-white/10 shadow-3xl flex flex-col gap-8 animate-in fade-in zoom-in duration-500 relative overflow-hidden">
-             <div className="absolute top-[-20%] right-[-10%] w-40 h-40 bg-lime-500/10 blur-[80px] rounded-full"></div>
-             
-             <div className="flex justify-between items-center relative z-10">
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white">ایجاد بازی جدید</h3>
-                <button onClick={() => setShowCreateModal(false)} className="w-10 h-10 rounded-full bg-[#0f172a]/5 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-zinc-400 hover:text-red-600 dark:text-red-400 transition-colors">
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-             </div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-xl">
+          <div className="ui-card max-h-[92vh] w-full max-w-3xl overflow-hidden">
+            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+              <div>
+                <p className="ui-kicker">راه‌اندازی لابی</p>
+                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">تنظیم بازی جدید</h2>
+                <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                  این مرحله فقط اتاق انتظار را می‌سازد. انتخاب سناریو و شروع بازی در صفحه بعد انجام می‌شود.
+                </p>
+              </div>
+              <button onClick={() => setShowCreateModal(false)} className="ui-button-secondary size-10 p-0">
+                <span className="material-symbols-outlined text-xl">close</span>
+              </button>
+            </div>
 
-             <div className="flex flex-col gap-6 relative z-10">
-                <div className="p-6 rounded-lg bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/5 flex flex-col gap-3">
-                  <p className="text-slate-600 dark:text-zinc-400 leading-relaxed text-sm">شما در حال ایجاد یک لابی متمرکز هستید. پس از ایجاد، یک کد منحصر به فرد به بازی اختصاص می‌یابد که بازیکنان با استفاده از آن می‌توانند وارد شوند.</p>
-                  <ul className="text-xs text-slate-500 dark:text-zinc-500 flex flex-col gap-2 mt-2">
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-lime-500 rounded-full"></span>انتخاب سناریو در داخل لابی</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-lime-500 rounded-full"></span>توزیع نقش هوشمند</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-lime-500 rounded-full"></span>مدیریت وضعیت‌های شب و روز</li>
-                  </ul>
-                </div>
-                
-                <div className="flex flex-col gap-2 relative z-10">
-                  <label className="text-sm text-slate-600 dark:text-zinc-400 font-bold px-1">نام لابی (اختیاری)</label>
+            <div className="custom-scrollbar grid max-h-[72vh] gap-5 overflow-y-auto p-5 lg:grid-cols-[minmax(0,1fr)_260px]">
+              <div className="space-y-4">
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نام لابی</span>
                   <input
                     type="text"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="مثلا: مافیای جمعه شب"
-                    className="w-full bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-lg py-3 px-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors text-slate-900 dark:text-white"
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder="مثلا: بازی جمعه شب"
                   />
+                </label>
+
+                <div className="rounded-lg border border-zinc-200 p-3 dark:border-white/10">
+                  <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">نوع ورود</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsPrivate(false)}
+                      className={`rounded-lg border p-4 text-right transition-all ${
+                        !isPrivate
+                          ? "border-lime-500/40 bg-lime-500/10 text-zinc-950 dark:text-white"
+                          : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-xl">lock_open</span>
+                      <span className="mt-2 block text-sm font-black">باز</span>
+                      <span className="mt-1 block text-xs leading-5">بازیکن‌ها فقط با کد وارد می‌شوند.</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsPrivate(true)}
+                      className={`rounded-lg border p-4 text-right transition-all ${
+                        isPrivate
+                          ? "border-amber-500/40 bg-amber-500/10 text-zinc-950 dark:text-white"
+                          : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-xl">lock</span>
+                      <span className="mt-2 block text-sm font-black">خصوصی</span>
+                      <span className="mt-1 block text-xs leading-5">کد بازی همراه رمز لازم است.</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex flex-col gap-2 relative z-10">
-                  <label className="text-sm text-slate-600 dark:text-zinc-400 font-bold px-1">رمز عبور اختصاصی (اختیاری)</label>
-                  <input
-                    type="text"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="در صورت خالی بودن، ورود بدون رمز خواهد بود"
-                    className="w-full bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-lg py-3 px-4 focus:border-lime-500 focus:ring-1 focus:ring-lime-500 outline-none transition-colors text-slate-900 dark:text-white"
-                  />
+                {isPrivate && (
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">رمز ورود</span>
+                    <input
+                      type="text"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder="یک رمز کوتاه برای بازیکنان"
+                      dir="ltr"
+                    />
+                  </label>
+                )}
+              </div>
+
+              <aside className="ui-muted h-fit p-4">
+                <p className="font-black text-zinc-950 dark:text-white">بعد از ساخت</p>
+                <div className="mt-4 space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+                  {[
+                    ["tag", "کد ورود خودکار ساخته می‌شود."],
+                    ["account_tree", "سناریو را با توجه به تعداد بازیکنان انتخاب می‌کنید."],
+                    ["groups", "فهرست بازیکنان زنده بروزرسانی می‌شود."],
+                  ].map(([icon, text]) => (
+                    <div key={text} className="flex gap-2">
+                      <span className="material-symbols-outlined text-lg text-lime-600 dark:text-lime-400">{icon}</span>
+                      <span className="leading-6">{text}</span>
+                    </div>
+                  ))}
                 </div>
-                
-                <button 
-                  onClick={handleCreateGame}
-                  disabled={loading}
-                  className="bg-lime-500 text-zinc-950 py-5 rounded-lg font-black text-lg flex items-center justify-center gap-3 hover:bg-lime-400 transition-all shadow-[0_0_40px_rgba(132,204,22,0.3)] disabled:opacity-50"
-                >
-                  {loading ? (
-                    <span className="material-symbols-outlined animate-spin">refresh</span>
-                  ) : (
-                    <span className="material-symbols-outlined font-black">bolt</span>
-                  )}
-                  <span>تولید کد و شروع لابی</span>
+                <button onClick={handleCreateGame} disabled={loading} className="ui-button-primary mt-5 min-h-12 w-full">
+                  <span className={`material-symbols-outlined text-xl ${loading ? "animate-spin" : ""}`}>
+                    {loading ? "refresh" : "bolt"}
+                  </span>
+                  ساخت و ورود به لابی
                 </button>
-             </div>
+              </aside>
+            </div>
           </div>
         </div>
       )}
 
-      <section className="ui-card overflow-hidden flex flex-col">
-        <div className="p-8 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-[#0f172a]/5 dark:bg-black/20">
-          <div className="flex flex-col">
-            <h3 className="font-black text-slate-900 dark:text-white text-lg">لیست بازی‌های فعال</h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-500">مشاهده و مدیریت لابی‌های در جریان شما</p>
+      <section className="ui-card overflow-hidden">
+        <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-black text-zinc-950 dark:text-white">لابی‌های فعال</p>
+            <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">
+              {protectedGames > 0 ? `${protectedGames} لابی خصوصی` : "همه لابی‌ها باز هستند"}
+            </p>
           </div>
-          <button onClick={refreshGames} className="ui-button-secondary size-12 p-0" disabled={isRefreshing}>
-            <span className={`material-symbols-outlined ${isRefreshing ? "animate-spin" : ""}`}>refresh</span>
+          <button onClick={() => setShowCreateModal(true)} className="ui-button-secondary min-h-10 px-3 text-xs">
+            <span className="material-symbols-outlined text-lg">add</span>
+            ساخت لابی
           </button>
         </div>
-        
-        <div className="p-8">
+
+        <div className="p-5">
           {errorMessage ? (
-            <div className="flex flex-col items-center gap-5 py-20 text-center">
-              <div className="ui-icon size-20 text-red-500">
-                <span className="material-symbols-outlined text-4xl">cloud_off</span>
+            <div className="flex min-h-[360px] flex-col items-center justify-center gap-5 text-center">
+              <div className="ui-icon size-16 text-red-500">
+                <span className="material-symbols-outlined text-3xl">cloud_off</span>
               </div>
-              <div className="flex flex-col gap-2">
-                <p className="text-xl font-black text-slate-800 dark:text-white">بارگذاری لابی‌ها ناموفق بود</p>
-                <p className="max-w-md text-sm leading-6 text-slate-500 dark:text-zinc-400">{errorMessage}</p>
+              <div>
+                <p className="text-xl font-black text-zinc-950 dark:text-white">بارگذاری لابی‌ها ناموفق بود</p>
+                <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500 dark:text-zinc-400">{errorMessage}</p>
               </div>
               <button onClick={refreshGames} className="ui-button-primary">
                 <span className="material-symbols-outlined text-xl">refresh</span>
@@ -204,78 +272,82 @@ export default function ModeratorDashboard() {
               </button>
             </div>
           ) : activeGames.length === 0 ? (
-            <div className="text-center py-20 flex flex-col items-center gap-6">
-              <div className="ui-icon size-24">
-                <span className="material-symbols-outlined text-6xl text-zinc-400">videogame_asset_off</span>
+            <div className="flex min-h-[360px] flex-col items-center justify-center gap-5 text-center">
+              <div className="ui-icon size-20">
+                <span className="material-symbols-outlined text-4xl text-zinc-400">videogame_asset_off</span>
               </div>
-              <div className="flex flex-col gap-2">
-                <p className="text-xl font-black text-slate-700 dark:text-zinc-200">هیچ بازی در جریان نیست</p>
-                <p className="text-sm text-slate-400 dark:text-zinc-500">اولین لابی را بسازید تا بازیکن‌ها با کد بازی وارد شوند.</p>
+              <div>
+                <p className="text-xl font-black text-zinc-950 dark:text-white">هنوز لابی فعالی ندارید</p>
+                <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">یک لابی بسازید تا کد ورود و صفحه انتظار آماده شود.</p>
               </div>
-              <button onClick={() => setShowCreateModal(true)} className="ui-button-primary">ایجاد اولین بازی</button>
+              <button onClick={() => setShowCreateModal(true)} className="ui-button-primary">ایجاد اولین لابی</button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-              {activeGames.map((game) => (
-                <div 
-                  key={game.id}
-                  className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/5 p-8 rounded-lg flex flex-col gap-6 hover:border-lime-500/30 transition-all group relative overflow-hidden shadow-lg"
-                >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-lime-500/5 blur-[50px] pointer-events-none"></div>
-                  
-                  <div className="flex justify-between items-start relative z-10">
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center gap-3">
-                        <span className="font-black text-2xl text-slate-900 dark:text-white">{game.name}</span>
-                        <span className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-zinc-500 font-mono">#{game.code}</span>
-                        <span className={`text-[10px] px-3 py-1 rounded-full font-black uppercase ${
-                          game.status === 'WAITING' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-lime-500/10 text-lime-400 border border-lime-500/20'
-                        }`}>
-                          {game.status === 'WAITING' ? 'در انتظار' : 'در جریان'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-zinc-500">
-                        <div className="flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-sm">account_tree</span>
-                          <span className="font-medium text-slate-600 dark:text-zinc-400">{game.scenario?.name || 'سناریو نامشخص'}</span>
+            <div className="grid gap-4 xl:grid-cols-2">
+              {activeGames.map((game) => {
+                const capacity = scenarioCapacity(game);
+                const players = game._count?.players || 0;
+                const progress = capacity > 0 ? Math.min(100, Math.round((players / capacity) * 100)) : 0;
+
+                return (
+                  <article key={game.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2 className="truncate text-lg font-black text-zinc-950 dark:text-white">{game.name}</h2>
+                          <span className="rounded-lg bg-zinc-900 px-2 py-1 font-mono text-[10px] font-black text-white dark:bg-white dark:text-zinc-950">
+                            #{game.code}
+                          </span>
                         </div>
-                        {game.password && (
-                          <div className="flex items-center gap-1.5 text-amber-500">
-                            <span className="material-symbols-outlined text-sm">lock</span>
-                          </div>
-                        )}
+                        <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-black">
+                          <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-lime-700 dark:text-lime-300">
+                            {statusLabel(game.status)}
+                          </span>
+                          <span className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
+                            {game.scenario?.name || "سناریو تعیین نشده"}
+                          </span>
+                          {game.password && (
+                            <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-amber-600 dark:text-amber-300">
+                              خصوصی
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="ui-muted shrink-0 px-3 py-2 text-center">
+                        <p className="text-lg font-black text-zinc-950 dark:text-white">{players}</p>
+                        <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">بازیکن</p>
                       </div>
                     </div>
-                    
-                    <div className="flex flex-col items-end">
-                       <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 px-4 py-2 rounded-lg border border-slate-200 dark:border-white/5">
-                          <span className="material-symbols-outlined text-lime-500 text-lg">group</span>
-                          <span className="text-xl font-black text-slate-900 dark:text-white">{game._count.players}</span>
-                          <span className="text-xs text-slate-400 dark:text-zinc-600">/ {game.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0) || '?'}</span>
-                       </div>
+
+                    <div className="mt-4">
+                      <div className="mb-2 flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                        <span>ظرفیت سناریو</span>
+                        <span>{capacity ? `${players} / ${capacity}` : "بعد از انتخاب سناریو"}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-zinc-200 dark:bg-white/10">
+                        <div className="h-2 rounded-full bg-lime-500 transition-[width]" style={{ width: `${progress}%` }}></div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-
-                  <div className="flex gap-4 relative z-10">
-                    <button
-                      onClick={() => handleCancelGame(game.id)}
-                      className="flex-[0.3] bg-red-500/10 hover:bg-red-500 text-red-600 dark:text-red-400 hover:text-slate-900 dark:text-white py-4 rounded-lg text-center font-black text-sm transition-all flex items-center justify-center border border-red-500/20 hover:border-red-500"
-                      title="لغو لابی"
-                    >
-                      <span className="material-symbols-outlined text-xl">delete</span>
-                    </button>
-                    <Link 
-                      href={game.status === 'WAITING' ? `/dashboard/moderator/lobby/${game.id}` : `/dashboard/moderator/game/${game.id}`}
-                      className="flex-1 bg-[#0f172a]/5 dark:bg-white/5 hover:bg-lime-500 text-slate-900 dark:text-white hover:text-zinc-950 py-4 rounded-lg text-center font-black text-sm transition-all flex items-center justify-center gap-3 group border border-slate-200 dark:border-white/5 hover:border-lime-500/50"
-                    >
-                      <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">login</span>
-                      <span>ورود به مدیریت بازی</span>
-                    </Link>
-                  </div>
-                </div>
-              ))}
+                    <div className="mt-4 grid grid-cols-[44px_minmax(0,1fr)] gap-2">
+                      <button
+                        onClick={() => handleCancelGame(game.id)}
+                        className="ui-button-danger min-h-11 px-0"
+                        title="لغو لابی"
+                      >
+                        <span className="material-symbols-outlined text-lg">delete</span>
+                      </button>
+                      <Link
+                        href={game.status === "WAITING" ? `/dashboard/moderator/lobby/${game.id}` : `/dashboard/moderator/game/${game.id}`}
+                        className="ui-button-primary min-h-11"
+                      >
+                        <span className="material-symbols-outlined text-xl">login</span>
+                        ورود به مدیریت
+                      </Link>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>

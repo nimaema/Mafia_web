@@ -33,6 +33,18 @@ function getInitial(name?: string | null, email?: string | null) {
   return source.slice(0, 1).toUpperCase();
 }
 
+function roleLabel(role: Role) {
+  if (role === "ADMIN") return "مدیر";
+  if (role === "MODERATOR") return "گرداننده";
+  return "بازیکن";
+}
+
+function roleClass(role: Role) {
+  if (role === "ADMIN") return "border-purple-500/20 bg-purple-500/10 text-purple-600 dark:text-purple-300";
+  if (role === "MODERATOR") return "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-300";
+  return "border-zinc-500/20 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300";
+}
+
 export function UserManagementPanel() {
   const { data: session, status } = useSession();
   const { showAlert, showConfirm, showToast } = usePopup();
@@ -44,6 +56,7 @@ export function UserManagementPanel() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [sortMode, setSortMode] = useState<SortMode>("ROLE");
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const deferredSearch = useDeferredValue(search);
   const currentUserId = session?.user?.id;
@@ -121,6 +134,7 @@ export function UserManagementPanel() {
     passwordUsers: users.filter((user) => user.password_hash).length,
     googleUsers: users.filter((user) => user.accounts.some((account) => account.provider === "google")).length,
   };
+  const selectedUser = filteredUsers.find((user) => user.id === selectedUserId) || filteredUsers[0] || null;
 
   const handleRoleChange = async (userId: string, nextRole: Role) => {
     if (userId === currentUserId && nextRole !== "ADMIN") {
@@ -200,87 +214,36 @@ export function UserManagementPanel() {
             </div>
             <div>
               <p className="ui-kicker">مدیریت کاربران</p>
-              <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">کنترل دسترسی و وضعیت کاربران</h1>
-              <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                جستجو، فیلتر، تغییر نقش، مسدودسازی و بررسی روش ورود کاربران از یک نمای جداگانه.
+              <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">کاربران و دسترسی‌ها</h1>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                فهرست کاربران در سمت راست می‌ماند و جزئیات مدیریتی فقط برای کاربر انتخاب‌شده باز می‌شود.
               </p>
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
-            <div className="sm:col-span-2 flex flex-wrap gap-2">
-              <Link href="/dashboard/admin?tab=roles" className="ui-button-secondary min-h-10 px-3 text-xs">
-                <span className="material-symbols-outlined text-base">theater_comedy</span>
-                نقش‌ها
-              </Link>
-              <Link href="/dashboard/admin?tab=scenarios" className="ui-button-secondary min-h-10 px-3 text-xs">
-                <span className="material-symbols-outlined text-base">account_tree</span>
-                سناریوها
-              </Link>
-            </div>
-
-            <label className="flex min-h-11 items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 text-sm dark:border-white/10 dark:bg-zinc-950/40">
-              <span className="material-symbols-outlined text-zinc-400">search</span>
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="جستجو بر اساس نام یا ایمیل"
-                className="w-full border-0 bg-transparent p-0 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-white"
-              />
-            </label>
-
-            <select
-              value={roleFilter}
-              onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}
-              className="min-h-11 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-700 dark:border-white/10 dark:bg-zinc-950/40 dark:text-zinc-100"
-            >
-              <option value="ALL">همه نقش‌ها</option>
-              <option value="ADMIN">مدیر</option>
-              <option value="MODERATOR">گرداننده</option>
-              <option value="USER">بازیکن</option>
-            </select>
-
-            <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
-              className="min-h-11 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-700 dark:border-white/10 dark:bg-zinc-950/40 dark:text-zinc-100"
-            >
-              <option value="ALL">همه وضعیت‌ها</option>
-              <option value="ACTIVE">فعال</option>
-              <option value="BANNED">مسدود</option>
-              <option value="VERIFIED">ایمیل تایید شده</option>
-              <option value="UNVERIFIED">ایمیل تایید نشده</option>
-              <option value="PASSWORD">رمزدار</option>
-              <option value="GOOGLE">گوگل</option>
-            </select>
-
-            <select
-              value={sortMode}
-              onChange={(event) => setSortMode(event.target.value as SortMode)}
-              className="min-h-11 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-700 dark:border-white/10 dark:bg-zinc-950/40 dark:text-zinc-100"
-            >
-              <option value="ROLE">مرتب‌سازی: نقش</option>
-              <option value="EMAIL">مرتب‌سازی: ایمیل</option>
-              <option value="PLAYED">مرتب‌سازی: بیشترین بازی</option>
-              <option value="HOSTED">مرتب‌سازی: بیشترین لابی</option>
-            </select>
-
-            <button onClick={refreshUsers} className="ui-button-secondary min-h-11">
-              <span className="material-symbols-outlined text-xl">refresh</span>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/dashboard/admin?tab=roles" className="ui-button-secondary min-h-10 px-3 text-xs">
+              <span className="material-symbols-outlined text-base">theater_comedy</span>
+              نقش‌ها
+            </Link>
+            <Link href="/dashboard/admin?tab=scenarios" className="ui-button-secondary min-h-10 px-3 text-xs">
+              <span className="material-symbols-outlined text-base">account_tree</span>
+              سناریوها
+            </Link>
+            <button onClick={refreshUsers} className="ui-button-primary min-h-10 px-3 text-xs">
+              <span className="material-symbols-outlined text-base">refresh</span>
               بروزرسانی
             </button>
           </div>
         </div>
       </header>
 
-      <section className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {[
           ["کل کاربران", counts.total, "group", "text-lime-500"],
-          ["مدیران", counts.admins, "admin_panel_settings", "text-purple-500"],
-          ["گرداننده‌ها", counts.moderators, "sports_esports", "text-sky-500"],
-          ["مسدود", counts.banned, "block", "text-red-500"],
-          ["ورود با رمز", counts.passwordUsers, "password", "text-amber-500"],
-          ["ورود با گوگل", counts.googleUsers, "alternate_email", "text-emerald-500"],
+          ["مدیر و گرداننده", counts.admins + counts.moderators, "admin_panel_settings", "text-sky-500"],
+          ["فعال", counts.total - counts.banned, "verified", "text-emerald-500"],
+          ["نیازمند بررسی", counts.banned + users.filter((user) => user._count.passwordResetTokens > 0).length, "privacy_tip", "text-amber-500"],
         ].map(([label, value, icon, color]) => (
           <div key={label} className="ui-card p-4">
             <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
@@ -290,148 +253,262 @@ export function UserManagementPanel() {
         ))}
       </section>
 
-      <main className="ui-card relative min-h-[420px] overflow-hidden p-5">
-        {loading ? (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white/90 backdrop-blur-sm dark:bg-zinc-900/90">
-            <div className="size-10 animate-spin rounded-full border-4 border-zinc-200 border-t-lime-500 dark:border-zinc-800"></div>
-            <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">در حال بارگذاری اطلاعات کاربران...</p>
-          </div>
-        ) : errorMessage ? (
-          <div className="flex min-h-[380px] flex-col items-center justify-center gap-5 text-center">
-            <div className="ui-icon size-16 text-red-500">
-              <span className="material-symbols-outlined text-3xl">cloud_off</span>
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-zinc-950 dark:text-white">بارگذاری کاربران ناموفق بود</h2>
-              <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500 dark:text-zinc-400">{errorMessage}</p>
-            </div>
-            <button onClick={refreshUsers} className="ui-button-primary">
-              <span className="material-symbols-outlined text-xl">refresh</span>
-              تلاش دوباره
-            </button>
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="flex min-h-[380px] flex-col items-center justify-center gap-4 text-center">
-            <div className="ui-icon size-16">
-              <span className="material-symbols-outlined text-3xl text-zinc-400">person_search</span>
-            </div>
-            <div>
-              <p className="font-black text-zinc-950 dark:text-white">کاربری با این فیلتر پیدا نشد</p>
-              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">جستجو یا فیلترها را تغییر دهید.</p>
-            </div>
-          </div>
-        ) : (
-          <div className="grid gap-4 xl:grid-cols-2">
-            {filteredUsers.map((user) => {
-              const isBusy = busyUserId === user.id;
-              const isCurrentUser = user.id === currentUserId;
-              const hasGoogle = user.accounts.some((account) => account.provider === "google");
-              const hasPassword = Boolean(user.password_hash);
+      <section className="ui-card p-3">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_160px_170px_190px]">
+          <label className="flex min-h-11 items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 text-sm dark:border-white/10 dark:bg-zinc-950/40">
+            <span className="material-symbols-outlined text-zinc-400">search</span>
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="جستجو بر اساس نام یا ایمیل"
+              className="w-full border-0 bg-transparent p-0 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-white"
+            />
+          </label>
 
-              return (
-                <article key={user.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 transition-colors hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.05]">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-start gap-3">
-                        <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white text-sm font-black text-zinc-700 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-200">
-                          {user.image ? (
-                            <img src={user.image} alt="" className="size-full object-cover" />
-                          ) : (
-                            getInitial(user.name, user.email)
-                          )}
+          <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}>
+            <option value="ALL">همه نقش‌ها</option>
+            <option value="ADMIN">مدیر</option>
+            <option value="MODERATOR">گرداننده</option>
+            <option value="USER">بازیکن</option>
+          </select>
+
+          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}>
+            <option value="ALL">همه وضعیت‌ها</option>
+            <option value="ACTIVE">فعال</option>
+            <option value="BANNED">مسدود</option>
+            <option value="PASSWORD">رمزدار</option>
+            <option value="GOOGLE">گوگل</option>
+            <option value="VERIFIED">ایمیل تایید شده</option>
+            <option value="UNVERIFIED">ایمیل تایید نشده</option>
+          </select>
+
+          <select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
+            <option value="ROLE">مرتب‌سازی: نقش</option>
+            <option value="EMAIL">مرتب‌سازی: ایمیل</option>
+            <option value="PLAYED">مرتب‌سازی: بیشترین بازی</option>
+            <option value="HOSTED">مرتب‌سازی: بیشترین لابی</option>
+          </select>
+        </div>
+      </section>
+
+      <main className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
+        <section className="ui-card relative min-h-[520px] overflow-hidden">
+          <div className="flex items-center justify-between border-b border-zinc-200 p-5 dark:border-white/10">
+            <div>
+              <p className="font-black text-zinc-950 dark:text-white">فهرست کاربران</p>
+              <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                {filteredUsers.length} نتیجه از {users.length} کاربر
+              </p>
+            </div>
+            <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+              انتخاب برای جزئیات
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white/90 backdrop-blur-sm dark:bg-zinc-900/90">
+              <div className="size-10 animate-spin rounded-full border-4 border-zinc-200 border-t-lime-500 dark:border-zinc-800"></div>
+              <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">در حال بارگذاری اطلاعات کاربران...</p>
+            </div>
+          ) : errorMessage ? (
+            <div className="flex min-h-[420px] flex-col items-center justify-center gap-5 p-6 text-center">
+              <div className="ui-icon size-16 text-red-500">
+                <span className="material-symbols-outlined text-3xl">cloud_off</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-zinc-950 dark:text-white">بارگذاری کاربران ناموفق بود</h2>
+                <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500 dark:text-zinc-400">{errorMessage}</p>
+              </div>
+              <button onClick={refreshUsers} className="ui-button-primary">
+                <span className="material-symbols-outlined text-xl">refresh</span>
+                تلاش دوباره
+              </button>
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 p-6 text-center">
+              <div className="ui-icon size-16">
+                <span className="material-symbols-outlined text-3xl text-zinc-400">person_search</span>
+              </div>
+              <div>
+                <p className="font-black text-zinc-950 dark:text-white">کاربری با این فیلتر پیدا نشد</p>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">جستجو یا فیلترها را تغییر دهید.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="custom-scrollbar max-h-[680px] overflow-y-auto p-3">
+              <div className="space-y-2">
+                {filteredUsers.map((user) => {
+                  const hasGoogle = user.accounts.some((account) => account.provider === "google");
+                  const hasPassword = Boolean(user.password_hash);
+                  const isSelected = selectedUser?.id === user.id;
+
+                  return (
+                    <button
+                      key={user.id}
+                      onClick={() => setSelectedUserId(user.id)}
+                      className={`w-full rounded-lg border p-3 text-right transition-all ${
+                        isSelected
+                          ? "border-lime-500/40 bg-lime-500/10"
+                          : "border-zinc-200 bg-zinc-50 hover:border-lime-500/25 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white text-sm font-black text-zinc-700 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-200">
+                            {user.image ? (
+                              <img src={user.image} alt="" className="size-full object-cover" />
+                            ) : (
+                              getInitial(user.name, user.email)
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-black text-zinc-950 dark:text-white">{user.name || "بدون نام"}</p>
+                            <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400" dir="ltr">{user.email || "بدون ایمیل"}</p>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${roleClass(user.role)}`}>
+                                {roleLabel(user.role)}
+                              </span>
+                              {user.isBanned && (
+                                <span className="rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[10px] font-black text-red-500">
+                                  مسدود
+                                </span>
+                              )}
+                              {user._count.passwordResetTokens > 0 && (
+                                <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-500">
+                                  بازیابی فعال
+                                </span>
+                              )}
+                              <span className="rounded-lg border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
+                                {[hasPassword ? "رمز" : null, hasGoogle ? "گوگل" : null].filter(Boolean).join(" + ") || "نامشخص"}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="truncate font-black text-zinc-950 dark:text-white">{user.name || "بدون نام"}</p>
-                          <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400" dir="ltr">{user.email}</p>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${
-                              user.role === "ADMIN"
-                                ? "border-purple-500/20 bg-purple-500/10 text-purple-500"
-                                : user.role === "MODERATOR"
-                                  ? "border-sky-500/20 bg-sky-500/10 text-sky-500"
-                                  : "border-zinc-500/20 bg-zinc-500/10 text-zinc-500"
-                            }`}>
-                              {user.role}
-                            </span>
-                            {user.isBanned && (
-                              <span className="rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[10px] font-black text-red-500">
-                                مسدود
-                              </span>
-                            )}
-                            {user._count.passwordResetTokens > 0 && (
-                              <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[10px] font-black text-amber-500">
-                                بازیابی فعال
-                              </span>
-                            )}
-                            {isCurrentUser && (
-                              <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-[10px] font-black text-lime-600 dark:text-lime-400">
-                                شما
-                              </span>
-                            )}
+                        <div className="hidden shrink-0 grid-cols-2 gap-2 text-center sm:grid">
+                          <div className="ui-muted min-w-20 p-2">
+                            <p className="text-base font-black text-zinc-950 dark:text-white">{user._count.gameHistories}</p>
+                            <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">بازی</p>
+                          </div>
+                          <div className="ui-muted min-w-20 p-2">
+                            <p className="text-base font-black text-zinc-950 dark:text-white">{user._count.gamesHosted}</p>
+                            <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">لابی</p>
                           </div>
                         </div>
                       </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </section>
 
-                      <select
-                        value={user.role}
-                        onChange={(event) => handleRoleChange(user.id, event.target.value as Role)}
-                        disabled={isBusy || isCurrentUser}
-                        className="min-h-10 rounded-lg border border-zinc-200 bg-white px-3 text-xs font-black text-zinc-700 disabled:opacity-60 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100"
-                      >
-                        <option value="USER">بازیکن</option>
-                        <option value="MODERATOR">گرداننده</option>
-                        <option value="ADMIN">مدیر</option>
-                      </select>
-                    </div>
-
-                    <div className="grid gap-3 sm:grid-cols-4">
-                      <div className="ui-muted p-3">
-                        <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">بازی‌های انجام‌شده</p>
-                        <p className="mt-2 text-lg font-black text-zinc-950 dark:text-white">{user._count.gameHistories}</p>
-                      </div>
-                      <div className="ui-muted p-3">
-                        <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">لابی‌های گردانده</p>
-                        <p className="mt-2 text-lg font-black text-zinc-950 dark:text-white">{user._count.gamesHosted}</p>
-                      </div>
-                      <div className="ui-muted p-3">
-                        <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">روش ورود</p>
-                        <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">
-                          {[hasPassword ? "رمز" : null, hasGoogle ? "گوگل" : null].filter(Boolean).join(" + ") || "نامشخص"}
-                        </p>
-                      </div>
-                      <div className="ui-muted p-3">
-                        <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">ایمیل</p>
-                        <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">
-                          {user.emailVerified ? "تایید شده" : "تایید نشده"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => handleBanToggle(user)}
-                        disabled={isBusy || isCurrentUser}
-                        className={user.isBanned ? "ui-button-secondary min-h-9 px-3 py-2 text-xs text-emerald-600 dark:text-emerald-400" : "ui-button-danger min-h-9 px-3 py-2 text-xs"}
-                      >
-                        <span className="material-symbols-outlined text-base">{user.isBanned ? "lock_open" : "block"}</span>
-                        {user.isBanned ? "رفع مسدودیت" : "مسدودسازی"}
-                      </button>
-
-                      <button
-                        onClick={() => handleDelete(user)}
-                        disabled={isBusy || isCurrentUser}
-                        className="ui-button-danger min-h-9 px-3 py-2 text-xs"
-                      >
-                        <span className="material-symbols-outlined text-base">delete</span>
-                        حذف کامل
-                      </button>
-                    </div>
+        <aside className="ui-card h-fit overflow-hidden xl:sticky xl:top-6">
+          {selectedUser ? (
+            <div>
+              <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="flex items-start gap-4">
+                  <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white text-xl font-black text-zinc-700 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-200">
+                    {selectedUser.image ? (
+                      <img src={selectedUser.image} alt="" className="size-full object-cover" />
+                    ) : (
+                      getInitial(selectedUser.name, selectedUser.email)
+                    )}
                   </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
+                  <div className="min-w-0">
+                    <p className="ui-kicker">پرونده کاربر</p>
+                    <h2 className="mt-1 truncate text-xl font-black text-zinc-950 dark:text-white">{selectedUser.name || "بدون نام"}</h2>
+                    <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400" dir="ltr">{selectedUser.email || "بدون ایمیل"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 p-5">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="ui-muted p-3">
+                    <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">بازی‌ها</p>
+                    <p className="mt-2 text-lg font-black text-zinc-950 dark:text-white">{selectedUser._count.gameHistories}</p>
+                  </div>
+                  <div className="ui-muted p-3">
+                    <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">لابی‌ها</p>
+                    <p className="mt-2 text-lg font-black text-zinc-950 dark:text-white">{selectedUser._count.gamesHosted}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-zinc-200 p-4 dark:border-white/10">
+                  <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">سطح دسترسی</label>
+                  <select
+                    value={selectedUser.role}
+                    onChange={(event) => handleRoleChange(selectedUser.id, event.target.value as Role)}
+                    disabled={busyUserId === selectedUser.id || selectedUser.id === currentUserId}
+                    className="mt-2 w-full"
+                  >
+                    <option value="USER">بازیکن</option>
+                    <option value="MODERATOR">گرداننده</option>
+                    <option value="ADMIN">مدیر</option>
+                  </select>
+                  {selectedUser.id === currentUserId && (
+                    <p className="mt-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                      برای جلوگیری از قفل شدن حساب، سطح دسترسی خودتان از اینجا تغییر نمی‌کند.
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm dark:border-white/10">
+                    <span className="font-bold text-zinc-500 dark:text-zinc-400">وضعیت حساب</span>
+                    <span className={selectedUser.isBanned ? "font-black text-red-500" : "font-black text-emerald-500"}>
+                      {selectedUser.isBanned ? "مسدود" : "فعال"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm dark:border-white/10">
+                    <span className="font-bold text-zinc-500 dark:text-zinc-400">ورود با رمز</span>
+                    <span className="font-black text-zinc-950 dark:text-white">{selectedUser.password_hash ? "فعال" : "ندارد"}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm dark:border-white/10">
+                    <span className="font-bold text-zinc-500 dark:text-zinc-400">ورود با گوگل</span>
+                    <span className="font-black text-zinc-950 dark:text-white">
+                      {selectedUser.accounts.some((account) => account.provider === "google") ? "متصل" : "متصل نیست"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm dark:border-white/10">
+                    <span className="font-bold text-zinc-500 dark:text-zinc-400">بازیابی رمز</span>
+                    <span className="font-black text-zinc-950 dark:text-white">{selectedUser._count.passwordResetTokens}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 border-t border-zinc-200 pt-4 dark:border-white/10">
+                  <button
+                    onClick={() => handleBanToggle(selectedUser)}
+                    disabled={busyUserId === selectedUser.id || selectedUser.id === currentUserId}
+                    className={selectedUser.isBanned ? "ui-button-secondary w-full text-emerald-600 dark:text-emerald-400" : "ui-button-danger w-full"}
+                  >
+                    <span className="material-symbols-outlined text-lg">{selectedUser.isBanned ? "lock_open" : "block"}</span>
+                    {selectedUser.isBanned ? "رفع مسدودیت" : "مسدودسازی کاربر"}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(selectedUser)}
+                    disabled={busyUserId === selectedUser.id || selectedUser.id === currentUserId}
+                    className="ui-button-danger w-full"
+                  >
+                    <span className="material-symbols-outlined text-lg">delete</span>
+                    حذف کامل کاربر
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex min-h-96 flex-col items-center justify-center gap-4 p-8 text-center">
+              <div className="ui-icon size-16">
+                <span className="material-symbols-outlined text-3xl text-zinc-400">manage_search</span>
+              </div>
+              <div>
+                <p className="font-black text-zinc-950 dark:text-white">کاربری انتخاب نشده</p>
+                <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">از فهرست سمت راست یک کاربر را انتخاب کنید.</p>
+              </div>
+            </div>
+          )}
+        </aside>
       </main>
     </div>
   );

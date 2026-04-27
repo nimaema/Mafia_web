@@ -32,7 +32,7 @@ export default function UserLobbyPage() {
 
     getGameStatus(gameId).then((result) => {
       if (!result) {
-        router.push("/dashboard/user");
+        router.push("/join");
         return;
       }
 
@@ -73,10 +73,16 @@ export default function UserLobbyPage() {
   }, [gameId, router, session?.user?.id]);
 
   const handleJoin = async () => {
-    if (!session?.user?.name || !game?.code) return;
+    const playerName = (session?.user?.name || session?.user?.email || "").trim();
+
+    if (!game?.code) return;
+    if (!playerName) {
+      showAlert("نام بازیکن", "برای پیوستن به بازی ابتدا نام حساب خود را تکمیل کنید.", "error");
+      return;
+    }
 
     setLoading(true);
-    const result = await joinGame(game.code, session.user.name, joinPassword, session.user.id);
+    const result = await joinGame(game.code, playerName, joinPassword);
 
     if (result.success) {
       setJoined(true);
@@ -87,8 +93,8 @@ export default function UserLobbyPage() {
               ...previous,
               {
                 id: result.playerId,
-                name: session.user?.name || "شما",
-                userId: session.user?.id,
+                name: playerName,
+                userId: session?.user?.id,
               },
             ]
       );

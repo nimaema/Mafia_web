@@ -15,12 +15,17 @@ async function checkModerator() {
   return session.user.id;
 }
 
-export async function joinGame(code: string, playerName: string, password?: string, userId?: string) {
+export async function joinGame(code: string, playerName: string, password?: string) {
   if (!code || !playerName) {
     return { error: "فیلدهای اجباری ناقص است" };
   }
 
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { error: "برای پیوستن به بازی ابتدا وارد حساب خود شوید یا ثبت‌نام کنید." };
+    }
+
     const game = await prisma.game.findUnique({
       where: { code: code },
     });
@@ -37,25 +42,18 @@ export async function joinGame(code: string, playerName: string, password?: stri
       return { error: "رمز عبور اشتباه است" };
     }
 
-    // If userId is provided, ensure we use the latest name from the database 
-    // instead of relying on the client-provided name (which might be stale from session)
-    let finalPlayerName = playerName;
-    if (userId) {
-      const dbUser = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { name: true }
-      });
-      if (dbUser?.name) {
-        finalPlayerName = dbUser.name;
-      }
-    }
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true, email: true }
+    });
+    const finalPlayerName = dbUser?.name || playerName.trim() || dbUser?.email || "بازیکن";
 
     // Save to DB
     const player = await prisma.gamePlayer.create({
       data: {
         gameId: game.id,
         name: finalPlayerName,
-        userId: userId || null,
+        userId: session.user.id,
       }
     });
 
@@ -209,7 +207,8 @@ export async function getGameStatus(gameId: string) {
       players: {
         include: {
           role: true
-        }
+        },
+        orderBy: { createdAt: "asc" }
       }
     }
   });
@@ -221,6 +220,52 @@ export async function getGameStatus(gameId: string) {
   return {
     ...safeGame,
     hasPassword: !!password
+  };
+}
+
+export async function getPlayerGameView(gameId: string) {
+  noStore();
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
+  const game = await prisma.game.findUnique({
+    where: { id: gameId },
+    include: {
+      moderator: {
+        select: { name: true }
+      },
+      scenario: true,
+      players: {
+        include: {
+          role: true
+        },
+        orderBy: { createdAt: "asc" }
+      }
+    }
+  });
+
+  if (!game) return null;
+
+  const currentPlayer = game.players.find((player) => player.userId === session.user.id) || null;
+
+  const { password, players, ...safeGame } = game;
+
+  return {
+    ...safeGame,
+    hasPassword: !!password,
+    players: players.map((player) => ({
+      id: player.id,
+      name: player.name,
+      userId: player.userId,
+    })),
+    myPlayer: currentPlayer
+      ? {
+          id: currentPlayer.id,
+          name: currentPlayer.name,
+          userId: currentPlayer.userId,
+          role: currentPlayer.role,
+        }
+      : null,
   };
 }
 
@@ -296,7 +341,7 @@ export async function setGameScenario(gameId: string, scenarioId: string) {
     await checkModerator();
     await prisma.game.update({
       where: { id: gameId },
-      data: { scenarioId }
+      data: { scenarioId: scenarioId || null }
     });
     
     // Fetch updated game status with scenario to push to clients

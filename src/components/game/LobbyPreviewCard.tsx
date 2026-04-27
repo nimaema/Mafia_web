@@ -72,7 +72,7 @@ export function LobbyPreviewCard({
   footer,
   compact = false,
 }: LobbyPreviewCardProps) {
-  const shownSeatCount = Math.min(Math.max(capacity, players.length), 12);
+  const shownSeatCount = capacity > 0 ? Math.min(Math.max(capacity, players.length), 12) : Math.min(Math.max(players.length, 6), 12);
   const seatItems = Array.from({ length: shownSeatCount }, (_, index) => players[index] || null);
   const progress = capacity > 0 ? Math.min(100, Math.round((playerCount / capacity) * 100)) : 0;
 
@@ -121,7 +121,7 @@ export function LobbyPreviewCard({
           <div className="ui-muted p-3">
             <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">ظرفیت</p>
             <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">
-              {playerCount} / {capacity}
+              {capacity ? `${playerCount} / ${capacity}` : `${playerCount} بازیکن`}
             </p>
           </div>
         </div>
@@ -187,26 +187,36 @@ export function LobbyPreviewCard({
           </section>
 
           <section>
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-black text-zinc-950 dark:text-white">ترکیب سناریو</h3>
-              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">{roleBreakdown.length} نقش</span>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="font-black text-zinc-950 dark:text-white">ترکیب سناریو</h3>
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                {roleBreakdown.length ? `${roleBreakdown.length} نقش` : "در انتظار انتخاب"}
+              </span>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              {roleBreakdown.map((role) => (
-                <div key={role.id || role.name} className="ui-muted p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-black text-zinc-950 dark:text-white">{role.name}</p>
-                      <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
+            {roleBreakdown.length ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                {roleBreakdown.map((role) => (
+                  <div key={role.id || role.name} className="ui-muted p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-black text-zinc-950 dark:text-white">{role.name}</p>
+                        <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
+                      </div>
+                      <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
+                        x{role.count}
+                      </span>
                     </div>
-                    <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
-                      x{role.count}
-                    </span>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex min-h-48 flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
+                <span className="material-symbols-outlined text-3xl text-zinc-400">account_tree</span>
+                <p className="mt-3 text-sm font-black text-zinc-950 dark:text-white">سناریو هنوز انتخاب نشده</p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">بعد از انتخاب سناریو، ترکیب نقش‌ها اینجا دیده می‌شود.</p>
+              </div>
+            )}
           </section>
         </div>
       )}
@@ -214,6 +224,11 @@ export function LobbyPreviewCard({
       {compact && (
         <div className="border-t border-zinc-200 p-5 dark:border-white/10">
           <div className="flex flex-wrap items-center gap-2">
+            {roleBreakdown.length === 0 && (
+              <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                سناریو انتخاب نشده
+              </span>
+            )}
             {roleBreakdown.slice(0, 3).map((role) => (
               <span key={role.id || role.name} className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
                 {role.name} x{role.count}

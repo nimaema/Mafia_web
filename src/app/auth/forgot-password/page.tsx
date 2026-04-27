@@ -24,17 +24,18 @@ export default function ForgotPasswordPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      const data = await response.json();
+      const contentType = response.headers.get("content-type") || "";
+      const data = contentType.includes("application/json") ? await response.json() : null;
 
       if (!response.ok) {
-        setError(data.error || "ارسال لینک بازیابی ناموفق بود");
+        setError(data?.error || "ارسال لینک بازیابی ناموفق بود. پاسخ سرور قابل خواندن نبود.");
         return;
       }
 
       setMessage("اگر حسابی با این ایمیل وجود داشته باشد، لینک بازیابی ارسال می‌شود.");
-      setPreviewUrl(data.previewUrl || null);
+      setPreviewUrl(data?.previewUrl || null);
     } catch {
-      setError("ارتباط با سرور برقرار نشد");
+      setError("درخواست به سرور نرسید. اگر برنامه محلی را تست می‌کنید، مطمئن شوید سرور و دیتابیس هر دو اجرا هستند.");
     } finally {
       setIsSubmitting(false);
     }
