@@ -3,14 +3,11 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
   Cell,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
-  XAxis,
-  YAxis,
 } from "recharts";
 import Link from "next/link";
 import { getUserStatsSafe } from "@/actions/dashboard";
@@ -100,6 +97,8 @@ function alignmentClass(alignment: string) {
   if (alignment === "MAFIA") return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
   return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300";
 }
+
+const ROLE_CHART_COLORS = ["#84cc16", "#0ea5e9", "#f59e0b", "#ef4444", "#a855f7", "#14b8a6", "#71717a"];
 
 export default function UserDashboard() {
   const { data: session } = useSession();
@@ -214,86 +213,113 @@ export default function UserDashboard() {
         </div>
       )}
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <section className="ui-card overflow-hidden">
-          <PanelHeader icon="rocket_launch" title="اقدام بعدی" subtitle="مسیر اصلی شما برای ادامه بازی" />
-          <div className="p-5">
-            {data?.currentActiveGame ? (
-              <Link
-                href={`/game/${data.currentActiveGame.id}`}
-                className="group flex min-h-40 flex-col justify-between rounded-lg border border-lime-500/25 bg-lime-500/10 p-5 transition-colors hover:bg-lime-500/15"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-black text-lime-700 dark:text-lime-300">بازی فعال</p>
-                    <h2 className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">{data.currentActiveGame.scenarioName}</h2>
-                    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">گرداننده: {data.currentActiveGame.moderatorName}</p>
+      <section className="ui-card overflow-hidden">
+        <PanelHeader icon="rocket_launch" title="اقدام بعدی" subtitle="مسیر اصلی شما برای ادامه بازی" />
+        <div className="p-5">
+          {data?.currentActiveGame ? (
+            <Link
+              href={`/game/${data.currentActiveGame.id}`}
+              className="group flex min-h-40 flex-col justify-between rounded-lg border border-lime-500/25 bg-lime-500/10 p-5 transition-colors hover:bg-lime-500/15"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-black text-lime-700 dark:text-lime-300">بازی فعال</p>
+                  <h2 className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">{data.currentActiveGame.scenarioName}</h2>
+                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">گرداننده: {data.currentActiveGame.moderatorName}</p>
+                </div>
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-zinc-950">
+                  <span className="material-symbols-outlined">play_arrow</span>
+                </div>
+              </div>
+              <p className="mt-5 flex items-center gap-1 text-sm font-black text-lime-700 dark:text-lime-300">
+                ورود به صفحه بازی
+                <span className="material-symbols-outlined text-base transition-transform group-hover:-translate-x-1">arrow_back</span>
+              </p>
+            </Link>
+          ) : activeGamesError ? (
+            <EmptyState icon="cloud_off" title="لابی‌ها بارگذاری نشدند" text={activeGamesError} />
+          ) : activeGames.length === 0 ? (
+            <div className="grid gap-3">
+              <EmptyState icon="radar" title="لابی فعالی پیدا نشد" text="وقتی گرداننده‌ای لابی بسازد، همین‌جا ظاهر می‌شود." />
+              <Link href="/join" className="ui-button-secondary min-h-11 w-full">
+                <span className="material-symbols-outlined text-lg">login</span>
+                ورود با کد بازی
+              </Link>
+            </div>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {activeGames.slice(0, 4).map((game) => {
+                const capacity = game.scenario?.roles?.reduce((total: number, role: any) => total + role.count, 0) || 0;
+                const joinedPlayers = game._count?.players || 0;
+                const seatsLeft = capacity ? Math.max(capacity - joinedPlayers, 0) : null;
+
+                return (
+                  <Link
+                    key={game.id}
+                    href={`/lobby/${game.id}`}
+                    className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 transition-all hover:border-lime-500/35 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="truncate font-black text-zinc-950 dark:text-white">{game.name}</h3>
+                        <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">{game.scenario?.name || "سناریو انتخاب نشده"}</p>
+                      </div>
+                      <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 font-mono text-[10px] font-black text-lime-700 dark:text-lime-300">
+                        #{game.code}
+                      </span>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                      <span>{joinedPlayers}{capacity ? ` / ${capacity}` : ""} بازیکن</span>
+                      <span>{seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "تکمیل" : `${seatsLeft} جای خالی`}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="ui-card overflow-hidden">
+        <PanelHeader icon="near_me" title="میانبرهای سریع" subtitle="کارهای پرکاربرد بدون تکرار آمار" />
+        <div className="grid gap-3 p-4 md:grid-cols-3">
+          {[
+            ["/join", "ورود با کد", "پیوستن مستقیم به یک لابی", "login"],
+            ["/dashboard/user/history", "تاریخچه کامل", "مرور بازی‌ها با جزئیات نقش‌ها", "history"],
+            ["/dashboard/user/profile", "پروفایل بازیکن", "ویرایش نام و تصویر حساب", "badge"],
+          ].map(([href, label, text, icon]) => (
+            <Link
+              key={href}
+              href={href}
+              className="group block rounded-lg border border-zinc-200 bg-zinc-50 p-3 transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                    <span className="material-symbols-outlined text-lg">{icon}</span>
                   </div>
-                  <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-zinc-950">
-                    <span className="material-symbols-outlined">play_arrow</span>
+                  <div className="min-w-0">
+                    <p className="truncate font-black text-zinc-950 dark:text-white">{label}</p>
+                    <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">{text}</p>
                   </div>
                 </div>
-                <p className="mt-5 flex items-center gap-1 text-sm font-black text-lime-700 dark:text-lime-300">
-                  ورود به صفحه بازی
-                  <span className="material-symbols-outlined text-base transition-transform group-hover:-translate-x-1">arrow_back</span>
-                </p>
-              </Link>
-            ) : activeGamesError ? (
-              <EmptyState icon="cloud_off" title="لابی‌ها بارگذاری نشدند" text={activeGamesError} />
-            ) : activeGames.length === 0 ? (
-              <div className="grid gap-3">
-                <EmptyState icon="radar" title="لابی فعالی پیدا نشد" text="وقتی گرداننده‌ای لابی بسازد، همین‌جا ظاهر می‌شود." />
-                <Link href="/join" className="ui-button-secondary min-h-11 w-full">
-                  <span className="material-symbols-outlined text-lg">login</span>
-                  ورود با کد بازی
-                </Link>
+                <span className="material-symbols-outlined text-base text-zinc-400 transition-transform group-hover:-translate-x-1">arrow_back</span>
               </div>
-            ) : (
-              <div className="grid gap-3 md:grid-cols-2">
-                {activeGames.slice(0, 4).map((game) => {
-                  const capacity = game.scenario?.roles?.reduce((total: number, role: any) => total + role.count, 0) || 0;
-                  const joinedPlayers = game._count?.players || 0;
-                  const seatsLeft = capacity ? Math.max(capacity - joinedPlayers, 0) : null;
+            </Link>
+          ))}
+        </div>
+      </section>
 
-                  return (
-                    <Link
-                      key={game.id}
-                      href={`/lobby/${game.id}`}
-                      className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 transition-all hover:border-lime-500/35 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h3 className="truncate font-black text-zinc-950 dark:text-white">{game.name}</h3>
-                          <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">{game.scenario?.name || "سناریو انتخاب نشده"}</p>
-                        </div>
-                        <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 font-mono text-[10px] font-black text-lime-700 dark:text-lime-300">
-                          #{game.code}
-                        </span>
-                      </div>
-                      <div className="mt-4 flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                        <span>{joinedPlayers}{capacity ? ` / ${capacity}` : ""} بازیکن</span>
-                        <span>{seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "تکمیل" : `${seatsLeft} جای خالی`}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </section>
-
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <section className="ui-card overflow-hidden">
-          <PanelHeader
-            icon="history"
-            title="آخرین بازی‌ها"
-            subtitle="۵ بازی تازه"
-            action={<Link href="/dashboard/user/history" className="text-xs font-black text-lime-600 dark:text-lime-400">همه</Link>}
-          />
-          <div className="space-y-2 p-4">
+          <PanelHeader icon="history" title="آخرین بازی‌ها" subtitle="تا ۸ بازی تازه" />
+          <div className="grid gap-3 p-4 md:grid-cols-2">
             {recentGames.length === 0 ? (
-              <EmptyState icon="history_toggle_off" title="هنوز بازی ثبت نشده" text="بعد از پایان اولین بازی، خلاصه آن اینجا می‌آید." />
+              <div className="md:col-span-2">
+                <EmptyState icon="history_toggle_off" title="هنوز بازی ثبت نشده" text="بعد از پایان اولین بازی، خلاصه آن اینجا می‌آید." />
+              </div>
             ) : (
-              recentGames.slice(0, 5).map((game: any) => {
+              recentGames.slice(0, 8).map((game: any) => {
                 const result = resultMeta(game.result);
 
                 return (
@@ -318,62 +344,43 @@ export default function UserDashboard() {
             )}
           </div>
         </section>
-      </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <section className="ui-card overflow-hidden">
           <PanelHeader
-            icon="bar_chart"
+            icon="donut_small"
             title="نقش‌های دریافتی"
-            subtitle={mostPlayedRole ? `۷ نقش پرتکرار | اول: ${mostPlayedRole.role}` : "بعد از چند بازی کامل‌تر می‌شود"}
-            action={<Link href="/dashboard/user/profile" className="ui-button-secondary min-h-9 px-3 text-xs">پروفایل</Link>}
+            subtitle={mostPlayedRole ? `۶ نقش برتر + سایر | اول: ${mostPlayedRole.role}` : "بعد از چند بازی کامل‌تر می‌شود"}
           />
-          <div className="h-72 p-4" dir="ltr">
+          <div className="p-4">
             {roleHistory.length === 0 ? (
               <EmptyState icon="troubleshoot" title="نقشی ثبت نشده" text="بعد از حضور در بازی، نقش‌های دریافتی اینجا دیده می‌شوند." />
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={roleHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148,163,184,0.15)" />
-                  <XAxis dataKey="role" tick={{ fontSize: 10, fill: "#71717a", fontFamily: "Vazirmatn" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: "#71717a" }} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: "rgba(132,204,22,0.05)" }} contentStyle={{ backgroundColor: "#09090b", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", fontFamily: "Vazirmatn" }} />
-                  <Bar dataKey="count" radius={[8, 8, 0, 0]} barSize={36}>
-                    {roleHistory.map((entry, index) => <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "#84cc16" : "#0ea5e9"} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </section>
-
-        <section className="ui-card overflow-hidden">
-          <PanelHeader icon="near_me" title="میانبرهای سریع" subtitle="کارهای پرکاربرد بدون تکرار آمار" />
-          <div className="space-y-3 p-4">
-            {[
-              ["/join", "ورود با کد", "پیوستن مستقیم به یک لابی", "login"],
-              ["/dashboard/user/history", "تاریخچه کامل", "مرور بازی‌ها با جزئیات نقش‌ها", "history"],
-              ["/dashboard/user/profile", "پروفایل بازیکن", "ویرایش نام و تصویر حساب", "badge"],
-            ].map(([href, label, text, icon]) => (
-              <Link
-                key={href}
-                href={href}
-                className="group block rounded-lg border border-zinc-200 bg-zinc-50 p-3 transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
-                      <span className="material-symbols-outlined text-lg">{icon}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate font-black text-zinc-950 dark:text-white">{label}</p>
-                      <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">{text}</p>
-                    </div>
-                  </div>
-                  <span className="material-symbols-outlined text-base text-zinc-400 transition-transform group-hover:-translate-x-1">arrow_back</span>
+              <>
+                <div className="h-52" dir="ltr">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Tooltip contentStyle={{ backgroundColor: "#09090b", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", fontFamily: "Vazirmatn" }} />
+                      <Pie data={roleHistory} dataKey="count" nameKey="role" innerRadius={48} outerRadius={80} paddingAngle={3} stroke="none">
+                        {roleHistory.map((entry, index) => (
+                          <Cell key={`role-slice-${entry.role}`} fill={ROLE_CHART_COLORS[index % ROLE_CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-              </Link>
-            ))}
+                <div className="mt-3 space-y-2">
+                  {roleHistory.map((role, index) => (
+                    <div key={role.role} className="flex items-center justify-between gap-3 text-xs">
+                      <span className="flex min-w-0 items-center gap-2 font-bold text-zinc-600 dark:text-zinc-300">
+                        <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: ROLE_CHART_COLORS[index % ROLE_CHART_COLORS.length] }} />
+                        <span className="truncate">{role.role}</span>
+                      </span>
+                      <span className="font-black text-zinc-950 dark:text-white">{role.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </section>
       </div>
