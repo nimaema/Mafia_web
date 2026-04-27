@@ -159,7 +159,7 @@ export default function UserDashboard() {
             {[
               ["کل بازی", totalGames, "sports_esports"],
               ["برد", wins, "emoji_events"],
-              ["نرخ برد", `${winRate}%`, "trending_up"],
+              ["درصد برد", `${winRate}%`, "trending_up"],
             ].map(([label, value, icon]) => (
               <div key={label} className="ui-muted p-4">
                 <span className="material-symbols-outlined text-lg text-zinc-400">{icon}</span>

@@ -85,34 +85,84 @@ function buildResetMessage(email: string, resetUrl: string, from: string) {
   return {
     from,
     to: email,
-    subject: "بازیابی رمز عبور - مافیا",
+    subject: "لینک امن بازیابی رمز عبور مافیا",
     html: `
       <!DOCTYPE html>
       <html lang="fa" dir="rtl">
       <head>
         <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style>
-          body { font-family: Tahoma, Arial, sans-serif; background: #f4f4f5; color: #18181b; direction: rtl; margin: 0; padding: 24px; }
-          .container { max-width: 480px; margin: 0 auto; background: #ffffff; border: 1px solid #e4e4e7; border-radius: 16px; padding: 32px; }
-          .logo { font-size: 28px; font-weight: bold; color: #65a30d; margin-bottom: 24px; text-align: center; }
-          p { line-height: 1.9; margin-bottom: 16px; }
-          .btn { display: inline-block; padding: 12px 28px; background: #84cc16; color: #18181b; border-radius: 12px; text-decoration: none; font-weight: bold; }
-          .notice { font-size: 13px; color: #71717a; margin-top: 24px; border-top: 1px solid #e4e4e7; padding-top: 16px; }
-          .link { font-size: 12px; word-break: break-all; color: #2563eb; margin-top: 12px; }
+          body { margin: 0; padding: 0; background: #eef2f3; color: #18181b; direction: rtl; font-family: Tahoma, Arial, sans-serif; }
+          .shell { padding: 28px 14px; }
+          .container { max-width: 560px; margin: 0 auto; overflow: hidden; border-radius: 24px; background: #ffffff; border: 1px solid #e4e4e7; box-shadow: 0 20px 60px rgba(24, 24, 27, 0.12); }
+          .hero { padding: 30px 28px; background: linear-gradient(135deg, #18181b 0%, #27272a 44%, #3f6212 100%); color: #ffffff; }
+          .brand { display: inline-block; margin-bottom: 18px; padding: 8px 12px; border-radius: 999px; background: rgba(132, 204, 22, 0.16); color: #bef264; font-size: 12px; font-weight: 800; letter-spacing: 0; }
+          h1 { margin: 0; font-size: 26px; line-height: 1.6; font-weight: 900; }
+          .hero p { margin: 10px 0 0; color: #d4d4d8; font-size: 14px; line-height: 1.9; }
+          .content { padding: 28px; }
+          p { margin: 0 0 16px; line-height: 1.9; }
+          .action { margin: 26px 0; text-align: center; }
+          .btn { display: inline-block; min-width: 210px; padding: 15px 26px; border-radius: 16px; background: #84cc16; color: #18181b !important; text-decoration: none; font-weight: 900; box-shadow: 0 14px 28px rgba(132, 204, 22, 0.28); }
+          .grid { display: table; width: 100%; border-spacing: 0 10px; margin: 18px 0 4px; }
+          .item { display: table-row; }
+          .item span { display: table-cell; padding: 12px; border-top: 1px solid #e4e4e7; border-bottom: 1px solid #e4e4e7; font-size: 12px; }
+          .item span:first-child { border-right: 1px solid #e4e4e7; border-radius: 14px 0 0 14px; color: #71717a; font-weight: 700; }
+          .item span:last-child { border-left: 1px solid #e4e4e7; border-radius: 0 14px 14px 0; color: #18181b; font-weight: 900; text-align: left; direction: ltr; }
+          .link-box { margin-top: 18px; padding: 14px; border-radius: 14px; background: #f4f4f5; border: 1px solid #e4e4e7; }
+          .link-label { margin: 0 0 8px; color: #71717a; font-size: 12px; font-weight: 800; }
+          .link { margin: 0; word-break: break-all; color: #2563eb; direction: ltr; text-align: left; font-size: 12px; line-height: 1.7; }
+          .notice { margin-top: 22px; padding: 16px; border-radius: 16px; background: #fefce8; border: 1px solid #fde68a; color: #854d0e; font-size: 13px; line-height: 1.9; }
+          .footer { padding: 18px 28px 26px; color: #71717a; font-size: 12px; line-height: 1.8; text-align: center; }
+          @media (max-width: 520px) {
+            .shell { padding: 14px 8px; }
+            .hero, .content, .footer { padding-left: 18px; padding-right: 18px; }
+            h1 { font-size: 22px; }
+            .btn { display: block; min-width: 0; }
+          }
         </style>
       </head>
       <body>
-        <div class="container">
-          <div class="logo">مافیا بورد</div>
-          <p>سلام،</p>
-          <p>برای حساب شما درخواست بازیابی رمز عبور ثبت شده است. برای ساخت رمز جدید روی دکمه زیر بزنید:</p>
-          <p style="text-align:center">
-            <a href="${resetUrl}" class="btn">تنظیم رمز عبور جدید</a>
-          </p>
-          <p class="link">${resetUrl}</p>
-          <div class="notice">
-            <p>این لینک تا ۱ ساعت معتبر است.</p>
-            <p>اگر این درخواست را شما ثبت نکرده‌اید، این پیام را نادیده بگیرید.</p>
+        <div class="shell">
+          <div class="container">
+            <div class="hero">
+              <div class="brand">Mafia Board</div>
+              <h1>بازیابی امن رمز عبور</h1>
+              <p>برای حساب شما درخواست ساخت رمز جدید ثبت شده است. با دکمه زیر وارد صفحه امن تغییر رمز شوید.</p>
+            </div>
+
+            <div class="content">
+              <p>سلام،</p>
+              <p>این ایمیل فقط برای تایید درخواست بازیابی رمز ارسال شده است. اگر درخواست از طرف شما بوده، روی دکمه زیر بزنید.</p>
+
+              <div class="action">
+                <a href="${resetUrl}" class="btn">تنظیم رمز جدید</a>
+              </div>
+
+              <div class="grid">
+                <div class="item">
+                  <span>اعتبار لینک</span>
+                  <span>۱ ساعت</span>
+                </div>
+                <div class="item">
+                  <span>نوع عملیات</span>
+                  <span>Password reset</span>
+                </div>
+              </div>
+
+              <div class="notice">
+                اگر شما این درخواست را ثبت نکرده‌اید، نیازی به انجام کاری نیست. این لینک بعد از پایان اعتبار قابل استفاده نخواهد بود.
+              </div>
+
+              <div class="link-box">
+                <p class="link-label">اگر دکمه باز نشد، این لینک را در مرورگر وارد کنید:</p>
+                <p class="link">${resetUrl}</p>
+              </div>
+            </div>
+
+            <div class="footer">
+              این پیام خودکار از طرف وب‌سایت مافیا ارسال شده است.
+            </div>
           </div>
         </div>
       </body>

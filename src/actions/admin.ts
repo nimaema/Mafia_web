@@ -12,6 +12,7 @@ type SafeListResult<T> = {
 };
 
 const READ_ERROR = "اطلاعات این بخش بارگذاری نشد. اتصال پایگاه داده یا سطح دسترسی کاربر را بررسی کنید.";
+const TEMP_SCENARIO_DESCRIPTION_PREFIX = "__TEMP_GAME_SCENARIO__";
 
 async function checkAdmin() {
   const session = await auth();
@@ -41,7 +42,6 @@ export async function getAllUsers() {
         select: {
           gameHistories: true,
           gamesHosted: true,
-          passwordResetTokens: true,
         }
       }
     },
@@ -155,6 +155,12 @@ export async function deleteMafiaRole(id: string) {
 export async function getScenarios() {
   await checkModerator();
   return await prisma.scenario.findMany({
+    where: {
+      NOT: [
+        { description: { startsWith: TEMP_SCENARIO_DESCRIPTION_PREFIX } },
+        { description: "سناریو ساخته شده در لحظه" },
+      ],
+    },
     include: {
       roles: {
         include: {
@@ -188,7 +194,14 @@ export async function createScenario(data: { name: string, description: string, 
           role: { connect: { id: r.roleId } }
         }))
       }
-    }
+    },
+    include: {
+      roles: {
+        include: {
+          role: true,
+        },
+      },
+    },
   });
 
   revalidatePath("/dashboard/moderator/scenarios");
@@ -214,7 +227,14 @@ export async function updateScenario(id: string, data: { name: string, descripti
           role: { connect: { id: r.roleId } }
         }))
       }
-    }
+    },
+    include: {
+      roles: {
+        include: {
+          role: true,
+        },
+      },
+    },
   });
 
   revalidatePath("/dashboard/moderator/scenarios");

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   createMafiaRole,
@@ -38,6 +37,20 @@ type ScenarioRecord = {
     role: MafiaRoleRecord;
   }[];
 };
+
+const STANDARD_SCENARIO_NAMES = [
+  "کلاسیک ۱۲ نفره",
+  "کلاسیک ۱۳ نفره",
+  "نماینده ۱۰ نفره",
+  "نماینده ۱۲ نفره",
+  "فراماسون ۱۲ نفره",
+  "فراماسون ۱۳ نفره",
+  "فراماسون ۱۵ نفره",
+  "تکاور ۱۰ نفره",
+  "تکاور ۱۲ نفره",
+  "تکاور ۱۳ نفره",
+  "تکاور ۱۵ نفره",
+];
 
 function alignmentLabel(alignment: Alignment) {
   if (alignment === "CITIZEN") return "شهروند";
@@ -98,6 +111,10 @@ export default function AdminDashboard() {
   const [newScenDesc, setNewScenDesc] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<{ roleId: string; count: number }[]>([]);
   const [selectedScenario, setSelectedScenario] = useState<ScenarioRecord | null>(null);
+  const [showStats, setShowStats] = useState(false);
+  const [roleSearch, setRoleSearch] = useState("");
+  const [scenarioSearch, setScenarioSearch] = useState("");
+  const [scenarioRoleSearch, setScenarioRoleSearch] = useState("");
 
   useEffect(() => {
     if (status === "loading") return;
@@ -162,6 +179,7 @@ export default function AdminDashboard() {
     setNewScenName("");
     setNewScenDesc("");
     setSelectedRoles([]);
+    setScenarioRoleSearch("");
   };
 
   const handleAddRole = async (event: React.FormEvent) => {
@@ -312,6 +330,41 @@ export default function AdminDashboard() {
     [roles, scenarios]
   );
 
+  const installedStandardScenarios = useMemo(
+    () => STANDARD_SCENARIO_NAMES.every((name) => scenarios.some((scenario) => scenario.name === name)),
+    [scenarios]
+  );
+
+  const visibleRoles = useMemo(() => {
+    const query = roleSearch.trim().toLowerCase();
+    if (!query) return roles;
+    return roles.filter((role) =>
+      [role.name, role.description || "", alignmentLabel(role.alignment)]
+        .some((value) => value.toLowerCase().includes(query))
+    );
+  }, [roleSearch, roles]);
+
+  const visibleScenarios = useMemo(() => {
+    const query = scenarioSearch.trim().toLowerCase();
+    if (!query) return scenarios;
+    return scenarios.filter((scenario) =>
+      [
+        scenario.name,
+        scenario.description || "",
+        ...scenario.roles.map((scenarioRole) => scenarioRole.role.name),
+      ].some((value) => value.toLowerCase().includes(query))
+    );
+  }, [scenarioSearch, scenarios]);
+
+  const scenarioRoleOptions = useMemo(() => {
+    const query = scenarioRoleSearch.trim().toLowerCase();
+    if (!query) return roles;
+    return roles.filter((role) =>
+      [role.name, role.description || "", alignmentLabel(role.alignment)]
+        .some((value) => value.toLowerCase().includes(query))
+    );
+  }, [roles, scenarioRoleSearch]);
+
   return (
     <div className="flex min-h-[80vh] flex-col gap-5" dir="rtl">
       <header className="ui-card overflow-hidden">
@@ -330,13 +383,6 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex flex-col gap-3 xl:items-end">
-            {isAdmin && (
-              <Link href="/dashboard/admin/users" className="ui-button-secondary min-h-11 px-4">
-                <span className="material-symbols-outlined text-xl">manage_accounts</span>
-                مدیریت کاربران
-              </Link>
-            )}
-
             <div className="grid grid-cols-2 gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-white/10 dark:bg-zinc-950">
               <button
                 onClick={() => switchTab("roles")}
@@ -365,22 +411,42 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          ["کل نقش‌ها", stats.roles, "theater_comedy", "text-lime-500"],
-          ["نقش‌های شهروند", stats.citizenRoles, "verified_user", "text-sky-500"],
-          ["نقش‌های مافیا", stats.mafiaRoles, "local_police", "text-red-500"],
-          ["سناریوها", stats.scenarios, "account_tree", "text-amber-500"],
-        ].map(([label, value, icon, color]) => (
-          <div key={label} className="ui-card group overflow-hidden p-4 transition-colors hover:border-lime-500/25">
-            <div className="flex items-center justify-between gap-3">
-              <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-              <span className="h-1.5 w-10 rounded-full bg-zinc-200 transition-colors group-hover:bg-lime-500 dark:bg-white/10"></span>
-            </div>
-            <p className="mt-3 text-2xl font-black text-zinc-950 dark:text-white">{value}</p>
-            <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+      <section className="ui-card overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowStats((value) => !value)}
+          className="flex min-h-14 w-full items-center justify-between gap-3 p-4 text-right"
+        >
+          <div>
+            <p className="text-sm font-black text-zinc-950 dark:text-white">نمای کلی پیکربندی</p>
+            <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">
+              {stats.roles} نقش، {stats.scenarios} سناریو و ترکیب‌های آماده بازی
+            </p>
           </div>
-        ))}
+          <span className="material-symbols-outlined text-zinc-400">
+            {showStats ? "keyboard_arrow_up" : "keyboard_arrow_down"}
+          </span>
+        </button>
+
+        {showStats && (
+          <div className="grid gap-3 border-t border-zinc-200 p-4 dark:border-white/10 md:grid-cols-2 xl:grid-cols-4">
+            {[
+              ["کل نقش‌ها", stats.roles, "theater_comedy", "text-lime-500"],
+              ["شهروند", stats.citizenRoles, "verified_user", "text-sky-500"],
+              ["مافیا", stats.mafiaRoles, "local_police", "text-red-500"],
+              ["سناریو", stats.scenarios, "account_tree", "text-amber-500"],
+            ].map(([label, value, icon, color]) => (
+              <div key={label} className="ui-muted group overflow-hidden p-4 transition-colors hover:border-lime-500/25">
+                <div className="flex items-center justify-between gap-3">
+                  <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+                  <span className="h-1.5 w-10 rounded-full bg-zinc-200 transition-colors group-hover:bg-lime-500 dark:bg-white/10"></span>
+                </div>
+                <p className="mt-3 text-2xl font-black text-zinc-950 dark:text-white">{value}</p>
+                <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <main className="ui-card relative min-h-[520px] overflow-hidden">
@@ -462,15 +528,6 @@ export default function AdminDashboard() {
             </section>
 
             <section className="space-y-4 p-5">
-              <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 p-4">
-                <div className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-xl text-sky-600 dark:text-sky-300">info</span>
-                  <p className="text-xs font-bold leading-6 text-sky-700 dark:text-sky-200">
-                    همه نقش‌ها اکنون رفتار یکسان دارند و قابل حذف هستند. حذف نقش، آن نقش را از ترکیب سناریوهای مرتبط هم برمی‌دارد.
-                  </p>
-                </div>
-              </div>
-
               {roles.length === 0 ? (
                 <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-zinc-200 p-8 text-center dark:border-white/10">
                   <div className="ui-icon size-16">
@@ -482,49 +539,73 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-                  {roles.map((role) => (
-                    <article
-                      key={role.id}
-                      className="group overflow-hidden rounded-lg border border-zinc-200 bg-white transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:hover:shadow-black/20"
-                    >
-                      <div className="h-1 bg-gradient-to-l from-lime-500 via-sky-500 to-zinc-300 opacity-80 dark:to-zinc-700"></div>
-                      <div className="p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex min-w-0 items-start gap-3">
-                            <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(role.alignment)}`}>
-                              <span className="material-symbols-outlined text-xl">{alignmentIcon(role.alignment)}</span>
-                            </div>
-                            <div className="min-w-0">
-                              <h3 className="truncate font-black text-zinc-950 dark:text-white">{role.name}</h3>
-                              <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
-                            </div>
-                          </div>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
-                              {alignmentLabel(role.alignment)}
-                            </span>
-                          </div>
-                        </div>
+                <>
+                  <label className="flex min-h-12 items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 dark:border-white/10 dark:bg-zinc-950/40">
+                    <span className="material-symbols-outlined text-zinc-400">search</span>
+                    <input
+                      value={roleSearch}
+                      onChange={(event) => setRoleSearch(event.target.value)}
+                      placeholder="جستجوی نقش، جبهه یا توضیح"
+                      className="w-full border-0 bg-transparent p-0 text-sm outline-none focus:ring-0"
+                    />
+                  </label>
 
-                        <p className="mt-4 min-h-20 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
-                          {role.description || "برای این نقش هنوز توضیحی ثبت نشده است."}
-                        </p>
-
-                        <div className="mt-4 flex gap-2 border-t border-zinc-200 pt-4 dark:border-white/10">
-                          <button onClick={() => handleEditRole(role)} className="ui-button-secondary min-h-9 flex-1 px-3 text-xs">
-                            <span className="material-symbols-outlined text-base">edit_square</span>
-                            ویرایش
-                          </button>
-                          <button onClick={() => handleDeleteRole(role.id)} className="ui-button-danger min-h-9 flex-1 px-3 text-xs">
-                            <span className="material-symbols-outlined text-base">delete</span>
-                            حذف
-                          </button>
-                        </div>
+                  {visibleRoles.length === 0 ? (
+                    <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-zinc-200 p-8 text-center dark:border-white/10">
+                      <div className="ui-icon size-16">
+                        <span className="material-symbols-outlined text-3xl text-zinc-400">manage_search</span>
                       </div>
-                    </article>
-                  ))}
-                </div>
+                      <div>
+                        <p className="font-black text-zinc-950 dark:text-white">نقشی با این جستجو پیدا نشد</p>
+                        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">عبارت جستجو را کوتاه‌تر یا متفاوت وارد کنید.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+                      {visibleRoles.map((role) => (
+                        <article
+                          key={role.id}
+                          className="group overflow-hidden rounded-lg border border-zinc-200 bg-white transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:hover:shadow-black/20"
+                        >
+                          <div className="h-1 bg-gradient-to-l from-lime-500 via-sky-500 to-zinc-300 opacity-80 dark:to-zinc-700"></div>
+                          <div className="p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex min-w-0 items-start gap-3">
+                                <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(role.alignment)}`}>
+                                  <span className="material-symbols-outlined text-xl">{alignmentIcon(role.alignment)}</span>
+                                </div>
+                                <div className="min-w-0">
+                                  <h3 className="truncate font-black text-zinc-950 dark:text-white">{role.name}</h3>
+                                  <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
+                                </div>
+                              </div>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
+                                  {alignmentLabel(role.alignment)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <p className="mt-4 min-h-20 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+                              {role.description || "برای این نقش هنوز توضیحی ثبت نشده است."}
+                            </p>
+
+                            <div className="mt-4 flex gap-2 border-t border-zinc-200 pt-4 dark:border-white/10">
+                              <button onClick={() => handleEditRole(role)} className="ui-button-secondary min-h-9 flex-1 px-3 text-xs">
+                                <span className="material-symbols-outlined text-base">edit_square</span>
+                                ویرایش
+                              </button>
+                              <button onClick={() => handleDeleteRole(role.id)} className="ui-button-danger min-h-9 flex-1 px-3 text-xs">
+                                <span className="material-symbols-outlined text-base">delete</span>
+                                حذف
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </section>
           </div>
@@ -545,7 +626,7 @@ export default function AdminDashboard() {
                   <button onClick={resetScenarioForm} className="ui-button-secondary min-h-9 px-3 text-xs">
                     لغو
                   </button>
-                ) : (
+                ) : !installedStandardScenarios ? (
                   <button
                     onClick={async () => {
                       const result = await installStandardScenarios();
@@ -559,7 +640,7 @@ export default function AdminDashboard() {
                     <span className="material-symbols-outlined text-base">auto_awesome</span>
                     بارگذاری قالب‌ها
                   </button>
-                )}
+                ) : null}
               </div>
 
               <form onSubmit={handleAddScenario} className="mt-5 flex flex-col gap-4">
@@ -591,14 +672,29 @@ export default function AdminDashboard() {
                     </span>
                   </div>
 
+                  <label className="mb-3 flex min-h-10 items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 dark:border-white/10 dark:bg-white/[0.03]">
+                    <span className="material-symbols-outlined text-base text-zinc-400">search</span>
+                    <input
+                      value={scenarioRoleSearch}
+                      onChange={(event) => setScenarioRoleSearch(event.target.value)}
+                      placeholder="جستجوی نقش برای سناریو"
+                      className="w-full border-0 bg-transparent p-0 text-xs outline-none focus:ring-0"
+                    />
+                  </label>
+
                   <div className="custom-scrollbar max-h-80 space-y-2 overflow-y-auto">
                     {roles.length === 0 ? (
                       <div className="flex min-h-32 flex-col items-center justify-center gap-2 text-center text-sm text-zinc-500 dark:text-zinc-400">
                         <span className="material-symbols-outlined text-3xl text-zinc-400">playlist_add</span>
                         برای طراحی سناریو ابتدا نقش‌ها را اضافه کنید.
                       </div>
+                    ) : scenarioRoleOptions.length === 0 ? (
+                      <div className="flex min-h-32 flex-col items-center justify-center gap-2 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                        <span className="material-symbols-outlined text-3xl text-zinc-400">manage_search</span>
+                        نقشی با این جستجو پیدا نشد.
+                      </div>
                     ) : (
-                      roles.map((role) => {
+                      scenarioRoleOptions.map((role) => {
                         const selected = selectedRoles.find((item) => item.roleId === role.id);
 
                         return (
@@ -653,7 +749,7 @@ export default function AdminDashboard() {
               </form>
             </section>
 
-            <section className="p-5">
+            <section className="space-y-4 p-5">
               {scenarios.length === 0 ? (
                 <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-zinc-200 p-8 text-center dark:border-white/10">
                   <div className="ui-icon size-16">
@@ -665,99 +761,123 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-                  {scenarios.map((scenario) => {
-                    const totalPlayers = scenarioTotalPlayers(scenario);
-                    const alignmentCounts = scenarioAlignmentCounts(scenario);
-                    const previewRoles = scenario.roles.slice(0, 4);
-                    const extraRoles = Math.max(0, scenario.roles.length - previewRoles.length);
+                <>
+                  <label className="flex min-h-12 items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 dark:border-white/10 dark:bg-zinc-950/40">
+                    <span className="material-symbols-outlined text-zinc-400">search</span>
+                    <input
+                      value={scenarioSearch}
+                      onChange={(event) => setScenarioSearch(event.target.value)}
+                      placeholder="جستجوی سناریو یا نقش‌های داخل آن"
+                      className="w-full border-0 bg-transparent p-0 text-sm outline-none focus:ring-0"
+                    />
+                  </label>
 
-                    return (
-                      <article
-                        key={scenario.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setSelectedScenario(scenario)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            setSelectedScenario(scenario);
-                          }
-                        }}
-                        className="group cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-lime-500/30 dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:hover:shadow-black/20"
-                      >
-                        <div className="border-b border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-[10px] font-black text-lime-600 dark:text-lime-400">سناریو</p>
-                              <h3 className="mt-1 truncate font-black text-zinc-950 dark:text-white">{scenario.name}</h3>
-                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-                                {scenario.description || "توضیحی برای این سناریو ثبت نشده است."}
-                              </p>
-                            </div>
-                            <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-lg bg-lime-500 text-zinc-950 shadow-sm shadow-lime-500/20">
-                              <span className="text-lg font-black">{totalPlayers}</span>
-                              <span className="text-[9px] font-black">نفر</span>
-                            </div>
-                          </div>
-                        </div>
+                  {visibleScenarios.length === 0 ? (
+                    <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-zinc-200 p-8 text-center dark:border-white/10">
+                      <div className="ui-icon size-16">
+                        <span className="material-symbols-outlined text-3xl text-zinc-400">manage_search</span>
+                      </div>
+                      <div>
+                        <p className="font-black text-zinc-950 dark:text-white">سناریویی با این جستجو پیدا نشد</p>
+                        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">نام سناریو یا یکی از نقش‌ها را جستجو کنید.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+                      {visibleScenarios.map((scenario) => {
+                        const totalPlayers = scenarioTotalPlayers(scenario);
+                        const alignmentCounts = scenarioAlignmentCounts(scenario);
+                        const previewRoles = scenario.roles.slice(0, 4);
+                        const extraRoles = Math.max(0, scenario.roles.length - previewRoles.length);
 
-                        <div className="space-y-4 p-4">
-                          <div className="grid grid-cols-3 gap-2">
-                            <div className="ui-muted p-2">
-                              <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">شهروند</p>
-                              <p className="mt-1 text-sm font-black text-sky-600 dark:text-sky-300">{alignmentCounts.CITIZEN}</p>
-                            </div>
-                            <div className="ui-muted p-2">
-                              <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">مافیا</p>
-                              <p className="mt-1 text-sm font-black text-red-600 dark:text-red-300">{alignmentCounts.MAFIA}</p>
-                            </div>
-                            <div className="ui-muted p-2">
-                              <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">مستقل</p>
-                              <p className="mt-1 text-sm font-black text-amber-600 dark:text-amber-300">{alignmentCounts.NEUTRAL}</p>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-                            {previewRoles.map((scenarioRole) => (
-                              <span key={`${scenario.id}-${scenarioRole.roleId}`} className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(scenarioRole.role.alignment)}`}>
-                                {scenarioRole.role.name} x{scenarioRole.count}
-                              </span>
-                            ))}
-                            {extraRoles > 0 && (
-                              <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">
-                                +{extraRoles} نقش دیگر
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2 border-t border-zinc-200 p-4 pt-3 dark:border-white/10">
-                          <button
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleEditScenario(scenario);
+                        return (
+                          <article
+                            key={scenario.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelectedScenario(scenario)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setSelectedScenario(scenario);
+                              }
                             }}
-                            className="ui-button-secondary min-h-9 flex-1 px-3 text-xs"
+                            className="group cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-lime-500/30 dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:hover:shadow-black/20"
                           >
-                            <span className="material-symbols-outlined text-base">edit_square</span>
-                            ویرایش
-                          </button>
-                          <button
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleDeleteScenario(scenario.id);
-                            }}
-                            className="ui-button-danger min-h-9 flex-1 px-3 text-xs"
-                          >
-                            <span className="material-symbols-outlined text-base">delete</span>
-                            حذف
-                          </button>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
+                            <div className="border-b border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-black text-lime-600 dark:text-lime-400">سناریو</p>
+                                  <h3 className="mt-1 truncate font-black text-zinc-950 dark:text-white">{scenario.name}</h3>
+                                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                                    {scenario.description || "توضیحی برای این سناریو ثبت نشده است."}
+                                  </p>
+                                </div>
+                                <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-lg bg-lime-500 text-zinc-950 shadow-sm shadow-lime-500/20">
+                                  <span className="text-lg font-black">{totalPlayers}</span>
+                                  <span className="text-[9px] font-black">نفر</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-4 p-4">
+                              <div className="grid grid-cols-3 gap-2">
+                                <div className="ui-muted p-2">
+                                  <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">شهروند</p>
+                                  <p className="mt-1 text-sm font-black text-sky-600 dark:text-sky-300">{alignmentCounts.CITIZEN}</p>
+                                </div>
+                                <div className="ui-muted p-2">
+                                  <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">مافیا</p>
+                                  <p className="mt-1 text-sm font-black text-red-600 dark:text-red-300">{alignmentCounts.MAFIA}</p>
+                                </div>
+                                <div className="ui-muted p-2">
+                                  <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">مستقل</p>
+                                  <p className="mt-1 text-sm font-black text-amber-600 dark:text-amber-300">{alignmentCounts.NEUTRAL}</p>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-wrap gap-2">
+                                {previewRoles.map((scenarioRole) => (
+                                  <span key={`${scenario.id}-${scenarioRole.roleId}`} className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(scenarioRole.role.alignment)}`}>
+                                    {scenarioRole.role.name} x{scenarioRole.count}
+                                  </span>
+                                ))}
+                                {extraRoles > 0 && (
+                                  <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">
+                                    +{extraRoles} نقش دیگر
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex gap-2 border-t border-zinc-200 p-4 pt-3 dark:border-white/10">
+                              <button
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleEditScenario(scenario);
+                                }}
+                                className="ui-button-secondary min-h-9 flex-1 px-3 text-xs"
+                              >
+                                <span className="material-symbols-outlined text-base">edit_square</span>
+                                ویرایش
+                              </button>
+                              <button
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleDeleteScenario(scenario.id);
+                                }}
+                                className="ui-button-danger min-h-9 flex-1 px-3 text-xs"
+                              >
+                                <span className="material-symbols-outlined text-base">delete</span>
+                                حذف
+                              </button>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               )}
             </section>
           </div>

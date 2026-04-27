@@ -7,6 +7,8 @@ import { revalidatePath } from "next/cache";
 
 import { unstable_noStore as noStore } from "next/cache";
 
+const TEMP_SCENARIO_DESCRIPTION_PREFIX = "__TEMP_GAME_SCENARIO__";
+
 async function checkModerator() {
   const session = await auth();
   if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
@@ -360,15 +362,21 @@ export async function setGameScenario(gameId: string, scenarioId: string) {
   }
 }
 
-export async function createCustomGameScenario(gameId: string, roles: { roleId: string, count: number }[]) {
+export async function createCustomGameScenario(
+  gameId: string,
+  roles: { roleId: string, count: number }[],
+  saveToLibrary = false
+) {
   try {
     const moderatorId = await checkModerator();
+    const uniqueSuffix = `${gameId.slice(0, 6)}-${Date.now().toString(36)}`;
     
-    // Create a temporary scenario specific to this game
     const scenario = await prisma.scenario.create({
       data: {
-        name: `بازی سفارشی ${gameId.slice(0, 6)}`,
-        description: "سناریو ساخته شده در لحظه",
+        name: saveToLibrary ? `سناریوی سفارشی ${uniqueSuffix}` : `بازی سفارشی ${uniqueSuffix}`,
+        description: saveToLibrary
+          ? "سناریو ذخیره‌شده از لابی بازی"
+          : `${TEMP_SCENARIO_DESCRIPTION_PREFIX} سناریوی موقت این لابی`,
         createdBy: moderatorId,
         roles: {
           create: roles.map(r => ({
@@ -379,7 +387,11 @@ export async function createCustomGameScenario(gameId: string, roles: { roleId: 
       }
     });
 
-    // Assign it to the game
+    if (saveToLibrary) {
+      revalidatePath("/dashboard/moderator/scenarios");
+      revalidatePath("/dashboard/admin");
+    }
+
     return await setGameScenario(gameId, scenario.id);
   } catch (error: any) {
     console.error("Create custom scenario error:", error);

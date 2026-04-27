@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Role } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
@@ -20,7 +19,6 @@ type UserRecord = {
   _count: {
     gameHistories: number;
     gamesHosted: number;
-    passwordResetTokens: number;
   };
 };
 
@@ -57,6 +55,7 @@ export function UserManagementPanel() {
   const [sortMode, setSortMode] = useState<SortMode>("ROLE");
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showStats, setShowStats] = useState(false);
 
   const deferredSearch = useDeferredValue(search);
   const currentUserId = session?.user?.id;
@@ -131,7 +130,6 @@ export function UserManagementPanel() {
     admins: users.filter((user) => user.role === "ADMIN").length,
     moderators: users.filter((user) => user.role === "MODERATOR").length,
     banned: users.filter((user) => user.isBanned).length,
-    passwordUsers: users.filter((user) => user.password_hash).length,
     googleUsers: users.filter((user) => user.accounts.some((account) => account.provider === "google")).length,
   };
   const selectedUser = filteredUsers.find((user) => user.id === selectedUserId) || filteredUsers[0] || null;
@@ -216,20 +214,12 @@ export function UserManagementPanel() {
               <p className="ui-kicker">مدیریت کاربران</p>
               <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">کاربران و دسترسی‌ها</h1>
               <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                فهرست کاربران در سمت راست می‌ماند و جزئیات مدیریتی فقط برای کاربر انتخاب‌شده باز می‌شود.
+                وضعیت حساب، روش ورود، سطح دسترسی، سابقه بازی و ابزارهای مدیریتی هر کاربر را از یک نمای متمرکز کنترل کنید.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Link href="/dashboard/admin?tab=roles" className="ui-button-secondary min-h-10 px-3 text-xs">
-              <span className="material-symbols-outlined text-base">theater_comedy</span>
-              نقش‌ها
-            </Link>
-            <Link href="/dashboard/admin?tab=scenarios" className="ui-button-secondary min-h-10 px-3 text-xs">
-              <span className="material-symbols-outlined text-base">account_tree</span>
-              سناریوها
-            </Link>
             <button onClick={refreshUsers} className="ui-button-primary min-h-10 px-3 text-xs">
               <span className="material-symbols-outlined text-base">refresh</span>
               بروزرسانی
@@ -238,19 +228,39 @@ export function UserManagementPanel() {
         </div>
       </header>
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          ["کل کاربران", counts.total, "group", "text-lime-500"],
-          ["مدیر و گرداننده", counts.admins + counts.moderators, "admin_panel_settings", "text-sky-500"],
-          ["فعال", counts.total - counts.banned, "verified", "text-emerald-500"],
-          ["نیازمند بررسی", counts.banned + users.filter((user) => user._count.passwordResetTokens > 0).length, "privacy_tip", "text-amber-500"],
-        ].map(([label, value, icon, color]) => (
-          <div key={label} className="ui-card p-4">
-            <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-            <p className="mt-3 text-2xl font-black text-zinc-950 dark:text-white">{value}</p>
-            <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+      <section className="ui-card overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowStats((value) => !value)}
+          className="flex min-h-14 w-full items-center justify-between gap-3 p-4 text-right"
+        >
+          <div>
+            <p className="text-sm font-black text-zinc-950 dark:text-white">نمای کلی کاربران</p>
+            <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">
+              {counts.total} کاربر، {counts.total - counts.banned} حساب فعال و {counts.googleUsers} ورود گوگل
+            </p>
           </div>
-        ))}
+          <span className="material-symbols-outlined text-zinc-400">
+            {showStats ? "keyboard_arrow_up" : "keyboard_arrow_down"}
+          </span>
+        </button>
+
+        {showStats && (
+          <div className="grid gap-3 border-t border-zinc-200 p-4 dark:border-white/10 md:grid-cols-2 xl:grid-cols-4">
+            {[
+              ["کل کاربران", counts.total, "group", "text-lime-500"],
+              ["مدیر و گرداننده", counts.admins + counts.moderators, "admin_panel_settings", "text-sky-500"],
+              ["حساب فعال", counts.total - counts.banned, "verified", "text-emerald-500"],
+              ["ورود گوگل", counts.googleUsers, "account_circle", "text-amber-500"],
+            ].map(([label, value, icon, color]) => (
+              <div key={label} className="ui-muted p-4">
+                <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+                <p className="mt-3 text-2xl font-black text-zinc-950 dark:text-white">{value}</p>
+                <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="ui-card p-3">
@@ -373,11 +383,6 @@ export function UserManagementPanel() {
                                   مسدود
                                 </span>
                               )}
-                              {user._count.passwordResetTokens > 0 && (
-                                <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-500">
-                                  بازیابی فعال
-                                </span>
-                              )}
                               <span className="rounded-lg border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
                                 {[hasPassword ? "رمز" : null, hasGoogle ? "گوگل" : null].filter(Boolean).join(" + ") || "نامشخص"}
                               </span>
@@ -472,8 +477,8 @@ export function UserManagementPanel() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm dark:border-white/10">
-                    <span className="font-bold text-zinc-500 dark:text-zinc-400">بازیابی رمز</span>
-                    <span className="font-black text-zinc-950 dark:text-white">{selectedUser._count.passwordResetTokens}</span>
+                    <span className="font-bold text-zinc-500 dark:text-zinc-400">حضور آنلاین</span>
+                    <span className="font-black text-zinc-950 dark:text-white">در دسترس نیست</span>
                   </div>
                 </div>
 

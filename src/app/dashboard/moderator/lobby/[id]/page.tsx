@@ -38,6 +38,8 @@ export default function GameLobbyPage() {
   const [roles, setRoles] = useState<any[]>([]);
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customRoles, setCustomRoles] = useState<{ roleId: string; count: number }[]>([]);
+  const [customRoleSearch, setCustomRoleSearch] = useState("");
+  const [saveCustomScenario, setSaveCustomScenario] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -113,6 +115,15 @@ export default function GameLobbyPage() {
     [game]
   );
 
+  const filteredCustomRoles = useMemo(() => {
+    const query = customRoleSearch.trim().toLowerCase();
+    if (!query) return roles;
+    return roles.filter((role) =>
+      [role.name, role.description || "", alignmentLabel(role.alignment)]
+        .some((value) => value.toLowerCase().includes(query))
+    );
+  }, [customRoleSearch, roles]);
+
   const selectedCustomCount = customRoles.reduce((sum, item) => sum + item.count, 0);
   const seatsRemaining = requiredPlayers ? requiredPlayers - players.length : 0;
   const startDisabledReason = !game?.scenario
@@ -164,13 +175,19 @@ export default function GameLobbyPage() {
 
     setSettingScenario(true);
     setShowCustomModal(false);
-    const res = await createCustomGameScenario(gameId, customRoles);
+    const res = await createCustomGameScenario(gameId, customRoles, saveCustomScenario);
     if (!res.success) {
       showAlert("خطا", res.error || "خطا در ایجاد سناریو سفارشی", "error");
     } else {
       const updatedGame = await getGameStatus(gameId);
       setGame(updatedGame);
-      showToast("سناریو سفارشی اعمال شد", "success");
+      if (saveCustomScenario) {
+        const nextScenarios = await getScenarios();
+        setScenarios(nextScenarios);
+      }
+      setCustomRoleSearch("");
+      setSaveCustomScenario(false);
+      showToast(saveCustomScenario ? "سناریوی سفارشی ذخیره و اعمال شد" : "سناریوی سفارشی اعمال شد", "success");
     }
     setSettingScenario(false);
   };
@@ -352,7 +369,15 @@ export default function GameLobbyPage() {
                     </select>
                   </label>
 
-                  <button onClick={() => setShowCustomModal(true)} disabled={settingScenario} className="ui-button-secondary min-h-12 w-full">
+                  <button
+                    onClick={() => {
+                      setCustomRoleSearch("");
+                      setSaveCustomScenario(false);
+                      setShowCustomModal(true);
+                    }}
+                    disabled={settingScenario}
+                    className="ui-button-secondary min-h-12 w-full"
+                  >
                     <span className="material-symbols-outlined text-xl">dashboard_customize</span>
                     طراحی سناریو در لحظه
                   </button>
@@ -388,7 +413,14 @@ export default function GameLobbyPage() {
                 <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">چیدن نقش‌ها</h2>
                 <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">مجموع نقش‌ها بهتر است با تعداد بازیکنان حاضر برابر باشد.</p>
               </div>
-              <button onClick={() => setShowCustomModal(false)} className="ui-button-secondary size-10 p-0">
+              <button
+                onClick={() => {
+                  setShowCustomModal(false);
+                  setCustomRoleSearch("");
+                  setSaveCustomScenario(false);
+                }}
+                className="ui-button-secondary size-10 p-0"
+              >
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>
             </div>
@@ -405,8 +437,26 @@ export default function GameLobbyPage() {
             </div>
 
             <div className="custom-scrollbar flex-1 overflow-y-auto p-5">
-              <div className="grid gap-2 sm:grid-cols-2">
-                {roles.map((role) => {
+              <label className="mb-4 flex min-h-12 items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 dark:border-white/10 dark:bg-zinc-950/40">
+                <span className="material-symbols-outlined text-zinc-400">search</span>
+                <input
+                  value={customRoleSearch}
+                  onChange={(event) => setCustomRoleSearch(event.target.value)}
+                  placeholder="جستجوی نقش برای سناریوی این لابی"
+                  className="w-full border-0 bg-transparent p-0 text-sm outline-none focus:ring-0"
+                />
+              </label>
+
+              {filteredCustomRoles.length === 0 ? (
+                <div className="flex min-h-52 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-zinc-200 p-8 text-center dark:border-white/10">
+                  <div className="ui-icon size-14">
+                    <span className="material-symbols-outlined text-3xl text-zinc-400">manage_search</span>
+                  </div>
+                  <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">نقشی با این جستجو پیدا نشد.</p>
+                </div>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {filteredCustomRoles.map((role) => {
                   const count = customRoles.find((item) => item.roleId === role.id)?.count || 0;
                   return (
                     <div key={role.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
@@ -429,11 +479,27 @@ export default function GameLobbyPage() {
                       </div>
                     </div>
                   );
-                })}
-              </div>
+                  })}
+                </div>
+              )}
             </div>
 
-            <div className="border-t border-zinc-200 p-5 dark:border-white/10">
+            <div className="space-y-4 border-t border-zinc-200 p-5 dark:border-white/10">
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                <input
+                  type="checkbox"
+                  checked={saveCustomScenario}
+                  onChange={(event) => setSaveCustomScenario(event.target.checked)}
+                  className="mt-1 size-4 accent-lime-500"
+                />
+                <span className="min-w-0">
+                  <span className="block text-sm font-black text-zinc-950 dark:text-white">ذخیره در کتابخانه سناریوها</span>
+                  <span className="mt-1 block text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                    به صورت پیش‌فرض این ترکیب فقط روی همین لابی اعمال می‌شود.
+                  </span>
+                </span>
+              </label>
+
               <button
                 onClick={handleCreateCustomScenario}
                 disabled={selectedCustomCount === 0}
