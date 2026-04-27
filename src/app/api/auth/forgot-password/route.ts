@@ -59,6 +59,18 @@ export async function POST(request: Request) {
 
     const mailResult = await sendPasswordResetEmail(email, token, getBaseUrl(request));
 
+    if (!mailResult.delivered && process.env.NODE_ENV === "production") {
+      await prisma.passwordResetToken.deleteMany({ where: { token } });
+      console.error("[FORGOT_PASSWORD_EMAIL]", {
+        email,
+        reason: mailResult.reason || "mail delivery failed",
+      });
+      return NextResponse.json(
+        { error: "سرویس ارسال ایمیل بازیابی رمز تنظیم نیست یا در دسترس نیست. تنظیمات SMTP سرور را بررسی کنید." },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json({
       ok: true,
       ...(process.env.NODE_ENV !== "production" && mailResult.previewUrl

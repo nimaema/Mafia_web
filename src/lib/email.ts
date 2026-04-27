@@ -3,7 +3,29 @@ import nodemailer from "nodemailer";
 type PasswordResetEmailResult = {
   delivered: boolean;
   previewUrl?: string;
+  reason?: string;
 };
+
+const MAIL_TIMEOUT_MS = 12_000;
+
+function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(`Mail delivery timed out after ${milliseconds}ms`));
+    }, milliseconds);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    );
+  });
+}
 
 function getMailConfig() {
   const host = process.env.SMTP_HOST || process.env.EMAIL_SERVER_HOST;
@@ -35,10 +57,19 @@ function getTransporter() {
     return null;
   }
 
+  const host = config.host.toLowerCase();
+  const isLocalDevRelay = ["localhost", "127.0.0.1", "::1"].includes(host) && config.port === 1025;
+  if (process.env.NODE_ENV === "production" && isLocalDevRelay) {
+    return null;
+  }
+
   return nodemailer.createTransport({
     host: config.host,
     port: config.port,
     secure: config.secure,
+    connectionTimeout: MAIL_TIMEOUT_MS,
+    greetingTimeout: MAIL_TIMEOUT_MS,
+    socketTimeout: MAIL_TIMEOUT_MS,
     ...(config.user || config.pass
       ? {
           auth: {
@@ -61,7 +92,7 @@ export async function sendPasswordResetEmail(
 
   if (!transporter) {
     console.info("[PASSWORD_RESET_PREVIEW]", { email, resetUrl, reason: "mail transport is not configured" });
-    return { delivered: false, previewUrl: resetUrl };
+    return { delivered: false, previewUrl: resetUrl, reason: "mail transport is not configured" };
   }
 
   const message = {
@@ -104,19 +135,18 @@ export async function sendPasswordResetEmail(
   };
 
   try {
-    await transporter.sendMail(message);
+    await withTimeout(transporter.sendMail(message), MAIL_TIMEOUT_MS);
     return { delivered: true };
   } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("[PASSWORD_RESET_PREVIEW]", {
-        email,
-        resetUrl,
-        reason: "mail delivery failed in non-production",
-        error,
-      });
-      return { delivered: false, previewUrl: resetUrl };
-    }
-
-    throw error;
+    console.warn("[PASSWORD_RESET_EMAIL_FAILED]", {
+      email,
+      resetUrl: process.env.NODE_ENV !== "production" ? resetUrl : undefined,
+      error,
+    });
+    return {
+      delivered: false,
+      ...(process.env.NODE_ENV !== "production" ? { previewUrl: resetUrl } : {}),
+      reason: "mail delivery failed",
+    };
   }
 }
