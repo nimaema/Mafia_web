@@ -19,6 +19,12 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "مافیا بورد - دستیار پیشرفته",
   description: "دستیار دیجیتال برای مدیریت حرفه‌ای بازی مافیا",
+  applicationName: "مافیا بورد",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon",
+    apple: "/apple-icon",
+  },
   appleWebApp: {
     capable: true,
     title: "مافیا بورد",

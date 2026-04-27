@@ -2,7 +2,7 @@ import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { InstallPWAButton } from "@/components/InstallPWAButton";
+import { InstallPWANotice } from "@/components/InstallPWANotice";
 
 
 export default async function DashboardLayout({
@@ -84,7 +84,6 @@ export default async function DashboardLayout({
 
         <div className="mt-auto flex flex-col gap-3 border-t border-zinc-200 pt-5 dark:border-white/10">
           <ThemeToggle />
-          <InstallPWAButton />
           <form action={handleLogout} className="w-full">
             <button 
               type="submit"
@@ -131,7 +130,6 @@ export default async function DashboardLayout({
           </Link>
         )}
         <ThemeToggle nav />
-        <InstallPWAButton nav />
         <form action={handleLogout} className="min-w-16 flex-1">
           <button 
             type="submit"
@@ -142,6 +140,7 @@ export default async function DashboardLayout({
           </button>
         </form>
       </nav>
+      <InstallPWANotice />
     </div>
   );
 }

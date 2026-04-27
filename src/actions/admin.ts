@@ -143,11 +143,6 @@ export async function updateMafiaRole(id: string, data: { name: string; descript
 
 export async function deleteMafiaRole(id: string) {
   await checkModerator();
-  // Check if role is permanent
-  const role = await prisma.mafiaRole.findUnique({ where: { id } });
-  if (role?.is_permanent) {
-    throw new Error("نقش‌های سیستمی قابل حذف نیستند");
-  }
 
   // Delete associated scenario roles first (Prisma handles this if onDelete: Cascade is set, but it's not set for ScenarioRole -> MafiaRole)
   await prisma.scenarioRole.deleteMany({ where: { roleId: id } });

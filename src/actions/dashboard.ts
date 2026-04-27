@@ -13,7 +13,7 @@ export async function getUserStats() {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: userId },
-    select: { name: true, email: true }
+    select: { name: true, image: true }
   });
 
   const totalGames = await prisma.gameHistory.count({
@@ -91,7 +91,7 @@ export async function getUserStats() {
 
   return {
     userName: dbUser?.name,
-    userEmail: dbUser?.email,
+    userImage: dbUser?.image,
     currentActiveGame: activePlayerRecord?.game ? {
       id: activePlayerRecord.game.id,
       scenarioName: activePlayerRecord.game.scenario?.name || "ناشناس",

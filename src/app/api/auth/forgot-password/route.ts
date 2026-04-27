@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const user = await prisma.user.findUnique({ where: { email } });
 
     // Always return 200 to prevent email enumeration
-    if (!user || !user.password_hash) {
+    if (!user) {
       return NextResponse.json({ ok: true });
     }
 

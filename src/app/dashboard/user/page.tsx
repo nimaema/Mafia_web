@@ -23,7 +23,7 @@ type DashboardData = {
   recentGames: any[];
   currentActiveGame?: any;
   userName?: string | null;
-  userEmail?: string | null;
+  userImage?: string | null;
 };
 
 function EmptyState({ icon, title, text }: { icon: string; title: string; text: string }) {
@@ -115,7 +115,7 @@ export default function UserDashboard() {
   const totalGames = wins + losses;
   const winRate = totalGames ? Math.round((wins / totalGames) * 100) : 0;
   const displayName = data?.userName || session?.user?.name || "کاربر";
-  const displayEmail = data?.userEmail || session?.user?.email || "نامشخص";
+  const displayImage = data?.userImage || session?.user?.image;
   const mostPlayedRole = roleHistory.reduce((best: any | null, item: any) => {
     if (!best || item.count > best.count) return item;
     return best;
@@ -129,8 +129,8 @@ export default function UserDashboard() {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
             <div className="relative size-20 shrink-0">
               <div className="flex size-20 items-center justify-center overflow-hidden rounded-lg border border-lime-500/30 bg-lime-500/10">
-                {session?.user?.image ? (
-                  <img src={session.user.image} alt="Profile" className="size-full object-cover" />
+                {displayImage ? (
+                  <img src={displayImage} alt="Profile" className="size-full object-cover" />
                 ) : (
                   <span className="material-symbols-outlined text-4xl text-lime-500">person</span>
                 )}
@@ -143,7 +143,6 @@ export default function UserDashboard() {
             <div className="min-w-0">
               <p className="ui-kicker">داشبورد بازیکن</p>
               <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">{displayName}</h1>
-              <p className="mt-1 truncate text-sm text-zinc-500 dark:text-zinc-400" dir="ltr">{displayEmail}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-3 py-1.5 text-xs font-black text-lime-700 dark:text-lime-300">
                   {session?.user?.role === "ADMIN" ? "مدیر سیستم" : session?.user?.role === "MODERATOR" ? "گرداننده رسمی" : "بازیکن فعال"}

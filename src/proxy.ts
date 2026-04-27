@@ -18,7 +18,15 @@ export default auth((req: NextRequest & { auth: any }) => {
 
   if (isAuthRoute) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/dashboard/user", nextUrl));
+      const role = req.auth?.user?.role;
+      const target =
+        role === "ADMIN"
+          ? "/dashboard/admin/users"
+          : role === "MODERATOR"
+            ? "/dashboard/moderator"
+            : "/dashboard/user";
+
+      return NextResponse.redirect(new URL(target, nextUrl));
     }
     return NextResponse.next();
   }
@@ -32,5 +40,5 @@ export default auth((req: NextRequest & { auth: any }) => {
 
 // Middleware config remains valid in proxy mode
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icons/).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|manifest.json|manifest.webmanifest|icon|apple-icon|sw.js|icons/).*)"],
 };

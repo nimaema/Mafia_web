@@ -11,6 +11,7 @@ type UserRecord = {
   id: string;
   name: string | null;
   email: string | null;
+  image: string | null;
   role: Role;
   isBanned: boolean;
   emailVerified: Date | null;
@@ -332,8 +333,12 @@ export function UserManagementPanel() {
                   <div className="flex flex-col gap-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-start gap-3">
-                        <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-sm font-black text-zinc-700 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-200">
-                          {getInitial(user.name, user.email)}
+                        <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white text-sm font-black text-zinc-700 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-200">
+                          {user.image ? (
+                            <img src={user.image} alt="" className="size-full object-cover" />
+                          ) : (
+                            getInitial(user.name, user.email)
+                          )}
                         </div>
                         <div className="min-w-0">
                           <p className="truncate font-black text-zinc-950 dark:text-white">{user.name || "بدون نام"}</p>

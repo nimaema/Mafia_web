@@ -19,6 +19,7 @@ export default async function ProfilePage() {
     select: { 
       name: true,
       email: true,
+      image: true,
       password_hash: true 
     }
   });
@@ -28,6 +29,7 @@ export default async function ProfilePage() {
     name: dbUser?.name || session.user.name || "",
     email: dbUser?.email || session.user.email || ""
   };
+  const profileImage = dbUser?.image || session.user.image;
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
@@ -41,8 +43,8 @@ export default async function ProfilePage() {
       <section className="bg-white dark:bg-zinc-900 rounded-lg p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-6">
         <div className="flex items-center gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-6">
           <div className="w-20 h-20 rounded-full bg-zinc-200 dark:bg-zinc-800 border-2 border-white dark:border-zinc-900 shadow-sm flex items-center justify-center overflow-hidden">
-            {session.user.image ? (
-              <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
+            {profileImage ? (
+              <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               <span className="material-symbols-outlined text-3xl text-zinc-400">person</span>
             )}
