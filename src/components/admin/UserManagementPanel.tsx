@@ -34,6 +34,12 @@ type StatusFilter = "ALL" | "ACTIVE" | "BANNED" | "ONLINE" | "PASSWORD" | "GOOGL
 type RoleFilter = "ALL" | Role;
 type SortMode = "ROLE" | "EMAIL" | "PLAYED" | "HOSTED";
 type EmailComposerMode = "write" | "preview";
+type EmailPreviewBlock =
+  | { type: "heading"; text: string }
+  | { type: "paragraph"; lines: string[] }
+  | { type: "list"; items: string[] }
+  | { type: "note"; text: string }
+  | { type: "divider" };
 
 function getInitial(name?: string | null, email?: string | null) {
   const source = (name || email || "?").trim();
@@ -79,11 +85,67 @@ function getUserPresence(user: UserRecord) {
   };
 }
 
-function emailParagraphs(body: string) {
-  return body
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
+function parseEmailPreviewBlocks(body: string): EmailPreviewBlock[] {
+  const blocks: EmailPreviewBlock[] = [];
+  let paragraph: string[] = [];
+  let listItems: string[] = [];
+
+  const flushParagraph = () => {
+    if (paragraph.length) blocks.push({ type: "paragraph", lines: paragraph });
+    paragraph = [];
+  };
+
+  const flushList = () => {
+    if (listItems.length) blocks.push({ type: "list", items: listItems });
+    listItems = [];
+  };
+
+  body.split(/\r?\n/).forEach((rawLine) => {
+    const line = rawLine.trim();
+    if (!line) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+    if (line === "---") {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: "divider" });
+      return;
+    }
+    if (line.startsWith("# ")) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: "heading", text: line.slice(2) });
+      return;
+    }
+    if (line.startsWith("> ")) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: "note", text: line.slice(2) });
+      return;
+    }
+    if (line.startsWith("- ")) {
+      flushParagraph();
+      listItems.push(line.slice(2));
+      return;
+    }
+    flushList();
+    paragraph.push(line);
+  });
+
+  flushParagraph();
+  flushList();
+  return blocks;
+}
+
+function renderPreviewText(text: string) {
+  return text.split(/(\*\*.*?\*\*)/g).map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return <span key={index}>{part}</span>;
+  });
 }
 
 export function UserManagementPanel() {
@@ -298,6 +360,13 @@ export function UserManagementPanel() {
     setEmailBody((current) => {
       const separator = current.trim() ? "\n\n" : "";
       return `${current}${separator}${snippet}`.slice(0, 4000);
+    });
+  };
+
+  const addEmailFormatBlock = (value: string) => {
+    setEmailBody((current) => {
+      const separator = current.trim() ? "\n\n" : "";
+      return `${current}${separator}${value}`.slice(0, 4000);
     });
   };
 
@@ -629,7 +698,7 @@ export function UserManagementPanel() {
                     className="ui-button-secondary w-full text-sky-600 dark:text-sky-300"
                   >
                     <span className="material-symbols-outlined text-lg">outgoing_mail</span>
-                    ارسال ایمیل از no-reply@playmafia.live
+                    ارسال ایمیل به کاربر
                   </button>
                   {!selectedUser.emailVerified && (
                     <button
@@ -688,7 +757,7 @@ export function UserManagementPanel() {
                 <p className="ui-kicker">ارسال پیام مدیریتی</p>
                 <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">ایمیل به {emailComposerUser.name || "کاربر"}</h2>
                 <p className="mt-2 truncate text-xs font-bold text-zinc-500 dark:text-zinc-400" dir="ltr">
-                  no-reply@playmafia.live → {emailComposerUser.email}
+                  {emailComposerUser.email}
                 </p>
               </div>
               <button onClick={() => setEmailComposerUser(null)} className="ui-button-secondary size-10 p-0">
@@ -749,6 +818,26 @@ export function UserManagementPanel() {
                       />
                     </label>
 
+                    <div className="custom-scrollbar flex gap-1 overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-white/10 dark:bg-zinc-950/40">
+                      {[
+                        { label: "عنوان", icon: "title", value: "# عنوان بخش" },
+                        { label: "پررنگ", icon: "format_bold", value: "**متن مهم**" },
+                        { label: "لیست", icon: "format_list_bulleted", value: "- مورد اول\n- مورد دوم" },
+                        { label: "نکته", icon: "priority_high", value: "> نکته مهم برای کاربر" },
+                        { label: "خط", icon: "horizontal_rule", value: "---" },
+                      ].map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => addEmailFormatBlock(item.value)}
+                          className="flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-black text-zinc-500 transition-all hover:bg-white hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
+                        >
+                          <span className="material-symbols-outlined text-base">{item.icon}</span>
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+
                     <label className="flex flex-col gap-2">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">متن پیام</span>
@@ -769,6 +858,8 @@ export function UserManagementPanel() {
                       "وضعیت حساب شما توسط مدیریت بررسی شد.",
                       "برای ادامه، لطفاً وارد حساب کاربری خود شوید و اطلاعات پروفایل را بررسی کنید.",
                       "در صورت نیاز به راهنمایی، از بخش پشتیبانی داخل سایت پیام بدهید.",
+                      "# اطلاع‌رسانی حساب\n\nوضعیت حساب شما به‌روزرسانی شد.\n\n- ورود دوباره به سایت\n- بررسی پروفایل\n- تماس با مدیریت در صورت وجود سوال",
+                      "> این پیام فقط برای اطلاع‌رسانی است و نیازی به پاسخ مستقیم به ایمیل نیست.",
                     ].map((snippet) => (
                       <button
                         key={snippet}
@@ -800,29 +891,53 @@ export function UserManagementPanel() {
                     </div>
 
                     <div className="space-y-3 p-5">
-                      {(emailParagraphs(emailBody).length ? emailParagraphs(emailBody) : ["متن پیام اینجا نمایش داده می‌شود."]).map((paragraph, index) => (
-                        <div key={index} className="rounded-lg border border-zinc-200 bg-white p-4 text-sm font-semibold leading-8 text-zinc-700">
-                          {paragraph.split("\n").map((line, lineIndex) => (
-                            <span key={`${index}-${lineIndex}`}>
-                              {line}
-                              {lineIndex < paragraph.split("\n").length - 1 && <br />}
-                            </span>
-                          ))}
-                        </div>
-                      ))}
+                      {(parseEmailPreviewBlocks(emailBody).length ? parseEmailPreviewBlocks(emailBody) : [{ type: "paragraph" as const, lines: ["متن پیام اینجا نمایش داده می‌شود."] }]).map((block, index) => {
+                        if (block.type === "heading") {
+                          return <h4 key={index} className="text-xl font-black leading-9 text-zinc-950">{renderPreviewText(block.text)}</h4>;
+                        }
+                        if (block.type === "list") {
+                          return (
+                            <div key={index} className="rounded-lg border border-sky-100 bg-sky-50 p-4">
+                              {block.items.map((item, itemIndex) => (
+                                <p key={itemIndex} className="flex items-start gap-2 text-sm font-bold leading-7 text-sky-900">
+                                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-lime-500" />
+                                  <span>{renderPreviewText(item)}</span>
+                                </p>
+                              ))}
+                            </div>
+                          );
+                        }
+                        if (block.type === "note") {
+                          return (
+                            <div key={index} className="rounded-lg border border-lime-300 border-r-4 bg-lime-50 p-4 text-sm font-black leading-7 text-lime-800">
+                              {renderPreviewText(block.text)}
+                            </div>
+                          );
+                        }
+                        if (block.type === "divider") {
+                          return <div key={index} className="h-px bg-zinc-200" />;
+                        }
+                        return (
+                          <div key={index} className="rounded-lg border border-zinc-200 bg-white p-4 text-sm font-semibold leading-8 text-zinc-700">
+                            {block.lines.map((line, lineIndex) => (
+                              <span key={`${index}-${lineIndex}`}>
+                                {renderPreviewText(line)}
+                                {lineIndex < block.lines.length - 1 && <br />}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })}
                       <div className="rounded-lg border border-lime-300 bg-lime-50 p-3 text-xs font-bold leading-6 text-lime-800">
                         اگر درباره این پیام سوالی دارید، از داخل سایت با مدیریت پیگیری کنید و اطلاعات حساس حساب خود را در پاسخ ایمیل ارسال نکنید.
                       </div>
-                      <p className="text-xs font-bold leading-6 text-zinc-500" dir="ltr">
-                        no-reply@playmafia.live → {emailComposerUser.email}
-                      </p>
                     </div>
                   </div>
                 </div>
               )}
 
               <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 text-xs font-bold leading-6 text-lime-700 dark:text-lime-300">
-                ایمیل با قالب رسمی مافیا بورد و راست‌چین ارسال می‌شود. فرستنده از تنظیمات ایمیل سرور استفاده می‌کند و در صورت نبود مقدار، no-reply@playmafia.live خواهد بود.
+                ایمیل با قالب رسمی مافیا بورد و راست‌چین ارسال می‌شود. برای قالب‌بندی می‌توانید از عنوان، لیست، متن پررنگ، نکته و خط جداکننده استفاده کنید.
               </div>
             </div>
 

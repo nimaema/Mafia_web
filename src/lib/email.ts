@@ -369,26 +369,105 @@ function buildVerificationMessage(email: string, verifyUrl: string, from: string
   };
 }
 
-function buildAdminUserMessage(email: string, subject: string, body: string, from: string) {
-  const bodyParagraphs = body
-    .split(/\n{2,}/)
-    .map((part) => part.trim())
-    .filter(Boolean);
-  const renderedBody = bodyParagraphs.length
-    ? bodyParagraphs
-        .map(
-          (paragraph) => `
-            <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 14px; border: 1px solid #e5e7eb; border-radius: 18px; background: #ffffff; padding: 16px 18px; color: #27272a; font-size: 15px; line-height: 32px; font-weight: 600;">
-              ${escapeHtml(paragraph).replace(/\n/g, "<br />")}
-            </div>
-          `
-        )
-        .join("")
+function renderInlineEmailText(value: string) {
+  return escapeHtml(value).replace(/\*\*(.+?)\*\*/g, "<strong style=\"font-weight: 800; color: #18181b;\">$1</strong>");
+}
+
+function buildAdminEmailBodyHtml(body: string) {
+  const lines = body.split(/\r?\n/);
+  const blocks: string[] = [];
+  let paragraph: string[] = [];
+  let listItems: string[] = [];
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    blocks.push(`
+      <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 14px; border: 1px solid #e5e7eb; border-radius: 18px; background: #ffffff; padding: 16px 18px; color: #27272a; font-size: 15px; line-height: 32px; font-weight: 600;">
+        ${paragraph.map(renderInlineEmailText).join("<br />")}
+      </div>
+    `);
+    paragraph = [];
+  };
+
+  const flushList = () => {
+    if (!listItems.length) return;
+    blocks.push(`
+      <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 14px; border: 1px solid #dbeafe; border-radius: 18px; background: #eff6ff; padding: 16px 18px;">
+        ${listItems
+          .map(
+            (item) => `
+              <div dir="rtl" style="${EMAIL_RTL_STYLE} color: #1e3a8a; font-size: 14px; line-height: 30px; font-weight: 700;">
+                <span style="display: inline-block; width: 7px; height: 7px; margin-left: 8px; border-radius: 999px; background: #84cc16;"></span>${renderInlineEmailText(item)}
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+    `);
+    listItems = [];
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    if (line === "---") {
+      flushParagraph();
+      flushList();
+      blocks.push(`<div style="height: 1px; margin: 18px 4px; background: #e5e7eb;"></div>`);
+      continue;
+    }
+
+    if (line.startsWith("# ")) {
+      flushParagraph();
+      flushList();
+      blocks.push(`
+        <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 12px; color: #18181b; font-size: 20px; line-height: 34px; font-weight: 800;">
+          ${renderInlineEmailText(line.slice(2))}
+        </div>
+      `);
+      continue;
+    }
+
+    if (line.startsWith("> ")) {
+      flushParagraph();
+      flushList();
+      blocks.push(`
+        <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 14px; border: 1px solid #d9f99d; border-right: 5px solid #84cc16; border-radius: 18px; background: #f7fee7; padding: 15px 17px; color: #3f6212; font-size: 14px; line-height: 28px; font-weight: 800;">
+          ${renderInlineEmailText(line.slice(2))}
+        </div>
+      `);
+      continue;
+    }
+
+    if (line.startsWith("- ")) {
+      flushParagraph();
+      listItems.push(line.slice(2));
+      continue;
+    }
+
+    flushList();
+    paragraph.push(line);
+  }
+
+  flushParagraph();
+  flushList();
+
+  return blocks.length
+    ? blocks.join("")
     : `
       <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0; border: 1px solid #e5e7eb; border-radius: 18px; background: #ffffff; padding: 16px 18px; color: #27272a; font-size: 15px; line-height: 32px; font-weight: 600;">
-        ${escapeHtml(body).replace(/\n/g, "<br />")}
+        ${renderInlineEmailText(body).replace(/\n/g, "<br />")}
       </div>
     `;
+}
+
+function buildAdminUserMessage(email: string, subject: string, body: string, from: string) {
+  const renderedBody = buildAdminEmailBodyHtml(body);
 
   return {
     from,
@@ -449,8 +528,7 @@ function buildAdminUserMessage(email: string, subject: string, body: string, fro
                     <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 20px; border-collapse: collapse;">
                       <tr>
                         <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} color: #71717a; font-size: 12px; line-height: 24px; font-weight: 700;">
-                          فرستنده: ${escapeHtml(from)}<br />
-                          گیرنده: <span dir="ltr" style="direction: ltr; unicode-bidi: embed;">${escapeHtml(email)}</span>
+                          این پیام برای حساب <span dir="ltr" style="direction: ltr; unicode-bidi: embed;">${escapeHtml(email)}</span> ارسال شده است.
                         </td>
                       </tr>
                     </table>

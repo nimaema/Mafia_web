@@ -47,9 +47,9 @@ function PanelHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-zinc-200 p-4 dark:border-white/10">
+    <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
       <div className="flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]">
+        <div className="flex size-10 items-center justify-center rounded-lg border border-zinc-200 bg-white shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950">
           <span className="material-symbols-outlined text-lime-600 dark:text-lime-400">{icon}</span>
         </div>
         <div>
@@ -174,32 +174,43 @@ export default function UserDashboard() {
   return (
     <div className="space-y-5 font-sans">
       <section className="ui-card overflow-hidden">
-        <div className="flex flex-col gap-5 p-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]">
+        <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+        <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center">
+            <div className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 shadow-lg shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.03]">
               {displayImage ? (
                 <img src={displayImage} alt="Profile" className="size-full object-cover" />
               ) : (
-                <span className="material-symbols-outlined text-3xl text-lime-500">person</span>
+                <span className="material-symbols-outlined text-4xl text-lime-500">person</span>
               )}
+              <span className="absolute bottom-2 right-2 size-3 rounded-full border-2 border-white bg-lime-500 dark:border-zinc-950" />
             </div>
             <div className="min-w-0">
-              <p className="ui-kicker">داشبورد بازیکن</p>
-              <h1 className="mt-1 truncate text-3xl font-black text-zinc-950 dark:text-white">{displayName}</h1>
-              <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">{statusText}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="ui-kicker">داشبورد بازیکن</p>
+                <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">
+                  {statusText}
+                </span>
+              </div>
+              <h1 className="mt-2 line-clamp-2 break-words text-3xl font-black leading-10 text-zinc-950 dark:text-white">{displayName}</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                لابی‌های فعال، مسیر بعدی، تاریخچه تازه و الگوی نقش‌های شما در یک نمای فشرده و قابل اسکن.
+              </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03] lg:min-w-[360px]">
+          <div className="grid grid-cols-3 gap-2">
             {[
-              ["بازی", totalGames, "sports_esports", "text-lime-500"],
-              ["برد", wins, "emoji_events", "text-amber-500"],
-              ["درصد برد", `${winRate}%`, "trending_up", "text-sky-500"],
-            ].map(([label, value, icon, color], index) => (
-              <div key={label} className={`p-3 ${index > 0 ? "border-r border-zinc-200 dark:border-white/10" : ""}`}>
-                <span className={`material-symbols-outlined text-base ${color}`}>{icon}</span>
-                <p className="mt-1 text-xl font-black text-zinc-950 dark:text-white">{value}</p>
-                <p className="mt-0.5 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+              ["بازی", totalGames, "sports_esports", "text-lime-500", "bg-lime-500/10"],
+              ["برد", wins, "emoji_events", "text-amber-500", "bg-amber-500/10"],
+              ["درصد برد", `${winRate}%`, "trending_up", "text-sky-500", "bg-sky-500/10"],
+            ].map(([label, value, icon, color, bg]) => (
+              <div key={label} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className={`flex size-9 items-center justify-center rounded-lg ${bg}`}>
+                  <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+                </div>
+                <p className="mt-3 text-2xl font-black text-zinc-950 dark:text-white">{value}</p>
+                <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
               </div>
             ))}
           </div>
@@ -214,24 +225,25 @@ export default function UserDashboard() {
       )}
 
       <section className="ui-card overflow-hidden">
-        <PanelHeader icon="rocket_launch" title="اقدام بعدی" subtitle="مسیر اصلی شما برای ادامه بازی" />
+        <PanelHeader icon="radar" title="لابی‌ها و ادامه بازی" subtitle="وضعیت زنده بازی‌های قابل ورود" />
         <div className="p-5">
           {data?.currentActiveGame ? (
             <Link
               href={`/game/${data.currentActiveGame.id}`}
-              className="group flex min-h-40 flex-col justify-between rounded-lg border border-lime-500/25 bg-lime-500/10 p-5 transition-colors hover:bg-lime-500/15"
+              className="group relative flex min-h-44 flex-col justify-between overflow-hidden rounded-lg border border-lime-500/25 bg-zinc-950 p-5 text-white shadow-xl shadow-zinc-950/15 transition-transform hover:-translate-y-0.5 dark:bg-white dark:text-zinc-950"
             >
+              <div className="absolute inset-x-0 top-0 h-1 bg-lime-400" />
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-black text-lime-700 dark:text-lime-300">بازی فعال</p>
-                  <h2 className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">{data.currentActiveGame.scenarioName}</h2>
-                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">گرداننده: {data.currentActiveGame.moderatorName}</p>
+                  <p className="text-xs font-black text-lime-300 dark:text-lime-700">بازی فعال</p>
+                  <h2 className="mt-2 text-2xl font-black">{data.currentActiveGame.scenarioName}</h2>
+                  <p className="mt-2 text-sm text-zinc-300 dark:text-zinc-600">گرداننده: {data.currentActiveGame.moderatorName}</p>
                 </div>
                 <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-zinc-950">
                   <span className="material-symbols-outlined">play_arrow</span>
                 </div>
               </div>
-              <p className="mt-5 flex items-center gap-1 text-sm font-black text-lime-700 dark:text-lime-300">
+              <p className="mt-5 flex items-center gap-1 text-sm font-black text-lime-300 dark:text-lime-700">
                 ورود به صفحه بازی
                 <span className="material-symbols-outlined text-base transition-transform group-hover:-translate-x-1">arrow_back</span>
               </p>
@@ -252,25 +264,33 @@ export default function UserDashboard() {
                 const capacity = game.scenario?.roles?.reduce((total: number, role: any) => total + role.count, 0) || 0;
                 const joinedPlayers = game._count?.players || 0;
                 const seatsLeft = capacity ? Math.max(capacity - joinedPlayers, 0) : null;
+                const progress = capacity ? Math.min(100, Math.round((joinedPlayers / capacity) * 100)) : 0;
 
                 return (
                   <Link
                     key={game.id}
                     href={`/lobby/${game.id}`}
-                    className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 transition-all hover:border-lime-500/35 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+                    className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-4 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/35 hover:shadow-lg hover:shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950"
                   >
+                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 to-sky-400" />
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h3 className="truncate font-black text-zinc-950 dark:text-white">{game.name}</h3>
-                        <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">{game.scenario?.name || "سناریو انتخاب نشده"}</p>
+                        <p className="text-[10px] font-black text-lime-600 dark:text-lime-400">اتاق انتظار</p>
+                        <h3 className="mt-1 line-clamp-2 break-words font-black leading-6 text-zinc-950 dark:text-white">{game.name}</h3>
+                        <p className="mt-1 line-clamp-1 text-xs text-zinc-500 dark:text-zinc-400">{game.scenario?.name || "سناریو انتخاب نشده"}</p>
                       </div>
                       <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 font-mono text-[10px] font-black text-lime-700 dark:text-lime-300">
                         #{game.code}
                       </span>
                     </div>
-                    <div className="mt-4 flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                      <span>{joinedPlayers}{capacity ? ` / ${capacity}` : ""} بازیکن</span>
-                      <span>{seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "تکمیل" : `${seatsLeft} جای خالی`}</span>
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                        <span>{joinedPlayers}{capacity ? ` / ${capacity}` : ""} بازیکن</span>
+                        <span>{seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "تکمیل" : `${seatsLeft} ظرفیت`}</span>
+                      </div>
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                        <div className="h-full rounded-full bg-lime-500 transition-[width]" style={{ width: `${progress}%` }} />
+                      </div>
                     </div>
                   </Link>
                 );
@@ -284,18 +304,19 @@ export default function UserDashboard() {
         <PanelHeader icon="near_me" title="میانبرهای سریع" subtitle="کارهای پرکاربرد بدون تکرار آمار" />
         <div className="grid gap-3 p-4 md:grid-cols-3">
           {[
-            ["/dashboard/user/history", "تاریخچه کامل", "مرور بازی‌ها با جزئیات نقش‌ها", "history"],
-            ["/dashboard/user/profile", "پروفایل بازیکن", "ویرایش نام و تصویر حساب", "badge"],
-            ["/", "صفحه اصلی", "بازگشت به نمای معرفی و شروع", "home"],
-          ].map(([href, label, text, icon]) => (
+            ["/dashboard/user/history", "تاریخچه کامل", "مرور بازی‌ها با جزئیات نقش‌ها", "history", "from-lime-400 to-emerald-500"],
+            ["/dashboard/user/profile", "پروفایل بازیکن", "ویرایش نام و تصویر حساب", "badge", "from-sky-400 to-blue-500"],
+            ["/", "صفحه اصلی", "بازگشت به نمای معرفی و شروع", "home", "from-amber-400 to-orange-500"],
+          ].map(([href, label, text, icon, accent]) => (
             <Link
               key={href}
               href={href}
-              className="group block rounded-lg border border-zinc-200 bg-zinc-50 p-3 transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+              className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950"
             >
+              <span className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${accent}`} />
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 shadow-sm shadow-zinc-950/5 dark:bg-white/[0.04] dark:text-zinc-400">
                     <span className="material-symbols-outlined text-lg">{icon}</span>
                   </div>
                   <div className="min-w-0">
@@ -326,8 +347,9 @@ export default function UserDashboard() {
                   <button
                     key={game.id}
                     onClick={() => setSelectedHistoryGame(game)}
-                    className="w-full rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-right transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+                    className="group relative w-full overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 text-right shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950"
                   >
+                    <span className={`absolute bottom-0 right-0 top-0 w-1 ${game.result === "WIN" ? "bg-lime-500" : game.result === "LOSS" ? "bg-red-500" : "bg-amber-500"}`} />
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate font-black text-zinc-950 dark:text-white">{game.scenarioName}</p>
@@ -338,6 +360,10 @@ export default function UserDashboard() {
                         {result.label}
                       </span>
                     </div>
+                    <p className="mt-3 flex items-center gap-1 text-[10px] font-black text-zinc-400 transition-colors group-hover:text-lime-600 dark:group-hover:text-lime-300">
+                      مشاهده جزئیات
+                      <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>
+                    </p>
                   </button>
                 );
               })
@@ -356,6 +382,17 @@ export default function UserDashboard() {
               <EmptyState icon="troubleshoot" title="نقشی ثبت نشده" text="بعد از حضور در بازی، نقش‌های دریافتی اینجا دیده می‌شوند." />
             ) : (
               <>
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-black text-zinc-950 dark:text-white">{mostPlayedRole?.role || "نقش محبوب"}</p>
+                      <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">بیشترین نقش دریافتی</p>
+                    </div>
+                    <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-xs font-black text-lime-700 dark:text-lime-300">
+                      {mostPlayedRole?.count || 0} بار
+                    </span>
+                  </div>
+                </div>
                 <div className="h-52" dir="ltr">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
