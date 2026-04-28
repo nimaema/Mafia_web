@@ -36,6 +36,18 @@ function alignmentClass(alignment: Alignment) {
   return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300";
 }
 
+function alignmentIcon(alignment: Alignment) {
+  if (alignment === "CITIZEN") return "verified_user";
+  if (alignment === "MAFIA") return "local_police";
+  return "casino";
+}
+
+function alignmentAccentClass(alignment: Alignment) {
+  if (alignment === "CITIZEN") return "from-sky-400 to-blue-500";
+  if (alignment === "MAFIA") return "from-red-400 to-rose-600";
+  return "from-amber-400 to-orange-500";
+}
+
 function scenarioTotalPlayers(scenario: ScenarioRecord) {
   return scenario.roles.reduce((sum, role) => sum + role.count, 0);
 }
@@ -48,6 +60,13 @@ function scenarioAlignmentCounts(scenario: ScenarioRecord) {
     },
     { CITIZEN: 0, MAFIA: 0, NEUTRAL: 0 } as Record<Alignment, number>
   );
+}
+
+function scenarioDominantAlignment(scenario: ScenarioRecord) {
+  const counts = scenarioAlignmentCounts(scenario);
+  if (counts.MAFIA > counts.CITIZEN && counts.MAFIA >= counts.NEUTRAL) return "MAFIA";
+  if (counts.NEUTRAL > counts.CITIZEN && counts.NEUTRAL > counts.MAFIA) return "NEUTRAL";
+  return "CITIZEN";
 }
 
 export function ScenariosManager({
@@ -278,6 +297,7 @@ export function ScenariosManager({
           {filteredScenarios.map((scenario) => {
             const total = scenarioTotalPlayers(scenario);
             const counts = scenarioAlignmentCounts(scenario);
+            const dominantAlignment = scenarioDominantAlignment(scenario);
             const previewRoles = scenario.roles.slice(0, 4);
             const extraRoles = Math.max(0, scenario.roles.length - previewRoles.length);
 
@@ -293,75 +313,79 @@ export function ScenariosManager({
                     setSelectedScenario(scenario);
                   }
                 }}
-                className="group cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-lime-500/30 dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+                className="group relative cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-lime-500/30 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
               >
-                <div className="border-b border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                  <div className="flex items-start justify-between gap-3">
+                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(dominantAlignment)}`} />
+                <div className="flex items-start justify-between gap-3 pt-1">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(dominantAlignment)}`}>
+                      <span className="material-symbols-outlined text-xl">account_tree</span>
+                    </div>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-black text-lime-600 dark:text-lime-400">سناریو</p>
-                      <h3 className="mt-1 truncate text-lg font-black text-zinc-950 dark:text-white">{scenario.name}</h3>
-                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-                        {scenario.description || "توضیحی برای این سناریو ثبت نشده است."}
-                      </p>
+                      <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">سناریوی {alignmentLabel(dominantAlignment)}</p>
+                      <h3 className="mt-1 truncate text-base font-black text-zinc-950 dark:text-white">{scenario.name}</h3>
                     </div>
-                    <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-lg bg-lime-500 text-zinc-950 shadow-sm shadow-lime-500/20">
-                      <span className="text-lg font-black">{total}</span>
-                      <span className="text-[9px] font-black">نفر</span>
-                    </div>
+                  </div>
+
+                  <div className="flex shrink-0 items-start gap-1">
+                    <span className="flex min-h-8 items-center rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 text-[10px] font-black text-lime-700 dark:text-lime-300">
+                      {total} نفر
+                    </span>
+                    <button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openForm(scenario);
+                      }}
+                      className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-sky-300"
+                      title="ویرایش سناریو"
+                    >
+                      <span className="material-symbols-outlined text-base">edit_square</span>
+                    </button>
+                    <button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleDelete(scenario.id);
+                      }}
+                      className="flex size-8 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                      title="حذف سناریو"
+                    >
+                      <span className="material-symbols-outlined text-base">delete</span>
+                    </button>
                   </div>
                 </div>
 
-                <div className="space-y-4 p-4">
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="ui-muted p-2">
-                      <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">شهروند</p>
-                      <p className="mt-1 text-sm font-black text-sky-600 dark:text-sky-300">{counts.CITIZEN}</p>
-                    </div>
-                    <div className="ui-muted p-2">
-                      <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">مافیا</p>
-                      <p className="mt-1 text-sm font-black text-red-600 dark:text-red-300">{counts.MAFIA}</p>
-                    </div>
-                    <div className="ui-muted p-2">
-                      <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">مستقل</p>
-                      <p className="mt-1 text-sm font-black text-amber-600 dark:text-amber-300">{counts.NEUTRAL}</p>
-                    </div>
-                  </div>
+                <p className="mt-3 line-clamp-2 min-h-10 text-sm leading-5 text-zinc-600 dark:text-zinc-300">
+                  {scenario.description || "توضیحی برای این سناریو ثبت نشده است."}
+                </p>
 
-                  <div className="flex flex-wrap gap-2">
-                    {previewRoles.map((scenarioRole) => (
-                      <span key={`${scenario.id}-${scenarioRole.roleId}`} className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(scenarioRole.role.alignment)}`}>
-                        {scenarioRole.role.name} x{scenarioRole.count}
-                      </span>
-                    ))}
-                    {extraRoles > 0 && (
-                      <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">
-                        +{extraRoles} نقش دیگر
-                      </span>
-                    )}
-                  </div>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {[
+                    { label: "شهروند", value: counts.CITIZEN, alignment: "CITIZEN" as Alignment },
+                    { label: "مافیا", value: counts.MAFIA, alignment: "MAFIA" as Alignment },
+                    { label: "مستقل", value: counts.NEUTRAL, alignment: "NEUTRAL" as Alignment },
+                  ].map(({ label, value, alignment }) => (
+                    <div key={label} className={`rounded-lg border p-2 text-center ${alignmentClass(alignment)}`}>
+                      <p className="text-sm font-black">{value}</p>
+                      <p className="mt-1 text-[9px] font-bold">{label}</p>
+                    </div>
+                  ))}
                 </div>
 
-                <div className="flex gap-2 border-t border-zinc-200 p-4 pt-3 dark:border-white/10">
-                  <button
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openForm(scenario);
-                    }}
-                    className="ui-button-secondary min-h-9 flex-1 px-3 text-xs"
-                  >
-                    <span className="material-symbols-outlined text-base">edit_square</span>
-                    ویرایش
-                  </button>
-                  <button
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleDelete(scenario.id);
-                    }}
-                    className="ui-button-danger min-h-9 flex-1 px-3 text-xs"
-                  >
-                    <span className="material-symbols-outlined text-base">delete</span>
-                    حذف
-                  </button>
+                <div className="mt-3 flex flex-wrap gap-2 border-t border-zinc-200 pt-3 dark:border-white/10">
+                  {previewRoles.map((scenarioRole) => (
+                    <span key={`${scenario.id}-${scenarioRole.roleId}`} className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(scenarioRole.role.alignment)}`}>
+                      {scenarioRole.role.name} x{scenarioRole.count}
+                    </span>
+                  ))}
+                  {extraRoles > 0 && (
+                    <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">
+                      +{extraRoles} نقش دیگر
+                    </span>
+                  )}
+                  <div className="mr-auto flex items-center gap-1 text-[10px] font-black text-zinc-400 transition-colors group-hover:text-lime-600 dark:group-hover:text-lime-300">
+                    جزئیات
+                    <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>
+                  </div>
                 </div>
               </article>
             );

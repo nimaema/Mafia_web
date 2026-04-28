@@ -12,7 +12,7 @@ import {
 import Link from "next/link";
 import { getUserStatsSafe } from "@/actions/dashboard";
 import { getWaitingGamesSafe } from "@/actions/game";
-import { getPusherClient } from "@/lib/pusher";
+import { getPusherClient } from "@/lib/pusher-client";
 
 type DashboardData = {
   statsData: any[];

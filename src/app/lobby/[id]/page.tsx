@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getPusherClient } from "@/lib/pusher";
+import { getPusherClient } from "@/lib/pusher-client";
 import { useSession } from "next-auth/react";
 import { joinGame, getGameStatus } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
@@ -29,29 +29,48 @@ export default function UserLobbyPage() {
 
   useEffect(() => {
     if (!gameId) return;
+    let mounted = true;
+    let redirected = false;
 
-    getGameStatus(gameId).then((result) => {
-      if (!result) {
-        router.push("/join");
-        return;
-      }
+    const syncGameStatus = async () => {
+      try {
+        const result = await getGameStatus(gameId);
+        if (!mounted || redirected) return;
+        if (!result) {
+          redirected = true;
+          router.replace("/join");
+          return;
+        }
 
-      setGame(result);
-      if (result.players) {
-        const nextPlayers = result.players.map((player: any) => ({
+        const nextPlayers = (result.players || []).map((player: any) => ({
           id: player.id,
           name: player.name,
           userId: player.userId,
         }));
+        const userIsInLobby = Boolean(session?.user?.id && nextPlayers.some((player: Player) => player.userId === session.user.id));
 
-        setPlayers(nextPlayers);
-        if (session?.user?.id && nextPlayers.some((player: Player) => player.userId === session.user.id)) {
-          setJoined(true);
+        if (result.status === "IN_PROGRESS" && (userIsInLobby || joined)) {
+          redirected = true;
+          router.replace(`/game/${gameId}`);
+          return;
         }
-      }
 
-      setLoading(false);
-    });
+        setGame(result);
+        setPlayers(nextPlayers);
+        setJoined(userIsInLobby);
+        setLoading(false);
+      } catch (error) {
+        console.error("Lobby status sync failed:", error);
+        if (mounted) setLoading(false);
+      }
+    };
+
+    syncGameStatus();
+    const statusInterval = window.setInterval(() => {
+      if (document.visibilityState !== "hidden") {
+        syncGameStatus();
+      }
+    }, 3000);
 
     const pusher = getPusherClient();
     const channel = pusher.subscribe(`game-${gameId}`);
@@ -64,13 +83,15 @@ export default function UserLobbyPage() {
     });
 
     channel.bind("game-started", () => {
-      router.push(`/game/${gameId}`);
+      syncGameStatus();
     });
 
     return () => {
+      mounted = false;
+      window.clearInterval(statusInterval);
       pusher.unsubscribe(`game-${gameId}`);
     };
-  }, [gameId, router, session?.user?.id]);
+  }, [gameId, joined, router, session?.user?.id]);
 
   const handleJoin = async () => {
     const playerName = (session?.user?.name || session?.user?.email || "").trim();

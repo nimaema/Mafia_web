@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getPusherClient } from "@/lib/pusher";
+import { getPusherClient } from "@/lib/pusher-client";
 import { getGameStatus, startGame, setGameScenario, createCustomGameScenario } from "@/actions/game";
 import { getScenarios } from "@/actions/admin";
 import { getRoles } from "@/actions/role";
