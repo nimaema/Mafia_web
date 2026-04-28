@@ -4,10 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { pusherServer } from "@/lib/pusher";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import { TEMP_SCENARIO_DESCRIPTION_PREFIX, withGameDisplayName, withScenarioDisplayName } from "@/lib/gameDisplay";
 
 import { unstable_noStore as noStore } from "next/cache";
-
-const TEMP_SCENARIO_DESCRIPTION_PREFIX = "__TEMP_GAME_SCENARIO__";
 
 async function checkModerator() {
   const session = await auth();
@@ -96,7 +95,7 @@ export async function createGame(name?: string, password?: string) {
     const game = await prisma.game.create({
       data: {
         moderatorId,
-        name: name || `بازی ${gameCode}`,
+        name: name?.trim() || "لابی مافیا",
         code: gameCode,
         password: password || null,
         status: "WAITING",
@@ -122,7 +121,7 @@ export async function createGame(name?: string, password?: string) {
 
 export async function getWaitingGames(timestamp?: number) {
   noStore();
-  return await prisma.game.findMany({
+  const games = await prisma.game.findMany({
     where: { 
       status: "WAITING"
     },
@@ -133,6 +132,7 @@ export async function getWaitingGames(timestamp?: number) {
       scenario: {
         select: { 
           name: true,
+          description: true,
           roles: {
             include: { role: true }
           }
@@ -142,6 +142,8 @@ export async function getWaitingGames(timestamp?: number) {
     },
     orderBy: { createdAt: 'desc' }
   });
+
+  return games.map((game) => withGameDisplayName(withScenarioDisplayName(game)));
 }
 
 export async function getWaitingGamesSafe(timestamp?: number) {
@@ -166,7 +168,7 @@ export async function getModeratorGames(timestamp?: number) {
 
   const isAdmin = session.user.role === "ADMIN";
   
-  return await prisma.game.findMany({
+  const games = await prisma.game.findMany({
     where: { 
       ...(isAdmin ? {} : { moderatorId: session.user.id }),
       status: { in: ["WAITING", "IN_PROGRESS"] }
@@ -176,6 +178,7 @@ export async function getModeratorGames(timestamp?: number) {
       scenario: { 
         select: { 
           name: true,
+          description: true,
           roles: {
             include: { role: true }
           }
@@ -185,6 +188,8 @@ export async function getModeratorGames(timestamp?: number) {
     },
     orderBy: { createdAt: 'desc' }
   });
+
+  return games.map((game) => withGameDisplayName(withScenarioDisplayName(game)));
 }
 
 export async function getModeratorGamesSafe(timestamp?: number) {
@@ -229,7 +234,7 @@ export async function getGameStatus(gameId: string) {
   // Don't send the password to the client, just if it's required
   const { password, ...safeGame } = game;
   return {
-    ...safeGame,
+    ...withGameDisplayName(withScenarioDisplayName(safeGame)),
     hasPassword: !!password
   };
 }
@@ -268,7 +273,7 @@ export async function getPlayerGameView(gameId: string) {
   const { password, players, ...safeGame } = game;
 
   return {
-    ...safeGame,
+    ...withGameDisplayName(withScenarioDisplayName(safeGame)),
     hasPassword: !!password,
     players: players.map((player) => ({
       id: player.id,

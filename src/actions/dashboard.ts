@@ -2,19 +2,20 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { gameDisplayName, scenarioDisplayDescription, scenarioDisplayName } from "@/lib/gameDisplay";
 import { unstable_noStore as noStore } from "next/cache";
 
 function formatHistoryRecord(rg: any) {
   return {
     id: rg.gameId,
-    gameName: rg.game.name || "بازی مافیا",
+    gameName: gameDisplayName(rg.game, "بازی مافیا"),
     gameCode: rg.game.code,
     roleName: rg.role.name,
     roleAlignment: rg.role.alignment,
     result: rg.result || "PENDING",
     date: rg.createdAt.toLocaleDateString("fa-IR"),
-    scenarioName: rg.game.scenario?.name || "بدون سناریو",
-    scenarioDescription: rg.game.scenario?.description || "",
+    scenarioName: scenarioDisplayName(rg.game.scenario),
+    scenarioDescription: scenarioDisplayDescription(rg.game.scenario),
     moderatorName: rg.game.moderator?.name || "ناشناس",
     playerCount: rg.game.players.length,
     players: rg.game.players.map((p: any) => ({
@@ -88,7 +89,7 @@ export async function getUserStats() {
       role: true,
       game: {
         include: {
-          scenario: true,
+          scenario: { include: { roles: true } },
           moderator: true,
           players: {
             include: { role: true }
@@ -109,7 +110,7 @@ export async function getUserStats() {
     include: {
       game: {
         include: {
-          scenario: true,
+          scenario: { include: { roles: true } },
           moderator: true
         }
       }
@@ -121,7 +122,7 @@ export async function getUserStats() {
     userImage: dbUser?.image,
     currentActiveGame: activePlayerRecord?.game ? {
       id: activePlayerRecord.game.id,
-      scenarioName: activePlayerRecord.game.scenario?.name || "ناشناس",
+      scenarioName: scenarioDisplayName(activePlayerRecord.game.scenario, "ناشناس"),
       moderatorName: activePlayerRecord.game.moderator?.name || "مدیر",
     } : null,
     statsData: [
@@ -159,7 +160,7 @@ export async function getAllUserHistory() {
       role: true,
       game: {
         include: {
-          scenario: true,
+          scenario: { include: { roles: true } },
           moderator: true,
           players: {
             include: { role: true }
@@ -202,7 +203,7 @@ export async function getUserHistoryPage(page = 0, pageSize = 10) {
         role: true,
         game: {
           include: {
-            scenario: true,
+            scenario: { include: { roles: true } },
             moderator: true,
             players: {
               include: { role: true },
@@ -276,7 +277,7 @@ export async function getAdminGameHistoryPage(page = 0, pageSize = 10) {
       skip: safePage * safePageSize,
       take: safePageSize,
       include: {
-        scenario: true,
+        scenario: { include: { roles: true } },
         moderator: true,
         histories: {
           include: {
@@ -294,9 +295,9 @@ export async function getAdminGameHistoryPage(page = 0, pageSize = 10) {
   return {
     items: games.map((game) => ({
       id: game.id,
-      gameName: game.name || "بازی مافیا",
+      gameName: gameDisplayName(game, "بازی مافیا"),
       gameCode: game.code,
-      scenarioName: game.scenario?.name || "بدون سناریو",
+      scenarioName: scenarioDisplayName(game.scenario),
       moderatorName: game.moderator?.name || "ناشناس",
       date: game.createdAt.toLocaleDateString("fa-IR"),
       historyCount: game.histories.length,

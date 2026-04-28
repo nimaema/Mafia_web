@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Role, Alignment } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { gameDisplayName, TEMP_SCENARIO_DESCRIPTION_PREFIX } from "@/lib/gameDisplay";
 
 type SafeListResult<T> = {
   success: boolean;
@@ -12,7 +13,6 @@ type SafeListResult<T> = {
 };
 
 const READ_ERROR = "اطلاعات این بخش بارگذاری نشد. اتصال پایگاه داده یا سطح دسترسی کاربر را بررسی کنید.";
-const TEMP_SCENARIO_DESCRIPTION_PREFIX = "__TEMP_GAME_SCENARIO__";
 
 async function checkAdmin() {
   const session = await auth();
@@ -33,7 +33,7 @@ async function checkModerator() {
 // User Management
 export async function getAllUsers() {
   await checkAdmin();
-  return await prisma.user.findMany({
+  const users = await prisma.user.findMany({
     include: {
       accounts: {
         select: { provider: true }
@@ -71,6 +71,17 @@ export async function getAllUsers() {
       { email: "asc" },
     ]
   });
+
+  return users.map((user) => ({
+    ...user,
+    gamePlayers: user.gamePlayers.map((record) => ({
+      ...record,
+      game: {
+        ...record.game,
+        name: gameDisplayName(record.game),
+      },
+    })),
+  }));
 }
 
 export async function getAllUsersSafe(): Promise<SafeListResult<any>> {

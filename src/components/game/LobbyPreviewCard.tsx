@@ -341,28 +341,40 @@ export function LobbyPreviewCard({
             </div>
           </div>
 
-          <div className="custom-scrollbar flex-1 overflow-y-auto p-5">
+          <div className="p-5">
             {roleBreakdown.length ? (
-              <div className={compact ? "flex flex-wrap gap-2" : "grid gap-2"}>
-                {(compact ? roleBreakdown.slice(0, 5) : roleBreakdown).map((role) => (
-                  <div key={role.id || role.name} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{role.name}</p>
-                        <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
-                      </div>
-                      <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
-                        x{role.count}
-                      </span>
-                    </div>
+              <details className="group rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]" open={compact}>
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-black text-zinc-950 dark:text-white">فهرست نقش‌ها</p>
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{roleBreakdown.length} نقش در این سناریو</p>
                   </div>
-                ))}
-                {compact && roleBreakdown.length > 5 && (
-                  <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
-                    +{roleBreakdown.length - 5} نقش دیگر
-                  </span>
-                )}
-              </div>
+                  <span className="material-symbols-outlined text-zinc-400 transition-transform group-open:rotate-180">keyboard_arrow_down</span>
+                </summary>
+
+                <div className="custom-scrollbar max-h-[360px] overflow-y-auto border-t border-zinc-200 p-3 dark:border-white/10">
+                  <div className={compact ? "flex flex-wrap gap-2" : "grid gap-2"}>
+                    {(compact ? roleBreakdown.slice(0, 5) : roleBreakdown).map((role) => (
+                      <div key={role.id || role.name} className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/60">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{role.name}</p>
+                            <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
+                          </div>
+                          <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
+                            x{role.count}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {compact && roleBreakdown.length > 5 && (
+                      <span className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
+                        +{roleBreakdown.length - 5} نقش دیگر
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </details>
             ) : (
               <div className="flex min-h-52 flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
                 <span className="material-symbols-outlined text-3xl text-zinc-400">account_tree</span>

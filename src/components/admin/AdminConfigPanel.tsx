@@ -18,6 +18,7 @@ import { useSession } from "next-auth/react";
 import { usePopup } from "@/components/PopupProvider";
 
 type AdminTab = "roles" | "scenarios";
+type RoleAlignmentFilter = "ALL" | Alignment;
 
 type MafiaRoleRecord = {
   id: string;
@@ -74,6 +75,12 @@ function alignmentIcon(alignment: Alignment) {
   return "casino";
 }
 
+function alignmentAccentClass(alignment: Alignment) {
+  if (alignment === "CITIZEN") return "from-sky-400 to-blue-500";
+  if (alignment === "MAFIA") return "from-red-400 to-rose-600";
+  return "from-amber-400 to-orange-500";
+}
+
 function scenarioTotalPlayers(scenario: ScenarioRecord) {
   return scenario.roles.reduce((sum, role) => sum + role.count, 0);
 }
@@ -113,6 +120,7 @@ export default function AdminDashboard() {
   const [selectedScenario, setSelectedScenario] = useState<ScenarioRecord | null>(null);
   const [showStats, setShowStats] = useState(false);
   const [roleSearch, setRoleSearch] = useState("");
+  const [roleAlignmentFilter, setRoleAlignmentFilter] = useState<RoleAlignmentFilter>("ALL");
   const [scenarioSearch, setScenarioSearch] = useState("");
   const [scenarioRoleSearch, setScenarioRoleSearch] = useState("");
 
@@ -346,12 +354,26 @@ export default function AdminDashboard() {
 
   const visibleRoles = useMemo(() => {
     const query = roleSearch.trim().toLowerCase();
-    if (!query) return roles;
-    return roles.filter((role) =>
-      [role.name, role.description || "", alignmentLabel(role.alignment)]
-        .some((value) => value.toLowerCase().includes(query))
-    );
-  }, [roleSearch, roles]);
+    return roles.filter((role) => {
+      const matchesAlignment = roleAlignmentFilter === "ALL" || role.alignment === roleAlignmentFilter;
+      const matchesQuery =
+        !query ||
+        [role.name, role.description || "", alignmentLabel(role.alignment)]
+          .some((value) => value.toLowerCase().includes(query));
+      return matchesAlignment && matchesQuery;
+    });
+  }, [roleAlignmentFilter, roleSearch, roles]);
+
+  const visibleRoleGroups = useMemo(
+    () =>
+      (["CITIZEN", "MAFIA", "NEUTRAL"] as Alignment[])
+        .map((alignment) => ({
+          alignment,
+          roles: visibleRoles.filter((role) => role.alignment === alignment),
+        }))
+        .filter((group) => group.roles.length > 0),
+    [visibleRoles]
+  );
 
   const visibleScenarios = useMemo(() => {
     const query = scenarioSearch.trim().toLowerCase();
@@ -548,15 +570,40 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <>
-                  <label className="flex min-h-12 items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 dark:border-white/10 dark:bg-zinc-950/40">
-                    <span className="material-symbols-outlined text-zinc-400">search</span>
-                    <input
-                      value={roleSearch}
-                      onChange={(event) => setRoleSearch(event.target.value)}
-                      placeholder="جستجوی نقش، جبهه یا توضیح"
-                      className="w-full border-0 bg-transparent p-0 text-sm outline-none focus:ring-0"
-                    />
-                  </label>
+                  <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
+                    <label className="flex min-h-12 items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 dark:border-white/10 dark:bg-zinc-950/40">
+                      <span className="material-symbols-outlined text-zinc-400">search</span>
+                      <input
+                        value={roleSearch}
+                        onChange={(event) => setRoleSearch(event.target.value)}
+                        placeholder="جستجوی نقش، جبهه یا توضیح"
+                        className="w-full border-0 bg-transparent p-0 text-sm outline-none focus:ring-0"
+                      />
+                    </label>
+
+                    <div className="custom-scrollbar flex gap-1 overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-white/10 dark:bg-zinc-950">
+                      {[
+                        ["ALL", "همه", roles.length],
+                        ["CITIZEN", "شهروند", stats.citizenRoles],
+                        ["MAFIA", "مافیا", stats.mafiaRoles],
+                        ["NEUTRAL", "مستقل", roles.filter((role) => role.alignment === "NEUTRAL").length],
+                      ].map(([value, label, count]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setRoleAlignmentFilter(value as RoleAlignmentFilter)}
+                          className={`flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-black transition-all ${
+                            roleAlignmentFilter === value
+                              ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
+                              : "text-zinc-500 hover:bg-white dark:text-zinc-400 dark:hover:bg-white/[0.06]"
+                          }`}
+                        >
+                          <span>{label}</span>
+                          <span className="rounded-md bg-white/60 px-1.5 py-0.5 text-[10px] text-current dark:bg-zinc-900/40">{count}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                   {visibleRoles.length === 0 ? (
                     <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-zinc-200 p-8 text-center dark:border-white/10">
@@ -569,47 +616,72 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   ) : (
-                    <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-                      {visibleRoles.map((role) => (
-                        <article
-                          key={role.id}
-                          className="group overflow-hidden rounded-lg border border-zinc-200 bg-white transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] dark:hover:shadow-black/20"
+                    <div className="space-y-5">
+                      {visibleRoleGroups.map((group) => (
+                        <details
+                          key={group.alignment}
+                          open={Boolean(roleSearch) || roleAlignmentFilter !== "ALL" || group.alignment === "CITIZEN"}
+                          className="group/role-side rounded-lg border border-zinc-200 bg-zinc-50/70 p-3 dark:border-white/10 dark:bg-white/[0.02]"
                         >
-                          <div className="h-1 bg-gradient-to-l from-lime-500 via-sky-500 to-zinc-300 opacity-80 dark:to-zinc-700"></div>
-                          <div className="p-4">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex min-w-0 items-start gap-3">
-                                <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(role.alignment)}`}>
-                                  <span className="material-symbols-outlined text-xl">{alignmentIcon(role.alignment)}</span>
-                                </div>
-                                <div className="min-w-0">
-                                  <h3 className="truncate font-black text-zinc-950 dark:text-white">{role.name}</h3>
-                                  <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
-                                </div>
-                              </div>
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
-                                  {alignmentLabel(role.alignment)}
-                                </span>
+                          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-1">
+                            <div className="flex items-center gap-2">
+                              <span className={`material-symbols-outlined flex size-9 rounded-lg border ${alignmentClass(group.alignment)}`}>
+                                {alignmentIcon(group.alignment)}
+                              </span>
+                              <div>
+                                <p className="text-sm font-black text-zinc-950 dark:text-white">{alignmentLabel(group.alignment)}</p>
+                                <p className="mt-0.5 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{group.roles.length} نقش</p>
                               </div>
                             </div>
-
-                            <p className="mt-4 min-h-20 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
-                              {role.description || "برای این نقش هنوز توضیحی ثبت نشده است."}
-                            </p>
-
-                            <div className="mt-4 flex gap-2 border-t border-zinc-200 pt-4 dark:border-white/10">
-                              <button onClick={() => handleEditRole(role)} className="ui-button-secondary min-h-9 flex-1 px-3 text-xs">
-                                <span className="material-symbols-outlined text-base">edit_square</span>
-                                ویرایش
-                              </button>
-                              <button onClick={() => handleDeleteRole(role.id)} className="ui-button-danger min-h-9 flex-1 px-3 text-xs">
-                                <span className="material-symbols-outlined text-base">delete</span>
-                                حذف
-                              </button>
+                            <div className="flex items-center gap-3">
+                              <span className={`hidden h-1.5 w-16 rounded-full bg-gradient-to-l sm:block ${alignmentAccentClass(group.alignment)}`} />
+                              <span className="material-symbols-outlined text-zinc-400 transition-transform group-open/role-side:rotate-180">keyboard_arrow_down</span>
                             </div>
+                          </summary>
+
+                          <div className="mt-3 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+                            {group.roles.map((role) => (
+                              <article
+                                key={role.id}
+                                className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                              >
+                                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(role.alignment)}`} />
+                                <div className="flex items-start justify-between gap-3 pt-1">
+                                  <div className="flex min-w-0 items-start gap-3">
+                                    <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(role.alignment)}`}>
+                                      <span className="material-symbols-outlined text-xl">{alignmentIcon(role.alignment)}</span>
+                                    </div>
+                                    <div className="min-w-0">
+                                      <h3 className="truncate text-base font-black text-zinc-950 dark:text-white">{role.name}</h3>
+                                      <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex shrink-0 gap-1">
+                                    <button
+                                      onClick={() => handleEditRole(role)}
+                                      className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-sky-300"
+                                      title="ویرایش نقش"
+                                    >
+                                      <span className="material-symbols-outlined text-base">edit_square</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteRole(role.id)}
+                                      className="flex size-8 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                                      title="حذف نقش"
+                                    >
+                                      <span className="material-symbols-outlined text-base">delete</span>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <p className="mt-3 line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+                                  {role.description || "برای این نقش هنوز توضیحی ثبت نشده است."}
+                                </p>
+                              </article>
+                            ))}
                           </div>
-                        </article>
+                        </details>
                       ))}
                     </div>
                   )}

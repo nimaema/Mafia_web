@@ -185,6 +185,8 @@
   justify-content: center;
   vertical-align: middle;
   text-align: center;
+  padding-top: 0.14em;
+  box-sizing: border-box;
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
