@@ -3,6 +3,8 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { sendPasswordResetEmail } from "@/lib/email";
 
+const PASSWORD_RESET_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+
 function getErrorCode(error: unknown): string {
   if (!error || typeof error !== "object") return "";
   const record = error as { code?: unknown; cause?: unknown };
@@ -49,9 +51,9 @@ export async function POST(request: Request) {
     // Invalidate existing tokens for this user
     await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
 
-    // Create new token (expires in 1 hour)
+    // Create new token (expires in 24 hours)
     const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
 
     await prisma.passwordResetToken.create({
       data: { token, userId: user.id, expiresAt },

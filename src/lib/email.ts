@@ -86,11 +86,21 @@ function getTransporter(config = getMailConfig()) {
   });
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function buildResetMessage(email: string, resetUrl: string, from: string) {
+  const safeEmail = escapeHtml(email);
   return {
     from,
     to: email,
-    subject: "لینک امن بازیابی رمز عبور مافیا",
+    subject: "بازیابی رمز عبور مافیا بورد",
     html: `
       <!DOCTYPE html>
       <html lang="fa" dir="rtl">
@@ -98,71 +108,85 @@ function buildResetMessage(email: string, resetUrl: string, from: string) {
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style>
-          body { margin: 0; padding: 0; background: #eef2f3; color: #18181b; direction: rtl; font-family: Vazirmatn, IRANSans, Tahoma, Arial, sans-serif; }
+          body { margin: 0; padding: 0; background: #e9eef0; color: #18181b; direction: rtl; font-family: Vazirmatn, IRANSans, Tahoma, Arial, sans-serif; }
           .preheader { display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent; }
-          .shell { padding: 34px 14px; }
-          .container { max-width: 584px; margin: 0 auto; overflow: hidden; border-radius: 28px; background: #ffffff; border: 1px solid #e4e4e7; box-shadow: 0 24px 70px rgba(24, 24, 27, 0.15); }
-          .topbar { height: 6px; background: linear-gradient(90deg, #84cc16, #0ea5e9, #f59e0b); }
-          .hero { padding: 36px 32px 34px; background: linear-gradient(135deg, #111113 0%, #27272a 48%, #365314 100%); color: #ffffff; }
-          .brand { display: inline-block; margin-bottom: 22px; padding: 9px 13px; border-radius: 999px; background: rgba(132, 204, 22, 0.16); color: #d9f99d; font-size: 12px; line-height: 1; font-weight: 900; }
-          h1 { margin: 0; max-width: 420px; font-size: 34px; line-height: 1.45; font-weight: 950; }
-          .hero p { margin: 14px 0 0; max-width: 440px; color: #e4e4e7; font-size: 16px; line-height: 2; font-weight: 700; }
-          .content { padding: 32px; }
-          .hello { margin: 0 0 10px; font-size: 20px; line-height: 1.7; font-weight: 950; color: #18181b; }
-          .body-copy { margin: 0 0 18px; color: #3f3f46; font-size: 15px; line-height: 2.05; font-weight: 700; }
-          .action { margin: 30px 0; text-align: center; }
-          .btn { display: inline-block; min-width: 238px; padding: 17px 30px; border-radius: 18px; background: #84cc16; color: #18181b !important; text-decoration: none; font-size: 16px; font-weight: 950; box-shadow: 0 16px 34px rgba(132, 204, 22, 0.34); }
-          .grid { display: table; width: 100%; border-spacing: 0 12px; margin: 20px 0 4px; }
-          .item { display: table-row; }
-          .item span { display: table-cell; padding: 14px 15px; border-top: 1px solid #e4e4e7; border-bottom: 1px solid #e4e4e7; font-size: 13px; }
-          .item span:first-child { border-right: 1px solid #e4e4e7; border-radius: 16px 0 0 16px; color: #71717a; font-weight: 900; }
-          .item span:last-child { border-left: 1px solid #e4e4e7; border-radius: 0 16px 16px 0; color: #18181b; font-weight: 950; text-align: left; direction: ltr; }
-          .link-box { margin-top: 20px; padding: 16px; border-radius: 18px; background: #f4f4f5; border: 1px solid #e4e4e7; }
-          .link-label { margin: 0 0 9px; color: #71717a; font-size: 12px; font-weight: 900; }
+          .shell { padding: 34px 12px; }
+          .container { max-width: 620px; margin: 0 auto; overflow: hidden; border-radius: 30px; background: #ffffff; border: 1px solid #dfe4e8; box-shadow: 0 28px 90px rgba(9, 9, 11, 0.18); }
+          .hero { padding: 34px 32px 30px; background: #111113; background-image: linear-gradient(135deg, #111113 0%, #18181b 46%, #1f3d14 100%); color: #ffffff; }
+          .brand-row { display: table; width: 100%; }
+          .brand { display: table-cell; vertical-align: middle; }
+          .mark { display: inline-block; width: 46px; height: 46px; line-height: 46px; border-radius: 16px; background: #84cc16; color: #18181b; text-align: center; font-size: 23px; font-weight: 950; }
+          .brand-text { display: inline-block; margin-right: 12px; vertical-align: middle; }
+          .brand-title { display: block; color: #ffffff; font-size: 16px; font-weight: 950; line-height: 1.6; }
+          .brand-subtitle { display: block; color: #bef264; font-size: 12px; font-weight: 900; }
+          .pill { display: table-cell; width: 1%; white-space: nowrap; vertical-align: middle; padding: 8px 12px; border-radius: 999px; background: rgba(132, 204, 22, 0.14); color: #d9f99d; font-size: 12px; font-weight: 950; }
+          h1 { margin: 28px 0 0; max-width: 500px; font-size: 34px; line-height: 1.45; font-weight: 950; letter-spacing: 0; }
+          .hero-copy { margin: 13px 0 0; max-width: 500px; color: #e4e4e7; font-size: 15px; line-height: 2; font-weight: 750; }
+          .content { padding: 30px 32px 32px; }
+          .hello { margin: 0 0 8px; font-size: 21px; line-height: 1.7; font-weight: 950; color: #18181b; }
+          .body-copy { margin: 0; color: #3f3f46; font-size: 15px; line-height: 2.05; font-weight: 700; }
+          .action { margin: 28px 0; text-align: center; }
+          .btn { display: inline-block; min-width: 244px; padding: 17px 30px; border-radius: 18px; background: #84cc16; color: #18181b !important; text-decoration: none; font-size: 16px; font-weight: 950; box-shadow: 0 18px 38px rgba(132, 204, 22, 0.34); }
+          .summary { display: table; width: 100%; border-spacing: 0 12px; margin: 6px 0 2px; }
+          .summary-row { display: table-row; }
+          .summary-cell { display: table-cell; padding: 14px 15px; border-top: 1px solid #e4e4e7; border-bottom: 1px solid #e4e4e7; font-size: 13px; background: #fafafa; }
+          .summary-cell:first-child { border-right: 1px solid #e4e4e7; border-radius: 16px 0 0 16px; color: #71717a; font-weight: 900; }
+          .summary-cell:last-child { border-left: 1px solid #e4e4e7; border-radius: 0 16px 16px 0; color: #18181b; font-weight: 950; text-align: left; direction: ltr; }
+          .notice { margin-top: 20px; padding: 16px; border-radius: 18px; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; font-size: 13px; line-height: 2; font-weight: 850; }
+          .link-box { margin-top: 18px; padding: 16px; border-radius: 18px; background: #f4f4f5; border: 1px solid #e4e4e7; }
+          .link-label { margin: 0 0 8px; color: #71717a; font-size: 12px; font-weight: 900; }
           .link { margin: 0; word-break: break-all; color: #2563eb; direction: ltr; text-align: left; font-size: 12px; line-height: 1.8; font-weight: 700; }
-          .notice { margin-top: 24px; padding: 17px; border-radius: 18px; background: #fefce8; border: 1px solid #fde68a; color: #854d0e; font-size: 14px; line-height: 2; font-weight: 800; }
-          .footer { padding: 18px 32px 28px; color: #71717a; font-size: 12px; line-height: 1.8; text-align: center; font-weight: 700; }
+          .footer { padding: 18px 32px 28px; color: #71717a; font-size: 12px; line-height: 1.8; text-align: center; font-weight: 750; }
           @media (max-width: 520px) {
             .shell { padding: 14px 8px; }
             .hero, .content, .footer { padding-left: 18px; padding-right: 18px; }
-            h1 { font-size: 26px; }
-            .hero p { font-size: 14px; }
+            h1 { font-size: 25px; }
+            .hero-copy { font-size: 14px; }
+            .pill { display: inline-block; margin-top: 14px; }
             .btn { display: block; min-width: 0; }
           }
         </style>
       </head>
       <body>
-        <div class="preheader">لینک امن تنظیم رمز جدید حساب مافیا تا ۱ ساعت معتبر است.</div>
+        <div class="preheader">لینک امن تنظیم رمز جدید حساب مافیا تا ۲۴ ساعت معتبر است.</div>
         <div class="shell">
           <div class="container">
-            <div class="topbar"></div>
             <div class="hero">
-              <div class="brand">Mafia Board</div>
-              <h1>بازیابی امن رمز عبور</h1>
-              <p>برای حساب شما درخواست ساخت رمز جدید ثبت شده است. با دکمه زیر وارد صفحه امن تغییر رمز شوید.</p>
+              <div class="brand-row">
+                <div class="brand">
+                  <span class="mark">M</span>
+                  <span class="brand-text">
+                    <span class="brand-title">مافیا بورد</span>
+                    <span class="brand-subtitle">بازیابی امن حساب</span>
+                  </span>
+                </div>
+                <div class="pill">اعتبار ۲۴ ساعت</div>
+              </div>
+              <h1>رمز عبور تازه، با یک لینک امن</h1>
+              <p class="hero-copy">برای حساب ${safeEmail} درخواست تنظیم رمز جدید ثبت شده است. اگر این درخواست از طرف شما بوده، از دکمه زیر ادامه دهید.</p>
             </div>
 
             <div class="content">
               <p class="hello">سلام،</p>
-              <p class="body-copy">این ایمیل فقط برای تایید درخواست بازیابی رمز ارسال شده است. اگر درخواست از طرف شما بوده، روی دکمه زیر بزنید.</p>
+              <p class="body-copy">این لینک فقط برای همین درخواست ساخته شده و بعد از استفاده حذف می‌شود. اگر شما درخواست نداده‌اید، بدون هیچ اقدامی این ایمیل را نادیده بگیرید.</p>
 
               <div class="action">
                 <a href="${resetUrl}" class="btn">تنظیم رمز جدید</a>
               </div>
 
-              <div class="grid">
-                <div class="item">
-                  <span>اعتبار لینک</span>
-                  <span>۱ ساعت</span>
+              <div class="summary">
+                <div class="summary-row">
+                  <span class="summary-cell">اعتبار لینک</span>
+                  <span class="summary-cell">۲۴ ساعت</span>
                 </div>
-                <div class="item">
-                  <span>نوع عملیات</span>
-                  <span>Password reset</span>
+                <div class="summary-row">
+                  <span class="summary-cell">حساب</span>
+                  <span class="summary-cell">${safeEmail}</span>
                 </div>
               </div>
 
               <div class="notice">
-                اگر شما این درخواست را ثبت نکرده‌اید، نیازی به انجام کاری نیست. این لینک بعد از پایان اعتبار قابل استفاده نخواهد بود.
+                این لینک را با کسی به اشتراک نگذارید. تیم مافیا بورد هرگز رمز عبور یا کد خصوصی شما را درخواست نمی‌کند.
               </div>
 
               <div class="link-box">
@@ -172,22 +196,23 @@ function buildResetMessage(email: string, resetUrl: string, from: string) {
             </div>
 
             <div class="footer">
-              این پیام خودکار از طرف وب‌سایت مافیا ارسال شده است.
+              این پیام خودکار از طرف مافیا بورد ارسال شده است.
             </div>
           </div>
         </div>
       </body>
       </html>
     `,
-    text: `برای بازیابی رمز عبور خود، به این لینک مراجعه کنید: ${resetUrl}\n\nاین لینک تا ۱ ساعت دیگر معتبر است.`,
+    text: `برای بازیابی رمز عبور حساب ${email} به این لینک مراجعه کنید: ${resetUrl}\n\nاین لینک تا ۲۴ ساعت معتبر است و بعد از استفاده حذف می‌شود.`,
   };
 }
 
 function buildVerificationMessage(email: string, verifyUrl: string, from: string) {
+  const safeEmail = escapeHtml(email);
   return {
     from,
     to: email,
-    subject: "تایید ایمیل حساب مافیا بورد",
+    subject: "تایید ایمیل و فعال‌سازی حساب مافیا بورد",
     html: `
       <!DOCTYPE html>
       <html lang="fa" dir="rtl">
@@ -195,36 +220,68 @@ function buildVerificationMessage(email: string, verifyUrl: string, from: string
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style>
-          body { margin: 0; background: #f4f4f5; color: #18181b; direction: rtl; font-family: Vazirmatn, Tahoma, Arial, sans-serif; }
-          .shell { padding: 32px 12px; }
-          .card { max-width: 560px; margin: 0 auto; overflow: hidden; border-radius: 28px; background: #ffffff; border: 1px solid #e4e4e7; box-shadow: 0 24px 70px rgba(24,24,27,.14); }
-          .hero { padding: 34px 30px; background: linear-gradient(135deg, #0f172a, #18181b 56%, #365314); color: white; }
-          .badge { display: inline-block; border-radius: 999px; background: rgba(132,204,22,.16); color: #d9f99d; padding: 9px 13px; font-size: 12px; font-weight: 900; }
-          h1 { margin: 18px 0 0; font-size: 32px; line-height: 1.45; font-weight: 950; }
-          .hero p { margin: 12px 0 0; color: #e4e4e7; line-height: 2; font-weight: 700; }
-          .body { padding: 30px; }
-          .copy { margin: 0; color: #3f3f46; font-size: 15px; line-height: 2; font-weight: 700; }
+          body { margin: 0; background: #eef2f3; color: #18181b; direction: rtl; font-family: Vazirmatn, IRANSans, Tahoma, Arial, sans-serif; }
+          .preheader { display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent; }
+          .shell { padding: 34px 12px; }
+          .card { max-width: 620px; margin: 0 auto; overflow: hidden; border-radius: 30px; background: #ffffff; border: 1px solid #dfe4e8; box-shadow: 0 28px 90px rgba(9, 9, 11, 0.17); }
+          .hero { padding: 34px 32px 30px; background: #0f172a; background-image: linear-gradient(135deg, #0f172a 0%, #18181b 52%, #164e63 100%); color: white; }
+          .brand-row { display: table; width: 100%; }
+          .brand { display: table-cell; vertical-align: middle; }
+          .mark { display: inline-block; width: 46px; height: 46px; line-height: 46px; border-radius: 16px; background: #84cc16; color: #18181b; text-align: center; font-size: 23px; font-weight: 950; }
+          .brand-text { display: inline-block; margin-right: 12px; vertical-align: middle; }
+          .brand-title { display: block; color: #ffffff; font-size: 16px; font-weight: 950; line-height: 1.6; }
+          .brand-subtitle { display: block; color: #bae6fd; font-size: 12px; font-weight: 900; }
+          .pill { display: table-cell; width: 1%; white-space: nowrap; vertical-align: middle; padding: 8px 12px; border-radius: 999px; background: rgba(14, 165, 233, 0.16); color: #bae6fd; font-size: 12px; font-weight: 950; }
+          h1 { margin: 28px 0 0; font-size: 34px; line-height: 1.45; font-weight: 950; }
+          .hero-copy { margin: 13px 0 0; color: #e4e4e7; font-size: 15px; line-height: 2; font-weight: 750; }
+          .body { padding: 30px 32px 32px; }
+          .copy { margin: 0; color: #3f3f46; font-size: 15px; line-height: 2.05; font-weight: 700; }
           .action { margin: 28px 0; text-align: center; }
-          .btn { display: inline-block; min-width: 220px; border-radius: 18px; background: #84cc16; color: #18181b !important; padding: 16px 26px; font-weight: 950; text-decoration: none; box-shadow: 0 16px 34px rgba(132,204,22,.34); }
-          .note { border-radius: 18px; border: 1px solid #bae6fd; background: #f0f9ff; padding: 15px; color: #075985; font-size: 13px; line-height: 2; font-weight: 800; }
-          .link { margin-top: 18px; border-radius: 18px; border: 1px solid #e4e4e7; background: #f4f4f5; padding: 14px; color: #2563eb; direction: ltr; text-align: left; word-break: break-all; font-size: 12px; line-height: 1.8; }
-          .footer { padding: 0 30px 28px; color: #71717a; text-align: center; font-size: 12px; font-weight: 700; }
-          @media (max-width: 520px) { .shell { padding: 12px 8px; } .hero, .body, .footer { padding-left: 18px; padding-right: 18px; } h1 { font-size: 25px; } .btn { display: block; min-width: 0; } }
+          .btn { display: inline-block; min-width: 236px; border-radius: 18px; background: #84cc16; color: #18181b !important; padding: 17px 28px; font-size: 16px; font-weight: 950; text-decoration: none; box-shadow: 0 18px 38px rgba(132, 204, 22, 0.34); }
+          .steps { display: table; width: 100%; border-spacing: 0 10px; margin-top: 18px; }
+          .step { display: table-row; }
+          .step span { display: table-cell; padding: 13px 14px; border-top: 1px solid #e4e4e7; border-bottom: 1px solid #e4e4e7; background: #fafafa; font-size: 13px; }
+          .step span:first-child { width: 1%; white-space: nowrap; border-right: 1px solid #e4e4e7; border-radius: 16px 0 0 16px; color: #0ea5e9; font-weight: 950; }
+          .step span:last-child { border-left: 1px solid #e4e4e7; border-radius: 0 16px 16px 0; color: #3f3f46; font-weight: 800; }
+          .note { margin-top: 20px; border-radius: 18px; border: 1px solid #bae6fd; background: #f0f9ff; padding: 15px; color: #075985; font-size: 13px; line-height: 2; font-weight: 850; }
+          .link-box { margin-top: 18px; border-radius: 18px; border: 1px solid #e4e4e7; background: #f4f4f5; padding: 14px; }
+          .link-label { margin: 0 0 8px; color: #71717a; font-size: 12px; font-weight: 900; }
+          .link { margin: 0; color: #2563eb; direction: ltr; text-align: left; word-break: break-all; font-size: 12px; line-height: 1.8; font-weight: 700; }
+          .footer { padding: 18px 32px 28px; color: #71717a; text-align: center; font-size: 12px; line-height: 1.8; font-weight: 750; }
+          @media (max-width: 520px) { .shell { padding: 14px 8px; } .hero, .body, .footer { padding-left: 18px; padding-right: 18px; } h1 { font-size: 25px; } .hero-copy { font-size: 14px; } .pill { display: inline-block; margin-top: 14px; } .btn { display: block; min-width: 0; } }
         </style>
       </head>
       <body>
+        <div class="preheader">حساب مافیا بورد خود را با یک لینک ۲۴ ساعته فعال کنید.</div>
         <div class="shell">
           <div class="card">
             <div class="hero">
-              <span class="badge">Mafia Board</span>
-              <h1>ایمیل‌تان را تایید کنید</h1>
-              <p>فقط یک قدم مانده تا لابی‌ها، تاریخچه بازی و داشبورد کامل برای شما فعال شود.</p>
+              <div class="brand-row">
+                <div class="brand">
+                  <span class="mark">M</span>
+                  <span class="brand-text">
+                    <span class="brand-title">مافیا بورد</span>
+                    <span class="brand-subtitle">فعال‌سازی حساب</span>
+                  </span>
+                </div>
+                <div class="pill">اعتبار ۲۴ ساعت</div>
+              </div>
+              <h1>ایمیل‌تان را تایید کنید و وارد بازی شوید</h1>
+              <p class="hero-copy">برای فعال‌سازی حساب ${safeEmail} فقط کافی است دکمه تایید را بزنید.</p>
             </div>
             <div class="body">
-              <p class="copy">برای فعال‌سازی حساب ${email} روی دکمه زیر بزنید. این لینک تا ۲۴ ساعت معتبر است.</p>
+              <p class="copy">بعد از تایید ایمیل، داشبورد، لابی‌ها و تاریخچه بازی برای حساب شما فعال می‌شود. این مرحله کمک می‌کند فقط کاربران واقعی وارد بازی‌ها شوند.</p>
               <div class="action"><a class="btn" href="${verifyUrl}">تایید ایمیل</a></div>
-              <div class="note">اگر شما این حساب را نساخته‌اید، این ایمیل را نادیده بگیرید.</div>
-              <div class="link">${verifyUrl}</div>
+              <div class="steps">
+                <div class="step"><span>۱</span><span>ایمیل را تایید کنید.</span></div>
+                <div class="step"><span>۲</span><span>وارد حساب شوید و به لابی‌ها دسترسی بگیرید.</span></div>
+                <div class="step"><span>۳</span><span>اگر لینک کار نکرد، از صفحه تایید ایمیل دوباره درخواست ارسال کنید.</span></div>
+              </div>
+              <div class="note">اگر شما این حساب را نساخته‌اید، این ایمیل را نادیده بگیرید. لینک بعد از ۲۴ ساعت قابل استفاده نخواهد بود.</div>
+              <div class="link-box">
+                <p class="link-label">اگر دکمه باز نشد، این لینک را در مرورگر وارد کنید:</p>
+                <p class="link">${verifyUrl}</p>
+              </div>
             </div>
             <div class="footer">این پیام خودکار از طرف مافیا بورد ارسال شده است.</div>
           </div>
@@ -232,7 +289,7 @@ function buildVerificationMessage(email: string, verifyUrl: string, from: string
       </body>
       </html>
     `,
-    text: `برای تایید ایمیل حساب خود به این لینک بروید: ${verifyUrl}`,
+    text: `برای تایید ایمیل حساب ${email} به این لینک بروید: ${verifyUrl}\n\nاین لینک تا ۲۴ ساعت معتبر است.`,
   };
 }
 
