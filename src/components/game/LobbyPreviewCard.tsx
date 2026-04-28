@@ -5,6 +5,7 @@ type LobbyPlayer = {
   id: string;
   name: string;
   current?: boolean;
+  isAlive?: boolean;
 };
 
 type LobbyRole = {
@@ -142,17 +143,22 @@ export function LobbyPreviewCard({
               </div>
               {previewPlayers.length ? (
                 <div className="flex flex-wrap gap-2">
-                  {previewPlayers.map((player, index) => (
-                    <div key={player.id} className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 dark:border-white/10 dark:bg-zinc-950/70">
-                      <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-xs font-black text-zinc-950">
+                  {previewPlayers.map((player, index) => {
+                    const alive = player.isAlive !== false;
+                    return (
+                    <div key={player.id} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 ${alive ? "border-zinc-200 bg-white dark:border-white/10 dark:bg-zinc-950/70" : "border-red-500/20 bg-red-500/10"}`}>
+                      <div className={`flex size-8 shrink-0 items-center justify-center rounded-lg text-xs font-black ${alive ? "bg-lime-500 text-zinc-950" : "bg-red-500 text-white"}`}>
                         {getInitial(player.name)}
                       </div>
                       <div className="min-w-0">
                         <p className="max-w-24 truncate text-xs font-black text-zinc-950 dark:text-white">{player.current ? "شما" : player.name}</p>
-                        <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">بازیکن {index + 1}</p>
+                        <p className={alive ? "text-[9px] font-bold text-zinc-500 dark:text-zinc-400" : "text-[9px] font-bold text-red-600 dark:text-red-300"}>
+                          {alive ? `بازیکن ${index + 1}` : "حذف‌شده"}
+                        </p>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                   {players.length > previewPlayers.length && (
                     <div className="flex size-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
                       +{players.length - previewPlayers.length}
@@ -276,23 +282,28 @@ export function LobbyPreviewCard({
 
               <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 {players.length ? (
-                  players.map((player, index) => (
-                    <div key={player.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
+                  players.map((player, index) => {
+                    const alive = player.isAlive !== false;
+                    return (
+                    <div key={player.id} className={`rounded-lg border p-3 transition-all ${alive ? "border-zinc-200 bg-zinc-50 hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]" : "border-red-500/20 bg-red-500/10"}`}>
                       <div className="flex items-center gap-3">
-                        <div className="relative flex size-11 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-sm font-black text-white shadow-sm shadow-zinc-950/10 dark:bg-white dark:text-zinc-950">
+                        <div className={`relative flex size-11 shrink-0 items-center justify-center rounded-lg text-sm font-black shadow-sm shadow-zinc-950/10 ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
                           {getInitial(player.name)}
-                          <span className="absolute -bottom-1 -right-1 size-3.5 rounded-full border-2 border-zinc-50 bg-lime-500 dark:border-zinc-950" />
+                          <span className={`absolute -bottom-1 -right-1 size-3.5 rounded-full border-2 border-zinc-50 dark:border-zinc-950 ${alive ? "bg-lime-500" : "bg-red-500"}`} />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{player.name}</p>
-                          <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">بازیکن {index + 1}، حاضر در لابی</p>
+                          <p className={alive ? "mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400" : "mt-1 text-[10px] font-bold text-red-600 dark:text-red-300"}>
+                            {alive ? `بازیکن ${index + 1}، حاضر در بازی` : "حذف‌شده از بازی"}
+                          </p>
                         </div>
-                        <span className={player.current ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-600 dark:text-lime-300" : "rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400"}>
-                          {player.current ? "شما" : "آنلاین"}
+                        <span className={player.current ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-600 dark:text-lime-300" : alive ? "rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-1 text-[10px] font-black text-red-600 dark:text-red-300"}>
+                          {player.current ? "شما" : alive ? "فعال" : "حذف‌شده"}
                         </span>
                       </div>
                     </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="col-span-full flex min-h-44 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
                     <div className="flex size-14 items-center justify-center rounded-lg bg-white text-zinc-400 shadow-sm shadow-zinc-950/5 dark:bg-zinc-950">

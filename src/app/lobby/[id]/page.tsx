@@ -12,6 +12,7 @@ type Player = {
   id: string;
   name: string;
   userId?: string | null;
+  isAlive?: boolean;
 };
 
 export default function UserLobbyPage() {
@@ -41,11 +42,17 @@ export default function UserLobbyPage() {
           router.replace("/join");
           return;
         }
+        if (result.status === "FINISHED") {
+          redirected = true;
+          router.replace("/dashboard/user");
+          return;
+        }
 
         const nextPlayers = (result.players || []).map((player: any) => ({
           id: player.id,
           name: player.name,
           userId: player.userId,
+          isAlive: player.isAlive,
         }));
         const userIsInLobby = Boolean(session?.user?.id && nextPlayers.some((player: Player) => player.userId === session.user.id));
 
@@ -116,6 +123,7 @@ export default function UserLobbyPage() {
                 id: result.playerId,
                 name: playerName,
                 userId: session?.user?.id,
+                isAlive: true,
               },
             ]
       );
@@ -140,6 +148,7 @@ export default function UserLobbyPage() {
         id: player.id,
         name: player.name,
         current: Boolean(session?.user?.id && player.userId === session.user.id),
+        isAlive: player.isAlive,
       })),
     [players, session?.user?.id]
   );

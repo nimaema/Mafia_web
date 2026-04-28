@@ -22,7 +22,24 @@ function formatHistoryRecord(rg: any) {
       name: p.name,
       roleName: p.role?.name || "بدون نقش",
       alignment: p.role?.alignment || "NEUTRAL",
+      isAlive: p.isAlive,
     })),
+    nightRecordsPublic: Boolean(rg.game.nightRecordsPublic),
+    nightEvents: rg.game.nightRecordsPublic
+      ? rg.game.nightEvents.map((event: any) => ({
+          id: event.id,
+          nightNumber: event.nightNumber,
+          abilityLabel: event.abilityLabel,
+          abilityChoiceLabel: event.abilityChoiceLabel,
+          abilitySource: event.abilitySource,
+          actorName: event.actorPlayer?.name || null,
+          targetName: event.targetPlayer?.name || null,
+          actorAlignment: event.actorAlignment,
+          wasUsed: event.wasUsed,
+          details: event.details,
+          note: event.note,
+        }))
+      : [],
   };
 }
 
@@ -93,7 +110,15 @@ export async function getUserStats() {
           moderator: true,
           players: {
             include: { role: true }
-          }
+          },
+          nightEvents: {
+            where: { isPublic: true },
+            include: {
+              actorPlayer: true,
+              targetPlayer: true,
+            },
+            orderBy: [{ nightNumber: "asc" }, { createdAt: "asc" }],
+          },
         }
       }
     }
@@ -164,7 +189,15 @@ export async function getAllUserHistory() {
           moderator: true,
           players: {
             include: { role: true }
-          }
+          },
+          nightEvents: {
+            where: { isPublic: true },
+            include: {
+              actorPlayer: true,
+              targetPlayer: true,
+            },
+            orderBy: [{ nightNumber: "asc" }, { createdAt: "asc" }],
+          },
         }
       }
     }
@@ -208,6 +241,14 @@ export async function getUserHistoryPage(page = 0, pageSize = 10) {
             players: {
               include: { role: true },
               orderBy: { createdAt: "asc" },
+            },
+            nightEvents: {
+              where: { isPublic: true },
+              include: {
+                actorPlayer: true,
+                targetPlayer: true,
+              },
+              orderBy: [{ nightNumber: "asc" }, { createdAt: "asc" }],
             },
           },
         },
@@ -287,6 +328,14 @@ export async function getAdminGameHistoryPage(page = 0, pageSize = 10) {
           orderBy: { createdAt: "desc" },
         },
         players: { include: { role: true }, orderBy: { createdAt: "asc" } },
+        nightEvents: {
+          where: { isPublic: true },
+          include: {
+            actorPlayer: true,
+            targetPlayer: true,
+          },
+          orderBy: [{ nightNumber: "asc" }, { createdAt: "asc" }],
+        },
       },
     }),
   ]);
@@ -308,6 +357,22 @@ export async function getAdminGameHistoryPage(page = 0, pageSize = 10) {
         alignment: history.role.alignment,
         result: history.result || "PENDING",
       })),
+      nightRecordsPublic: game.nightRecordsPublic,
+      nightEvents: game.nightRecordsPublic
+        ? game.nightEvents.map((event) => ({
+            id: event.id,
+            nightNumber: event.nightNumber,
+            abilityLabel: event.abilityLabel,
+            abilityChoiceLabel: event.abilityChoiceLabel,
+            abilitySource: event.abilitySource,
+            actorName: event.actorPlayer?.name || null,
+            targetName: event.targetPlayer?.name || null,
+            actorAlignment: event.actorAlignment,
+            wasUsed: event.wasUsed,
+            details: event.details,
+            note: event.note,
+          }))
+        : [],
     })),
     total,
     page: safePage,

@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { Role, Alignment } from "@prisma/client";
+import { Role, Alignment, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { gameDisplayName, TEMP_SCENARIO_DESCRIPTION_PREFIX } from "@/lib/gameDisplay";
 import { sendAdminUserEmail } from "@/lib/email";
@@ -11,6 +11,23 @@ type SafeListResult<T> = {
   success: boolean;
   data: T[];
   error?: string;
+};
+
+type RoleNightAbilityChoiceInput = {
+  id?: string;
+  label: string;
+  usesPerGame?: number | null;
+  effectType?: string | null;
+};
+
+type RoleNightAbilityInput = {
+  id?: string;
+  label: string;
+  usesPerGame?: number | null;
+  usesPerNight?: number | null;
+  selfTargetLimit?: number | null;
+  effectType?: string | null;
+  choices?: RoleNightAbilityChoiceInput[];
 };
 
 const READ_ERROR = "اطلاعات این بخش بارگذاری نشد. اتصال پایگاه داده یا سطح دسترسی کاربر را بررسی کنید.";
@@ -29,6 +46,62 @@ async function checkModerator() {
     throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی گرداننده یا مدیر)");
   }
   return session.user.id;
+}
+
+function normalizeNightAbilities(abilities?: RoleNightAbilityInput[]): Prisma.InputJsonValue | typeof Prisma.JsonNull {
+  if (!Array.isArray(abilities)) return Prisma.JsonNull;
+
+  const cleanLimit = (value: unknown, max = 20) =>
+    value === null || value === undefined || value === ""
+      ? null
+      : Math.max(1, Math.min(max, Number(value) || 1));
+
+  const cleanId = (value: string, fallback: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9آ-ی]+/gi, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 50) || fallback;
+
+  const cleanEffectType = (value: unknown) =>
+    ["NONE", "CONVERT_TO_MAFIA", "YAKUZA", "TWO_NAME_INQUIRY"].includes(String(value))
+      ? String(value)
+      : "NONE";
+
+  const cleanAbilities = abilities
+    .map((ability, index) => {
+      const label = ability.label?.trim().slice(0, 60);
+      if (!label) return null;
+      const id = cleanId(ability.id || label, `ability-${index + 1}`);
+      const choices = Array.isArray(ability.choices)
+        ? ability.choices
+            .map((choice, choiceIndex) => {
+              const choiceLabel = choice.label?.trim().slice(0, 60);
+              if (!choiceLabel) return null;
+              return {
+                id: cleanId(choice.id || choiceLabel, `${id}-choice-${choiceIndex + 1}`),
+                label: choiceLabel,
+                usesPerGame: cleanLimit(choice.usesPerGame),
+                effectType: cleanEffectType(choice.effectType),
+              };
+            })
+            .filter(Boolean)
+        : [];
+
+      return {
+        id,
+        label,
+        usesPerGame: cleanLimit(ability.usesPerGame),
+        usesPerNight: cleanLimit(ability.usesPerNight, 10),
+        selfTargetLimit: cleanLimit(ability.selfTargetLimit),
+        effectType: cleanEffectType(ability.effectType),
+        choices,
+      };
+    })
+    .filter(Boolean);
+
+  return cleanAbilities.length ? (cleanAbilities as Prisma.InputJsonValue) : Prisma.JsonNull;
 }
 
 // User Management
@@ -190,28 +263,30 @@ export async function getMafiaRolesSafe(): Promise<SafeListResult<any>> {
   }
 }
 
-export async function createMafiaRole(data: { name: string; description: string; alignment: Alignment }) {
+export async function createMafiaRole(data: { name: string; description: string; alignment: Alignment; nightAbilities?: RoleNightAbilityInput[] }) {
   await checkModerator();
   const role = await prisma.mafiaRole.create({
     data: {
       name: data.name,
       description: data.description,
       alignment: data.alignment,
-      is_permanent: false
+      is_permanent: false,
+      nightAbilities: normalizeNightAbilities(data.nightAbilities),
     }
   });
   revalidatePath("/dashboard/admin");
   return role;
 }
 
-export async function updateMafiaRole(id: string, data: { name: string; description: string; alignment: Alignment }) {
+export async function updateMafiaRole(id: string, data: { name: string; description: string; alignment: Alignment; nightAbilities?: RoleNightAbilityInput[] }) {
   await checkModerator();
   const role = await prisma.mafiaRole.update({
     where: { id },
     data: {
       name: data.name,
       description: data.description,
-      alignment: data.alignment
+      alignment: data.alignment,
+      nightAbilities: normalizeNightAbilities(data.nightAbilities),
     }
   });
   revalidatePath("/dashboard/admin");

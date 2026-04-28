@@ -1,151 +1,913 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getGameStatus } from "@/actions/game";
 import Link from "next/link";
+import {
+  deleteNightEvent,
+  endGame,
+  getGameStatus,
+  publishNightRecords,
+  recordNightEvent,
+  setPlayerAliveStatus,
+} from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
+
+type Alignment = "CITIZEN" | "MAFIA" | "NEUTRAL";
+type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
+
+type RoleNightAbility = {
+  id: string;
+  label: string;
+  usesPerGame: number | null;
+  usesPerNight: number | null;
+  selfTargetLimit: number | null;
+  choices: {
+    id: string;
+    label: string;
+    usesPerGame: number | null;
+    effectType?: AbilityEffectType;
+  }[];
+  effectType?: AbilityEffectType;
+};
+
+type PlayerRecord = {
+  id: string;
+  name: string;
+  isAlive?: boolean;
+  eliminatedAt?: Date | string | null;
+  role?: {
+    id: string;
+    name: string;
+    description?: string | null;
+    alignment?: Alignment;
+    nightAbilities?: RoleNightAbility[] | null;
+  } | null;
+};
+
+type NightEventRecord = {
+  id: string;
+  nightNumber: number;
+  abilityKey: string;
+  abilityLabel: string;
+  abilityChoiceKey?: string | null;
+  abilityChoiceLabel?: string | null;
+  abilitySource?: string | null;
+  actorPlayer?: PlayerRecord | null;
+  targetPlayer?: PlayerRecord | null;
+  actorAlignment?: Alignment | null;
+  wasUsed?: boolean;
+  details?: {
+    effectType?: AbilityEffectType;
+    secondaryTargetPlayerId?: string | null;
+    secondaryTargetName?: string | null;
+    convertedRoleId?: string | null;
+    convertedRoleName?: string | null;
+    previousRoleName?: string | null;
+    sacrificePlayerId?: string | null;
+    sacrificePlayerName?: string | null;
+  } | null;
+  note?: string | null;
+  isPublic?: boolean;
+};
+
+type NightActionOption = {
+  key: string;
+  label: string;
+  source: "side" | "role";
+  sourceLabel: string;
+  actorAlignment?: Alignment;
+  candidates: PlayerRecord[];
+  usesPerGame: number | null;
+  usesPerNight: number | null;
+  selfTargetLimit: number | null;
+  effectType: AbilityEffectType;
+  choices: RoleNightAbility["choices"];
+  className: string;
+};
+
+function normalizeEffectType(value: unknown): AbilityEffectType {
+  if (value === "CONVERT_TO_MAFIA" || value === "YAKUZA" || value === "TWO_NAME_INQUIRY") return value;
+  return "NONE";
+}
+
+function effectLabel(effectType?: AbilityEffectType) {
+  if (effectType === "CONVERT_TO_MAFIA") return "خریداری";
+  if (effectType === "YAKUZA") return "یاکوزا";
+  if (effectType === "TWO_NAME_INQUIRY") return "بازپرسی دو نفره";
+  return "ثبت ساده";
+}
+
+function alignmentLabel(alignment?: Alignment | null) {
+  if (alignment === "CITIZEN") return "شهروند";
+  if (alignment === "MAFIA") return "مافیا";
+  if (alignment === "NEUTRAL") return "مستقل";
+  return "نامشخص";
+}
+
+function alignmentClass(alignment?: Alignment | null) {
+  if (alignment === "CITIZEN") return "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-300";
+  if (alignment === "MAFIA") return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
+  if (alignment === "NEUTRAL") return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300";
+  return "border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400";
+}
+
+function alignmentIcon(alignment?: Alignment | null) {
+  if (alignment === "CITIZEN") return "verified_user";
+  if (alignment === "MAFIA") return "local_police";
+  if (alignment === "NEUTRAL") return "casino";
+  return "help";
+}
+
+function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item, index) => {
+      const ability = item as Partial<RoleNightAbility>;
+      const label = String(ability.label || "").trim();
+      if (!label) return null;
+      return {
+        id: String(ability.id || `ability-${index + 1}`),
+        label,
+        usesPerGame: typeof ability.usesPerGame === "number" ? ability.usesPerGame : null,
+        usesPerNight: typeof ability.usesPerNight === "number" ? ability.usesPerNight : null,
+        selfTargetLimit: typeof ability.selfTargetLimit === "number" ? ability.selfTargetLimit : null,
+        effectType: normalizeEffectType(ability.effectType),
+        choices: Array.isArray(ability.choices)
+          ? ability.choices
+              .map((choice, choiceIndex) => {
+                const choiceLabel = String(choice.label || "").trim();
+                if (!choiceLabel) return null;
+                return {
+                  id: String(choice.id || `choice-${choiceIndex + 1}`),
+                  label: choiceLabel,
+                  usesPerGame: typeof choice.usesPerGame === "number" ? choice.usesPerGame : null,
+                  effectType: normalizeEffectType(choice.effectType),
+                };
+              })
+              .filter(Boolean) as RoleNightAbility["choices"]
+          : [],
+      };
+    })
+    .filter(Boolean) as RoleNightAbility[];
+}
+
+function usageLabel(usesPerGame: number | null) {
+  return usesPerGame ? `${usesPerGame} بار` : "نامحدود";
+}
+
+function abilityLimitLabel(option: NightActionOption) {
+  const parts = [`کل: ${usageLabel(option.usesPerGame)}`];
+  if (option.usesPerNight) parts.push(`هر شب: ${option.usesPerNight}`);
+  if (option.selfTargetLimit) parts.push(`روی خود: ${option.selfTargetLimit}`);
+  if (option.effectType !== "NONE") parts.push(effectLabel(option.effectType));
+  if (option.choices.length) parts.push(`${option.choices.length} انتخاب`);
+  return parts.join("، ");
+}
+
+function getInitial(name: string) {
+  const trimmed = name.trim();
+  return trimmed ? trimmed.slice(0, 1).toUpperCase() : "?";
+}
 
 export default function ModeratorGamePage() {
   const params = useParams();
   const router = useRouter();
-  const { showConfirm, showToast } = usePopup();
+  const { showAlert, showConfirm, showToast } = usePopup();
   const gameId = params.id as string;
   const [game, setGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [nightNumber, setNightNumber] = useState(1);
+  const [selectedActionKey, setSelectedActionKey] = useState("");
+  const [selectedChoiceKey, setSelectedChoiceKey] = useState("");
+  const [eventWasUsed, setEventWasUsed] = useState(true);
+  const [actorPlayerId, setActorPlayerId] = useState("");
+  const [targetPlayerId, setTargetPlayerId] = useState("");
+  const [secondaryTargetPlayerId, setSecondaryTargetPlayerId] = useState("");
+  const [convertedRoleId, setConvertedRoleId] = useState("");
+  const [nightNote, setNightNote] = useState("");
+
+  const refreshGame = async (showLoader = false) => {
+    if (showLoader) setLoading(true);
+    const result = await getGameStatus(gameId);
+    if (!result) {
+      router.push("/dashboard/moderator");
+      return;
+    }
+    setGame(result);
+    const latestNight = Math.max(1, ...(result.nightEvents || []).map((event: NightEventRecord) => event.nightNumber));
+    setNightNumber((current) => Math.max(current, latestNight));
+    setLoading(false);
+  };
 
   useEffect(() => {
-    getGameStatus(gameId).then((res) => {
-      if (!res) {
-        router.push("/dashboard/moderator");
+    refreshGame(true);
+  }, [gameId]);
+
+  const players: PlayerRecord[] = game?.players || [];
+  const mafiaConversionRoles: { id: string; name: string }[] = game?.mafiaConversionRoles || [];
+  const alivePlayers = players.filter((player) => player.isAlive !== false);
+  const eliminatedPlayers = players.filter((player) => player.isAlive === false);
+  const nightEvents: NightEventRecord[] = game?.nightEvents || [];
+
+  const actionOptions = useMemo<NightActionOption[]>(() => {
+    const mafiaPlayers = players.filter((player) => player.role?.alignment === "MAFIA");
+    const options: NightActionOption[] = [
+      {
+        key: "side:mafia-shot",
+        label: "شلیک مافیا",
+        source: "side",
+        sourceLabel: "جبهه مافیا",
+        actorAlignment: "MAFIA",
+        candidates: mafiaPlayers,
+        usesPerGame: null,
+        usesPerNight: 1,
+        selfTargetLimit: null,
+        effectType: "NONE",
+        choices: [],
+        className: "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300",
+      },
+    ];
+
+    const roleAbilityMap = new Map<string, NightActionOption>();
+    players.forEach((player) => {
+      const role = player.role;
+      if (!role?.id) return;
+      normalizeRoleAbilities(role.nightAbilities).forEach((ability) => {
+        const key = `role:${role.id}:${ability.id}`;
+        const existing = roleAbilityMap.get(key);
+        if (existing) {
+          existing.candidates.push(player);
+          return;
+        }
+        roleAbilityMap.set(key, {
+          key,
+          label: ability.label,
+          source: "role",
+          sourceLabel: role.name,
+          candidates: [player],
+          usesPerGame: ability.usesPerGame,
+          usesPerNight: ability.usesPerNight,
+          selfTargetLimit: ability.selfTargetLimit,
+          effectType: normalizeEffectType(ability.effectType),
+          choices: ability.choices,
+          className: alignmentClass(role.alignment),
+        });
+      });
+    });
+
+    return [...options, ...roleAbilityMap.values()];
+  }, [players]);
+
+  useEffect(() => {
+    if (actionOptions.length === 0) return;
+    if (!actionOptions.some((option) => option.key === selectedActionKey)) {
+      setSelectedActionKey(actionOptions[0].key);
+      setActorPlayerId("");
+    }
+  }, [actionOptions, selectedActionKey]);
+
+  const selectedAction = actionOptions.find((option) => option.key === selectedActionKey) || actionOptions[0];
+  const selectedChoice = selectedAction?.choices.find((choice) => choice.id === selectedChoiceKey) || selectedAction?.choices[0] || null;
+  const selectedEffectType = normalizeEffectType(selectedChoice?.effectType !== "NONE" ? selectedChoice?.effectType : selectedAction?.effectType);
+  const needsConversionRole = selectedEffectType === "CONVERT_TO_MAFIA" || selectedEffectType === "YAKUZA";
+  const needsSecondaryTarget = selectedEffectType === "YAKUZA" || selectedEffectType === "TWO_NAME_INQUIRY";
+  const targetPlayerOptions = needsConversionRole
+    ? players.filter((player) => player.role?.alignment !== "MAFIA")
+    : players;
+  const secondaryTargetOptions = selectedEffectType === "YAKUZA"
+    ? players.filter((player) => player.role?.alignment === "MAFIA")
+    : players;
+
+  useEffect(() => {
+    if (!selectedAction) return;
+    if (selectedAction.choices.length > 0 && !selectedAction.choices.some((choice) => choice.id === selectedChoiceKey)) {
+      setSelectedChoiceKey(selectedAction.choices[0].id);
+    }
+    if (selectedAction.choices.length === 0 && selectedChoiceKey) {
+      setSelectedChoiceKey("");
+    }
+  }, [selectedAction, selectedChoiceKey]);
+
+  useEffect(() => {
+    if (!convertedRoleId && mafiaConversionRoles.length > 0) {
+      const simpleMafia =
+        mafiaConversionRoles.find((role) => role.name.includes("ساده") || role.name.toLowerCase().includes("simple")) ||
+        mafiaConversionRoles[0];
+      setConvertedRoleId(simpleMafia.id);
+    }
+  }, [convertedRoleId, mafiaConversionRoles]);
+
+  const groupedNightEvents = useMemo(() => {
+    const groups = new Map<number, NightEventRecord[]>();
+    nightEvents.forEach((event) => {
+      const existing = groups.get(event.nightNumber) || [];
+      groups.set(event.nightNumber, [...existing, event]);
+    });
+    return [...groups.entries()].sort(([left], [right]) => left - right);
+  }, [nightEvents]);
+
+  const handleTogglePlayer = (player: PlayerRecord) => {
+    const nextAlive = player.isAlive === false;
+    showConfirm(
+      nextAlive ? "بازگرداندن بازیکن" : "ثبت حذف بازیکن",
+      nextAlive
+        ? `${player.name} دوباره به عنوان بازیکن فعال نمایش داده شود؟`
+        : `${player.name} به عنوان بازیکن حذف‌شده ثبت شود؟ این وضعیت برای بازیکنان هم نمایش داده می‌شود.`,
+      async () => {
+        setBusy(true);
+        const result = await setPlayerAliveStatus(gameId, player.id, nextAlive);
+        if (result.success) {
+          showToast(nextAlive ? "بازیکن به بازی برگشت" : "وضعیت حذف بازیکن ثبت شد", "success");
+          await refreshGame();
+        } else {
+          showAlert("خطا", result.error || "تغییر وضعیت بازیکن انجام نشد", "error");
+        }
+        setBusy(false);
+      },
+      nextAlive ? "warning" : "error"
+    );
+  };
+
+  const handleRecordNightEvent = async () => {
+    if (!selectedAction) {
+      showAlert("اتفاق شب", "نوع اتفاق شب را انتخاب کنید.", "warning");
+      return;
+    }
+    if (selectedAction.source === "role" && !actorPlayerId) {
+      showAlert("بازیکن انجام‌دهنده", "برای توانایی نقش، بازیکن انجام‌دهنده را انتخاب کنید.", "warning");
+      return;
+    }
+    if (eventWasUsed && !targetPlayerId) {
+      showAlert("بازیکن هدف", "بازیکن هدف یا اثر را انتخاب کنید.", "warning");
+      return;
+    }
+    if (eventWasUsed && needsSecondaryTarget && !secondaryTargetPlayerId) {
+      showAlert(
+        selectedEffectType === "YAKUZA" ? "بازیکن قربانی" : "اسم دوم",
+        selectedEffectType === "YAKUZA" ? "برای یاکوزا، بازیکن مافیایی قربانی را انتخاب کنید." : "برای بازپرسی، اسم دوم را هم انتخاب کنید.",
+        "warning"
+      );
+      return;
+    }
+    if (eventWasUsed && needsConversionRole && !convertedRoleId) {
+      showAlert("نقش تبدیل", "برای خریداری یا یاکوزا، نقش مافیایی مقصد را انتخاب کنید.", "warning");
+      return;
+    }
+    if (eventWasUsed && selectedAction.usesPerGame && actorPlayerId) {
+      const usedByActor = nightEvents.filter(
+        (event) => event.wasUsed !== false && event.abilityKey === selectedAction.key && event.actorPlayer?.id === actorPlayerId
+      ).length;
+      if (usedByActor >= selectedAction.usesPerGame) {
+        showAlert("سقف توانایی", `این توانایی برای این بازیکن قبلاً ${selectedAction.usesPerGame} بار ثبت شده است.`, "warning");
         return;
       }
-      setGame(res);
-      setLoading(false);
-    });
-  }, [gameId, router]);
+    }
+    if (eventWasUsed && selectedAction.usesPerNight && actorPlayerId) {
+      const usedThisNight = nightEvents.filter(
+        (event) =>
+          event.wasUsed !== false &&
+          event.nightNumber === nightNumber &&
+          event.abilityKey === selectedAction.key &&
+          event.actorPlayer?.id === actorPlayerId
+      ).length;
+      if (usedThisNight >= selectedAction.usesPerNight) {
+        showAlert("سقف شب", `این توانایی در شب ${nightNumber} برای این بازیکن به سقف ${selectedAction.usesPerNight} رسیده است.`, "warning");
+        return;
+      }
+    }
+    if (eventWasUsed && selectedChoice?.usesPerGame && actorPlayerId) {
+      const usedChoice = nightEvents.filter(
+        (event) =>
+          event.wasUsed !== false &&
+          event.abilityKey === selectedAction.key &&
+          event.abilityChoiceKey === selectedChoice.id &&
+          event.actorPlayer?.id === actorPlayerId
+      ).length;
+      if (usedChoice >= selectedChoice.usesPerGame) {
+        showAlert("سقف انتخاب", `${selectedChoice.label} برای این بازیکن قبلاً ${selectedChoice.usesPerGame} بار ثبت شده است.`, "warning");
+        return;
+      }
+    }
+    if (eventWasUsed && selectedAction.selfTargetLimit && actorPlayerId && targetPlayerId === actorPlayerId) {
+      const selfUses = nightEvents.filter(
+        (event) =>
+          event.wasUsed !== false &&
+          event.abilityKey === selectedAction.key &&
+          event.actorPlayer?.id === actorPlayerId &&
+          event.targetPlayer?.id === actorPlayerId
+      ).length;
+      if (selfUses >= selectedAction.selfTargetLimit) {
+        showAlert("سقف استفاده روی خود", `این نقش فقط ${selectedAction.selfTargetLimit} بار می‌تواند روی خودش استفاده کند.`, "warning");
+        return;
+      }
+    }
 
-  if (loading) return <div className="p-12 text-center animate-pulse text-zinc-500">در حال بارگذاری اطلاعات بازی...</div>;
+    setBusy(true);
+    const result = await recordNightEvent(gameId, {
+      nightNumber,
+      abilityKey: selectedAction.key,
+      abilityLabel: selectedAction.label,
+      abilityChoiceKey: selectedChoice?.id || null,
+      abilityChoiceLabel: selectedChoice?.label || null,
+      abilitySource: selectedAction.source === "side" ? selectedAction.sourceLabel : selectedAction.sourceLabel,
+      actorPlayerId: actorPlayerId || null,
+      targetPlayerId: eventWasUsed ? targetPlayerId : null,
+      secondaryTargetPlayerId: eventWasUsed ? secondaryTargetPlayerId || null : null,
+      convertedRoleId: eventWasUsed && needsConversionRole ? convertedRoleId : null,
+      effectType: selectedEffectType,
+      actorAlignment: selectedAction.actorAlignment || null,
+      wasUsed: eventWasUsed,
+      note: nightNote,
+    });
+
+    if (result.success) {
+      showToast("رکورد شب ثبت شد", "success");
+      setTargetPlayerId("");
+      setSecondaryTargetPlayerId("");
+      setNightNote("");
+      setEventWasUsed(true);
+      await refreshGame();
+    } else {
+      showAlert("خطا", result.error || "ثبت اتفاق شب انجام نشد", "error");
+    }
+    setBusy(false);
+  };
+
+  const handleDeleteNightEvent = (event: NightEventRecord) => {
+    showConfirm("حذف رکورد شب", "این رکورد از دفترچه گرداننده حذف شود؟", async () => {
+      setBusy(true);
+      const result = await deleteNightEvent(gameId, event.id);
+      if (result.success) {
+        showToast("رکورد شب حذف شد", "success");
+        await refreshGame();
+      } else {
+        showAlert("خطا", result.error || "حذف رکورد انجام نشد", "error");
+      }
+      setBusy(false);
+    }, "error");
+  };
+
+  const handleEndGame = (winner: Alignment | "UNKNOWN") => {
+    const winnerLabel = winner === "UNKNOWN" ? "نامشخص" : alignmentLabel(winner);
+    showConfirm("پایان بازی", `بازی با نتیجه ${winnerLabel} بسته شود؟`, async () => {
+      setBusy(true);
+      const result = await endGame(gameId, winner);
+      if (result.success) {
+        showToast(winner === "UNKNOWN" ? "بازی با نتیجه نامشخص بسته شد" : `بازی با پیروزی ${winnerLabel} پایان یافت`, "success");
+        await refreshGame();
+      } else {
+        showAlert("خطا", result.error || "پایان بازی انجام نشد", "error");
+      }
+      setBusy(false);
+    }, winner === "MAFIA" || winner === "UNKNOWN" ? "error" : "warning");
+  };
+
+  const handlePublishNightRecords = () => {
+    showConfirm("عمومی کردن رکورد شب", "بازیکنان بعد از بازی می‌توانند اتفاقات ثبت‌شده شب را ببینند. ادامه می‌دهید؟", async () => {
+      setBusy(true);
+      const result = await publishNightRecords(gameId);
+      if (result.success) {
+        showToast("رکوردهای شب عمومی شدند", "success");
+        await refreshGame();
+      } else {
+        showAlert("خطا", result.error || "عمومی کردن رکوردها انجام نشد", "error");
+      }
+      setBusy(false);
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[560px] items-center justify-center" dir="rtl">
+        <div className="ui-card flex w-full max-w-xl flex-col items-center gap-4 p-10 text-center">
+          <div className="size-10 animate-spin rounded-full border-4 border-zinc-200 border-t-lime-500 dark:border-zinc-800" />
+          <p className="font-bold text-zinc-500 dark:text-zinc-400">در حال آماده‌سازی اتاق گرداننده...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto mb-16">
-      <header className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-zinc-900 rounded-lg p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <span className="material-symbols-outlined text-lime-500">sports_esports</span>
-            بازی در جریان
-          </h2>
-          <p className="text-zinc-500 mt-1">کد لابی: {game.id.substring(0, 6).toUpperCase()}</p>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="bg-zinc-100 dark:bg-zinc-800 px-4 py-2 rounded-lg text-center">
-            <p className="text-xs text-zinc-500 font-bold mb-1">سناریو</p>
-            <p className="font-medium text-sm text-lime-600 dark:text-lime-400">{game.scenario?.name}</p>
+    <div className="flex flex-col gap-5 pb-20" dir="rtl">
+      <header className="ui-card overflow-hidden">
+        <div className="flex flex-col gap-5 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] xl:flex-row xl:items-start xl:justify-between">
+          <div className="flex min-w-0 items-start gap-4">
+            <div className="ui-icon-accent size-14">
+              <span className="material-symbols-outlined text-3xl">shield_person</span>
+            </div>
+            <div className="min-w-0">
+              <p className="ui-kicker">اتاق گرداننده</p>
+              <h1 className="mt-1 truncate text-3xl font-black text-zinc-950 dark:text-white">{game?.name || "بازی مافیا"}</h1>
+              <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                وضعیت بازیکنان، دفترچه اتفاقات شب و نتیجه نهایی بازی در یک صفحه کنترل می‌شود.
+              </p>
+            </div>
           </div>
-          <Link href="/dashboard/moderator" className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-4 py-2 rounded-lg font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm">
-            بازگشت
-          </Link>
+
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs font-black text-zinc-600 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300">
+              #{game?.code || gameId.slice(0, 6).toUpperCase()}
+            </span>
+            <span className={`rounded-lg border px-3 py-2 text-xs font-black ${game?.status === "FINISHED" ? "border-zinc-500/20 bg-zinc-500/10 text-zinc-500" : "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"}`}>
+              {game?.status === "FINISHED" ? "پایان یافته" : "در جریان"}
+            </span>
+            <Link href="/dashboard/moderator" className="ui-button-secondary min-h-10 px-3 text-xs">
+              <span className="material-symbols-outlined text-base">arrow_forward</span>
+              بازگشت
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            ["سناریو", game?.scenario?.name || "نامشخص", "account_tree", "text-lime-500"],
+            ["بازیکنان فعال", `${alivePlayers.length} نفر`, "sensors", "text-emerald-500"],
+            ["حذف‌شده‌ها", `${eliminatedPlayers.length} نفر`, "person_off", "text-red-500"],
+            ["رکورد شب", `${nightEvents.length} مورد`, "dark_mode", "text-sky-500"],
+          ].map(([label, value, icon, color]) => (
+            <div key={label} className="ui-muted p-4">
+              <span className={`material-symbols-outlined text-xl ${color}`}>{icon}</span>
+              <p className="mt-3 truncate text-lg font-black text-zinc-950 dark:text-white">{value}</p>
+              <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+            </div>
+          ))}
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {game.players?.map((player: any, index: number) => (
-          <div key={player.id} className="bg-white dark:bg-zinc-900 rounded-lg p-5 shadow-sm border border-zinc-200 dark:border-zinc-800 flex flex-col gap-3 relative overflow-hidden group">
-            
-            {/* Background alignment glow */}
-            <div className={`absolute top-0 left-0 w-full h-1 opacity-50 ${
-              player.role?.alignment === 'CITIZEN' ? 'bg-blue-500' : 
-              player.role?.alignment === 'MAFIA' ? 'bg-red-500' : 
-              'bg-amber-500'
-            }`}></div>
-
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-bold text-zinc-500 border border-zinc-200 dark:border-zinc-700">
-                  {index + 1}
-                </div>
-                <div>
-                  <p className="font-bold text-lg">{player.name}</p>
-                  <p className="text-xs text-zinc-400">بازیکن</p>
-                </div>
+      <main className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_410px]">
+        <section className="space-y-5">
+          <div className="ui-card overflow-hidden">
+            <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+              <div>
+                <p className="ui-kicker">وضعیت بازیکنان</p>
+                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">بازیکنان و نقش‌ها</h2>
               </div>
+              <span className="rounded-lg border border-zinc-200 bg-white px-3 py-1 text-xs font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
+                {players.length} نفر
+              </span>
             </div>
 
-            <div className={`mt-2 p-3 rounded-lg border ${
-              player.role?.alignment === 'CITIZEN' ? 'bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-600 dark:text-blue-400' : 
-              player.role?.alignment === 'MAFIA' ? 'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-600 dark:text-red-400' : 
-              'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400'
-            }`}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-bold">{player.role?.name || "بدون نقش"}</span>
-                <span className="text-xs opacity-80 px-2 py-0.5 rounded-md bg-white/20 dark:bg-black/20">
-                  {player.role?.alignment === 'CITIZEN' ? 'شهروند' : 
-                   player.role?.alignment === 'MAFIA' ? 'مافیا' : 'مستقل'}
-                </span>
-              </div>
-              <p className="text-xs opacity-70 line-clamp-2">{player.role?.description}</p>
-            </div>
-            
-            {/* Action buttons (for future implementation like Kill, etc) */}
-            <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-               <button className="flex-1 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold py-2 rounded-lg hover:bg-red-500/20 transition-colors border border-red-500/20">
-                 حذف از بازی
-               </button>
+            <div className="grid gap-3 p-4 md:grid-cols-2 2xl:grid-cols-3">
+              {players.map((player, index) => {
+                const alive = player.isAlive !== false;
+                return (
+                  <article
+                    key={player.id}
+                    className={`relative overflow-hidden rounded-lg border p-3 transition-all ${
+                      alive
+                        ? "border-zinc-200 bg-white hover:border-lime-500/30 dark:border-white/10 dark:bg-zinc-950/70"
+                        : "border-red-500/20 bg-red-500/10 dark:border-red-400/20"
+                    }`}
+                  >
+                    <div className={`absolute inset-x-0 top-0 h-1 ${alive ? "bg-lime-500" : "bg-red-500"}`} />
+                    <div className="flex items-start justify-between gap-3 pt-1">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg text-sm font-black ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
+                          {getInitial(player.name)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-base font-black text-zinc-950 dark:text-white">{player.name}</p>
+                          <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">بازیکن {index + 1}</p>
+                        </div>
+                      </div>
+                      <span className={`rounded-lg border px-2 py-1 text-[10px] font-black ${alive ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300" : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300"}`}>
+                        {alive ? "فعال" : "حذف‌شده"}
+                      </span>
+                    </div>
+
+                    <div className={`mt-3 rounded-lg border p-3 ${alignmentClass(player.role?.alignment)}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-sm font-black">{player.role?.name || "بدون نقش"}</p>
+                        <span className="material-symbols-outlined text-lg">{alignmentIcon(player.role?.alignment)}</span>
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-xs leading-5 opacity-80">
+                        {player.role?.description || "توضیحی ثبت نشده است."}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => handleTogglePlayer(player)}
+                      disabled={busy}
+                      className={alive ? "ui-button-secondary mt-3 min-h-10 w-full text-red-600 dark:text-red-300" : "ui-button-secondary mt-3 min-h-10 w-full text-lime-700 dark:text-lime-300"}
+                    >
+                      <span className="material-symbols-outlined text-lg">{alive ? "person_off" : "person_add"}</span>
+                      {alive ? "ثبت حذف" : "بازگرداندن"}
+                    </button>
+                  </article>
+                );
+              })}
             </div>
           </div>
-        ))}
-      </div>
 
-      <div className="mt-8 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700/50 flex flex-col gap-4">
-        <div className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
-          <span className="material-symbols-outlined text-red-600 dark:text-red-400">stop_circle</span>
-          <h3 className="font-bold text-lg">پایان بازی</h3>
-        </div>
-        <p className="text-sm text-zinc-500">برای پایان بازی، یکی از گروه‌های برنده را انتخاب کنید. نتیجه بازی در پروفایل بازیکنان ثبت خواهد شد.</p>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-          <button 
-            onClick={() => {
-              showConfirm("پایان بازی", "آیا مطمئن هستید که شهروندان پیروز شده‌اند؟", async () => {
-                const { endGame } = await import('@/actions/game');
-                await endGame(gameId, 'CITIZEN');
-                showToast("بازی با پیروزی شهروندان به پایان رسید", "success");
-                router.refresh();
-                router.push("/dashboard/moderator");
-              });
-            }}
-            className="bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-bold transition-all shadow-lg shadow-blue-500/20 active:translate-y-1">
-            پیروزی شهروندان
-          </button>
-          <button 
-            onClick={() => {
-              showConfirm("پایان بازی", "آیا مطمئن هستید که مافیا پیروز شده‌است؟", async () => {
-                const { endGame } = await import('@/actions/game');
-                await endGame(gameId, 'MAFIA');
-                showToast("بازی با پیروزی مافیا به پایان رسید", "success");
-                router.refresh();
-                router.push("/dashboard/moderator");
-              }, "error");
-            }}
-            className="bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-bold transition-all shadow-lg shadow-red-500/20 active:translate-y-1">
-            پیروزی مافیا
-          </button>
-          <button 
-            onClick={() => {
-              showConfirm("پایان بازی", "آیا مطمئن هستید که مستقل‌ها پیروز شده‌اند؟", async () => {
-                const { endGame } = await import('@/actions/game');
-                await endGame(gameId, 'NEUTRAL');
-                showToast("بازی با پیروزی مستقل‌ها به پایان رسید", "success");
-                router.refresh();
-                router.push("/dashboard/moderator");
-              });
-            }}
-            className="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-lg font-bold transition-all shadow-lg shadow-amber-500/20 active:translate-y-1">
-            پیروزی مستقل‌ها
-          </button>
-        </div>
-      </div>
+          <div className="ui-card overflow-hidden">
+            <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="ui-kicker">دفترچه شب</p>
+                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">رکورد اتفاقات شب</h2>
+              </div>
+              {game?.status === "FINISHED" && nightEvents.length > 0 && (
+                <button
+                  onClick={handlePublishNightRecords}
+                  disabled={busy || game?.nightRecordsPublic}
+                  className={game?.nightRecordsPublic ? "ui-button-secondary min-h-10 px-3 text-xs text-lime-700 dark:text-lime-300" : "ui-button-primary min-h-10 px-3 text-xs"}
+                >
+                  <span className="material-symbols-outlined text-base">{game?.nightRecordsPublic ? "public" : "publish"}</span>
+                  {game?.nightRecordsPublic ? "عمومی شده" : "عمومی کردن برای بازیکنان"}
+                </button>
+              )}
+            </div>
+
+            <div className="grid gap-5 p-5 lg:grid-cols-[360px_minmax(0,1fr)]">
+              <aside className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-zinc-950 dark:text-white">ثبت اتفاق جدید</p>
+                    <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">برای شب‌های طولانی هم فقط شماره شب را جلو ببرید.</p>
+                  </div>
+                  <div className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
+                    <button type="button" onClick={() => setNightNumber((value) => Math.max(1, value - 1))} className="flex size-8 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-white/10">
+                      <span className="material-symbols-outlined text-base">remove</span>
+                    </button>
+                    <span className="w-8 text-center text-sm font-black text-zinc-950 dark:text-white">{nightNumber}</span>
+                    <button type="button" onClick={() => setNightNumber((value) => value + 1)} className="flex size-8 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-white/10">
+                      <span className="material-symbols-outlined text-base">add</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نوع اتفاق</span>
+                    <select value={selectedActionKey} onChange={(event) => { setSelectedActionKey(event.target.value); setActorPlayerId(""); setTargetPlayerId(""); setSecondaryTargetPlayerId(""); }}>
+                      {actionOptions.map((option) => (
+                        <option key={option.key} value={option.key}>
+                          {option.label} - {option.sourceLabel} ({abilityLimitLabel(option)})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  {selectedAction?.choices.length > 0 && (
+                    <label className="flex flex-col gap-2">
+                      <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">انتخاب داخل توانایی</span>
+                      <select value={selectedChoiceKey} onChange={(event) => setSelectedChoiceKey(event.target.value)}>
+                        {selectedAction.choices.map((choice) => (
+                          <option key={choice.id} value={choice.id}>
+                            {choice.label} ({usageLabel(choice.usesPerGame)}، {effectLabel(choice.effectType)})
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
+                    {[
+                      { value: true, label: "استفاده شد", icon: "check_circle" },
+                      { value: false, label: "استفاده نشد", icon: "radio_button_unchecked" },
+                    ].map((item) => (
+                      <button
+                        key={item.label}
+                        type="button"
+                        onClick={() => {
+                          setEventWasUsed(item.value);
+                          if (!item.value) {
+                            setTargetPlayerId("");
+                            setSecondaryTargetPlayerId("");
+                          }
+                        }}
+                        className={`flex min-h-10 items-center justify-center gap-2 rounded-lg text-xs font-black transition-all ${
+                          eventWasUsed === item.value
+                            ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
+                            : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/[0.06]"
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-base">{item.icon}</span>
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">انجام‌دهنده</span>
+                    <select value={actorPlayerId} onChange={(event) => setActorPlayerId(event.target.value)}>
+                      <option value="">{selectedAction?.source === "side" ? "ثبت به نام جبهه" : "انتخاب بازیکن"}</option>
+                      {selectedAction?.candidates.map((player) => (
+                        <option key={player.id} value={player.id}>
+                          {player.name} - {player.role?.name || selectedAction.sourceLabel}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">
+                      {selectedEffectType === "TWO_NAME_INQUIRY" ? "اسم اول" : selectedEffectType === "YAKUZA" ? "بازیکن خریداری‌شونده" : "هدف یا اثر"}
+                    </span>
+                    <select value={targetPlayerId} onChange={(event) => setTargetPlayerId(event.target.value)} disabled={!eventWasUsed}>
+                      <option value="">انتخاب بازیکن</option>
+                      {targetPlayerOptions.map((player) => (
+                        <option key={player.id} value={player.id}>
+                          {player.name} {player.isAlive === false ? "(حذف‌شده)" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  {needsSecondaryTarget && (
+                    <label className="flex flex-col gap-2">
+                      <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">
+                        {selectedEffectType === "YAKUZA" ? "مافیای قربانی یاکوزا" : "اسم دوم بازپرسی"}
+                      </span>
+                      <select value={secondaryTargetPlayerId} onChange={(event) => setSecondaryTargetPlayerId(event.target.value)} disabled={!eventWasUsed}>
+                        <option value="">انتخاب بازیکن</option>
+                        {secondaryTargetOptions.map((player) => (
+                          <option key={player.id} value={player.id}>
+                            {player.name} - {player.role?.name || "بدون نقش"} {player.isAlive === false ? "(حذف‌شده)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+
+                  {needsConversionRole && (
+                    <label className="flex flex-col gap-2">
+                      <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نقش مافیایی بعد از خریداری</span>
+                      <select value={convertedRoleId} onChange={(event) => setConvertedRoleId(event.target.value)} disabled={!eventWasUsed}>
+                        <option value="">انتخاب نقش مافیا</option>
+                        {mafiaConversionRoles.map((role) => (
+                          <option key={role.id} value={role.id}>
+                            {role.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+
+                  {selectedEffectType !== "NONE" && (
+                    <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 text-xs font-bold leading-6 text-lime-700 dark:text-lime-300">
+                      اثر ویژه: {effectLabel(selectedEffectType)}
+                    </div>
+                  )}
+
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">یادداشت اختیاری</span>
+                    <textarea
+                      value={nightNote}
+                      onChange={(event) => setNightNote(event.target.value.slice(0, 500))}
+                      placeholder="مثلاً دکتر این بازیکن را نجات داد."
+                      className="min-h-24 resize-none"
+                    />
+                  </label>
+
+                  <button
+                    onClick={handleRecordNightEvent}
+                    disabled={busy || game?.status === "FINISHED"}
+                    className="ui-button-primary min-h-11 w-full"
+                  >
+                    <span className="material-symbols-outlined text-xl">add_notes</span>
+                    ثبت در شب {nightNumber}
+                  </button>
+                </div>
+              </aside>
+
+              <section className="min-w-0">
+                {groupedNightEvents.length === 0 ? (
+                  <div className="flex min-h-72 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-8 text-center dark:border-white/10 dark:bg-white/[0.03]">
+                    <div className="ui-icon size-16">
+                      <span className="material-symbols-outlined text-3xl text-zinc-400">dark_mode</span>
+                    </div>
+                    <div>
+                      <p className="font-black text-zinc-950 dark:text-white">هنوز اتفاق شبی ثبت نشده است</p>
+                      <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">اگر گرداننده بخواهد، می‌تواند ذخیره دکتر، شلیک مافیا و اکشن‌های نقش‌ها را اینجا نگه دارد.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {groupedNightEvents.map(([groupNightNumber, events]) => (
+                      <details key={groupNightNumber} open={groupNightNumber === nightNumber} className="group rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]">
+                        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4">
+                          <div>
+                            <p className="text-sm font-black text-zinc-950 dark:text-white">شب {groupNightNumber}</p>
+                            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{events.length} اتفاق ثبت‌شده</p>
+                          </div>
+                          <span className="material-symbols-outlined text-zinc-400 transition-transform group-open:rotate-180">keyboard_arrow_down</span>
+                        </summary>
+
+                        <div className="space-y-2 border-t border-zinc-200 p-3 dark:border-white/10">
+                          {events.map((event) => (
+                            <article key={event.id} className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/70">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="truncate text-sm font-black text-zinc-950 dark:text-white">
+                                      {event.abilityLabel}{event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}
+                                    </p>
+                                    <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
+                                      {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
+                                    </span>
+                                    {event.details?.effectType && event.details.effectType !== "NONE" && (
+                                      <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
+                                        {effectLabel(event.details.effectType)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                    {event.actorPlayer?.name || event.abilitySource || alignmentLabel(event.actorAlignment)}
+                                    {event.wasUsed !== false ? ` ← ${event.targetPlayer?.name || "نامشخص"}` : " ← بدون هدف"}
+                                  </p>
+                                  {event.details?.secondaryTargetName && (
+                                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                      {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "اسم دوم"}: {event.details.secondaryTargetName}
+                                    </p>
+                                  )}
+                                  {event.details?.convertedRoleName && (
+                                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                      تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
+                                    </p>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => handleDeleteNightEvent(event)}
+                                  disabled={busy}
+                                  className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                                  aria-label="حذف رکورد"
+                                >
+                                  <span className="material-symbols-outlined text-base">delete</span>
+                                </button>
+                              </div>
+                              {event.note && (
+                                <p className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-xs leading-6 text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
+                                  {event.note}
+                                </p>
+                              )}
+                            </article>
+                          ))}
+                        </div>
+                      </details>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <aside className="space-y-5 xl:sticky xl:top-5 xl:h-fit">
+          <section className="ui-card overflow-hidden">
+            <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+              <p className="ui-kicker">اتاق نتیجه</p>
+              <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">انتخاب برنده</h2>
+              <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                اگر بازی بعد از ۸ ساعت بسته نشود، سیستم آن را با برنده نامشخص می‌بندد.
+              </p>
+            </div>
+
+            <div className="grid gap-3 p-4">
+              {[
+                { key: "CITIZEN" as const, label: "پیروزی شهروندان", icon: "verified_user", className: "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300" },
+                { key: "MAFIA" as const, label: "پیروزی مافیا", icon: "local_police", className: "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300" },
+                { key: "NEUTRAL" as const, label: "پیروزی مستقل‌ها", icon: "casino", className: "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
+                { key: "UNKNOWN" as const, label: "برنده نامشخص", icon: "help", className: "border-zinc-300 bg-zinc-100 text-zinc-600 dark:border-white/10 dark:bg-white/[0.05] dark:text-zinc-300" },
+              ].map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => handleEndGame(item.key)}
+                  disabled={busy || game?.status === "FINISHED"}
+                  className={`group flex min-h-16 items-center justify-between gap-3 rounded-lg border p-3 text-right transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55 ${item.className}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined flex size-10 items-center justify-center rounded-lg bg-white/60 text-xl dark:bg-zinc-950/40">{item.icon}</span>
+                    <span className="font-black">{item.label}</span>
+                  </div>
+                  <span className="material-symbols-outlined text-lg opacity-60 transition-transform group-hover:-translate-x-1">arrow_back</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="ui-card p-5">
+            <p className="ui-kicker">راهنمای اجرای سریع</p>
+            <div className="mt-4 space-y-3">
+              {[
+                ["person_off", "حذف‌شده‌ها", "بازیکن حذف‌شده در صفحه بازی برای بقیه هم مشخص می‌شود."],
+                ["dark_mode", "دفترچه شب", "ثبت اتفاق شب اختیاری است و تا وقتی عمومی نشود فقط برای گرداننده می‌ماند."],
+                ["timer", "بستن خودکار", "بازی‌های باز بعد از ۸ ساعت با نتیجه نامشخص بسته می‌شوند."],
+              ].map(([icon, title, text]) => (
+                <div key={title} className="flex gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                  <span className="material-symbols-outlined text-xl text-lime-500">{icon}</span>
+                  <div>
+                    <p className="text-sm font-black text-zinc-950 dark:text-white">{title}</p>
+                    <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </aside>
+      </main>
     </div>
   );
 }

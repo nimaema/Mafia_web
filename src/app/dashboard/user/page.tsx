@@ -80,7 +80,7 @@ function resultMeta(result: string) {
   }
 
   return {
-    label: "در انتظار",
+    label: "نامشخص",
     icon: "pending",
     className: "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300",
   };
@@ -96,6 +96,13 @@ function alignmentClass(alignment: string) {
   if (alignment === "CITIZEN") return "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-300";
   if (alignment === "MAFIA") return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
   return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300";
+}
+
+function effectLabel(effectType?: string) {
+  if (effectType === "CONVERT_TO_MAFIA") return "خریداری";
+  if (effectType === "YAKUZA") return "یاکوزا";
+  if (effectType === "TWO_NAME_INQUIRY") return "بازپرسی دو نفره";
+  return "ثبت ساده";
 }
 
 const ROLE_CHART_COLORS = ["#84cc16", "#0ea5e9", "#f59e0b", "#ef4444", "#a855f7", "#14b8a6", "#71717a"];
@@ -447,8 +454,8 @@ export default function UserDashboard() {
               </div>
               <div className="ui-muted p-4">
                 <p className="text-xs font-bold text-zinc-500">نتیجه</p>
-                <p className={`mt-2 font-black ${selectedHistoryGame.result === "WIN" ? "text-lime-600" : "text-red-500"}`}>
-                  {selectedHistoryGame.result === "WIN" ? "برد" : "باخت"}
+                <p className={`mt-2 font-black ${selectedHistoryGame.result === "WIN" ? "text-lime-600" : selectedHistoryGame.result === "LOSS" ? "text-red-500" : "text-amber-500"}`}>
+                  {selectedHistoryGame.result === "WIN" ? "برد" : selectedHistoryGame.result === "LOSS" ? "باخت" : "نامشخص"}
                 </p>
               </div>
             </div>
@@ -460,7 +467,9 @@ export default function UserDashboard() {
                   <div key={idx} className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
                     <div>
                       <p className="text-sm font-black text-zinc-950 dark:text-white">{player.name}</p>
-                      <p className="mt-1 text-xs text-zinc-500">{player.roleName}</p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        {player.roleName}{player.isAlive === false ? "، حذف‌شده" : ""}
+                      </p>
                     </div>
                     <span className={`rounded-lg border px-2 py-1 text-[10px] font-black ${alignmentClass(player.alignment)}`}>
                       {alignmentLabel(player.alignment)}
@@ -469,6 +478,49 @@ export default function UserDashboard() {
                 ))}
               </div>
             </div>
+
+            {selectedHistoryGame.nightEvents?.length > 0 && (
+              <div className="mt-5 rounded-lg border border-lime-500/20 bg-lime-500/10 p-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lime-600 dark:text-lime-300">dark_mode</span>
+                  <h4 className="text-sm font-black text-zinc-950 dark:text-white">رکوردهای منتشرشده شب</h4>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {selectedHistoryGame.nightEvents.map((event: any) => (
+                    <div key={event.id} className="rounded-lg border border-lime-500/20 bg-white p-3 text-xs leading-6 text-zinc-600 dark:bg-zinc-950 dark:text-zinc-300">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-black text-zinc-950 dark:text-white">
+                          شب {event.nightNumber}: {event.abilityLabel}{event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}
+                        </p>
+                        <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
+                          {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
+                        </span>
+                        {event.details?.effectType && event.details.effectType !== "NONE" && (
+                          <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
+                            {effectLabel(event.details.effectType)}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1">
+                        {event.actorName || event.abilitySource || (event.actorAlignment ? alignmentLabel(event.actorAlignment) : "نامشخص")}
+                        {event.wasUsed === false ? " ← بدون هدف" : ` ← ${event.targetName || "نامشخص"}`}
+                      </p>
+                      {event.details?.secondaryTargetName && (
+                        <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                          {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "اسم دوم"}: {event.details.secondaryTargetName}
+                        </p>
+                      )}
+                      {event.details?.convertedRoleName && (
+                        <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                          تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
+                        </p>
+                      )}
+                      {event.note && <p className="mt-1 text-zinc-500 dark:text-zinc-400">{event.note}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

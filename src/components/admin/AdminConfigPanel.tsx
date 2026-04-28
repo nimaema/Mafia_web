@@ -19,6 +19,24 @@ import { usePopup } from "@/components/PopupProvider";
 
 type AdminTab = "roles" | "scenarios";
 type RoleAlignmentFilter = "ALL" | Alignment;
+type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
+
+type RoleNightAbilityChoice = {
+  id: string;
+  label: string;
+  usesPerGame: number | null;
+  effectType: AbilityEffectType;
+};
+
+type RoleNightAbility = {
+  id: string;
+  label: string;
+  usesPerGame: number | null;
+  usesPerNight: number | null;
+  selfTargetLimit: number | null;
+  effectType: AbilityEffectType;
+  choices: RoleNightAbilityChoice[];
+};
 
 type MafiaRoleRecord = {
   id: string;
@@ -26,6 +44,7 @@ type MafiaRoleRecord = {
   description: string | null;
   alignment: Alignment;
   is_permanent: boolean;
+  nightAbilities?: RoleNightAbility[] | null;
 };
 
 type ScenarioRecord = {
@@ -53,6 +72,18 @@ const STANDARD_SCENARIO_NAMES = [
   "تکاور ۱۵ نفره",
 ];
 
+const ABILITY_EFFECT_OPTIONS: { value: AbilityEffectType; label: string; description: string }[] = [
+  { value: "NONE", label: "ثبت ساده", description: "فقط در گزارش شب ثبت می‌شود." },
+  { value: "CONVERT_TO_MAFIA", label: "خریداری", description: "هدف به نقش مافیایی انتخاب‌شده تبدیل می‌شود." },
+  { value: "YAKUZA", label: "یاکوزا", description: "یک مافیا حذف و یک شهروند خریداری می‌شود." },
+  { value: "TWO_NAME_INQUIRY", label: "بازپرسی دو نفره", description: "دو اسم برای پاسخ گرداننده ثبت می‌شود." },
+];
+
+function normalizeEffectType(value: unknown): AbilityEffectType {
+  if (value === "CONVERT_TO_MAFIA" || value === "YAKUZA" || value === "TWO_NAME_INQUIRY") return value;
+  return "NONE";
+}
+
 function alignmentLabel(alignment: Alignment) {
   if (alignment === "CITIZEN") return "شهروند";
   if (alignment === "MAFIA") return "مافیا";
@@ -79,6 +110,55 @@ function alignmentAccentClass(alignment: Alignment) {
   if (alignment === "CITIZEN") return "from-sky-400 to-blue-500";
   if (alignment === "MAFIA") return "from-red-400 to-rose-600";
   return "from-amber-400 to-orange-500";
+}
+
+function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((ability, index) => {
+      const record = ability as Partial<RoleNightAbility>;
+      const label = String(record.label || "").trim();
+      if (!label) return null;
+      return {
+        id: String(record.id || `ability-${index + 1}`),
+        label,
+        usesPerGame: typeof record.usesPerGame === "number" ? record.usesPerGame : null,
+        usesPerNight: typeof record.usesPerNight === "number" ? record.usesPerNight : null,
+        selfTargetLimit: typeof record.selfTargetLimit === "number" ? record.selfTargetLimit : null,
+        effectType: normalizeEffectType(record.effectType),
+        choices: Array.isArray(record.choices)
+          ? record.choices
+              .map((choice, choiceIndex) => {
+                const choiceLabel = String(choice.label || "").trim();
+                if (!choiceLabel) return null;
+                return {
+                  id: String(choice.id || `choice-${choiceIndex + 1}`),
+                  label: choiceLabel,
+                  usesPerGame: typeof choice.usesPerGame === "number" ? choice.usesPerGame : null,
+                  effectType: normalizeEffectType(choice.effectType),
+                };
+              })
+              .filter(Boolean) as RoleNightAbilityChoice[]
+          : [],
+      };
+    })
+    .filter(Boolean) as RoleNightAbility[];
+}
+
+function limitLabel(value: number | null) {
+  return value ? `${value} بار` : "نامحدود";
+}
+
+function abilityUsageLabel(ability: RoleNightAbility) {
+  const parts = [`کل: ${limitLabel(ability.usesPerGame)}`];
+  if (ability.usesPerNight) parts.push(`هر شب: ${ability.usesPerNight}`);
+  if (ability.selfTargetLimit) parts.push(`روی خود: ${ability.selfTargetLimit}`);
+  if (ability.effectType !== "NONE") {
+    parts.push(ABILITY_EFFECT_OPTIONS.find((option) => option.value === ability.effectType)?.label || "اثر ویژه");
+  }
+  if (ability.choices.length) parts.push(`${ability.choices.length} انتخاب`);
+  return parts.join("، ");
 }
 
 function scenarioTotalPlayers(scenario: ScenarioRecord) {
@@ -119,6 +199,7 @@ export default function AdminDashboard() {
   const [newRoleName, setNewRoleName] = useState("");
   const [newRoleDesc, setNewRoleDesc] = useState("");
   const [newRoleAlign, setNewRoleAlign] = useState<Alignment>("CITIZEN");
+  const [newRoleAbilities, setNewRoleAbilities] = useState<RoleNightAbility[]>([]);
 
   const [editingScenarioId, setEditingScenarioId] = useState<string | null>(null);
   const [newScenName, setNewScenName] = useState("");
@@ -187,6 +268,7 @@ export default function AdminDashboard() {
     setNewRoleName("");
     setNewRoleDesc("");
     setNewRoleAlign("CITIZEN");
+    setNewRoleAbilities([]);
   };
 
   const resetScenarioForm = () => {
@@ -210,6 +292,7 @@ export default function AdminDashboard() {
           name: newRoleName,
           description: newRoleDesc,
           alignment: newRoleAlign,
+          nightAbilities: newRoleAbilities,
         });
         showToast("نقش بروزرسانی شد", "success");
       } else {
@@ -217,6 +300,7 @@ export default function AdminDashboard() {
           name: newRoleName,
           description: newRoleDesc,
           alignment: newRoleAlign,
+          nightAbilities: newRoleAbilities,
         });
         showToast("نقش جدید ثبت شد", "success");
       }
@@ -234,6 +318,7 @@ export default function AdminDashboard() {
     setNewRoleName(role.name);
     setNewRoleDesc(role.description || "");
     setNewRoleAlign(role.alignment);
+    setNewRoleAbilities(normalizeRoleAbilities(role.nightAbilities));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -344,6 +429,53 @@ export default function AdminDashboard() {
     );
   };
 
+  const updateRoleAbility = (abilityId: string, patch: Partial<RoleNightAbility>) => {
+    setNewRoleAbilities((previous) =>
+      previous.map((ability) => (ability.id === abilityId ? { ...ability, ...patch } : ability))
+    );
+  };
+
+  const addAbilityChoice = (abilityId: string) => {
+    setNewRoleAbilities((previous) =>
+      previous.map((ability) =>
+        ability.id === abilityId
+          ? {
+              ...ability,
+              choices: [
+                ...ability.choices,
+                { id: `choice-${Date.now()}`, label: "", usesPerGame: null, effectType: "NONE" },
+              ],
+            }
+          : ability
+      )
+    );
+  };
+
+  const updateAbilityChoice = (abilityId: string, choiceId: string, patch: Partial<RoleNightAbilityChoice>) => {
+    setNewRoleAbilities((previous) =>
+      previous.map((ability) =>
+        ability.id === abilityId
+          ? {
+              ...ability,
+              choices: ability.choices.map((choice) =>
+                choice.id === choiceId ? { ...choice, ...patch } : choice
+              ),
+            }
+          : ability
+      )
+    );
+  };
+
+  const deleteAbilityChoice = (abilityId: string, choiceId: string) => {
+    setNewRoleAbilities((previous) =>
+      previous.map((ability) =>
+        ability.id === abilityId
+          ? { ...ability, choices: ability.choices.filter((choice) => choice.id !== choiceId) }
+          : ability
+      )
+    );
+  };
+
   const stats = useMemo(
     () => ({
       roles: roles.length,
@@ -365,7 +497,15 @@ export default function AdminDashboard() {
       const matchesAlignment = roleAlignmentFilter === "ALL" || role.alignment === roleAlignmentFilter;
       const matchesQuery =
         !query ||
-        [role.name, role.description || "", alignmentLabel(role.alignment)]
+        [
+          role.name,
+          role.description || "",
+          alignmentLabel(role.alignment),
+          ...normalizeRoleAbilities(role.nightAbilities).flatMap((ability) => [
+            ability.label,
+            ...ability.choices.map((choice) => choice.label),
+          ]),
+        ]
           .some((value) => value.toLowerCase().includes(query));
       return matchesAlignment && matchesQuery;
     });
@@ -555,6 +695,222 @@ export default function AdminDashboard() {
                   />
                 </div>
 
+                <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/40">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-black text-zinc-950 dark:text-white">توانایی‌های شب</p>
+                      <p className="mt-1 text-[10px] leading-5 text-zinc-500 dark:text-zinc-400">
+                        برای نقش‌هایی مثل دکتر، کارآگاه یا تک‌تیرانداز تعداد استفاده را مشخص کنید.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNewRoleAbilities((previous) => [
+                          ...previous,
+                          {
+                            id: `ability-${Date.now()}`,
+                            label: "",
+                            usesPerGame: null,
+                            usesPerNight: 1,
+                            selfTargetLimit: null,
+                            effectType: "NONE",
+                            choices: [],
+                          },
+                        ])
+                      }
+                      className="ui-button-secondary min-h-9 shrink-0 px-3 text-xs"
+                    >
+                      <span className="material-symbols-outlined text-base">add</span>
+                      افزودن
+                    </button>
+                  </div>
+
+                  {newRoleAbilities.length === 0 ? (
+                    <div className="mt-3 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-3 text-xs font-bold leading-5 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                      اگر نقش در شب اکشن خاصی ندارد، این بخش را خالی بگذارید. شلیک مافیا جداگانه و به جبهه مافیا وصل است.
+                    </div>
+                  ) : (
+                    <div className="mt-3 space-y-2">
+                      {newRoleAbilities.map((ability) => (
+                        <div key={ability.id} className="grid gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
+                          <input
+                            value={ability.label}
+                            onChange={(event) =>
+                              updateRoleAbility(ability.id, { label: event.target.value.slice(0, 60) })
+                            }
+                            placeholder="مثلاً نجات دکتر"
+                            className="min-h-10 text-sm"
+                          />
+                          <div className="grid gap-2 sm:grid-cols-3">
+                            <label className="flex flex-col gap-1">
+                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">کل بازی</span>
+                              <select
+                                value={ability.usesPerGame ?? "INFINITE"}
+                                onChange={(event) =>
+                                  updateRoleAbility(ability.id, {
+                                    usesPerGame: event.target.value === "INFINITE" ? null : Number(event.target.value),
+                                  })
+                                }
+                                className="min-h-10 text-sm"
+                              >
+                                <option value="INFINITE">نامحدود</option>
+                                <option value="1">۱ بار</option>
+                                <option value="2">۲ بار</option>
+                                <option value="3">۳ بار</option>
+                                <option value="4">۴ بار</option>
+                                <option value="5">۵ بار</option>
+                              </select>
+                            </label>
+
+                            <label className="flex flex-col gap-1">
+                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">هر شب</span>
+                              <select
+                                value={ability.usesPerNight ?? "INFINITE"}
+                                onChange={(event) =>
+                                  updateRoleAbility(ability.id, {
+                                    usesPerNight: event.target.value === "INFINITE" ? null : Number(event.target.value),
+                                  })
+                                }
+                                className="min-h-10 text-sm"
+                              >
+                                <option value="INFINITE">نامحدود</option>
+                                <option value="1">۱ انتخاب</option>
+                                <option value="2">۲ انتخاب</option>
+                                <option value="3">۳ انتخاب</option>
+                              </select>
+                            </label>
+
+                            <label className="flex flex-col gap-1">
+                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">روی خودش</span>
+                              <select
+                                value={ability.selfTargetLimit ?? "INFINITE"}
+                                onChange={(event) =>
+                                  updateRoleAbility(ability.id, {
+                                    selfTargetLimit: event.target.value === "INFINITE" ? null : Number(event.target.value),
+                                  })
+                                }
+                                className="min-h-10 text-sm"
+                              >
+                                <option value="INFINITE">نامحدود</option>
+                                <option value="1">۱ بار</option>
+                                <option value="2">۲ بار</option>
+                                <option value="3">۳ بار</option>
+                              </select>
+                            </label>
+                          </div>
+
+                          <label className="flex flex-col gap-1">
+                            <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">اثر ویژه توانایی</span>
+                            <select
+                              value={ability.effectType}
+                              onChange={(event) =>
+                                updateRoleAbility(ability.id, { effectType: event.target.value as AbilityEffectType })
+                              }
+                              className="min-h-10 text-sm"
+                            >
+                              {ABILITY_EFFECT_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label} - {option.description}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <div className="rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/50">
+                            <div className="flex items-center justify-between gap-2">
+                              <div>
+                                <p className="text-[11px] font-black text-zinc-700 dark:text-zinc-300">انتخاب‌های داخل توانایی</p>
+                                <p className="mt-0.5 text-[10px] leading-4 text-zinc-500 dark:text-zinc-400">
+                                  برای نقش‌هایی مثل تفنگدار: تفنگ واقعی، تفنگ مشقی، یا هر گزینه جدا.
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => addAbilityChoice(ability.id)}
+                                className="ui-button-secondary min-h-8 shrink-0 px-2 text-[10px]"
+                              >
+                                افزودن انتخاب
+                              </button>
+                            </div>
+
+                            {ability.choices.length > 0 && (
+                              <div className="mt-2 space-y-2">
+                                {ability.choices.map((choice) => (
+                                  <div key={choice.id} className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_120px_170px_34px]">
+                                    <input
+                                      value={choice.label}
+                                      onChange={(event) =>
+                                        updateAbilityChoice(ability.id, choice.id, {
+                                          label: event.target.value.slice(0, 60),
+                                        })
+                                      }
+                                      placeholder="مثلاً تفنگ واقعی"
+                                      className="min-h-9 text-xs"
+                                    />
+                                    <select
+                                      value={choice.usesPerGame ?? "INFINITE"}
+                                      onChange={(event) =>
+                                        updateAbilityChoice(ability.id, choice.id, {
+                                          usesPerGame: event.target.value === "INFINITE" ? null : Number(event.target.value),
+                                        })
+                                      }
+                                      className="min-h-9 text-xs"
+                                    >
+                                      <option value="INFINITE">نامحدود</option>
+                                      <option value="1">۱ بار</option>
+                                      <option value="2">۲ بار</option>
+                                      <option value="3">۳ بار</option>
+                                      <option value="4">۴ بار</option>
+                                    </select>
+                                    <select
+                                      value={choice.effectType}
+                                      onChange={(event) =>
+                                        updateAbilityChoice(ability.id, choice.id, {
+                                          effectType: event.target.value as AbilityEffectType,
+                                        })
+                                      }
+                                      className="min-h-9 text-xs"
+                                    >
+                                      {ABILITY_EFFECT_OPTIONS.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                          {option.label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <button
+                                      type="button"
+                                      onClick={() => deleteAbilityChoice(ability.id, choice.id)}
+                                      className="flex min-h-9 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                                      aria-label="حذف انتخاب"
+                                    >
+                                      <span className="material-symbols-outlined text-base">close</span>
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-[minmax(0,1fr)_40px] gap-2">
+                            <div className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-bold leading-5 text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
+                              {abilityUsageLabel(ability)}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setNewRoleAbilities((previous) => previous.filter((item) => item.id !== ability.id))}
+                              className="flex min-h-10 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                              aria-label="حذف توانایی"
+                            >
+                              <span className="material-symbols-outlined text-lg">delete</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <button type="submit" className="ui-button-primary min-h-11">
                   <span className="material-symbols-outlined text-xl">
                     {editingRoleId ? "save" : "add_circle"}
@@ -647,7 +1003,10 @@ export default function AdminDashboard() {
                           </summary>
 
                           <div className="mt-3 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-                            {group.roles.map((role) => (
+                            {group.roles.map((role) => {
+                              const abilities = normalizeRoleAbilities(role.nightAbilities);
+
+                              return (
                               <article
                                 key={role.id}
                                 className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
@@ -685,8 +1044,32 @@ export default function AdminDashboard() {
                                 <p className="mt-3 line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-zinc-600 dark:text-zinc-300">
                                   {role.description || "برای این نقش هنوز توضیحی ثبت نشده است."}
                                 </p>
+
+                                <div className="mt-3 flex flex-wrap gap-1.5 border-t border-zinc-200 pt-3 dark:border-white/10">
+                                  {abilities.length ? (
+                                    abilities.slice(0, 3).map((ability) => (
+                                      <span
+                                        key={`${role.id}-${ability.id}`}
+                                        className="inline-flex items-center gap-1 rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300"
+                                      >
+                                        <span className="material-symbols-outlined text-[13px]">dark_mode</span>
+                                        {ability.label}، {abilityUsageLabel(ability)}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                                      بدون اکشن شب
+                                    </span>
+                                  )}
+                                  {abilities.length > 3 && (
+                                    <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                                      +{abilities.length - 3}
+                                    </span>
+                                  )}
+                                </div>
                               </article>
-                            ))}
+                              );
+                            })}
                           </div>
                         </details>
                       ))}

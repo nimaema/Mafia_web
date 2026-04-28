@@ -5,8 +5,30 @@ import { pusherServer } from "@/lib/pusher";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { TEMP_SCENARIO_DESCRIPTION_PREFIX, withGameDisplayName, withScenarioDisplayName } from "@/lib/gameDisplay";
+import { Alignment, Prisma } from "@prisma/client";
 
 import { unstable_noStore as noStore } from "next/cache";
+
+const STALE_GAME_HOURS = 8;
+
+type WinningAlignmentInput = Alignment | "UNKNOWN" | null;
+
+type NightEventInput = {
+  nightNumber: number;
+  abilityKey: string;
+  abilityLabel: string;
+  abilityChoiceKey?: string | null;
+  abilityChoiceLabel?: string | null;
+  abilitySource?: string | null;
+  actorPlayerId?: string | null;
+  targetPlayerId?: string | null;
+  secondaryTargetPlayerId?: string | null;
+  convertedRoleId?: string | null;
+  effectType?: "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY" | null;
+  actorAlignment?: Alignment | null;
+  wasUsed?: boolean;
+  note?: string | null;
+};
 
 async function checkModerator() {
   const session = await auth();
@@ -16,12 +38,124 @@ async function checkModerator() {
   return session.user.id;
 }
 
+async function checkModeratorForGame(gameId: string) {
+  const session = await auth();
+  if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
+    throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی گرداننده یا مدیر)");
+  }
+
+  const game = await prisma.game.findUnique({
+    where: { id: gameId },
+    select: { id: true, moderatorId: true, status: true },
+  });
+
+  if (!game) throw new Error("بازی یافت نشد");
+  if (session.user.role !== "ADMIN" && game.moderatorId !== session.user.id) {
+    throw new Error("فقط گرداننده همین بازی می‌تواند این عملیات را انجام دهد.");
+  }
+
+  return { userId: session.user.id, role: session.user.role, game };
+}
+
+function isAlignment(value: unknown): value is Alignment {
+  return value === "CITIZEN" || value === "MAFIA" || value === "NEUTRAL";
+}
+
+function normalizeEffectType(value: unknown) {
+  if (value === "CONVERT_TO_MAFIA" || value === "YAKUZA" || value === "TWO_NAME_INQUIRY") return value;
+  return "NONE";
+}
+
+function sanitizeNightEvents(events: any[]) {
+  return events.map((event) => ({
+    ...event,
+    actorPlayer: event.actorPlayer
+      ? {
+          id: event.actorPlayer.id,
+          name: event.actorPlayer.name,
+          isAlive: event.actorPlayer.isAlive,
+          role: event.actorPlayer.role,
+        }
+      : null,
+    targetPlayer: event.targetPlayer
+      ? {
+          id: event.targetPlayer.id,
+          name: event.targetPlayer.name,
+          isAlive: event.targetPlayer.isAlive,
+          role: event.targetPlayer.role,
+        }
+      : null,
+  }));
+}
+
+async function expireStaleGames() {
+  const cutoff = new Date(Date.now() - STALE_GAME_HOURS * 60 * 60 * 1000);
+  const staleGames = await prisma.game.findMany({
+    where: {
+      status: { not: "FINISHED" },
+      createdAt: { lte: cutoff },
+    },
+    include: {
+      players: {
+        include: { role: true },
+      },
+    },
+  });
+
+  if (staleGames.length === 0) return;
+
+  for (const game of staleGames) {
+    const endedAt = new Date();
+    const historyData = game.players
+      .filter((player) => player.userId && player.roleId)
+      .map((player) => ({
+        gameId: game.id,
+        userId: player.userId as string,
+        roleId: player.roleId as string,
+        result: null,
+      }));
+
+    await prisma.$transaction(async (tx) => {
+      await tx.game.update({
+        where: { id: game.id },
+        data: {
+          status: "FINISHED",
+          endedAt,
+          winningAlignment: null,
+        },
+      });
+
+      if (historyData.length > 0) {
+        await tx.gameHistory.createMany({
+          data: historyData,
+          skipDuplicates: true,
+        });
+      }
+    });
+
+    try {
+      await pusherServer.trigger(`game-${game.id}`, "game-ended", {
+        winningAlignment: "UNKNOWN",
+        reason: "expired",
+      });
+    } catch (error) {
+      console.error("Failed to broadcast expired game:", error);
+    }
+  }
+
+  revalidatePath("/dashboard/user");
+  revalidatePath("/dashboard/moderator");
+  revalidatePath("/dashboard/admin/history");
+}
+
 export async function joinGame(code: string, playerName: string, password?: string) {
   if (!code || !playerName) {
     return { error: "فیلدهای اجباری ناقص است" };
   }
 
   try {
+    await expireStaleGames();
+
     const session = await auth();
     if (!session?.user?.id) {
       return { error: "برای پیوستن به بازی ابتدا وارد حساب خود شوید یا ثبت‌نام کنید." };
@@ -71,7 +205,8 @@ export async function joinGame(code: string, playerName: string, password?: stri
     await pusherServer.trigger(`game-${game.id}`, 'player-joined', {
       player: {
         id: player.id,
-        name: finalPlayerName
+        name: finalPlayerName,
+        isAlive: player.isAlive,
       }
     });
 
@@ -121,6 +256,7 @@ export async function createGame(name?: string, password?: string) {
 
 export async function getWaitingGames(timestamp?: number) {
   noStore();
+  await expireStaleGames();
   const games = await prisma.game.findMany({
     where: { 
       status: "WAITING"
@@ -161,6 +297,7 @@ export async function getWaitingGamesSafe(timestamp?: number) {
 
 export async function getModeratorGames(timestamp?: number) {
   noStore();
+  await expireStaleGames();
   const session = await auth();
   if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
     throw new Error("شما دسترسی لازم برای این عملیات را ندارید.");
@@ -207,6 +344,8 @@ export async function getModeratorGamesSafe(timestamp?: number) {
 
 export async function getGameStatus(gameId: string) {
   noStore();
+  await expireStaleGames();
+  const session = await auth();
   const game = await prisma.game.findUnique({
     where: { id: gameId },
     include: {
@@ -225,22 +364,46 @@ export async function getGameStatus(gameId: string) {
           role: true
         },
         orderBy: { createdAt: "asc" }
-      }
+      },
+      nightEvents: {
+        include: {
+          actorPlayer: { include: { role: true } },
+          targetPlayer: { include: { role: true } },
+        },
+        orderBy: [{ nightNumber: "asc" }, { createdAt: "asc" }],
+      },
     }
   });
 
   if (!game) return null;
 
+  const canSeePrivateNightEvents =
+    session?.user?.role === "ADMIN" ||
+    (session?.user?.role === "MODERATOR" && session.user.id === game.moderatorId);
+  const visibleNightEvents = canSeePrivateNightEvents || game.nightRecordsPublic
+    ? game.nightEvents
+    : game.nightEvents.filter((event) => event.isPublic);
+  const mafiaConversionRoles = canSeePrivateNightEvents
+    ? await prisma.mafiaRole.findMany({
+        where: { alignment: "MAFIA" },
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      })
+    : [];
+
   // Don't send the password to the client, just if it's required
-  const { password, ...safeGame } = game;
+  const { password, nightEvents, ...safeGame } = game;
   return {
     ...withGameDisplayName(withScenarioDisplayName(safeGame)),
+    nightEvents: sanitizeNightEvents(visibleNightEvents),
+    mafiaConversionRoles,
     hasPassword: !!password
   };
 }
 
 export async function getPlayerGameView(gameId: string) {
   noStore();
+  await expireStaleGames();
   const session = await auth();
   if (!session?.user?.id) return null;
 
@@ -262,7 +425,15 @@ export async function getPlayerGameView(gameId: string) {
           role: true
         },
         orderBy: { createdAt: "asc" }
-      }
+      },
+      nightEvents: {
+        where: { isPublic: true },
+        include: {
+          actorPlayer: { include: { role: true } },
+          targetPlayer: { include: { role: true } },
+        },
+        orderBy: [{ nightNumber: "asc" }, { createdAt: "asc" }],
+      },
     }
   });
 
@@ -270,21 +441,26 @@ export async function getPlayerGameView(gameId: string) {
 
   const currentPlayer = game.players.find((player) => player.userId === session.user.id) || null;
 
-  const { password, players, ...safeGame } = game;
+  const { password, players, nightEvents, ...safeGame } = game;
 
   return {
     ...withGameDisplayName(withScenarioDisplayName(safeGame)),
     hasPassword: !!password,
+    nightEvents: sanitizeNightEvents(nightEvents),
     players: players.map((player) => ({
       id: player.id,
       name: player.name,
       userId: player.userId,
+      isAlive: player.isAlive,
+      eliminatedAt: player.eliminatedAt,
     })),
     myPlayer: currentPlayer
       ? {
           id: currentPlayer.id,
           name: currentPlayer.name,
           userId: currentPlayer.userId,
+          isAlive: currentPlayer.isAlive,
+          eliminatedAt: currentPlayer.eliminatedAt,
           role: currentPlayer.role,
         }
       : null,
@@ -335,14 +511,19 @@ export async function startGame(gameId: string) {
       game.players.map((player, index) => 
         prisma.gamePlayer.update({
           where: { id: player.id },
-          data: { roleId: roleIds[index] }
+          data: { roleId: roleIds[index], isAlive: true, eliminatedAt: null }
         })
       )
     );
     
     await prisma.game.update({
       where: { id: gameId },
-      data: { status: "IN_PROGRESS" }
+      data: {
+        status: "IN_PROGRESS",
+        endedAt: null,
+        winningAlignment: null,
+        nightRecordsPublic: false,
+      }
     });
 
     await pusherServer.trigger(`game-${gameId}`, 'game-started', {});
@@ -468,9 +649,245 @@ export async function createCustomGameScenario(
   }
 }
 
-export async function endGame(gameId: string, winningAlignment: string) {
+export async function setPlayerAliveStatus(gameId: string, playerId: string, isAlive: boolean) {
   try {
-    await checkModerator();
+    await checkModeratorForGame(gameId);
+
+    const player = await prisma.gamePlayer.findUnique({
+      where: { id: playerId },
+      select: { id: true, gameId: true, name: true },
+    });
+
+    if (!player || player.gameId !== gameId) {
+      throw new Error("بازیکن در این بازی پیدا نشد.");
+    }
+
+    const updatedPlayer = await prisma.gamePlayer.update({
+      where: { id: playerId },
+      data: {
+        isAlive,
+        eliminatedAt: isAlive ? null : new Date(),
+      },
+      include: { role: true },
+    });
+
+    await pusherServer.trigger(`game-${gameId}`, "player-status-updated", {
+      playerId,
+      isAlive: updatedPlayer.isAlive,
+      eliminatedAt: updatedPlayer.eliminatedAt,
+    });
+
+    revalidatePath(`/dashboard/moderator/game/${gameId}`);
+    revalidatePath(`/game/${gameId}`);
+
+    return { success: true, player: updatedPlayer };
+  } catch (error: any) {
+    console.error("Set player alive status error:", error);
+    return { error: error.message || "تغییر وضعیت بازیکن انجام نشد" };
+  }
+}
+
+export async function recordNightEvent(gameId: string, data: NightEventInput) {
+  try {
+    const { game } = await checkModeratorForGame(gameId);
+    if (game.status === "FINISHED") {
+      throw new Error("بازی پایان یافته و امکان ثبت شب جدید ندارد.");
+    }
+
+    const nightNumber = Math.max(1, Math.min(99, Math.floor(Number(data.nightNumber) || 1)));
+    const abilityLabel = data.abilityLabel?.trim().slice(0, 80);
+    const abilityKey = data.abilityKey?.trim().slice(0, 80);
+    const abilityChoiceKey = data.abilityChoiceKey?.trim().slice(0, 80) || null;
+    const abilityChoiceLabel = data.abilityChoiceLabel?.trim().slice(0, 80) || null;
+    const abilitySource = data.abilitySource?.trim().slice(0, 40) || null;
+    const note = data.note?.trim().slice(0, 500) || null;
+    const wasUsed = data.wasUsed !== false;
+    const effectType = normalizeEffectType(data.effectType);
+
+    if (!abilityLabel || !abilityKey) {
+      throw new Error("نوع اتفاق شب را انتخاب کنید.");
+    }
+
+    const players = await prisma.gamePlayer.findMany({
+      where: { gameId },
+      include: { role: true },
+    });
+    const playerIds = new Set(players.map((player) => player.id));
+    const actorPlayerId = data.actorPlayerId || null;
+    const targetPlayerId = data.targetPlayerId || null;
+    const secondaryTargetPlayerId = data.secondaryTargetPlayerId || null;
+    const convertedRoleId = data.convertedRoleId || null;
+    const targetPlayer = targetPlayerId ? players.find((player) => player.id === targetPlayerId) : null;
+    const secondaryTargetPlayer = secondaryTargetPlayerId ? players.find((player) => player.id === secondaryTargetPlayerId) : null;
+
+    if (actorPlayerId && !playerIds.has(actorPlayerId)) {
+      throw new Error("بازیکن انجام‌دهنده در این بازی نیست.");
+    }
+    if (targetPlayerId && !playerIds.has(targetPlayerId)) {
+      throw new Error("بازیکن هدف در این بازی نیست.");
+    }
+    if (secondaryTargetPlayerId && !playerIds.has(secondaryTargetPlayerId)) {
+      throw new Error("بازیکن دوم در این بازی نیست.");
+    }
+    if (wasUsed && effectType === "TWO_NAME_INQUIRY" && !secondaryTargetPlayerId) {
+      throw new Error("برای بازپرسی، دو اسم باید ثبت شود.");
+    }
+    if (wasUsed && effectType === "YAKUZA" && !secondaryTargetPlayerId) {
+      throw new Error("برای یاکوزا، مافیای قربانی را انتخاب کنید.");
+    }
+    if (wasUsed && effectType === "YAKUZA" && targetPlayerId === secondaryTargetPlayerId) {
+      throw new Error("در یاکوزا، قربانی مافیا و هدف خریداری باید دو بازیکن متفاوت باشند.");
+    }
+    if (wasUsed && effectType === "YAKUZA" && secondaryTargetPlayer?.role?.alignment !== "MAFIA") {
+      throw new Error("قربانی یاکوزا باید از جبهه مافیا باشد.");
+    }
+    if (wasUsed && (effectType === "CONVERT_TO_MAFIA" || effectType === "YAKUZA") && targetPlayer?.role?.alignment === "MAFIA") {
+      throw new Error("هدف خریداری باید از بیرون جبهه مافیا باشد.");
+    }
+    if (wasUsed && (effectType === "CONVERT_TO_MAFIA" || effectType === "YAKUZA") && !convertedRoleId) {
+      throw new Error("نقش مافیایی مقصد را انتخاب کنید.");
+    }
+
+    const convertedRole = convertedRoleId
+      ? await prisma.mafiaRole.findUnique({
+          where: { id: convertedRoleId },
+          select: { id: true, name: true, alignment: true },
+        })
+      : null;
+    if (convertedRole && convertedRole.alignment !== "MAFIA") {
+      throw new Error("نقش مقصد خریداری باید از جبهه مافیا باشد.");
+    }
+
+    const details = {
+      effectType,
+      secondaryTargetPlayerId: secondaryTargetPlayer?.id || null,
+      secondaryTargetName: secondaryTargetPlayer?.name || null,
+      convertedRoleId: convertedRole?.id || null,
+      convertedRoleName: convertedRole?.name || null,
+      previousRoleName: targetPlayer?.role?.name || null,
+      sacrificePlayerId: effectType === "YAKUZA" ? secondaryTargetPlayer?.id || null : null,
+      sacrificePlayerName: effectType === "YAKUZA" ? secondaryTargetPlayer?.name || null : null,
+    };
+
+    const nightEvent = await prisma.$transaction(async (tx) => {
+      if (wasUsed && convertedRole && targetPlayerId && (effectType === "CONVERT_TO_MAFIA" || effectType === "YAKUZA")) {
+        await tx.gamePlayer.update({
+          where: { id: targetPlayerId },
+          data: { roleId: convertedRole.id },
+        });
+      }
+
+      if (wasUsed && effectType === "YAKUZA" && secondaryTargetPlayerId) {
+        await tx.gamePlayer.update({
+          where: { id: secondaryTargetPlayerId },
+          data: { isAlive: false, eliminatedAt: new Date() },
+        });
+      }
+
+      return tx.nightEvent.create({
+        data: {
+          gameId,
+          nightNumber,
+          abilityKey,
+          abilityLabel,
+          abilityChoiceKey,
+          abilityChoiceLabel,
+          abilitySource,
+          actorPlayerId,
+          targetPlayerId: wasUsed ? targetPlayerId : null,
+          actorAlignment: isAlignment(data.actorAlignment) ? data.actorAlignment : null,
+          wasUsed,
+          details: details as Prisma.InputJsonValue,
+          note,
+        },
+        include: {
+          actorPlayer: { include: { role: true } },
+          targetPlayer: { include: { role: true } },
+        },
+      });
+    });
+
+    if (wasUsed && effectType === "YAKUZA" && secondaryTargetPlayerId) {
+      await pusherServer.trigger(`game-${gameId}`, "player-status-updated", {
+        playerId: secondaryTargetPlayerId,
+        isAlive: false,
+        eliminatedAt: new Date(),
+      });
+    }
+    if (wasUsed && (effectType === "CONVERT_TO_MAFIA" || effectType === "YAKUZA")) {
+      await pusherServer.trigger(`game-${gameId}`, "game-state-updated", {
+        reason: effectType,
+        targetPlayerId,
+        convertedRoleId,
+      });
+    }
+
+    revalidatePath(`/dashboard/moderator/game/${gameId}`);
+    revalidatePath(`/game/${gameId}`);
+
+    return { success: true, event: sanitizeNightEvents([nightEvent])[0] };
+  } catch (error: any) {
+    console.error("Record night event error:", error);
+    return { error: error.message || "ثبت اتفاق شب انجام نشد" };
+  }
+}
+
+export async function deleteNightEvent(gameId: string, eventId: string) {
+  try {
+    await checkModeratorForGame(gameId);
+
+    const event = await prisma.nightEvent.findUnique({
+      where: { id: eventId },
+      select: { gameId: true },
+    });
+    if (!event || event.gameId !== gameId) {
+      throw new Error("رکورد شب پیدا نشد.");
+    }
+
+    await prisma.nightEvent.delete({ where: { id: eventId } });
+    revalidatePath(`/dashboard/moderator/game/${gameId}`);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Delete night event error:", error);
+    return { error: error.message || "حذف رکورد شب انجام نشد" };
+  }
+}
+
+export async function publishNightRecords(gameId: string) {
+  try {
+    const { game } = await checkModeratorForGame(gameId);
+    if (game.status !== "FINISHED") {
+      throw new Error("بعد از پایان بازی می‌توانید رکوردهای شب را عمومی کنید.");
+    }
+
+    await prisma.$transaction([
+      prisma.game.update({
+        where: { id: gameId },
+        data: { nightRecordsPublic: true },
+      }),
+      prisma.nightEvent.updateMany({
+        where: { gameId },
+        data: { isPublic: true },
+      }),
+    ]);
+
+    await pusherServer.trigger(`game-${gameId}`, "night-records-public", {});
+    revalidatePath(`/dashboard/moderator/game/${gameId}`);
+    revalidatePath(`/game/${gameId}`);
+    revalidatePath("/dashboard/user/history");
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Publish night records error:", error);
+    return { error: error.message || "عمومی کردن رکوردهای شب انجام نشد" };
+  }
+}
+
+export async function endGame(gameId: string, winningAlignment: WinningAlignmentInput) {
+  try {
+    await checkModeratorForGame(gameId);
+    const normalizedWinningAlignment = isAlignment(winningAlignment) ? winningAlignment : null;
 
     const game = await prisma.game.findUnique({
       where: { id: gameId },
@@ -486,7 +903,11 @@ export async function endGame(gameId: string, winningAlignment: string) {
     // Close game
     await prisma.game.update({
       where: { id: gameId },
-      data: { status: "FINISHED" }
+      data: {
+        status: "FINISHED",
+        endedAt: new Date(),
+        winningAlignment: normalizedWinningAlignment,
+      }
     });
 
     // Record histories for players that are registered users and have roles
@@ -496,7 +917,9 @@ export async function endGame(gameId: string, winningAlignment: string) {
         gameId,
         userId: p.userId as string,
         roleId: p.roleId as string,
-        result: (p.role?.alignment === winningAlignment) ? "WIN" as const : "LOSS" as const
+        result: normalizedWinningAlignment
+          ? ((p.role?.alignment === normalizedWinningAlignment) ? "WIN" as const : "LOSS" as const)
+          : null
       }));
 
     if (historyData.length > 0) {
@@ -507,10 +930,13 @@ export async function endGame(gameId: string, winningAlignment: string) {
     }
 
     // Trigger end game
-    await pusherServer.trigger(`game-${gameId}`, 'game-ended', { winningAlignment });
+    await pusherServer.trigger(`game-${gameId}`, 'game-ended', {
+      winningAlignment: normalizedWinningAlignment || "UNKNOWN",
+    });
     
     revalidatePath("/dashboard/moderator");
     revalidatePath("/dashboard/user");
+    revalidatePath(`/dashboard/moderator/game/${gameId}`);
 
     return { success: true };
   } catch (error: any) {

@@ -12,6 +12,7 @@ import { LobbyPreviewCard } from "@/components/game/LobbyPreviewCard";
 type Player = {
   id: string;
   name: string;
+  isAlive?: boolean;
 };
 
 function alignmentClass(alignment?: string) {
@@ -54,9 +55,17 @@ export default function GameLobbyPage() {
           router.push("/dashboard/moderator");
           return;
         }
+        if (gameRes.status === "IN_PROGRESS") {
+          router.push(`/dashboard/moderator/game/${gameId}`);
+          return;
+        }
+        if (gameRes.status === "FINISHED") {
+          router.push("/dashboard/moderator");
+          return;
+        }
 
         setGame(gameRes);
-        setPlayers((gameRes.players || []).map((player: any) => ({ id: player.id, name: player.name })));
+        setPlayers((gameRes.players || []).map((player: any) => ({ id: player.id, name: player.name, isAlive: player.isAlive })));
         setScenarios(scenariosRes);
         setRoles(rolesRes);
         setLoading(false);
@@ -122,6 +131,7 @@ export default function GameLobbyPage() {
       players.map((player) => ({
         id: player.id,
         name: player.name,
+        isAlive: player.isAlive,
       })),
     [players]
   );

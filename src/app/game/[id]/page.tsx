@@ -20,6 +20,13 @@ function alignmentClass(alignment?: string) {
   return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300";
 }
 
+function effectLabel(effectType?: string) {
+  if (effectType === "CONVERT_TO_MAFIA") return "خریداری";
+  if (effectType === "YAKUZA") return "یاکوزا";
+  if (effectType === "TWO_NAME_INQUIRY") return "بازپرسی دو نفره";
+  return "ثبت ساده";
+}
+
 export default function UserGamePage() {
   const params = useParams();
   const router = useRouter();
@@ -35,7 +42,8 @@ export default function UserGamePage() {
   useEffect(() => {
     if (!gameId || !session?.user?.id) return;
 
-    getPlayerGameView(gameId).then((res) => {
+    const syncGameView = async () => {
+      const res = await getPlayerGameView(gameId);
       if (!res || res.status !== "IN_PROGRESS") {
         router.push(res?.status === "WAITING" ? `/lobby/${gameId}` : "/dashboard/user");
         return;
@@ -45,16 +53,30 @@ export default function UserGamePage() {
       setMyPlayerInfo(res.myPlayer);
       
       setLoading(false);
-    });
+    };
+
+    syncGameView();
 
     const pusher = getPusherClient();
     const channel = pusher.subscribe(`game-${gameId}`);
     
     // Listen for game end
     channel.bind('game-ended', (data: { winningAlignment: string }) => {
-      const winnerStr = data.winningAlignment === 'CITIZEN' ? 'شهروندان' : data.winningAlignment === 'MAFIA' ? 'مافیا' : 'مستقل‌ها';
+      const winnerStr = data.winningAlignment === 'CITIZEN' ? 'شهروندان' : data.winningAlignment === 'MAFIA' ? 'مافیا' : data.winningAlignment === 'NEUTRAL' ? 'مستقل‌ها' : 'نامشخص';
       showAlert("پایان بازی", `بازی به پایان رسید! تیم پیروز: ${winnerStr}`, "info");
       router.push("/dashboard/user");
+    });
+
+    channel.bind("player-status-updated", () => {
+      syncGameView();
+    });
+
+    channel.bind("game-state-updated", () => {
+      syncGameView();
+    });
+
+    channel.bind("night-records-public", () => {
+      syncGameView();
     });
 
     // Listen for game cancellation
@@ -92,6 +114,16 @@ export default function UserGamePage() {
       ),
     [scenarioRoles]
   );
+  const players = game?.players || [];
+  const publicNightEvents = game?.nightEvents || [];
+  const groupedNightEvents = useMemo(() => {
+    const groups = new Map<number, any[]>();
+    publicNightEvents.forEach((event: any) => {
+      const existing = groups.get(event.nightNumber) || [];
+      groups.set(event.nightNumber, [...existing, event]);
+    });
+    return [...groups.entries()].sort(([left], [right]) => left - right);
+  }, [publicNightEvents]);
 
   if (loading) return <div className="p-12 text-center animate-pulse text-zinc-500">در حال دریافت نقش شما...</div>;
 
@@ -188,6 +220,30 @@ export default function UserGamePage() {
                 </div>
               ))}
             </div>
+
+            <div className="mt-5 rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/60">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-xs font-black text-zinc-950 dark:text-white">وضعیت بازیکنان</p>
+                <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
+                  {players.filter((player: any) => player.isAlive !== false).length} فعال
+                </span>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {players.map((player: any) => {
+                  const alive = player.isAlive !== false;
+                  return (
+                    <div key={player.id} className={alive ? "rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]" : "rounded-lg border border-red-500/20 bg-red-500/10 p-2"}>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{player.name}</p>
+                        <span className={alive ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[9px] font-black text-lime-700 dark:text-lime-300" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[9px] font-black text-red-600 dark:text-red-300"}>
+                          {alive ? "فعال" : "حذف‌شده"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <div className="custom-scrollbar max-h-[62vh] overflow-y-auto p-5">
@@ -216,6 +272,59 @@ export default function UserGamePage() {
               <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
                 <span className="material-symbols-outlined text-4xl text-zinc-400">account_tree</span>
                 <p className="text-sm font-black text-zinc-950 dark:text-white">راهنمایی برای این سناریو ثبت نشده است</p>
+              </div>
+            )}
+
+            {groupedNightEvents.length > 0 && (
+              <div className="mt-5 rounded-lg border border-lime-500/20 bg-lime-500/10 p-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lime-600 dark:text-lime-300">dark_mode</span>
+                  <p className="text-sm font-black text-zinc-950 dark:text-white">دفترچه عمومی شب</p>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {groupedNightEvents.map(([nightNumber, events]) => (
+                    <details key={nightNumber} className="group rounded-lg border border-lime-500/20 bg-white/70 dark:bg-zinc-950/60">
+                      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3">
+                        <span className="text-xs font-black text-zinc-950 dark:text-white">شب {nightNumber}</span>
+                        <span className="material-symbols-outlined text-zinc-400 transition-transform group-open:rotate-180">keyboard_arrow_down</span>
+                      </summary>
+                      <div className="space-y-2 border-t border-lime-500/20 p-3">
+                        {events.map((event: any) => (
+                          <div key={event.id} className="rounded-lg bg-white p-2 text-xs leading-5 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-black text-zinc-950 dark:text-white">
+                                {event.abilityLabel}{event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}
+                              </p>
+                              <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
+                                {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
+                              </span>
+                              {event.details?.effectType && event.details.effectType !== "NONE" && (
+                                <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
+                                  {effectLabel(event.details.effectType)}
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-1">
+                              {event.actorPlayer?.name || event.abilitySource || (event.actorAlignment ? alignmentLabel(event.actorAlignment) : "نامشخص")}
+                              {event.wasUsed === false ? " ← بدون هدف" : ` ← ${event.targetPlayer?.name || "نامشخص"}`}
+                            </p>
+                            {event.details?.secondaryTargetName && (
+                              <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                                {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "اسم دوم"}: {event.details.secondaryTargetName}
+                              </p>
+                            )}
+                            {event.details?.convertedRoleName && (
+                              <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                                تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
+                              </p>
+                            )}
+                            {event.note && <p className="mt-1 text-zinc-500 dark:text-zinc-400">{event.note}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  ))}
+                </div>
               </div>
             )}
           </div>

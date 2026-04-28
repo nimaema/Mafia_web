@@ -58,6 +58,12 @@ function roleClass(role: Role) {
   return "border-zinc-500/20 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300";
 }
 
+function roleAccentClass(role: Role) {
+  if (role === "ADMIN") return "from-purple-500 to-fuchsia-500";
+  if (role === "MODERATOR") return "from-sky-500 to-cyan-400";
+  return "from-lime-500 to-emerald-400";
+}
+
 function getUserPresence(user: UserRecord) {
   const activeGame =
     user.gamePlayers.find((player) => player.game.status === "IN_PROGRESS")?.game ||
@@ -541,7 +547,7 @@ export function UserManagementPanel() {
             </div>
           ) : (
             <div className="custom-scrollbar max-h-[680px] overflow-y-auto p-3">
-              <div className="space-y-2">
+              <div className="grid gap-3 md:grid-cols-2">
                 {filteredUsers.map((user) => {
                   const hasGoogle = user.accounts.some((account) => account.provider === "google");
                   const hasPassword = Boolean(user.password_hash);
@@ -552,20 +558,22 @@ export function UserManagementPanel() {
                     <button
                       key={user.id}
                       onClick={() => setSelectedUserId(user.id)}
-                      className={`w-full rounded-lg border p-3 text-right transition-all ${
+                      className={`group relative w-full overflow-hidden rounded-lg border p-3 text-right transition-all hover:-translate-y-0.5 ${
                         isSelected
-                          ? "border-lime-500/40 bg-lime-500/10"
-                          : "border-zinc-200 bg-zinc-50 hover:border-lime-500/25 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+                          ? "border-lime-500/40 bg-lime-500/10 shadow-lg shadow-lime-500/10"
+                          : "border-zinc-200 bg-white hover:border-lime-500/25 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
                       }`}
                     >
-                      <div className="flex items-center justify-between gap-4">
+                      <span className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${roleAccentClass(user.role)}`} />
+                      <div className="flex items-start justify-between gap-4 pt-1">
                         <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white text-sm font-black text-zinc-700 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-200">
+                          <div className="relative flex size-[52px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 text-sm font-black text-zinc-700 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200">
                             {user.image ? (
                               <img src={user.image} alt="" className="size-full object-cover" />
                             ) : (
                               getInitial(user.name, user.email)
                             )}
+                            <span className={`absolute bottom-1 right-1 size-3 rounded-full border-2 border-white dark:border-zinc-950 ${presence.online ? "bg-lime-500" : "bg-zinc-300 dark:bg-zinc-700"}`} />
                           </div>
                           <div className="min-w-0">
                             <p className="truncate font-black text-zinc-950 dark:text-white">{user.name || "بدون نام"}</p>
@@ -586,10 +594,13 @@ export function UserManagementPanel() {
                               <span className="rounded-lg border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
                                 {[hasPassword ? "رمز" : null, hasGoogle ? "گوگل" : null].filter(Boolean).join(" + ") || "نامشخص"}
                               </span>
+                              <span className={user.emailVerified ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
+                                {user.emailVerified ? "تایید" : "نیاز به تایید"}
+                              </span>
                             </div>
                           </div>
                         </div>
-                        <div className="hidden shrink-0 grid-cols-2 gap-2 text-center sm:grid">
+                        <div className="hidden shrink-0 grid-cols-2 gap-2 text-center lg:grid">
                           <div className="ui-muted min-w-20 p-2">
                             <p className="text-base font-black text-zinc-950 dark:text-white">{user._count.gameHistories}</p>
                             <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">بازی</p>
