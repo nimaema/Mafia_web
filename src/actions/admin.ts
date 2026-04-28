@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Role, Alignment } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { gameDisplayName, TEMP_SCENARIO_DESCRIPTION_PREFIX } from "@/lib/gameDisplay";
+import { sendAdminUserEmail } from "@/lib/email";
 
 type SafeListResult<T> = {
   success: boolean;
@@ -126,6 +127,50 @@ export async function deleteUser(userId: string) {
     where: { id: userId }
   });
   revalidatePath("/dashboard/admin/users");
+}
+
+export async function verifyUserEmail(userId: string) {
+  await checkAdmin();
+  await prisma.user.update({
+    where: { id: userId },
+    data: { emailVerified: new Date() },
+  });
+  revalidatePath("/dashboard/admin/users");
+}
+
+export async function sendEmailToUser(userId: string, data: { subject: string; body: string }) {
+  await checkAdmin();
+
+  const subject = data.subject.trim();
+  const body = data.body.trim();
+  if (!subject || subject.length < 3) {
+    throw new Error("موضوع ایمیل را کامل وارد کنید.");
+  }
+  if (!body || body.length < 10) {
+    throw new Error("متن ایمیل باید حداقل ۱۰ کاراکتر باشد.");
+  }
+  if (subject.length > 120) {
+    throw new Error("موضوع ایمیل خیلی طولانی است.");
+  }
+  if (body.length > 4000) {
+    throw new Error("متن ایمیل خیلی طولانی است.");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+
+  if (!user?.email) {
+    throw new Error("این کاربر ایمیل قابل ارسال ندارد.");
+  }
+
+  const result = await sendAdminUserEmail(user.email, subject, body);
+  if (!result.delivered) {
+    throw new Error("ارسال ایمیل انجام نشد. تنظیمات سرویس ایمیل را بررسی کنید.");
+  }
+
+  return { success: true };
 }
 
 // Role Management

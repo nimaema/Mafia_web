@@ -369,6 +369,104 @@ function buildVerificationMessage(email: string, verifyUrl: string, from: string
   };
 }
 
+function buildAdminUserMessage(email: string, subject: string, body: string, from: string) {
+  const bodyParagraphs = body
+    .split(/\n{2,}/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const renderedBody = bodyParagraphs.length
+    ? bodyParagraphs
+        .map(
+          (paragraph) => `
+            <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 14px; border: 1px solid #e5e7eb; border-radius: 18px; background: #ffffff; padding: 16px 18px; color: #27272a; font-size: 15px; line-height: 32px; font-weight: 600;">
+              ${escapeHtml(paragraph).replace(/\n/g, "<br />")}
+            </div>
+          `
+        )
+        .join("")
+    : `
+      <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0; border: 1px solid #e5e7eb; border-radius: 18px; background: #ffffff; padding: 16px 18px; color: #27272a; font-size: 15px; line-height: 32px; font-weight: 600;">
+        ${escapeHtml(body).replace(/\n/g, "<br />")}
+      </div>
+    `;
+
+  return {
+    from,
+    to: email,
+    subject,
+    html: `
+      <!DOCTYPE html>
+      <html lang="fa" dir="rtl">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="color-scheme" content="light" />
+        <meta name="supported-color-schemes" content="light" />
+        <title>${escapeHtml(subject)}</title>
+      </head>
+      <body lang="fa" dir="rtl" style="margin: 0; padding: 0; background-color: #e8edf0; color: #18181b; direction: rtl; text-align: right; -webkit-text-size-adjust: 100%;">
+        <div dir="rtl" style="display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent; font-size: 1px; line-height: 1px;">
+          ${escapeHtml(subject)}
+        </div>
+        <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; background-color: #e8edf0;">
+          <tr>
+            <td dir="rtl" align="center" style="padding: 28px 12px;">
+              <table role="presentation" dir="rtl" width="660" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 660px; border-collapse: separate; border-spacing: 0; background-color: #ffffff; border: 1px solid #d7dee3; border-radius: 30px; overflow: hidden; box-shadow: 0 26px 76px rgba(15, 23, 42, 0.18);">
+                <tr>
+                  <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} padding: 30px 28px 32px; background-color: #101113; background-image: linear-gradient(135deg, #101113 0%, #18212f 46%, #365314 100%); color: #ffffff;">
+                    <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
+                      <tr>
+                        <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE}">
+                          <div dir="rtl" style="display: inline-block; width: 48px; height: 48px; border-radius: 17px; background-color: #a3e635; color: #172006; font-family: ${EMAIL_FONT_FAMILY}; font-size: 24px; line-height: 48px; font-weight: 700; text-align: center;">M</div>
+                          <div dir="rtl" style="${EMAIL_RTL_STYLE} display: inline-block; padding-right: 12px; vertical-align: top;">
+                            <div style="${EMAIL_RTL_STYLE} color: #ffffff; font-size: 17px; line-height: 24px; font-weight: 700;">مافیا بورد</div>
+                            <div style="${EMAIL_RTL_STYLE} color: #d9f99d; font-size: 12px; line-height: 20px; font-weight: 700;">پیام مدیریت</div>
+                          </div>
+                        </td>
+                        <td dir="rtl" align="left" style="${EMAIL_RTL_STYLE}">
+                          <span style="display: inline-block; border: 1px solid rgba(217,249,157,0.25); border-radius: 999px; padding: 8px 12px; background: rgba(163,230,53,0.10); color: #d9f99d; font-size: 12px; font-weight: 700;">پیام رسمی</span>
+                        </td>
+                      </tr>
+                    </table>
+                    <h1 dir="rtl" style="${EMAIL_RTL_STYLE} margin: 30px 0 0; color: #ffffff; font-size: 31px; line-height: 46px; font-weight: 700;">${escapeHtml(subject)}</h1>
+                    <div dir="rtl" style="${EMAIL_RTL_STYLE} margin-top: 14px; color: #d4d4d8; font-size: 14px; line-height: 27px; font-weight: 700;">
+                      این پیام توسط تیم مدیریت مافیا بورد برای اطلاع‌رسانی مستقیم حساب شما ارسال شده است.
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} padding: 28px; background: #ffffff;">
+                    <div dir="rtl" style="${EMAIL_RTL_STYLE} border: 1px solid #e2e8f0; border-radius: 24px; background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); padding: 14px;">
+                      ${renderedBody}
+                    </div>
+                    <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin-top: 18px; border-collapse: separate; border-spacing: 0;">
+                      <tr>
+                        <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} border: 1px solid #d9f99d; border-radius: 18px; background: #f7fee7; padding: 14px 16px; color: #3f6212; font-size: 12px; line-height: 24px; font-weight: 700;">
+                          اگر درباره این پیام سوالی دارید، از داخل سایت با مدیریت پیگیری کنید و اطلاعات حساس حساب خود را در پاسخ ایمیل ارسال نکنید.
+                        </td>
+                      </tr>
+                    </table>
+                    <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 20px; border-collapse: collapse;">
+                      <tr>
+                        <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} color: #71717a; font-size: 12px; line-height: 24px; font-weight: 700;">
+                          فرستنده: ${escapeHtml(from)}<br />
+                          گیرنده: <span dir="ltr" style="direction: ltr; unicode-bidi: embed;">${escapeHtml(email)}</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `,
+    text: `${RTL_MARK}${subject}\n\n${RTL_MARK}${body}`,
+  };
+}
+
 async function sendWithResendApi(
   message: ReturnType<typeof buildResetMessage>,
   apiKey: string,
@@ -470,6 +568,31 @@ export async function sendVerificationEmail(
     return { delivered: true };
   } catch (error) {
     console.warn("[VERIFY_EMAIL_FAILED]", { email, error });
+    return { delivered: false, reason: "mail delivery failed" };
+  }
+}
+
+export async function sendAdminUserEmail(email: string, subject: string, body: string): Promise<PasswordResetEmailResult> {
+  const config = getMailConfig();
+  const from = process.env.ADMIN_EMAIL_FROM || process.env.EMAIL_FROM || process.env.SMTP_FROM || "no-reply@playmafia.live";
+  const message = buildAdminUserMessage(email, subject, body, from);
+
+  if (config.resendApiKey) {
+    return sendWithResendApi(message, config.resendApiKey, email);
+  }
+
+  const transporter = getTransporter({ ...config, from });
+
+  if (!transporter) {
+    console.info("[ADMIN_EMAIL_PREVIEW]", { email, subject, body, reason: "mail transport is not configured" });
+    return { delivered: false, reason: "mail transport is not configured" };
+  }
+
+  try {
+    await withTimeout(transporter.sendMail(message), MAIL_TIMEOUT_MS);
+    return { delivered: true };
+  } catch (error) {
+    console.warn("[ADMIN_EMAIL_FAILED]", { email, subject, error });
     return { delivered: false, reason: "mail delivery failed" };
   }
 }

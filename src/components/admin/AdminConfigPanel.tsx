@@ -899,7 +899,7 @@ export default function AdminDashboard() {
                                 </div>
                                 <div className="min-w-0">
                                   <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">سناریوی {alignmentLabel(dominantAlignment)}</p>
-                                  <h3 className="mt-1 truncate text-base font-black text-zinc-950 dark:text-white">{scenario.name}</h3>
+                                  <h3 className="mt-1 line-clamp-2 break-words text-base font-black leading-6 text-zinc-950 dark:text-white">{scenario.name}</h3>
                                 </div>
                               </div>
 

@@ -3,7 +3,7 @@
 import { GameStatus, Role } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { banUser, deleteUser, getAllUsersSafe, updateUserRole } from "@/actions/admin";
+import { banUser, deleteUser, getAllUsersSafe, sendEmailToUser, updateUserRole, verifyUserEmail } from "@/actions/admin";
 import { usePopup } from "@/components/PopupProvider";
 
 type UserRecord = {
@@ -33,6 +33,7 @@ type UserRecord = {
 type StatusFilter = "ALL" | "ACTIVE" | "BANNED" | "ONLINE" | "PASSWORD" | "GOOGLE" | "VERIFIED" | "UNVERIFIED";
 type RoleFilter = "ALL" | Role;
 type SortMode = "ROLE" | "EMAIL" | "PLAYED" | "HOSTED";
+type EmailComposerMode = "write" | "preview";
 
 function getInitial(name?: string | null, email?: string | null) {
   const source = (name || email || "?").trim();
@@ -78,6 +79,13 @@ function getUserPresence(user: UserRecord) {
   };
 }
 
+function emailParagraphs(body: string) {
+  return body
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+}
+
 export function UserManagementPanel() {
   const { data: session, status } = useSession();
   const { showAlert, showConfirm, showToast } = usePopup();
@@ -91,6 +99,10 @@ export function UserManagementPanel() {
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showStats, setShowStats] = useState(false);
+  const [emailComposerUser, setEmailComposerUser] = useState<UserRecord | null>(null);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [emailComposerMode, setEmailComposerMode] = useState<EmailComposerMode>("write");
 
   const deferredSearch = useDeferredValue(search);
   const currentUserId = session?.user?.id;
@@ -239,6 +251,80 @@ export function UserManagementPanel() {
       },
       "error"
     );
+  };
+
+  const handleVerifyEmail = async (user: UserRecord) => {
+    if (!user.email) {
+      showAlert("ایمیل کاربر", "این کاربر ایمیلی برای تایید ندارد.", "warning");
+      return;
+    }
+    if (user.emailVerified) {
+      showToast("ایمیل این کاربر قبلاً تایید شده است.", "info");
+      return;
+    }
+
+    showConfirm(
+      "تایید دستی ایمیل",
+      `ایمیل ${user.email} برای این کاربر تایید شده ثبت شود؟`,
+      async () => {
+        setBusyUserId(user.id);
+        try {
+          await verifyUserEmail(user.id);
+          showToast("ایمیل کاربر تایید شد", "success");
+          await refreshUsers();
+        } catch (error: any) {
+          showAlert("خطا", error.message || "تایید ایمیل ناموفق بود", "error");
+        } finally {
+          setBusyUserId(null);
+        }
+      },
+      "warning"
+    );
+  };
+
+  const openEmailComposer = (user: UserRecord) => {
+    if (!user.email) {
+      showAlert("ایمیل کاربر", "این کاربر ایمیلی برای ارسال پیام ندارد.", "warning");
+      return;
+    }
+
+    setEmailComposerUser(user);
+    setEmailSubject("");
+    setEmailBody("");
+    setEmailComposerMode("write");
+  };
+
+  const insertEmailSnippet = (snippet: string) => {
+    setEmailBody((current) => {
+      const separator = current.trim() ? "\n\n" : "";
+      return `${current}${separator}${snippet}`.slice(0, 4000);
+    });
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailComposerUser) return;
+    if (!emailSubject.trim()) {
+      showAlert("موضوع ایمیل", "موضوع ایمیل را وارد کنید.", "warning");
+      return;
+    }
+    if (emailBody.trim().length < 10) {
+      showAlert("متن ایمیل", "متن ایمیل باید کمی کامل‌تر باشد.", "warning");
+      return;
+    }
+
+    setBusyUserId(emailComposerUser.id);
+    try {
+      await sendEmailToUser(emailComposerUser.id, {
+        subject: emailSubject,
+        body: emailBody,
+      });
+      showToast("ایمیل برای کاربر ارسال شد", "success");
+      setEmailComposerUser(null);
+    } catch (error: any) {
+      showAlert("خطا در ارسال ایمیل", error.message || "ارسال ایمیل انجام نشد.", "error");
+    } finally {
+      setBusyUserId(null);
+    }
   };
 
   return (
@@ -522,6 +608,12 @@ export function UserManagementPanel() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm dark:border-white/10">
+                    <span className="font-bold text-zinc-500 dark:text-zinc-400">تایید ایمیل</span>
+                    <span className={selectedUser.emailVerified ? "font-black text-lime-600 dark:text-lime-300" : "font-black text-amber-600 dark:text-amber-300"}>
+                      {selectedUser.emailVerified ? "تایید شده" : "در انتظار تایید"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm dark:border-white/10">
                     <span className="font-bold text-zinc-500 dark:text-zinc-400">حضور آنلاین</span>
                     <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-black ${selectedPresence?.className || ""}`}>
                       <span className="material-symbols-outlined text-sm">{selectedPresence?.icon}</span>
@@ -531,6 +623,24 @@ export function UserManagementPanel() {
                 </div>
 
                 <div className="flex flex-col gap-2 border-t border-zinc-200 pt-4 dark:border-white/10">
+                  <button
+                    onClick={() => openEmailComposer(selectedUser)}
+                    disabled={busyUserId === selectedUser.id || !selectedUser.email}
+                    className="ui-button-secondary w-full text-sky-600 dark:text-sky-300"
+                  >
+                    <span className="material-symbols-outlined text-lg">outgoing_mail</span>
+                    ارسال ایمیل از no-reply@playmafia.live
+                  </button>
+                  {!selectedUser.emailVerified && (
+                    <button
+                      onClick={() => handleVerifyEmail(selectedUser)}
+                      disabled={busyUserId === selectedUser.id || !selectedUser.email}
+                      className="ui-button-secondary w-full text-lime-700 dark:text-lime-300"
+                    >
+                      <span className="material-symbols-outlined text-lg">mark_email_read</span>
+                      تایید دستی ایمیل کاربر
+                    </button>
+                  )}
                   <button
                     onClick={() => handleBanToggle(selectedUser)}
                     disabled={busyUserId === selectedUser.id || selectedUser.id === currentUserId}
@@ -563,6 +673,175 @@ export function UserManagementPanel() {
           )}
         </aside>
       </main>
+
+      {emailComposerUser && (
+        <div
+          className="fixed inset-0 z-[210] flex items-end justify-center bg-zinc-950/70 p-4 pb-28 backdrop-blur-sm sm:items-center sm:pb-4"
+          onClick={() => setEmailComposerUser(null)}
+        >
+          <section
+            className="ui-card flex max-h-[calc(100dvh-8rem)] w-full max-w-5xl flex-col overflow-hidden"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+              <div className="min-w-0">
+                <p className="ui-kicker">ارسال پیام مدیریتی</p>
+                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">ایمیل به {emailComposerUser.name || "کاربر"}</h2>
+                <p className="mt-2 truncate text-xs font-bold text-zinc-500 dark:text-zinc-400" dir="ltr">
+                  no-reply@playmafia.live → {emailComposerUser.email}
+                </p>
+              </div>
+              <button onClick={() => setEmailComposerUser(null)} className="ui-button-secondary size-10 p-0">
+                <span className="material-symbols-outlined text-xl">close</span>
+              </button>
+            </div>
+
+            <div className="custom-scrollbar flex-1 overflow-y-auto p-5">
+              <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+                <div className="custom-scrollbar flex gap-1 overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-white/10 dark:bg-zinc-950">
+                  {[
+                    { mode: "write" as EmailComposerMode, label: "نوشتن", icon: "edit_note" },
+                    { mode: "preview" as EmailComposerMode, label: "پیش‌نمایش", icon: "preview" },
+                  ].map((item) => (
+                    <button
+                      key={item.mode}
+                      type="button"
+                      onClick={() => setEmailComposerMode(item.mode)}
+                      className={`flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-black transition-all ${
+                        emailComposerMode === item.mode
+                          ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
+                          : "text-zinc-500 hover:bg-white dark:text-zinc-400 dark:hover:bg-white/[0.06]"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-base">{item.icon}</span>
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => insertEmailSnippet("سلام،\n\n")}
+                    className="ui-button-secondary min-h-10 px-3 text-xs"
+                  >
+                    شروع
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertEmailSnippet("با احترام،\nتیم مافیا بورد")}
+                    className="ui-button-secondary min-h-10 px-3 text-xs"
+                  >
+                    امضا
+                  </button>
+                </div>
+              </div>
+
+              {emailComposerMode === "write" ? (
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+                  <div className="space-y-4">
+                    <label className="flex flex-col gap-2">
+                      <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">موضوع ایمیل</span>
+                      <input
+                        value={emailSubject}
+                        onChange={(event) => setEmailSubject(event.target.value.slice(0, 120))}
+                        placeholder="مثلاً اطلاع‌رسانی درباره حساب شما"
+                      />
+                    </label>
+
+                    <label className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">متن پیام</span>
+                        <span className="text-[10px] font-bold text-zinc-400">{emailBody.length}/4000</span>
+                      </div>
+                      <textarea
+                        value={emailBody}
+                        onChange={(event) => setEmailBody(event.target.value.slice(0, 4000))}
+                        placeholder="پیام مدیریت را اینجا بنویسید. هر پاراگراف را با یک خط خالی جدا کنید تا در ایمیل به شکل کارت‌های خوانا دیده شود."
+                        className="min-h-72 resize-none leading-7"
+                      />
+                    </label>
+                  </div>
+
+                  <aside className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                    <p className="text-sm font-black text-zinc-950 dark:text-white">ابزار نگارش</p>
+                    {[
+                      "وضعیت حساب شما توسط مدیریت بررسی شد.",
+                      "برای ادامه، لطفاً وارد حساب کاربری خود شوید و اطلاعات پروفایل را بررسی کنید.",
+                      "در صورت نیاز به راهنمایی، از بخش پشتیبانی داخل سایت پیام بدهید.",
+                    ].map((snippet) => (
+                      <button
+                        key={snippet}
+                        type="button"
+                        onClick={() => insertEmailSnippet(snippet)}
+                        className="w-full rounded-lg border border-zinc-200 bg-white p-3 text-right text-xs font-bold leading-5 text-zinc-600 transition-all hover:border-lime-500/30 hover:bg-lime-500/10 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300"
+                      >
+                        {snippet}
+                      </button>
+                    ))}
+                  </aside>
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-[28px] border border-zinc-200 bg-[#e8edf0] p-3 shadow-inner dark:border-white/10">
+                  <div className="mx-auto max-w-2xl overflow-hidden rounded-[26px] border border-zinc-200 bg-white shadow-2xl shadow-zinc-950/10">
+                    <div className="bg-[linear-gradient(135deg,#101113_0%,#18212f_46%,#365314_100%)] p-6 text-white">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-12 items-center justify-center rounded-lg bg-lime-400 text-xl font-black text-zinc-950">M</div>
+                          <div>
+                            <p className="font-black">مافیا بورد</p>
+                            <p className="mt-1 text-xs font-bold text-lime-200">پیام مدیریت</p>
+                          </div>
+                        </div>
+                        <span className="rounded-full border border-lime-200/25 bg-lime-400/10 px-3 py-1 text-xs font-black text-lime-200">پیام رسمی</span>
+                      </div>
+                      <h3 className="mt-7 text-2xl font-black leading-10">{emailSubject.trim() || "موضوع ایمیل"}</h3>
+                      <p className="mt-2 text-sm font-bold leading-6 text-zinc-300">این پیام توسط تیم مدیریت مافیا بورد برای اطلاع‌رسانی مستقیم حساب شما ارسال شده است.</p>
+                    </div>
+
+                    <div className="space-y-3 p-5">
+                      {(emailParagraphs(emailBody).length ? emailParagraphs(emailBody) : ["متن پیام اینجا نمایش داده می‌شود."]).map((paragraph, index) => (
+                        <div key={index} className="rounded-lg border border-zinc-200 bg-white p-4 text-sm font-semibold leading-8 text-zinc-700">
+                          {paragraph.split("\n").map((line, lineIndex) => (
+                            <span key={`${index}-${lineIndex}`}>
+                              {line}
+                              {lineIndex < paragraph.split("\n").length - 1 && <br />}
+                            </span>
+                          ))}
+                        </div>
+                      ))}
+                      <div className="rounded-lg border border-lime-300 bg-lime-50 p-3 text-xs font-bold leading-6 text-lime-800">
+                        اگر درباره این پیام سوالی دارید، از داخل سایت با مدیریت پیگیری کنید و اطلاعات حساس حساب خود را در پاسخ ایمیل ارسال نکنید.
+                      </div>
+                      <p className="text-xs font-bold leading-6 text-zinc-500" dir="ltr">
+                        no-reply@playmafia.live → {emailComposerUser.email}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 text-xs font-bold leading-6 text-lime-700 dark:text-lime-300">
+                ایمیل با قالب رسمی مافیا بورد و راست‌چین ارسال می‌شود. فرستنده از تنظیمات ایمیل سرور استفاده می‌کند و در صورت نبود مقدار، no-reply@playmafia.live خواهد بود.
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 border-t border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+              <button onClick={() => setEmailComposerUser(null)} className="ui-button-secondary min-h-11 flex-1 px-4">
+                انصراف
+              </button>
+              <button
+                onClick={handleSendEmail}
+                disabled={busyUserId === emailComposerUser.id}
+                className="ui-button-primary min-h-11 flex-1 px-4"
+              >
+                <span className="material-symbols-outlined text-lg">send</span>
+                ارسال ایمیل
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
