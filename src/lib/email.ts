@@ -95,201 +95,277 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
+type EmailDetailRow = {
+  label: string;
+  value: string;
+  dir?: "rtl" | "ltr";
+};
+
+type AuthEmailTheme = {
+  heroBackground: string;
+  heroGradient: string;
+  accent: string;
+  accentText: string;
+  accentSoft: string;
+  badgeText: string;
+  noteBackground: string;
+  noteBorder: string;
+  noteText: string;
+};
+
+type AuthEmailHtmlOptions = {
+  theme: AuthEmailTheme;
+  preheader: string;
+  eyebrow: string;
+  badge: string;
+  title: string;
+  intro: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  details: EmailDetailRow[];
+  notice: string;
+  steps?: string[];
+};
+
+const EMAIL_FONT_FAMILY = "Tahoma, Arial, sans-serif";
+const EMAIL_RTL_STYLE = `font-family: ${EMAIL_FONT_FAMILY}; direction: rtl; text-align: right; unicode-bidi: embed;`;
+const RTL_MARK = "\u200F";
+const PERSIAN_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
+
+const resetEmailTheme: AuthEmailTheme = {
+  heroBackground: "#111113",
+  heroGradient: "linear-gradient(135deg, #111113 0%, #1f2937 54%, #365314 100%)",
+  accent: "#a3e635",
+  accentText: "#172006",
+  accentSoft: "#ecfccb",
+  badgeText: "#d9f99d",
+  noteBackground: "#fff7ed",
+  noteBorder: "#fed7aa",
+  noteText: "#9a3412",
+};
+
+const verificationEmailTheme: AuthEmailTheme = {
+  heroBackground: "#0f172a",
+  heroGradient: "linear-gradient(135deg, #0f172a 0%, #172554 52%, #155e75 100%)",
+  accent: "#38bdf8",
+  accentText: "#082f49",
+  accentSoft: "#e0f2fe",
+  badgeText: "#bae6fd",
+  noteBackground: "#f0f9ff",
+  noteBorder: "#bae6fd",
+  noteText: "#075985",
+};
+
+function renderEmailRows(rows: EmailDetailRow[]) {
+  return rows
+    .map((row) => {
+      const valueDirection = row.dir || "rtl";
+      const valueAlign = valueDirection === "ltr" ? "left" : "right";
+      return `
+        <tr>
+          <td dir="rtl" align="right" valign="middle" style="${EMAIL_RTL_STYLE} padding: 13px 15px; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; border-radius: 0 16px 16px 0; background-color: #fafafa; color: #71717a; font-size: 12px; line-height: 22px; font-weight: 700; white-space: nowrap;">
+            ${escapeHtml(row.label)}
+          </td>
+          <td dir="${valueDirection}" align="${valueAlign}" valign="middle" style="font-family: ${EMAIL_FONT_FAMILY}; direction: ${valueDirection}; text-align: ${valueAlign}; unicode-bidi: embed; padding: 13px 15px; border-top: 1px solid #e5e7eb; border-left: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; border-radius: 16px 0 0 16px; background-color: #fafafa; color: #18181b; font-size: 13px; line-height: 22px; font-weight: 700;">
+            ${escapeHtml(row.value)}
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+function renderEmailSteps(steps: string[] | undefined, theme: AuthEmailTheme) {
+  if (!steps?.length) return "";
+
+  return `
+    <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 20px 0 0; border-collapse: separate; border-spacing: 0 10px;">
+      ${steps
+        .map(
+          (step, index) => `
+            <tr>
+              <td dir="rtl" align="center" valign="top" width="42" style="${EMAIL_RTL_STYLE} width: 42px; padding: 0 0 0 10px;">
+                <span style="display: inline-block; width: 30px; height: 30px; border-radius: 12px; background-color: ${theme.accentSoft}; color: ${theme.accentText}; font-family: ${EMAIL_FONT_FAMILY}; font-size: 13px; line-height: 30px; font-weight: 700; text-align: center;">${String(index + 1).replace(/[0-9]/g, (digit) => PERSIAN_DIGITS[Number(digit)])}</span>
+              </td>
+              <td dir="rtl" align="right" valign="top" style="${EMAIL_RTL_STYLE} padding: 5px 0 0; color: #3f3f46; font-size: 14px; line-height: 28px; font-weight: 700;">
+                ${escapeHtml(step)}
+              </td>
+            </tr>
+          `
+        )
+        .join("")}
+    </table>
+  `;
+}
+
+function buildAuthEmailHtml(options: AuthEmailHtmlOptions) {
+  const safeCtaUrl = escapeHtml(options.ctaUrl);
+
+  return `
+    <!DOCTYPE html>
+    <html lang="fa" dir="rtl">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <meta name="color-scheme" content="light" />
+      <meta name="supported-color-schemes" content="light" />
+      <title>${escapeHtml(options.title)}</title>
+    </head>
+    <body lang="fa" dir="rtl" style="margin: 0; padding: 0; background-color: #edf2f4; color: #18181b; direction: rtl; text-align: right; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+      <div lang="fa" dir="rtl" style="display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent; font-size: 1px; line-height: 1px; direction: rtl; text-align: right;">
+        ${escapeHtml(options.preheader)}
+      </div>
+
+      <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; background-color: #edf2f4;">
+        <tr>
+          <td dir="rtl" align="center" style="padding: 28px 12px;">
+            <table role="presentation" dir="rtl" width="640" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 640px; border-collapse: separate; border-spacing: 0; background-color: #ffffff; border: 1px solid #dde3e7; border-radius: 28px; overflow: hidden; box-shadow: 0 24px 70px rgba(15, 23, 42, 0.16);">
+              <tr>
+                <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} padding: 30px 28px 28px; border-radius: 28px 28px 0 0; background-color: ${options.theme.heroBackground}; background-image: ${options.theme.heroGradient}; color: #ffffff;">
+                  <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td dir="rtl" align="right" valign="middle" style="${EMAIL_RTL_STYLE}">
+                        <table role="presentation" dir="rtl" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
+                          <tr>
+                            <td dir="rtl" align="center" valign="middle" style="width: 48px; height: 48px; border-radius: 17px; background-color: ${options.theme.accent}; color: ${options.theme.accentText}; font-family: ${EMAIL_FONT_FAMILY}; font-size: 24px; line-height: 48px; font-weight: 700; text-align: center;">
+                              M
+                            </td>
+                            <td dir="rtl" align="right" valign="middle" style="${EMAIL_RTL_STYLE} padding-right: 12px;">
+                              <div dir="rtl" style="${EMAIL_RTL_STYLE} color: #ffffff; font-size: 17px; line-height: 24px; font-weight: 700;">مافیا بورد</div>
+                              <div dir="rtl" style="${EMAIL_RTL_STYLE} color: ${options.theme.badgeText}; font-size: 12px; line-height: 20px; font-weight: 700;">${escapeHtml(options.eyebrow)}</div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td dir="rtl" align="left" valign="middle" style="${EMAIL_RTL_STYLE} padding-right: 12px;">
+                        <span dir="rtl" style="${EMAIL_RTL_STYLE} display: inline-block; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.18); background-color: rgba(255, 255, 255, 0.10); color: ${options.theme.badgeText}; padding: 8px 12px; font-size: 12px; line-height: 18px; font-weight: 700; white-space: nowrap;">
+                          ${escapeHtml(options.badge)}
+                        </span>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <h1 dir="rtl" align="right" style="${EMAIL_RTL_STYLE} margin: 30px 0 0; color: #ffffff; font-size: 30px; line-height: 44px; font-weight: 700;">
+                    ${escapeHtml(options.title)}
+                  </h1>
+                  <p dir="rtl" align="right" style="${EMAIL_RTL_STYLE} margin: 12px 0 0; color: #e5e7eb; font-size: 15px; line-height: 30px; font-weight: 400;">
+                    ${escapeHtml(options.intro)}
+                  </p>
+                </td>
+              </tr>
+
+              <tr>
+                <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} padding: 30px 28px 32px; background-color: #ffffff;">
+                  <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td dir="rtl" align="center" style="padding: 0 0 26px;">
+                        <table role="presentation" dir="rtl" cellpadding="0" cellspacing="0" border="0" style="border-collapse: separate;">
+                          <tr>
+                            <td dir="rtl" align="center" bgcolor="${options.theme.accent}" style="border-radius: 18px; background-color: ${options.theme.accent}; box-shadow: 0 16px 34px rgba(132, 204, 22, 0.28);">
+                              <a href="${safeCtaUrl}" target="_blank" rel="noreferrer" dir="rtl" style="${EMAIL_RTL_STYLE} display: inline-block; min-width: 220px; padding: 16px 28px; border-radius: 18px; color: ${options.theme.accentText}; font-size: 16px; line-height: 24px; font-weight: 700; text-align: center; text-decoration: none;">
+                                ${escapeHtml(options.ctaLabel)}
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: separate; border-spacing: 0 10px;">
+                    ${renderEmailRows(options.details)}
+                  </table>
+
+                  ${renderEmailSteps(options.steps, options.theme)}
+
+                  <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin-top: 22px; border-collapse: collapse;">
+                    <tr>
+                      <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} padding: 16px 17px; border: 1px solid ${options.theme.noteBorder}; border-radius: 18px; background-color: ${options.theme.noteBackground}; color: ${options.theme.noteText}; font-size: 13px; line-height: 27px; font-weight: 700;">
+                        ${escapeHtml(options.notice)}
+                      </td>
+                    </tr>
+                  </table>
+
+                  <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin-top: 18px; border-collapse: collapse;">
+                    <tr>
+                      <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} padding: 16px 17px; border: 1px solid #e5e7eb; border-radius: 18px; background-color: #f8fafc;">
+                        <p dir="rtl" align="right" style="${EMAIL_RTL_STYLE} margin: 0 0 9px; color: #71717a; font-size: 12px; line-height: 22px; font-weight: 700;">
+                          اگر دکمه باز نشد، این لینک را در مرورگر وارد کنید:
+                        </p>
+                        <p dir="ltr" align="left" style="font-family: ${EMAIL_FONT_FAMILY}; direction: ltr; text-align: left; unicode-bidi: embed; margin: 0; color: #2563eb; font-size: 12px; line-height: 22px; font-weight: 400; word-break: break-all;">
+                          ${safeCtaUrl}
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td dir="rtl" align="center" style="${EMAIL_RTL_STYLE} padding: 18px 24px 26px; background-color: #ffffff; color: #71717a; font-size: 12px; line-height: 22px; font-weight: 400; text-align: center;">
+                  این پیام خودکار از طرف مافیا بورد ارسال شده است.
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+}
+
 function buildResetMessage(email: string, resetUrl: string, from: string) {
-  const safeEmail = escapeHtml(email);
   return {
     from,
     to: email,
     subject: "بازیابی رمز عبور مافیا بورد",
-    html: `
-      <!DOCTYPE html>
-      <html lang="fa" dir="rtl">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <style>
-          body { margin: 0; padding: 0; background: #e9eef0; color: #18181b; direction: rtl; font-family: Vazirmatn, IRANSans, Tahoma, Arial, sans-serif; }
-          .preheader { display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent; }
-          .shell { padding: 34px 12px; }
-          .container { max-width: 620px; margin: 0 auto; overflow: hidden; border-radius: 30px; background: #ffffff; border: 1px solid #dfe4e8; box-shadow: 0 28px 90px rgba(9, 9, 11, 0.18); }
-          .hero { padding: 34px 32px 30px; background: #111113; background-image: linear-gradient(135deg, #111113 0%, #18181b 46%, #1f3d14 100%); color: #ffffff; }
-          .brand-row { display: table; width: 100%; }
-          .brand { display: table-cell; vertical-align: middle; }
-          .mark { display: inline-block; width: 46px; height: 46px; line-height: 46px; border-radius: 16px; background: #84cc16; color: #18181b; text-align: center; font-size: 23px; font-weight: 950; }
-          .brand-text { display: inline-block; margin-right: 12px; vertical-align: middle; }
-          .brand-title { display: block; color: #ffffff; font-size: 16px; font-weight: 950; line-height: 1.6; }
-          .brand-subtitle { display: block; color: #bef264; font-size: 12px; font-weight: 900; }
-          .pill { display: table-cell; width: 1%; white-space: nowrap; vertical-align: middle; padding: 8px 12px; border-radius: 999px; background: rgba(132, 204, 22, 0.14); color: #d9f99d; font-size: 12px; font-weight: 950; }
-          h1 { margin: 28px 0 0; max-width: 500px; font-size: 34px; line-height: 1.45; font-weight: 950; letter-spacing: 0; }
-          .hero-copy { margin: 13px 0 0; max-width: 500px; color: #e4e4e7; font-size: 15px; line-height: 2; font-weight: 750; }
-          .content { padding: 30px 32px 32px; }
-          .hello { margin: 0 0 8px; font-size: 21px; line-height: 1.7; font-weight: 950; color: #18181b; }
-          .body-copy { margin: 0; color: #3f3f46; font-size: 15px; line-height: 2.05; font-weight: 700; }
-          .action { margin: 28px 0; text-align: center; }
-          .btn { display: inline-block; min-width: 244px; padding: 17px 30px; border-radius: 18px; background: #84cc16; color: #18181b !important; text-decoration: none; font-size: 16px; font-weight: 950; box-shadow: 0 18px 38px rgba(132, 204, 22, 0.34); }
-          .summary { display: table; width: 100%; border-spacing: 0 12px; margin: 6px 0 2px; }
-          .summary-row { display: table-row; }
-          .summary-cell { display: table-cell; padding: 14px 15px; border-top: 1px solid #e4e4e7; border-bottom: 1px solid #e4e4e7; font-size: 13px; background: #fafafa; }
-          .summary-cell:first-child { border-right: 1px solid #e4e4e7; border-radius: 16px 0 0 16px; color: #71717a; font-weight: 900; }
-          .summary-cell:last-child { border-left: 1px solid #e4e4e7; border-radius: 0 16px 16px 0; color: #18181b; font-weight: 950; text-align: left; direction: ltr; }
-          .notice { margin-top: 20px; padding: 16px; border-radius: 18px; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; font-size: 13px; line-height: 2; font-weight: 850; }
-          .link-box { margin-top: 18px; padding: 16px; border-radius: 18px; background: #f4f4f5; border: 1px solid #e4e4e7; }
-          .link-label { margin: 0 0 8px; color: #71717a; font-size: 12px; font-weight: 900; }
-          .link { margin: 0; word-break: break-all; color: #2563eb; direction: ltr; text-align: left; font-size: 12px; line-height: 1.8; font-weight: 700; }
-          .footer { padding: 18px 32px 28px; color: #71717a; font-size: 12px; line-height: 1.8; text-align: center; font-weight: 750; }
-          @media (max-width: 520px) {
-            .shell { padding: 14px 8px; }
-            .hero, .content, .footer { padding-left: 18px; padding-right: 18px; }
-            h1 { font-size: 25px; }
-            .hero-copy { font-size: 14px; }
-            .pill { display: inline-block; margin-top: 14px; }
-            .btn { display: block; min-width: 0; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="preheader">لینک امن تنظیم رمز جدید حساب مافیا تا ۲۴ ساعت معتبر است.</div>
-        <div class="shell">
-          <div class="container">
-            <div class="hero">
-              <div class="brand-row">
-                <div class="brand">
-                  <span class="mark">M</span>
-                  <span class="brand-text">
-                    <span class="brand-title">مافیا بورد</span>
-                    <span class="brand-subtitle">بازیابی امن حساب</span>
-                  </span>
-                </div>
-                <div class="pill">اعتبار ۲۴ ساعت</div>
-              </div>
-              <h1>رمز عبور تازه، با یک لینک امن</h1>
-              <p class="hero-copy">برای حساب ${safeEmail} درخواست تنظیم رمز جدید ثبت شده است. اگر این درخواست از طرف شما بوده، از دکمه زیر ادامه دهید.</p>
-            </div>
-
-            <div class="content">
-              <p class="hello">سلام،</p>
-              <p class="body-copy">این لینک فقط برای همین درخواست ساخته شده و بعد از استفاده حذف می‌شود. اگر شما درخواست نداده‌اید، بدون هیچ اقدامی این ایمیل را نادیده بگیرید.</p>
-
-              <div class="action">
-                <a href="${resetUrl}" class="btn">تنظیم رمز جدید</a>
-              </div>
-
-              <div class="summary">
-                <div class="summary-row">
-                  <span class="summary-cell">اعتبار لینک</span>
-                  <span class="summary-cell">۲۴ ساعت</span>
-                </div>
-                <div class="summary-row">
-                  <span class="summary-cell">حساب</span>
-                  <span class="summary-cell">${safeEmail}</span>
-                </div>
-              </div>
-
-              <div class="notice">
-                این لینک را با کسی به اشتراک نگذارید. تیم مافیا بورد هرگز رمز عبور یا کد خصوصی شما را درخواست نمی‌کند.
-              </div>
-
-              <div class="link-box">
-                <p class="link-label">اگر دکمه باز نشد، این لینک را در مرورگر وارد کنید:</p>
-                <p class="link">${resetUrl}</p>
-              </div>
-            </div>
-
-            <div class="footer">
-              این پیام خودکار از طرف مافیا بورد ارسال شده است.
-            </div>
-          </div>
-        </div>
-      </body>
-      </html>
-    `,
-    text: `برای بازیابی رمز عبور حساب ${email} به این لینک مراجعه کنید: ${resetUrl}\n\nاین لینک تا ۲۴ ساعت معتبر است و بعد از استفاده حذف می‌شود.`,
+    html: buildAuthEmailHtml({
+      theme: resetEmailTheme,
+      preheader: "لینک امن تنظیم رمز جدید حساب مافیا بورد تا ۲۴ ساعت معتبر است.",
+      eyebrow: "بازیابی امن حساب",
+      badge: "اعتبار ۲۴ ساعت",
+      title: "تنظیم رمز عبور تازه",
+      intro: "برای حساب شما درخواست بازیابی رمز ثبت شده است. اگر این درخواست از طرف شما بوده، با دکمه زیر رمز جدید بسازید.",
+      ctaLabel: "تنظیم رمز جدید",
+      ctaUrl: resetUrl,
+      details: [
+        { label: "حساب", value: email, dir: "ltr" },
+        { label: "اعتبار لینک", value: "۲۴ ساعت" },
+        { label: "وضعیت", value: "پس از استفاده حذف می‌شود" },
+      ],
+      notice: "این لینک را با کسی به اشتراک نگذارید. تیم مافیا بورد هرگز رمز عبور یا کد خصوصی شما را درخواست نمی‌کند.",
+    }),
+    text: `${RTL_MARK}برای بازیابی رمز عبور حساب ${email} به این لینک مراجعه کنید: ${resetUrl}\n\n${RTL_MARK}این لینک تا ۲۴ ساعت معتبر است و بعد از استفاده حذف می‌شود.`,
   };
 }
 
 function buildVerificationMessage(email: string, verifyUrl: string, from: string) {
-  const safeEmail = escapeHtml(email);
   return {
     from,
     to: email,
     subject: "تایید ایمیل و فعال‌سازی حساب مافیا بورد",
-    html: `
-      <!DOCTYPE html>
-      <html lang="fa" dir="rtl">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <style>
-          body { margin: 0; background: #eef2f3; color: #18181b; direction: rtl; font-family: Vazirmatn, IRANSans, Tahoma, Arial, sans-serif; }
-          .preheader { display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent; }
-          .shell { padding: 34px 12px; }
-          .card { max-width: 620px; margin: 0 auto; overflow: hidden; border-radius: 30px; background: #ffffff; border: 1px solid #dfe4e8; box-shadow: 0 28px 90px rgba(9, 9, 11, 0.17); }
-          .hero { padding: 34px 32px 30px; background: #0f172a; background-image: linear-gradient(135deg, #0f172a 0%, #18181b 52%, #164e63 100%); color: white; }
-          .brand-row { display: table; width: 100%; }
-          .brand { display: table-cell; vertical-align: middle; }
-          .mark { display: inline-block; width: 46px; height: 46px; line-height: 46px; border-radius: 16px; background: #84cc16; color: #18181b; text-align: center; font-size: 23px; font-weight: 950; }
-          .brand-text { display: inline-block; margin-right: 12px; vertical-align: middle; }
-          .brand-title { display: block; color: #ffffff; font-size: 16px; font-weight: 950; line-height: 1.6; }
-          .brand-subtitle { display: block; color: #bae6fd; font-size: 12px; font-weight: 900; }
-          .pill { display: table-cell; width: 1%; white-space: nowrap; vertical-align: middle; padding: 8px 12px; border-radius: 999px; background: rgba(14, 165, 233, 0.16); color: #bae6fd; font-size: 12px; font-weight: 950; }
-          h1 { margin: 28px 0 0; font-size: 34px; line-height: 1.45; font-weight: 950; }
-          .hero-copy { margin: 13px 0 0; color: #e4e4e7; font-size: 15px; line-height: 2; font-weight: 750; }
-          .body { padding: 30px 32px 32px; }
-          .copy { margin: 0; color: #3f3f46; font-size: 15px; line-height: 2.05; font-weight: 700; }
-          .action { margin: 28px 0; text-align: center; }
-          .btn { display: inline-block; min-width: 236px; border-radius: 18px; background: #84cc16; color: #18181b !important; padding: 17px 28px; font-size: 16px; font-weight: 950; text-decoration: none; box-shadow: 0 18px 38px rgba(132, 204, 22, 0.34); }
-          .steps { display: table; width: 100%; border-spacing: 0 10px; margin-top: 18px; }
-          .step { display: table-row; }
-          .step span { display: table-cell; padding: 13px 14px; border-top: 1px solid #e4e4e7; border-bottom: 1px solid #e4e4e7; background: #fafafa; font-size: 13px; }
-          .step span:first-child { width: 1%; white-space: nowrap; border-right: 1px solid #e4e4e7; border-radius: 16px 0 0 16px; color: #0ea5e9; font-weight: 950; }
-          .step span:last-child { border-left: 1px solid #e4e4e7; border-radius: 0 16px 16px 0; color: #3f3f46; font-weight: 800; }
-          .note { margin-top: 20px; border-radius: 18px; border: 1px solid #bae6fd; background: #f0f9ff; padding: 15px; color: #075985; font-size: 13px; line-height: 2; font-weight: 850; }
-          .link-box { margin-top: 18px; border-radius: 18px; border: 1px solid #e4e4e7; background: #f4f4f5; padding: 14px; }
-          .link-label { margin: 0 0 8px; color: #71717a; font-size: 12px; font-weight: 900; }
-          .link { margin: 0; color: #2563eb; direction: ltr; text-align: left; word-break: break-all; font-size: 12px; line-height: 1.8; font-weight: 700; }
-          .footer { padding: 18px 32px 28px; color: #71717a; text-align: center; font-size: 12px; line-height: 1.8; font-weight: 750; }
-          @media (max-width: 520px) { .shell { padding: 14px 8px; } .hero, .body, .footer { padding-left: 18px; padding-right: 18px; } h1 { font-size: 25px; } .hero-copy { font-size: 14px; } .pill { display: inline-block; margin-top: 14px; } .btn { display: block; min-width: 0; } }
-        </style>
-      </head>
-      <body>
-        <div class="preheader">حساب مافیا بورد خود را با یک لینک ۲۴ ساعته فعال کنید.</div>
-        <div class="shell">
-          <div class="card">
-            <div class="hero">
-              <div class="brand-row">
-                <div class="brand">
-                  <span class="mark">M</span>
-                  <span class="brand-text">
-                    <span class="brand-title">مافیا بورد</span>
-                    <span class="brand-subtitle">فعال‌سازی حساب</span>
-                  </span>
-                </div>
-                <div class="pill">اعتبار ۲۴ ساعت</div>
-              </div>
-              <h1>ایمیل‌تان را تایید کنید و وارد بازی شوید</h1>
-              <p class="hero-copy">برای فعال‌سازی حساب ${safeEmail} فقط کافی است دکمه تایید را بزنید.</p>
-            </div>
-            <div class="body">
-              <p class="copy">بعد از تایید ایمیل، داشبورد، لابی‌ها و تاریخچه بازی برای حساب شما فعال می‌شود. این مرحله کمک می‌کند فقط کاربران واقعی وارد بازی‌ها شوند.</p>
-              <div class="action"><a class="btn" href="${verifyUrl}">تایید ایمیل</a></div>
-              <div class="steps">
-                <div class="step"><span>۱</span><span>ایمیل را تایید کنید.</span></div>
-                <div class="step"><span>۲</span><span>وارد حساب شوید و به لابی‌ها دسترسی بگیرید.</span></div>
-                <div class="step"><span>۳</span><span>اگر لینک کار نکرد، از صفحه تایید ایمیل دوباره درخواست ارسال کنید.</span></div>
-              </div>
-              <div class="note">اگر شما این حساب را نساخته‌اید، این ایمیل را نادیده بگیرید. لینک بعد از ۲۴ ساعت قابل استفاده نخواهد بود.</div>
-              <div class="link-box">
-                <p class="link-label">اگر دکمه باز نشد، این لینک را در مرورگر وارد کنید:</p>
-                <p class="link">${verifyUrl}</p>
-              </div>
-            </div>
-            <div class="footer">این پیام خودکار از طرف مافیا بورد ارسال شده است.</div>
-          </div>
-        </div>
-      </body>
-      </html>
-    `,
-    text: `برای تایید ایمیل حساب ${email} به این لینک بروید: ${verifyUrl}\n\nاین لینک تا ۲۴ ساعت معتبر است.`,
+    html: buildAuthEmailHtml({
+      theme: verificationEmailTheme,
+      preheader: "حساب مافیا بورد خود را با یک لینک ۲۴ ساعته فعال کنید.",
+      eyebrow: "فعال‌سازی حساب",
+      badge: "اعتبار ۲۴ ساعت",
+      title: "ایمیل‌تان را تایید کنید",
+      intro: "فقط یک قدم مانده تا حساب شما آماده ورود به لابی‌ها، داشبورد و تاریخچه بازی شود.",
+      ctaLabel: "تایید ایمیل",
+      ctaUrl: verifyUrl,
+      details: [
+        { label: "حساب", value: email, dir: "ltr" },
+        { label: "اعتبار لینک", value: "۲۴ ساعت" },
+      ],
+      steps: [
+        "روی دکمه تایید ایمیل بزنید.",
+        "بعد از تایید، دوباره وارد حساب شوید.",
+        "اگر لینک کار نکرد، از صفحه تایید ایمیل درخواست ارسال دوباره بدهید.",
+      ],
+      notice: "اگر شما این حساب را نساخته‌اید، این ایمیل را نادیده بگیرید. لینک بعد از ۲۴ ساعت قابل استفاده نخواهد بود.",
+    }),
+    text: `${RTL_MARK}برای تایید ایمیل حساب ${email} به این لینک بروید: ${verifyUrl}\n\n${RTL_MARK}این لینک تا ۲۴ ساعت معتبر است.`,
   };
 }
 
