@@ -23,11 +23,11 @@ export function ThemeToggle({ compact = false, nav = false }: ThemeToggleProps) 
         <button
           type="button"
           disabled
-          className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 opacity-70"
+          className="flex min-w-[4.7rem] flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-zinc-500 opacity-70"
           title="تنظیم تم"
         >
-          <span className="material-symbols-outlined text-2xl">contrast</span>
-          <span className="text-[10px] font-black">تم</span>
+          <span className="material-symbols-outlined flex size-8 items-center justify-center rounded-lg bg-zinc-100 text-xl dark:bg-white/[0.06]">contrast</span>
+          <span className="w-full truncate text-[10px] font-black leading-4">تم</span>
         </button>
       );
     }
@@ -51,13 +51,13 @@ export function ThemeToggle({ compact = false, nav = false }: ThemeToggleProps) 
     return (
       <button
         onClick={() => setTheme(isDark ? "light" : "dark")}
-        className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-950 dark:hover:bg-white/[0.06] dark:hover:text-white"
+        className="group flex min-w-[4.7rem] flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-zinc-500 transition-all hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
         title={isDark ? "تغییر به تم روشن" : "تغییر به تم تاریک"}
       >
-        <span className="material-symbols-outlined text-2xl">
+        <span className="material-symbols-outlined flex size-8 items-center justify-center rounded-lg bg-zinc-100 text-xl transition-all group-hover:bg-zinc-950 group-hover:text-white dark:bg-white/[0.06]">
           {isDark ? "light_mode" : "dark_mode"}
         </span>
-        <span className="text-[10px] font-black">{isDark ? "تم روشن" : "تم تاریک"}</span>
+        <span className="w-full truncate text-[10px] font-black leading-4">{isDark ? "روشن" : "تاریک"}</span>
       </button>
     );
   }
@@ -65,13 +65,17 @@ export function ThemeToggle({ compact = false, nav = false }: ThemeToggleProps) 
   return (
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className={compact ? "ui-button-secondary min-h-10 px-3 text-xs" : "ui-button-secondary w-full justify-start px-3"}
+      className={
+        compact
+          ? "ui-button-secondary min-h-10 px-3 text-xs"
+          : "group flex w-full items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-sm font-black text-zinc-700 transition-all hover:bg-zinc-950 hover:text-white dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:bg-white dark:hover:text-zinc-950"
+      }
       title={isDark ? "تغییر به تم روشن" : "تغییر به تم تاریک"}
     >
-      <span className="material-symbols-outlined text-xl">
+      <span className={compact ? "material-symbols-outlined text-xl" : "material-symbols-outlined flex size-9 items-center justify-center rounded-lg bg-zinc-100 text-xl text-zinc-600 transition-all group-hover:bg-white/15 group-hover:text-inherit dark:bg-white/[0.06] dark:text-zinc-300"}>
         {isDark ? "light_mode" : "dark_mode"}
       </span>
-      <span className={compact ? "hidden sm:inline" : "truncate"}>
+      <span className={compact ? "hidden sm:inline" : "min-w-0 flex-1 truncate text-right"}>
         {isDark ? "تم روشن" : "تم تاریک"}
       </span>
     </button>
