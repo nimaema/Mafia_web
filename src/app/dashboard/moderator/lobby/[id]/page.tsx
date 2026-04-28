@@ -41,6 +41,7 @@ export default function GameLobbyPage() {
   const [customRoles, setCustomRoles] = useState<{ roleId: string; count: number }[]>([]);
   const [customRoleSearch, setCustomRoleSearch] = useState("");
   const [saveCustomScenario, setSaveCustomScenario] = useState(false);
+  const [customScenarioName, setCustomScenarioName] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -212,7 +213,21 @@ export default function GameLobbyPage() {
 
     setSettingScenario(true);
     setShowCustomModal(false);
-    const res = await createCustomGameScenario(gameId, customRoles, saveCustomScenario);
+    if (saveCustomScenario && !customScenarioName.trim()) {
+      showAlert("نام سناریو", "برای ذخیره در کتابخانه، یک نام کوتاه و مشخص وارد کنید.", "warning");
+      setSettingScenario(false);
+      setShowCustomModal(true);
+      return;
+    }
+
+    if (selectedCustomCount !== players.length) {
+      showAlert("تعداد نقش‌ها", `تعداد نقش‌ها (${selectedCustomCount}) باید با تعداد بازیکنان حاضر (${players.length}) برابر باشد.`, "warning");
+      setSettingScenario(false);
+      setShowCustomModal(true);
+      return;
+    }
+
+    const res = await createCustomGameScenario(gameId, customRoles, saveCustomScenario, customScenarioName);
     if (!res.success) {
       showAlert("خطا", res.error || "خطا در ایجاد سناریو سفارشی", "error");
     } else {
@@ -224,6 +239,7 @@ export default function GameLobbyPage() {
       }
       setCustomRoleSearch("");
       setSaveCustomScenario(false);
+      setCustomScenarioName("");
       showToast(saveCustomScenario ? "سناریوی سفارشی ذخیره و اعمال شد" : "سناریوی سفارشی اعمال شد", "success");
     }
     setSettingScenario(false);
@@ -315,6 +331,7 @@ export default function GameLobbyPage() {
                 onClick={() => {
                   setCustomRoleSearch("");
                   setSaveCustomScenario(false);
+                  setCustomScenarioName("");
                   setShowCustomModal(true);
                 }}
                 disabled={settingScenario}
@@ -408,6 +425,7 @@ export default function GameLobbyPage() {
                   setShowCustomModal(false);
                   setCustomRoleSearch("");
                   setSaveCustomScenario(false);
+                  setCustomScenarioName("");
                 }}
                 className="ui-button-secondary size-10 p-0"
               >
@@ -531,9 +549,22 @@ export default function GameLobbyPage() {
                 </span>
               </label>
 
+              {saveCustomScenario && (
+                <label className="flex flex-col gap-2 rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 sm:col-span-2">
+                  <span className="text-xs font-black text-lime-700 dark:text-lime-300">نام سناریو برای کتابخانه</span>
+                  <input
+                    value={customScenarioName}
+                    onChange={(event) => setCustomScenarioName(event.target.value)}
+                    maxLength={40}
+                    placeholder="مثلاً سناریوی ۱۰ نفره جمعه"
+                    className="w-full"
+                  />
+                </label>
+              )}
+
               <button
                 onClick={handleCreateCustomScenario}
-                disabled={selectedCustomCount === 0}
+                disabled={selectedCustomCount === 0 || selectedCustomCount !== players.length || (saveCustomScenario && !customScenarioName.trim())}
                 className="ui-button-primary min-h-12 w-full"
               >
                 <span className="material-symbols-outlined text-xl">save</span>

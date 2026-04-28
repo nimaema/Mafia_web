@@ -152,6 +152,14 @@ export function ScenariosManager({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!formData.name.trim()) {
+      showAlert("نام سناریو", "نام سناریو را وارد کنید.", "warning");
+      return;
+    }
+    if (formData.roles.length === 0) {
+      showAlert("نقش‌های سناریو", "حداقل یک نقش برای سناریو انتخاب کنید.", "warning");
+      return;
+    }
     setLoading(true);
 
     try {
@@ -379,12 +387,11 @@ export function ScenariosManager({
               </button>
             </div>
 
-            <form id="scenario-form" onSubmit={handleSubmit} className="custom-scrollbar flex-1 space-y-5 overflow-y-auto p-5">
+            <form id="scenario-form" onSubmit={handleSubmit} noValidate className="custom-scrollbar flex-1 space-y-5 overflow-y-auto p-5">
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="flex flex-col gap-2">
                   <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">نام سناریو</span>
                   <input
-                    required
                     value={formData.name}
                     onChange={(event) => setFormData({ ...formData, name: event.target.value })}
                     placeholder="مثلا کلاسیک ۱۲ نفره"

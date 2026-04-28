@@ -17,10 +17,16 @@ export async function updateProfile(formData: FormData) {
     if (!name || !email) {
       return { error: "لطفا نام و ایمیل را وارد کنید" };
     }
+    const nameParts = name.trim().split(/\s+/).filter(Boolean);
+    if (nameParts.some((part) => part.length > 25)) {
+      return { error: "نام و نام خانوادگی هر کدام حداکثر می‌توانند ۲۵ کاراکتر باشند." };
+    }
+
+    const currentUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { email: true } });
 
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { name, email }
+      data: { name, email, ...(currentUser?.email !== email ? { emailVerified: null } : {}) }
     });
 
     revalidatePath("/dashboard/user");

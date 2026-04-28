@@ -262,9 +262,9 @@ export function LobbyPreviewCard({
               <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 {seatItems.map((player, index) =>
                   player ? (
-                    <div key={player.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                    <div key={player.id} className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 dark:border-lime-500/20 dark:bg-lime-500/10">
                       <div className="flex items-center gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-sm font-black text-zinc-950">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-sm font-black text-zinc-950 shadow-sm shadow-lime-500/20">
                           {getInitial(player.name)}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -281,15 +281,15 @@ export function LobbyPreviewCard({
                   ) : (
                     <div
                       key={`empty-seat-${index}`}
-                      className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/60 p-3 dark:border-white/10 dark:bg-white/[0.02]"
+                      className="rounded-lg border border-dashed border-sky-500/25 bg-sky-500/10 p-3 dark:border-sky-500/20 dark:bg-sky-500/10"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-400 dark:border-white/10 dark:bg-zinc-950">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-sky-500/20 bg-white text-sky-500 dark:border-sky-500/20 dark:bg-zinc-950">
                           <span className="material-symbols-outlined text-base">person_add</span>
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">صندلی آزاد</p>
-                          <p className="mt-1 text-[10px] text-zinc-400">جایگاه {index + 1}</p>
+                          <p className="text-sm font-bold text-sky-700 dark:text-sky-300">جای خالی</p>
+                          <p className="mt-1 text-[10px] text-sky-600/80 dark:text-sky-300/80">جایگاه {index + 1}</p>
                         </div>
                       </div>
                     </div>

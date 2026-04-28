@@ -101,43 +101,45 @@ export default function ModeratorDashboard() {
   return (
     <div className="flex flex-col gap-5 font-sans" dir="rtl">
       <section className="ui-card overflow-hidden">
-        <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="flex items-start gap-4">
-            <div className="ui-icon-accent size-14">
-              <span className="material-symbols-outlined text-3xl">sports_esports</span>
+        <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="ui-icon-accent size-12">
+              <span className="material-symbols-outlined text-2xl">sports_esports</span>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="ui-kicker">مرکز گردانندگی</p>
-              <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">اتاق کنترل بازی‌ها</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+              <h1 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">اتاق کنترل بازی‌ها</h1>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
                 لابی را بسازید، سناریو را داخل اتاق انتظار تنظیم کنید و بازی‌های فعال را بدون شلوغی مدیریت کنید.
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button onClick={() => setShowCreateModal(true)} className="ui-button-primary min-h-11 px-5">
-                  <span className="material-symbols-outlined text-xl">add_circle</span>
-                  لابی جدید
-                </button>
-                <button onClick={refreshGames} className="ui-button-secondary min-h-11 px-4" disabled={isRefreshing}>
-                  <span className={`material-symbols-outlined text-xl ${isRefreshing ? "animate-spin" : ""}`}>refresh</span>
-                  بروزرسانی
-                </button>
-              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-3 lg:items-end">
+            <div className="grid grid-cols-4 gap-2">
             {[
               ["لابی‌ها", activeGames.length, "dashboard"],
               ["بازیکن‌ها", totalPlayers, "group"],
               ["در انتظار", waitingGames, "hourglass_top"],
               ["در جریان", inProgressGames, "bolt"],
             ].map(([label, value, icon]) => (
-              <div key={label} className="ui-muted p-3">
-                <span className="material-symbols-outlined text-lg text-lime-600 dark:text-lime-400">{icon}</span>
-                <p className="mt-2 text-xl font-black text-zinc-950 dark:text-white">{value}</p>
-                <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+              <div key={label} className="ui-muted min-w-16 px-3 py-2 text-center">
+                <span className="material-symbols-outlined text-base text-lime-600 dark:text-lime-400">{icon}</span>
+                <p className="mt-1 text-lg font-black text-zinc-950 dark:text-white">{value}</p>
+                <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
               </div>
             ))}
+            </div>
+            <div className="flex w-full gap-2 lg:w-auto">
+              <button onClick={() => setShowCreateModal(true)} className="ui-button-primary min-h-10 flex-1 px-4 lg:flex-none">
+                <span className="material-symbols-outlined text-lg">add_circle</span>
+                لابی جدید
+              </button>
+              <button onClick={refreshGames} className="ui-button-secondary min-h-10 flex-1 px-4 lg:flex-none" disabled={isRefreshing}>
+                <span className={`material-symbols-outlined text-lg ${isRefreshing ? "animate-spin" : ""}`}>refresh</span>
+                بروزرسانی
+              </button>
+            </div>
           </div>
         </div>
       </section>

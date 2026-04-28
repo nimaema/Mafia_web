@@ -52,6 +52,11 @@ function buildResetUrl(baseUrl: string, token: string) {
   return `${normalizedBaseUrl}/auth/reset-password?token=${token}`;
 }
 
+function buildVerifyUrl(baseUrl: string, token: string, email: string) {
+  const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
+  return `${normalizedBaseUrl}/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+}
+
 function getTransporter(config = getMailConfig()) {
   if (!config.host) {
     return null;
@@ -178,6 +183,59 @@ function buildResetMessage(email: string, resetUrl: string, from: string) {
   };
 }
 
+function buildVerificationMessage(email: string, verifyUrl: string, from: string) {
+  return {
+    from,
+    to: email,
+    subject: "تایید ایمیل حساب مافیا بورد",
+    html: `
+      <!DOCTYPE html>
+      <html lang="fa" dir="rtl">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>
+          body { margin: 0; background: #f4f4f5; color: #18181b; direction: rtl; font-family: Vazirmatn, Tahoma, Arial, sans-serif; }
+          .shell { padding: 32px 12px; }
+          .card { max-width: 560px; margin: 0 auto; overflow: hidden; border-radius: 28px; background: #ffffff; border: 1px solid #e4e4e7; box-shadow: 0 24px 70px rgba(24,24,27,.14); }
+          .hero { padding: 34px 30px; background: linear-gradient(135deg, #0f172a, #18181b 56%, #365314); color: white; }
+          .badge { display: inline-block; border-radius: 999px; background: rgba(132,204,22,.16); color: #d9f99d; padding: 9px 13px; font-size: 12px; font-weight: 900; }
+          h1 { margin: 18px 0 0; font-size: 32px; line-height: 1.45; font-weight: 950; }
+          .hero p { margin: 12px 0 0; color: #e4e4e7; line-height: 2; font-weight: 700; }
+          .body { padding: 30px; }
+          .copy { margin: 0; color: #3f3f46; font-size: 15px; line-height: 2; font-weight: 700; }
+          .action { margin: 28px 0; text-align: center; }
+          .btn { display: inline-block; min-width: 220px; border-radius: 18px; background: #84cc16; color: #18181b !important; padding: 16px 26px; font-weight: 950; text-decoration: none; box-shadow: 0 16px 34px rgba(132,204,22,.34); }
+          .note { border-radius: 18px; border: 1px solid #bae6fd; background: #f0f9ff; padding: 15px; color: #075985; font-size: 13px; line-height: 2; font-weight: 800; }
+          .link { margin-top: 18px; border-radius: 18px; border: 1px solid #e4e4e7; background: #f4f4f5; padding: 14px; color: #2563eb; direction: ltr; text-align: left; word-break: break-all; font-size: 12px; line-height: 1.8; }
+          .footer { padding: 0 30px 28px; color: #71717a; text-align: center; font-size: 12px; font-weight: 700; }
+          @media (max-width: 520px) { .shell { padding: 12px 8px; } .hero, .body, .footer { padding-left: 18px; padding-right: 18px; } h1 { font-size: 25px; } .btn { display: block; min-width: 0; } }
+        </style>
+      </head>
+      <body>
+        <div class="shell">
+          <div class="card">
+            <div class="hero">
+              <span class="badge">Mafia Board</span>
+              <h1>ایمیل‌تان را تایید کنید</h1>
+              <p>فقط یک قدم مانده تا لابی‌ها، تاریخچه بازی و داشبورد کامل برای شما فعال شود.</p>
+            </div>
+            <div class="body">
+              <p class="copy">برای فعال‌سازی حساب ${email} روی دکمه زیر بزنید. این لینک تا ۲۴ ساعت معتبر است.</p>
+              <div class="action"><a class="btn" href="${verifyUrl}">تایید ایمیل</a></div>
+              <div class="note">اگر شما این حساب را نساخته‌اید، این ایمیل را نادیده بگیرید.</div>
+              <div class="link">${verifyUrl}</div>
+            </div>
+            <div class="footer">این پیام خودکار از طرف مافیا بورد ارسال شده است.</div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `برای تایید ایمیل حساب خود به این لینک بروید: ${verifyUrl}`,
+  };
+}
+
 async function sendWithResendApi(
   message: ReturnType<typeof buildResetMessage>,
   apiKey: string,
@@ -251,5 +309,34 @@ export async function sendPasswordResetEmail(
       ...(process.env.NODE_ENV !== "production" ? { previewUrl: resetUrl } : {}),
       reason: "mail delivery failed",
     };
+  }
+}
+
+export async function sendVerificationEmail(
+  email: string,
+  token: string,
+  baseUrl: string
+): Promise<PasswordResetEmailResult> {
+  const config = getMailConfig();
+  const verifyUrl = buildVerifyUrl(baseUrl, token, email);
+  const message = buildVerificationMessage(email, verifyUrl, config.from);
+
+  if (config.resendApiKey) {
+    return sendWithResendApi(message, config.resendApiKey, verifyUrl);
+  }
+
+  const transporter = getTransporter(config);
+
+  if (!transporter) {
+    console.info("[VERIFY_EMAIL_PREVIEW]", { email, verifyUrl, reason: "mail transport is not configured" });
+    return { delivered: false, previewUrl: verifyUrl, reason: "mail transport is not configured" };
+  }
+
+  try {
+    await withTimeout(transporter.sendMail(message), MAIL_TIMEOUT_MS);
+    return { delivered: true };
+  } catch (error) {
+    console.warn("[VERIFY_EMAIL_FAILED]", { email, error });
+    return { delivered: false, reason: "mail delivery failed" };
   }
 }

@@ -284,9 +284,9 @@ export default function UserDashboard() {
         <PanelHeader icon="near_me" title="میانبرهای سریع" subtitle="کارهای پرکاربرد بدون تکرار آمار" />
         <div className="grid gap-3 p-4 md:grid-cols-3">
           {[
-            ["/join", "ورود با کد", "پیوستن مستقیم به یک لابی", "login"],
             ["/dashboard/user/history", "تاریخچه کامل", "مرور بازی‌ها با جزئیات نقش‌ها", "history"],
             ["/dashboard/user/profile", "پروفایل بازیکن", "ویرایش نام و تصویر حساب", "badge"],
+            ["/", "صفحه اصلی", "بازگشت به نمای معرفی و شروع", "home"],
           ].map(([href, label, text, icon]) => (
             <Link
               key={href}

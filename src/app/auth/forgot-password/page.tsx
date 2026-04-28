@@ -16,6 +16,10 @@ export default function ForgotPasswordPage() {
     setError(null);
     setMessage(null);
     setPreviewUrl(null);
+    if (!email.trim()) {
+      setError("ایمیل حساب را وارد کنید.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -52,7 +56,7 @@ export default function ForgotPasswordPage() {
         </Link>
       }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         {error && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
             <div className="flex items-center gap-2 font-medium">
@@ -91,7 +95,6 @@ export default function ForgotPasswordPage() {
             <input
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              required
               type="email"
               dir="ltr"
               autoComplete="email"

@@ -20,6 +20,11 @@ export default function JoinGamePage() {
     const gameId = String(formData.get("gameId") || "").trim();
     const name = String(formData.get("name") || "").trim();
     const password = String(formData.get("password") || "").trim();
+    if (!gameId || !name) {
+      showAlert("فرم ناقص است", "کد بازی و نام نمایشی حساب را کامل وارد کنید.", "warning");
+      setLoading(false);
+      return;
+    }
 
     try {
       const result = await joinGame(gameId, name, password);
@@ -76,14 +81,13 @@ export default function JoinGamePage() {
             </p>
           </header>
 
-          <form onSubmit={handleJoin} className="space-y-4 p-6">
+          <form onSubmit={handleJoin} noValidate className="space-y-4 p-6">
             <label className="flex flex-col gap-2">
               <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">کد بازی</span>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">tag</span>
                 <input
                   name="gameId"
-                  required
                   type="text"
                   inputMode="numeric"
                   dir="ltr"
@@ -99,7 +103,6 @@ export default function JoinGamePage() {
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">person</span>
                 <input
                   name="name"
-                  required
                   type="text"
                   defaultValue={session?.user?.name || ""}
                   placeholder="نامی که سایر بازیکنان می‌بینند"

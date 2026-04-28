@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { updateProfile, changePassword } from "@/actions/user";
 import { signIn, useSession } from "next-auth/react";
 import { usePopup } from "@/components/PopupProvider";
@@ -9,6 +9,13 @@ import { useEffect } from "react";
 export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { user: { name: string, email: string }, hasGoogleProvider?: boolean, hasPassword?: boolean }) {
   const { update } = useSession();
   const { showToast, showAlert } = usePopup();
+  const [nameValue, setNameValue] = useState(user.name || "");
+  const [nameWarning, setNameWarning] = useState("");
+
+  const checkName = (value: string) => {
+    const longPart = value.trim().split(/\s+/).find((part) => part.length > 25);
+    setNameWarning(longPart ? "نام و نام خانوادگی هر کدام حداکثر ۲۵ کاراکتر هستند." : "");
+  };
 
   const [result, action, isPending] = useActionState(
     async (prevState: any, formData: FormData) => {
@@ -47,7 +54,17 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
 
   return (
     <div className="flex flex-col gap-10">
-    <form action={action} className="flex flex-col gap-5">
+    <form action={action} noValidate className="flex flex-col gap-5" onSubmit={(event) => {
+      const formData = new FormData(event.currentTarget);
+      if (!String(formData.get("name") || "").trim() || !String(formData.get("email") || "").trim()) {
+        event.preventDefault();
+        showAlert("فرم ناقص است", "نام و ایمیل را کامل وارد کنید.", "warning");
+      }
+      if (nameWarning) {
+        event.preventDefault();
+        showAlert("نام طولانی است", nameWarning, "warning");
+      }
+    }}>
       <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">اطلاعات پروفایل</h3>
 
       <div className="flex flex-col gap-2">
@@ -57,11 +74,20 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
           <input 
             type="text" 
             name="name" 
-            defaultValue={user.name} 
-            required
+            value={nameValue}
+            onChange={(event) => {
+              setNameValue(event.target.value);
+              checkName(event.target.value);
+            }}
+            maxLength={60}
             className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 outline-none focus:border-lime-500 transition-colors"
           />
         </div>
+        {nameWarning && (
+          <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-700 dark:text-amber-300">
+            {nameWarning}
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -72,7 +98,6 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
             type="email" 
             name="email" 
             defaultValue={user.email} 
-            required
             dir="ltr"
             readOnly={hasGoogleProvider}
             className={`w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 outline-none focus:border-lime-500 transition-colors ${hasGoogleProvider ? 'opacity-60 cursor-not-allowed' : ''}`}
@@ -96,7 +121,13 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
 
     <div className="h-px w-full bg-zinc-200 dark:bg-zinc-800 my-2"></div>
 
-    <form action={pwdAction} className="flex flex-col gap-5">
+    <form action={pwdAction} noValidate className="flex flex-col gap-5" onSubmit={(event) => {
+      const formData = new FormData(event.currentTarget);
+      if (!String(formData.get("newPassword") || "") || !String(formData.get("confirmPassword") || "") || (hasPassword && !String(formData.get("currentPassword") || ""))) {
+        event.preventDefault();
+        showAlert("فرم ناقص است", "فیلدهای رمز عبور را کامل وارد کنید.", "warning");
+      }
+    }}>
       <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{hasPassword ? "تغییر رمز عبور" : "ایجاد رمز عبور"}</h3>
 
       {hasPassword && (
@@ -107,7 +138,6 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
             <input 
               type="password" 
               name="currentPassword" 
-              required
               dir="ltr"
               className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 outline-none focus:border-blue-500 transition-colors"
             />
@@ -122,7 +152,6 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
           <input 
             type="password" 
             name="newPassword" 
-            required
             dir="ltr"
             className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 outline-none focus:border-blue-500 transition-colors"
           />
@@ -136,7 +165,6 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
           <input 
             type="password" 
             name="confirmPassword" 
-            required
             dir="ltr"
             className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-10 pr-4 outline-none focus:border-blue-500 transition-colors"
           />

@@ -56,6 +56,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             (profile as { picture?: string; image?: string } | undefined)?.picture ||
             (profile as { picture?: string; image?: string } | undefined)?.image;
 
+          if (!dbUser.emailVerified) {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { emailVerified: new Date() },
+            });
+          }
+
           if (googleImage && googleImage !== dbUser.image) {
             await prisma.user.update({
               where: { id: dbUser.id },
@@ -63,6 +70,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             });
             user.image = googleImage;
           }
+        } else if (account?.provider === "credentials" && dbUser && !dbUser.emailVerified) {
+          return "/auth/verify-email";
         }
       }
       return true;
@@ -120,5 +129,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return session
     }
+  },
+  events: {
+    async createUser({ user }) {
+      if (user.email) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { emailVerified: new Date() },
+        });
+      }
+    },
   }
 })

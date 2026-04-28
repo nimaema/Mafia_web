@@ -15,7 +15,7 @@ export default auth((req: NextRequest & { auth: any }) => {
 
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
   const isPublicRoute =
-    ["/", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/api/init-db"].includes(
+    ["/", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/auth/verify-email", "/api/init-db"].includes(
       nextUrl.pathname
     ) || nextUrl.pathname.startsWith("/public");
   const isAuthRoute = ["/auth/login", "/auth/register"].includes(nextUrl.pathname);

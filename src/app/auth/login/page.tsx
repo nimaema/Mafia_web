@@ -6,12 +6,19 @@ import { loginUser } from "@/actions/auth";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { usePopup } from "@/components/PopupProvider";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { showAlert } = usePopup();
 
   const [error, setError] = useActionState<string | null, FormData>(
     async (_previousState, formData) => {
+      const email = String(formData.get("email") || "").trim();
+      const password = String(formData.get("password") || "");
+      if (!email || !password) {
+        return "ایمیل و رمز عبور را کامل وارد کنید";
+      }
       const result = await loginUser(formData);
       if (result.success) {
         if (result.role === "ADMIN") {
@@ -24,7 +31,13 @@ export default function LoginPage() {
         return null;
       }
 
-      return "ایمیل یا رمز عبور اشتباه است";
+      if ((result as any).needsVerification) {
+        showAlert("ایمیل تایید نشده", result.error || "برای ورود ابتدا ایمیل خود را تایید کنید.", "warning");
+        router.push(`/auth/verify-email?email=${encodeURIComponent((result as any).email || email)}`);
+        return null;
+      }
+
+      return result.error || "ایمیل یا رمز عبور اشتباه است";
     },
     null
   );
@@ -36,7 +49,7 @@ export default function LoginPage() {
       subtitle="برای دسترسی به داشبورد، لابی‌ها و کنترل بازی وارد حساب خود شوید."
       activeTab="login"
     >
-      <form action={setError} className="flex flex-col gap-5">
+      <form action={setError} noValidate className="flex flex-col gap-5">
         {error && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
             <div className="flex items-center gap-2 font-medium">
@@ -52,7 +65,6 @@ export default function LoginPage() {
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">mail</span>
             <input
               name="email"
-              required
               type="email"
               dir="ltr"
               autoComplete="email"
@@ -73,7 +85,6 @@ export default function LoginPage() {
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
             <input
               name="password"
-              required
               type="password"
               dir="ltr"
               autoComplete="current-password"

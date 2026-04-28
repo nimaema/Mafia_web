@@ -184,6 +184,10 @@ export default function AdminDashboard() {
 
   const handleAddRole = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!newRoleName.trim()) {
+      showAlert("نام نقش", "نام نقش را وارد کنید.", "warning");
+      return;
+    }
 
     try {
       if (editingRoleId) {
@@ -237,6 +241,11 @@ export default function AdminDashboard() {
 
   const handleAddScenario = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (!newScenName.trim()) {
+      showAlert("نام سناریو", "نام سناریو را وارد کنید.", "warning");
+      return;
+    }
 
     if (selectedRoles.length === 0) {
       showAlert("هشدار", "حداقل یک نقش برای سناریو انتخاب کنید", "warning");
@@ -488,13 +497,12 @@ export default function AdminDashboard() {
                 )}
               </div>
 
-              <form onSubmit={handleAddRole} className="mt-5 flex flex-col gap-4">
+              <form onSubmit={handleAddRole} noValidate className="mt-5 flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">نام نقش</label>
                   <input
                     value={newRoleName}
                     onChange={(event) => setNewRoleName(event.target.value)}
-                    required
                     placeholder="مثلا تفنگدار"
                   />
                 </div>
@@ -643,13 +651,12 @@ export default function AdminDashboard() {
                 ) : null}
               </div>
 
-              <form onSubmit={handleAddScenario} className="mt-5 flex flex-col gap-4">
+              <form onSubmit={handleAddScenario} noValidate className="mt-5 flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">نام سناریو</label>
                   <input
                     value={newScenName}
                     onChange={(event) => setNewScenName(event.target.value)}
-                    required
                     placeholder="مثلا تکاور ۱۵ نفره"
                   />
                 </div>

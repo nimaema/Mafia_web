@@ -24,14 +24,16 @@ export default async function DashboardLayout({
 
   return (
     <div className="app-page min-h-screen pb-28 md:pb-0 md:flex md:items-start" dir="rtl">
-      <aside className="sticky top-0 z-20 hidden h-screen w-72 shrink-0 flex-col border-l border-zinc-200 bg-white/90 p-5 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/80 md:flex">
-        <div className="mb-8 flex items-center gap-3 px-2">
+      <aside className="sticky top-0 z-20 hidden h-screen w-72 shrink-0 flex-col border-l border-zinc-200 bg-white/85 p-5 shadow-xl shadow-zinc-950/5 backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/85 dark:shadow-black/20 md:flex">
+        <div className="mb-6 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+          <div className="flex items-center gap-3">
           <div className="ui-icon-accent size-12">
             <span className="material-symbols-outlined text-2xl font-black">theater_comedy</span>
           </div>
           <div className="flex flex-col">
             <h1 className="text-xl font-black text-slate-900 dark:text-white">مافیا بورد</h1>
             <span className="ui-kicker">دستیار مدیریت بازی</span>
+          </div>
           </div>
         </div>
         
@@ -77,6 +79,10 @@ export default async function DashboardLayout({
               <Link href="/dashboard/admin/users" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-sky-500/10 hover:text-sky-700 dark:text-zinc-400 dark:hover:text-sky-300">
                 <span className="material-symbols-outlined">group</span>
                 <span>کاربران سیستم</span>
+              </Link>
+              <Link href="/dashboard/admin/history" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-sky-500/10 hover:text-sky-700 dark:text-zinc-400 dark:hover:text-sky-300">
+                <span className="material-symbols-outlined">manage_history</span>
+                <span>تاریخچه کل</span>
               </Link>
             </>
           )}
@@ -124,10 +130,16 @@ export default async function DashboardLayout({
           </>
         )}
         {isAdmin && (
-          <Link href="/dashboard/admin/users" className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 transition-colors hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400">
-            <span className="material-symbols-outlined text-2xl">admin_panel_settings</span>
-            <span className="text-[10px] font-black">کاربران</span>
-          </Link>
+          <>
+            <Link href="/dashboard/admin/users" className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 transition-colors hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400">
+              <span className="material-symbols-outlined text-2xl">admin_panel_settings</span>
+              <span className="text-[10px] font-black">کاربران</span>
+            </Link>
+            <Link href="/dashboard/admin/history" className="flex min-w-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-zinc-500 transition-colors hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400">
+              <span className="material-symbols-outlined text-2xl">manage_history</span>
+              <span className="text-[10px] font-black">تاریخچه</span>
+            </Link>
+          </>
         )}
         <ThemeToggle nav />
         <form action={handleLogout} className="min-w-16 flex-1">

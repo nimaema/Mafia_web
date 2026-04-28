@@ -23,6 +23,16 @@ function ResetPasswordForm() {
       return;
     }
 
+    if (!password || !confirmPassword) {
+      setError("رمز عبور و تکرار آن را کامل وارد کنید");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("رمز عبور باید حداقل ۸ کاراکتر باشد");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("تکرار رمز عبور مطابقت ندارد");
       return;
@@ -62,7 +72,7 @@ function ResetPasswordForm() {
         </Link>
       }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         {error && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
             <div className="flex items-center gap-2 font-medium">
@@ -79,7 +89,6 @@ function ResetPasswordForm() {
             <input
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              required
               minLength={8}
               type="password"
               dir="ltr"
@@ -97,7 +106,6 @@ function ResetPasswordForm() {
             <input
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              required
               minLength={8}
               type="password"
               dir="ltr"

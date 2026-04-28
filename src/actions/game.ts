@@ -30,6 +30,10 @@ export async function joinGame(code: string, playerName: string, password?: stri
 
     const game = await prisma.game.findUnique({
       where: { code: code },
+      include: {
+        scenario: { include: { roles: true } },
+        _count: { select: { players: true } },
+      },
     });
 
     if (!game) {
@@ -42,6 +46,11 @@ export async function joinGame(code: string, playerName: string, password?: stri
 
     if (game.password && game.password !== password) {
       return { error: "رمز عبور اشتباه است" };
+    }
+
+    const capacity = game.scenario?.roles.reduce((sum, role) => sum + role.count, 0) || 0;
+    if (capacity > 0 && game._count.players >= capacity) {
+      return { error: "ظرفیت این لابی تکمیل شده است. از گرداننده بخواهید سناریوی بزرگ‌تر انتخاب کند یا لابی جدید بسازد." };
     }
 
     const dbUser = await prisma.user.findUnique({
@@ -341,6 +350,39 @@ export async function startGame(gameId: string) {
 export async function setGameScenario(gameId: string, scenarioId: string) {
   try {
     await checkModerator();
+    if (scenarioId) {
+      const [game, scenario] = await Promise.all([
+        prisma.game.findUnique({
+          where: { id: gameId },
+          include: { _count: { select: { players: true } } },
+        }),
+        prisma.scenario.findUnique({
+          where: { id: scenarioId },
+          include: { roles: true },
+        }),
+      ]);
+      const capacity = scenario?.roles.reduce((sum, role) => sum + role.count, 0) || 0;
+      if (game && capacity > 0 && game._count.players > capacity) {
+        const suggestions = await prisma.scenario.findMany({
+          where: {
+            roles: { some: {} },
+          },
+          include: { roles: true },
+          orderBy: { updatedAt: "desc" },
+        });
+        const matchingNames = suggestions
+          .filter((item) => item.roles.reduce((sum, role) => sum + role.count, 0) === game._count.players)
+          .slice(0, 3)
+          .map((item) => item.name);
+
+        throw new Error(
+          matchingNames.length
+            ? `تعداد بازیکنان حاضر (${game._count.players}) از ظرفیت این سناریو (${capacity}) بیشتر است. سناریوهای مناسب: ${matchingNames.join("، ")}.`
+            : `تعداد بازیکنان حاضر (${game._count.players}) از ظرفیت این سناریو (${capacity}) بیشتر است. یک سناریوی سفارشی ${game._count.players} نفره بسازید.`
+        );
+      }
+    }
+
     await prisma.game.update({
       where: { id: gameId },
       data: { scenarioId: scenarioId || null }
@@ -358,22 +400,38 @@ export async function setGameScenario(gameId: string, scenarioId: string) {
     return { success: true };
   } catch (error: any) {
     console.error("Set scenario error:", error);
-    return { error: "خطا در تنظیم سناریو" };
+    return { error: error.message || "خطا در تنظیم سناریو" };
   }
 }
 
 export async function createCustomGameScenario(
   gameId: string,
   roles: { roleId: string, count: number }[],
-  saveToLibrary = false
+  saveToLibrary = false,
+  scenarioName?: string
 ) {
   try {
     const moderatorId = await checkModerator();
     const uniqueSuffix = `${gameId.slice(0, 6)}-${Date.now().toString(36)}`;
+    const totalRoles = roles.reduce((sum, role) => sum + role.count, 0);
+    const game = await prisma.game.findUnique({
+      where: { id: gameId },
+      include: { _count: { select: { players: true } } },
+    });
+
+    if (!game) throw new Error("لابی یافت نشد");
+    if (totalRoles !== game._count.players) {
+      throw new Error(`تعداد نقش‌ها (${totalRoles}) باید دقیقاً با تعداد بازیکنان حاضر (${game._count.players}) برابر باشد.`);
+    }
+
+    const cleanName = scenarioName?.trim();
+    if (saveToLibrary && !cleanName) {
+      throw new Error("برای ذخیره سناریو در کتابخانه، نام سناریو را وارد کنید.");
+    }
     
     const scenario = await prisma.scenario.create({
       data: {
-        name: saveToLibrary ? `سناریوی سفارشی ${uniqueSuffix}` : `بازی سفارشی ${uniqueSuffix}`,
+        name: saveToLibrary ? cleanName! : `بازی سفارشی ${uniqueSuffix}`,
         description: saveToLibrary
           ? "سناریو ذخیره‌شده از لابی بازی"
           : `${TEMP_SCENARIO_DESCRIPTION_PREFIX} سناریوی موقت این لابی`,

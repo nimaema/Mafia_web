@@ -249,3 +249,70 @@ export async function deleteGameHistory(gameId: string) {
     return { error: "خطا در حذف تاریخچه بازی" };
   }
 }
+
+export async function getAdminGameHistoryPage(page = 0, pageSize = 10) {
+  noStore();
+  const session = await auth();
+  if (session?.user?.role !== "ADMIN") {
+    return {
+      items: [],
+      total: 0,
+      page: 0,
+      pageSize,
+      totalPages: 0,
+      hasNext: false,
+      hasPrevious: false,
+      error: "شما دسترسی لازم برای این بخش را ندارید.",
+    };
+  }
+
+  const safePageSize = Math.max(1, Math.min(20, pageSize));
+  const safePage = Math.max(0, page);
+  const [total, games] = await Promise.all([
+    prisma.game.count({ where: { histories: { some: {} } } }),
+    prisma.game.findMany({
+      where: { histories: { some: {} } },
+      orderBy: { createdAt: "desc" },
+      skip: safePage * safePageSize,
+      take: safePageSize,
+      include: {
+        scenario: true,
+        moderator: true,
+        histories: {
+          include: {
+            user: true,
+            role: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
+        players: { include: { role: true }, orderBy: { createdAt: "asc" } },
+      },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(total / safePageSize);
+  return {
+    items: games.map((game) => ({
+      id: game.id,
+      gameName: game.name || "بازی مافیا",
+      gameCode: game.code,
+      scenarioName: game.scenario?.name || "بدون سناریو",
+      moderatorName: game.moderator?.name || "ناشناس",
+      date: game.createdAt.toLocaleDateString("fa-IR"),
+      historyCount: game.histories.length,
+      playerCount: game.players.length,
+      histories: game.histories.map((history) => ({
+        userName: history.user.name || history.user.email || "کاربر",
+        roleName: history.role.name,
+        alignment: history.role.alignment,
+        result: history.result || "PENDING",
+      })),
+    })),
+    total,
+    page: safePage,
+    pageSize: safePageSize,
+    totalPages,
+    hasNext: safePage + 1 < totalPages,
+    hasPrevious: safePage > 0,
+  };
+}

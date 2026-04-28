@@ -13,10 +13,17 @@ export default function RegisterPage() {
   const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const password = String(formData.get("password") || "");
+    if (!name || !email || !password) {
+      showAlert("فرم ناقص است", "نام، ایمیل و رمز عبور را کامل وارد کنید.", "warning");
+      return;
+    }
     const result = await registerUser(formData);
 
     if (result.success) {
-      router.push("/auth/login");
+      router.push(`/auth/verify-email?email=${encodeURIComponent(email.toLowerCase())}`);
     } else {
       showAlert("خطا در ثبت نام", result.error || "مشکلی در ایجاد حساب رخ داد", "error");
     }
@@ -29,14 +36,13 @@ export default function RegisterPage() {
       subtitle="حساب خود را بسازید تا به لابی‌ها، تاریخچه بازی و ابزارهای مدیریت دسترسی داشته باشید."
       activeTab="register"
     >
-      <form onSubmit={handleRegister} className="flex flex-col gap-5">
+      <form onSubmit={handleRegister} noValidate className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">نام کامل</label>
           <div className="relative">
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">badge</span>
             <input
               name="name"
-              required
               type="text"
               autoComplete="name"
               placeholder="نام و نام خانوادگی"
@@ -51,7 +57,6 @@ export default function RegisterPage() {
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">mail</span>
             <input
               name="email"
-              required
               type="email"
               dir="ltr"
               autoComplete="email"
@@ -67,7 +72,6 @@ export default function RegisterPage() {
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
             <input
               name="password"
-              required
               type="password"
               dir="ltr"
               autoComplete="new-password"
