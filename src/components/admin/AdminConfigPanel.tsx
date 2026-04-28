@@ -74,9 +74,9 @@ const STANDARD_SCENARIO_NAMES = [
 
 const ABILITY_EFFECT_OPTIONS: { value: AbilityEffectType; label: string; description: string }[] = [
   { value: "NONE", label: "ثبت ساده", description: "فقط در گزارش شب ثبت می‌شود." },
-  { value: "CONVERT_TO_MAFIA", label: "خریداری", description: "هدف به نقش مافیایی انتخاب‌شده تبدیل می‌شود." },
-  { value: "YAKUZA", label: "یاکوزا", description: "یک مافیا حذف و یک شهروند خریداری می‌شود." },
-  { value: "TWO_NAME_INQUIRY", label: "بازپرسی دو نفره", description: "دو اسم برای پاسخ گرداننده ثبت می‌شود." },
+  { value: "CONVERT_TO_MAFIA", label: "خریداری گادفادر", description: "هدف به نقش مافیایی انتخاب‌شده تبدیل می‌شود." },
+  { value: "YAKUZA", label: "یاکوزای گادفادر", description: "یک مافیا حذف و یک شهروند خریداری می‌شود." },
+  { value: "TWO_NAME_INQUIRY", label: "بازپرسی بازپرس", description: "دو اسم برای پاسخ گرداننده ثبت می‌شود." },
 ];
 
 function normalizeEffectType(value: unknown): AbilityEffectType {
@@ -698,9 +698,9 @@ export default function AdminDashboard() {
                 <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/40">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-black text-zinc-950 dark:text-white">توانایی‌های شب</p>
+                      <p className="text-xs font-black text-zinc-950 dark:text-white">توانایی‌های شب همین نقش</p>
                       <p className="mt-1 text-[10px] leading-5 text-zinc-500 dark:text-zinc-400">
-                        برای نقش‌هایی مثل دکتر، کارآگاه یا تک‌تیرانداز تعداد استفاده را مشخص کنید.
+                        فقط برای نقشی که در حال ساخت یا ویرایش است اعمال می‌شود؛ مثل دکتر، گادفادر، بازپرس یا تفنگدار.
                       </p>
                     </div>
                     <button
@@ -801,7 +801,7 @@ export default function AdminDashboard() {
                           </div>
 
                           <label className="flex flex-col gap-1">
-                            <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">اثر ویژه توانایی</span>
+                            <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">اثر ویژه، فقط اگر این نقش دارد</span>
                             <select
                               value={ability.effectType}
                               onChange={(event) =>
@@ -820,9 +820,9 @@ export default function AdminDashboard() {
                           <div className="rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/50">
                             <div className="flex items-center justify-between gap-2">
                               <div>
-                                <p className="text-[11px] font-black text-zinc-700 dark:text-zinc-300">انتخاب‌های داخل توانایی</p>
+                                <p className="text-[11px] font-black text-zinc-700 dark:text-zinc-300">زیرگزینه‌های اختیاری این توانایی</p>
                                 <p className="mt-0.5 text-[10px] leading-4 text-zinc-500 dark:text-zinc-400">
-                                  برای نقش‌هایی مثل تفنگدار: تفنگ واقعی، تفنگ مشقی، یا هر گزینه جدا.
+                                  فقط وقتی یک توانایی چند انتخاب جدا دارد؛ مثل تفنگدار با تفنگ واقعی و تفنگ مشقی. برای دکتر یا بازپرس معمولاً خالی می‌ماند.
                                 </p>
                               </div>
                               <button
