@@ -72,8 +72,6 @@ export function LobbyPreviewCard({
   footer,
   compact = false,
 }: LobbyPreviewCardProps) {
-  const shownSeatCount = capacity > 0 ? Math.min(Math.max(capacity, players.length), 15) : Math.min(Math.max(players.length, 6), 12);
-  const seatItems = Array.from({ length: shownSeatCount }, (_, index) => players[index] || null);
   const progress = capacity > 0 ? Math.min(100, Math.round((playerCount / capacity) * 100)) : 0;
   const seatsLeft = capacity > 0 ? Math.max(capacity - playerCount, 0) : null;
   const citizenCount = roleBreakdown.filter((role) => role.alignment === "CITIZEN").reduce((sum, role) => sum + role.count, 0);
@@ -131,7 +129,7 @@ export function LobbyPreviewCard({
               </div>
               <div className="mt-2 flex items-center justify-between gap-2 text-[11px] font-bold">
                 <span className="text-zinc-500 dark:text-zinc-400">
-                  {seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "لابی تکمیل" : `${seatsLeft} جای خالی`}
+                  {seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "لابی تکمیل" : `${seatsLeft} ظرفیت باقی‌مانده`}
                 </span>
                 <span className="text-lime-700 dark:text-lime-300">{progress}% تکمیل</span>
               </div>
@@ -139,16 +137,33 @@ export function LobbyPreviewCard({
 
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-black text-zinc-950 dark:text-white">بازیکنان</p>
+                <p className="text-xs font-black text-zinc-950 dark:text-white">بازیکنان حاضر</p>
                 <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{moderatorName || "گرداننده"}</p>
               </div>
-              <div className="grid grid-cols-6 gap-2">
-                {previewPlayers.map((player) => (
-                  <div key={player.id} className="flex aspect-square items-center justify-center rounded-lg bg-zinc-100 text-xs font-black text-zinc-700 dark:bg-white/[0.07] dark:text-zinc-200">
-                    {getInitial(player.name)}
-                  </div>
-                ))}
-              </div>
+              {previewPlayers.length ? (
+                <div className="flex flex-wrap gap-2">
+                  {previewPlayers.map((player, index) => (
+                    <div key={player.id} className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 dark:border-white/10 dark:bg-zinc-950/70">
+                      <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-xs font-black text-zinc-950">
+                        {getInitial(player.name)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="max-w-24 truncate text-xs font-black text-zinc-950 dark:text-white">{player.current ? "شما" : player.name}</p>
+                        <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">بازیکن {index + 1}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {players.length > previewPlayers.length && (
+                    <div className="flex size-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                      +{players.length - previewPlayers.length}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-3 text-xs font-bold leading-5 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                  هنوز بازیکنی وارد لابی نشده است.
+                </div>
+              )}
             </div>
           </div>
 
@@ -243,7 +258,7 @@ export function LobbyPreviewCard({
               </div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="font-bold text-zinc-500 dark:text-zinc-400">
-                  {seatsLeft === null ? "ظرفیت بعد از انتخاب سناریو مشخص می‌شود" : seatsLeft === 0 ? "لابی تکمیل است" : `${seatsLeft} جای خالی`}
+                  {seatsLeft === null ? "ظرفیت بعد از انتخاب سناریو مشخص می‌شود" : seatsLeft === 0 ? "لابی تکمیل است" : `${seatsLeft} ظرفیت باقی‌مانده`}
                 </span>
                 <span className="font-black text-lime-700 dark:text-lime-300">{progress}% تکمیل</span>
               </div>
@@ -260,42 +275,42 @@ export function LobbyPreviewCard({
               </div>
 
               <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                {seatItems.map((player, index) =>
-                  player ? (
-                    <div key={player.id} className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 dark:border-lime-500/20 dark:bg-lime-500/10">
+                {players.length ? (
+                  players.map((player, index) => (
+                    <div key={player.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
                       <div className="flex items-center gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-sm font-black text-zinc-950 shadow-sm shadow-lime-500/20">
+                        <div className="relative flex size-11 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-sm font-black text-white shadow-sm shadow-zinc-950/10 dark:bg-white dark:text-zinc-950">
                           {getInitial(player.name)}
+                          <span className="absolute -bottom-1 -right-1 size-3.5 rounded-full border-2 border-zinc-50 bg-lime-500 dark:border-zinc-950" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{player.name}</p>
-                          <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">جایگاه {index + 1}</p>
+                          <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">بازیکن {index + 1}، حاضر در لابی</p>
                         </div>
-                        {player.current && (
-                          <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-600 dark:text-lime-300">
-                            شما
-                          </span>
-                        )}
+                        <span className={player.current ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-600 dark:text-lime-300" : "rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400"}>
+                          {player.current ? "شما" : "آنلاین"}
+                        </span>
                       </div>
                     </div>
-                  ) : (
-                    <div
-                      key={`empty-seat-${index}`}
-                      className="rounded-lg border border-dashed border-sky-500/25 bg-sky-500/10 p-3 dark:border-sky-500/20 dark:bg-sky-500/10"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-sky-500/20 bg-white text-sky-500 dark:border-sky-500/20 dark:bg-zinc-950">
-                          <span className="material-symbols-outlined text-base">person_add</span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-sky-700 dark:text-sky-300">جای خالی</p>
-                          <p className="mt-1 text-[10px] text-sky-600/80 dark:text-sky-300/80">جایگاه {index + 1}</p>
-                        </div>
-                      </div>
+                  ))
+                ) : (
+                  <div className="col-span-full flex min-h-44 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
+                    <div className="flex size-14 items-center justify-center rounded-lg bg-white text-zinc-400 shadow-sm shadow-zinc-950/5 dark:bg-zinc-950">
+                      <span className="material-symbols-outlined text-3xl">group_add</span>
                     </div>
-                  )
+                    <div>
+                      <p className="text-sm font-black text-zinc-950 dark:text-white">هنوز کسی به لابی نپیوسته است</p>
+                      <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">لینک یا کد ورود را برای بازیکنان بفرستید تا فهرست زنده اینجا پر شود.</p>
+                    </div>
+                  </div>
                 )}
               </div>
+
+              {seatsLeft !== null && seatsLeft > 0 && (
+                <div className="mt-3 rounded-lg border border-sky-500/20 bg-sky-500/10 p-3 text-sm font-bold leading-6 text-sky-700 dark:text-sky-300">
+                  ظرفیت باقی‌مانده برای این سناریو: {seatsLeft} نفر
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -386,8 +386,8 @@ export default function UserDashboard() {
       </div>
 
       {selectedHistoryGame && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur">
-          <div className="ui-card max-h-[90vh] w-full max-w-2xl overflow-y-auto p-5">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 p-4 pb-28 backdrop-blur sm:items-center sm:pb-4">
+          <div className="ui-card max-h-[calc(100dvh-8rem)] w-full max-w-2xl overflow-y-auto p-5 sm:max-h-[90vh]">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <p className="ui-kicker">خلاصه بازی</p>

@@ -893,11 +893,11 @@ export default function AdminDashboard() {
 
       {selectedScenario && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-zinc-950/60 p-4 backdrop-blur-sm sm:items-center"
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-zinc-950/60 p-4 pb-28 backdrop-blur-sm sm:items-center sm:pb-4"
           onClick={() => setSelectedScenario(null)}
         >
           <section
-            className="ui-card max-h-[88vh] w-full max-w-3xl overflow-hidden"
+            className="ui-card max-h-[calc(100dvh-8rem)] w-full max-w-3xl overflow-hidden sm:max-h-[88vh]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">

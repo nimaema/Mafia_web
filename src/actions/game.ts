@@ -245,7 +245,13 @@ export async function getPlayerGameView(gameId: string) {
       moderator: {
         select: { name: true }
       },
-      scenario: true,
+      scenario: {
+        include: {
+          roles: {
+            include: { role: true },
+          },
+        },
+      },
       players: {
         include: {
           role: true

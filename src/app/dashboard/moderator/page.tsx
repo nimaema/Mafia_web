@@ -145,8 +145,8 @@ export default function ModeratorDashboard() {
       </section>
 
       {showCreateModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-xl">
-          <div className="ui-card max-h-[92vh] w-full max-w-3xl overflow-hidden">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 p-3 pb-28 backdrop-blur-xl sm:items-center sm:p-4">
+          <div className="ui-card max-h-[calc(100dvh-8rem)] w-full max-w-3xl overflow-hidden sm:max-h-[92vh]">
             <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
               <div>
                 <p className="ui-kicker">راه‌اندازی لابی</p>
@@ -160,7 +160,7 @@ export default function ModeratorDashboard() {
               </button>
             </div>
 
-            <div className="custom-scrollbar grid max-h-[72vh] gap-5 overflow-y-auto p-5 lg:grid-cols-[minmax(0,1fr)_260px]">
+            <div className="custom-scrollbar grid max-h-[calc(100dvh-20rem)] gap-5 overflow-y-auto p-5 sm:max-h-[72vh] lg:grid-cols-[minmax(0,1fr)_260px]">
               <div className="space-y-4">
                 <label className="flex flex-col gap-2">
                   <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نام لابی</span>
