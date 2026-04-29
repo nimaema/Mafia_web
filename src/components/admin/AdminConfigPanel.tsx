@@ -73,13 +73,6 @@ const STANDARD_SCENARIO_NAMES = [
   "تکاور ۱۵ نفره",
 ];
 
-const ABILITY_EFFECT_OPTIONS: { value: AbilityEffectType; label: string; description: string }[] = [
-  { value: "NONE", label: "ثبت ساده", description: "فقط در گزارش شب ثبت می‌شود." },
-  { value: "CONVERT_TO_MAFIA", label: "خریداری", description: "هدف به نقش مافیایی انتخاب‌شده تبدیل می‌شود." },
-  { value: "YAKUZA", label: "یاکوزا", description: "یک مافیا حذف و یک شهروند خریداری می‌شود." },
-  { value: "TWO_NAME_INQUIRY", label: "بازپرسی دو نفره", description: "دو اسم برای پاسخ گرداننده ثبت می‌شود." },
-];
-
 function normalizeEffectType(value: unknown): AbilityEffectType {
   if (value === "CONVERT_TO_MAFIA" || value === "YAKUZA" || value === "TWO_NAME_INQUIRY") return value;
   return "NONE";
@@ -456,6 +449,23 @@ export default function AdminDashboard() {
     );
   };
 
+  const updateAbilityUsesPerNight = (abilityId: string, value: number | null) => {
+    setNewRoleAbilities((previous) =>
+      previous.map((ability) => {
+        if (ability.id !== abilityId) return ability;
+        const nextAbility = { ...ability, usesPerNight: value };
+        if (!abilityNeedsChoices(nextAbility)) return { ...nextAbility, choices: [] };
+
+        const minimumChoices = requiredChoiceCount(nextAbility);
+        const choices = [...nextAbility.choices];
+        while (choices.length < minimumChoices) {
+          choices.push({ id: `choice-${Date.now()}-${choices.length}`, label: "", usesPerGame: null, effectType: "NONE" });
+        }
+        return { ...nextAbility, choices };
+      })
+    );
+  };
+
   const addAbilityChoice = (abilityId: string) => {
     setNewRoleAbilities((previous) =>
       previous.map((ability) =>
@@ -794,9 +804,10 @@ export default function AdminDashboard() {
                               <select
                                 value={ability.usesPerNight ?? "INFINITE"}
                                 onChange={(event) =>
-                                  updateRoleAbility(ability.id, {
-                                    usesPerNight: event.target.value === "INFINITE" ? null : Number(event.target.value),
-                                  })
+                                  updateAbilityUsesPerNight(
+                                    ability.id,
+                                    event.target.value === "INFINITE" ? null : Number(event.target.value)
+                                  )
                                 }
                                 className="min-h-10 text-sm"
                               >
@@ -855,7 +866,7 @@ export default function AdminDashboard() {
 
                               <div className="mt-3 space-y-2">
                                 {ability.choices.map((choice) => (
-                                  <div key={choice.id} className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_130px_150px_36px]">
+                                  <div key={choice.id} className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_130px_36px]">
                                     <input
                                       value={choice.label}
                                       onChange={(event) =>
@@ -880,21 +891,6 @@ export default function AdminDashboard() {
                                       <option value="2">۲ بار</option>
                                       <option value="3">۳ بار</option>
                                       <option value="4">۴ بار</option>
-                                    </select>
-                                    <select
-                                      value={choice.effectType}
-                                      onChange={(event) =>
-                                        updateAbilityChoice(ability.id, choice.id, {
-                                          effectType: event.target.value as AbilityEffectType,
-                                        })
-                                      }
-                                      className="min-h-9 text-xs"
-                                    >
-                                      {ABILITY_EFFECT_OPTIONS.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                          {option.label}
-                                        </option>
-                                      ))}
                                     </select>
                                     <button
                                       type="button"

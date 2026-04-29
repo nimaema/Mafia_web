@@ -65,17 +65,14 @@ function normalizeNightAbilities(abilities?: RoleNightAbilityInput[]): Prisma.In
       .replace(/^-+|-+$/g, "")
       .slice(0, 50) || fallback;
 
-  const cleanEffectType = (value: unknown) =>
-    ["NONE", "CONVERT_TO_MAFIA", "YAKUZA", "TWO_NAME_INQUIRY"].includes(String(value))
-      ? String(value)
-      : "NONE";
-
   const cleanAbilities = abilities
     .map((ability, index) => {
       const label = ability.label?.trim().slice(0, 60);
       if (!label) return null;
       const id = cleanId(ability.id || label, `ability-${index + 1}`);
-      const choices = Array.isArray(ability.choices)
+      const usesPerNight = cleanLimit(ability.usesPerNight, 10);
+      const needsChoices = usesPerNight === null || (usesPerNight || 1) > 1;
+      const choices = needsChoices && Array.isArray(ability.choices)
         ? ability.choices
             .map((choice, choiceIndex) => {
               const choiceLabel = choice.label?.trim().slice(0, 60);
@@ -84,7 +81,7 @@ function normalizeNightAbilities(abilities?: RoleNightAbilityInput[]): Prisma.In
                 id: cleanId(choice.id || choiceLabel, `${id}-choice-${choiceIndex + 1}`),
                 label: choiceLabel,
                 usesPerGame: cleanLimit(choice.usesPerGame),
-                effectType: cleanEffectType(choice.effectType),
+                effectType: "NONE",
               };
             })
             .filter(Boolean)
@@ -94,10 +91,10 @@ function normalizeNightAbilities(abilities?: RoleNightAbilityInput[]): Prisma.In
         id,
         label,
         usesPerGame: cleanLimit(ability.usesPerGame),
-        usesPerNight: cleanLimit(ability.usesPerNight, 10),
+        usesPerNight,
         targetsPerUse: cleanLimit(ability.targetsPerUse, 4) || 1,
         selfTargetLimit: cleanLimit(ability.selfTargetLimit),
-        effectType: cleanEffectType(ability.effectType),
+        effectType: "NONE",
         choices,
       };
     })

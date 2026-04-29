@@ -329,7 +329,6 @@ export async function getAdminGameHistoryPage(page = 0, pageSize = 10) {
         },
         players: { include: { role: true }, orderBy: { createdAt: "asc" } },
         nightEvents: {
-          where: { isPublic: true },
           include: {
             actorPlayer: true,
             targetPlayer: true,
@@ -358,21 +357,19 @@ export async function getAdminGameHistoryPage(page = 0, pageSize = 10) {
         result: history.result || "PENDING",
       })),
       nightRecordsPublic: game.nightRecordsPublic,
-      nightEvents: game.nightRecordsPublic
-        ? game.nightEvents.map((event) => ({
-            id: event.id,
-            nightNumber: event.nightNumber,
-            abilityLabel: event.abilityLabel,
-            abilityChoiceLabel: event.abilityChoiceLabel,
-            abilitySource: event.abilitySource,
-            actorName: event.actorPlayer?.name || null,
-            targetName: event.targetPlayer?.name || null,
-            actorAlignment: event.actorAlignment,
-            wasUsed: event.wasUsed,
-            details: event.details,
-            note: event.note,
-          }))
-        : [],
+      nightEvents: game.nightEvents.map((event) => ({
+        id: event.id,
+        nightNumber: event.nightNumber,
+        abilityLabel: event.abilityLabel,
+        abilityChoiceLabel: event.abilityChoiceLabel,
+        abilitySource: event.abilitySource,
+        actorName: event.actorPlayer?.name || null,
+        targetName: event.targetPlayer?.name || null,
+        actorAlignment: event.actorAlignment,
+        wasUsed: event.wasUsed,
+        details: event.details,
+        note: event.note,
+      })),
     })),
     total,
     page: safePage,

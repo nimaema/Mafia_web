@@ -202,6 +202,7 @@ export default function ModeratorGamePage() {
   const [secondaryTargetPlayerId, setSecondaryTargetPlayerId] = useState("");
   const [extraTargetPlayerIds, setExtraTargetPlayerIds] = useState<string[]>([]);
   const [convertedRoleId, setConvertedRoleId] = useState("");
+  const [reportEffectType, setReportEffectType] = useState<AbilityEffectType>("NONE");
   const [nightNote, setNightNote] = useState("");
 
   const refreshGame = async (showLoader = false) => {
@@ -294,7 +295,9 @@ export default function ModeratorGamePage() {
 
   const selectedAction = actionOptions.find((option) => option.key === selectedActionKey) || actionOptions[0];
   const selectedChoice = selectedAction?.choices.find((choice) => choice.id === selectedChoiceKey) || selectedAction?.choices[0] || null;
-  const selectedEffectType = normalizeEffectType(selectedChoice?.effectType !== "NONE" ? selectedChoice?.effectType : selectedAction?.effectType);
+  const fixedEffectType = normalizeEffectType(selectedChoice?.effectType !== "NONE" ? selectedChoice?.effectType : selectedAction?.effectType);
+  const canChooseReportEffect = selectedAction?.source === "role" && fixedEffectType === "NONE";
+  const selectedEffectType = fixedEffectType !== "NONE" ? fixedEffectType : canChooseReportEffect ? reportEffectType : "NONE";
   const selectedTargetCount = Math.max(
     selectedEffectType === "TWO_NAME_INQUIRY" ? 2 : 1,
     selectedAction?.targetsPerUse || 1
@@ -318,6 +321,10 @@ export default function ModeratorGamePage() {
       setSelectedChoiceKey("");
     }
   }, [selectedAction, selectedChoiceKey]);
+
+  useEffect(() => {
+    setReportEffectType("NONE");
+  }, [selectedActionKey, selectedChoiceKey]);
 
   useEffect(() => {
     if (!convertedRoleId && mafiaConversionRoles.length > 0) {
@@ -706,6 +713,30 @@ export default function ModeratorGamePage() {
                       </select>
                     </label>
                   )}
+
+                  {canChooseReportEffect ? (
+                    <label className="flex flex-col gap-2">
+                      <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نوع ثبت این اتفاق</span>
+                      <select
+                        value={reportEffectType}
+                        onChange={(event) => {
+                          setReportEffectType(event.target.value as AbilityEffectType);
+                          setTargetPlayerId("");
+                          setSecondaryTargetPlayerId("");
+                          setExtraTargetPlayerIds([]);
+                        }}
+                      >
+                        <option value="NONE">ثبت ساده</option>
+                        <option value="CONVERT_TO_MAFIA">خریداری</option>
+                        <option value="YAKUZA">یاکوزا</option>
+                        <option value="TWO_NAME_INQUIRY">بازپرسی دو نفره</option>
+                      </select>
+                    </label>
+                  ) : fixedEffectType !== "NONE" ? (
+                    <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 p-3 text-xs font-bold leading-6 text-sky-700 dark:text-sky-300">
+                      نوع ثبت ثابت: {effectLabel(fixedEffectType)}
+                    </div>
+                  ) : null}
 
                   <div className="grid grid-cols-2 gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
                     {[
