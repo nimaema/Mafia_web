@@ -23,12 +23,16 @@ type NightEventInput = {
   actorPlayerId?: string | null;
   targetPlayerId?: string | null;
   secondaryTargetPlayerId?: string | null;
+  extraTargetPlayerIds?: string[] | null;
+  targetCount?: number | null;
   convertedRoleId?: string | null;
   effectType?: "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY" | null;
   actorAlignment?: Alignment | null;
   wasUsed?: boolean;
   note?: string | null;
 };
+
+type ActiveRoleAbilityConfig = Record<string, string[]>;
 
 async function checkModerator() {
   const session = await auth();
@@ -46,7 +50,7 @@ async function checkModeratorForGame(gameId: string) {
 
   const game = await prisma.game.findUnique({
     where: { id: gameId },
-    select: { id: true, moderatorId: true, status: true },
+    select: { id: true, moderatorId: true, status: true, scenarioId: true, activeRoleAbilities: true },
   });
 
   if (!game) throw new Error("بازی یافت نشد");
@@ -64,6 +68,43 @@ function isAlignment(value: unknown): value is Alignment {
 function normalizeEffectType(value: unknown) {
   if (value === "CONVERT_TO_MAFIA" || value === "YAKUZA" || value === "TWO_NAME_INQUIRY") return value;
   return "NONE";
+}
+
+function normalizeRoleAbilityIds(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      const record = item as { id?: unknown; label?: unknown };
+      const label = String(record.label || "").trim();
+      const id = String(record.id || `ability-${index + 1}`).trim();
+      return label && id ? id : null;
+    })
+    .filter(Boolean) as string[];
+}
+
+function normalizeActiveRoleAbilityConfig(value: unknown, allowedRoleAbilities?: Map<string, Set<string>>): ActiveRoleAbilityConfig {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+
+  return Object.entries(value as Record<string, unknown>).reduce<ActiveRoleAbilityConfig>((config, [roleId, abilityIds]) => {
+    if (!Array.isArray(abilityIds)) return config;
+    const allowed = allowedRoleAbilities?.get(roleId);
+    const cleanIds = abilityIds
+      .map((item) => String(item || "").trim())
+      .filter((item, index, list) => item && list.indexOf(item) === index)
+      .filter((item) => !allowed || allowed.has(item));
+    config[roleId] = cleanIds;
+    return config;
+  }, {});
+}
+
+function buildDefaultActiveRoleAbilities(scenario?: { roles?: Array<{ roleId: string; role?: { nightAbilities?: unknown } | null }> } | null) {
+  const config: ActiveRoleAbilityConfig = {};
+  scenario?.roles?.forEach((scenarioRole) => {
+    const abilityIds = normalizeRoleAbilityIds(scenarioRole.role?.nightAbilities);
+    if (abilityIds.length === 1) config[scenarioRole.roleId] = [abilityIds[0]];
+    if (abilityIds.length > 1) config[scenarioRole.roleId] = [];
+  });
+  return Object.keys(config).length ? (config as Prisma.InputJsonValue) : Prisma.JsonNull;
 }
 
 function sanitizeNightEvents(events: any[]) {
@@ -542,6 +583,7 @@ export async function startGame(gameId: string) {
 export async function setGameScenario(gameId: string, scenarioId: string) {
   try {
     await checkModerator();
+    let selectedScenario: { roles: Array<{ roleId: string; count: number; role: { nightAbilities: Prisma.JsonValue } }> } | null = null;
     if (scenarioId) {
       const [game, scenario] = await Promise.all([
         prisma.game.findUnique({
@@ -550,9 +592,10 @@ export async function setGameScenario(gameId: string, scenarioId: string) {
         }),
         prisma.scenario.findUnique({
           where: { id: scenarioId },
-          include: { roles: true },
+          include: { roles: { include: { role: true } } },
         }),
       ]);
+      selectedScenario = scenario;
       const capacity = scenario?.roles.reduce((sum, role) => sum + role.count, 0) || 0;
       if (game && capacity > 0 && game._count.players > capacity) {
         const suggestions = await prisma.scenario.findMany({
@@ -577,7 +620,10 @@ export async function setGameScenario(gameId: string, scenarioId: string) {
 
     await prisma.game.update({
       where: { id: gameId },
-      data: { scenarioId: scenarioId || null }
+      data: {
+        scenarioId: scenarioId || null,
+        activeRoleAbilities: scenarioId ? buildDefaultActiveRoleAbilities(selectedScenario) : Prisma.JsonNull,
+      }
     });
     
     // Fetch updated game status with scenario to push to clients
@@ -585,7 +631,8 @@ export async function setGameScenario(gameId: string, scenarioId: string) {
     
     // Notify users that scenario was updated
     await pusherServer.trigger(`game-${gameId}`, 'scenario-updated', {
-      scenario: updatedGame?.scenario
+      scenario: updatedGame?.scenario,
+      activeRoleAbilities: updatedGame?.activeRoleAbilities || null,
     });
     
     revalidatePath(`/dashboard/moderator/lobby/${gameId}`);
@@ -593,6 +640,57 @@ export async function setGameScenario(gameId: string, scenarioId: string) {
   } catch (error: any) {
     console.error("Set scenario error:", error);
     return { error: error.message || "خطا در تنظیم سناریو" };
+  }
+}
+
+export async function setGameRoleAbilities(gameId: string, activeRoleAbilities: ActiveRoleAbilityConfig) {
+  try {
+    const { game } = await checkModeratorForGame(gameId);
+    if (game.status !== "WAITING") {
+      throw new Error("توانایی‌های سناریو فقط قبل از شروع بازی قابل تغییر است.");
+    }
+
+    const currentGame = await prisma.game.findUnique({
+      where: { id: gameId },
+      include: {
+        scenario: {
+          include: {
+            roles: {
+              include: { role: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!currentGame?.scenario) {
+      throw new Error("برای انتخاب توانایی‌ها ابتدا سناریو را انتخاب کنید.");
+    }
+
+    const allowed = new Map<string, Set<string>>();
+    currentGame.scenario.roles.forEach((scenarioRole) => {
+      allowed.set(scenarioRole.roleId, new Set(normalizeRoleAbilityIds(scenarioRole.role.nightAbilities)));
+    });
+
+    const normalized = normalizeActiveRoleAbilityConfig(activeRoleAbilities, allowed);
+    await prisma.game.update({
+      where: { id: gameId },
+      data: {
+        activeRoleAbilities: Object.keys(normalized).length ? (normalized as Prisma.InputJsonValue) : Prisma.JsonNull,
+      },
+    });
+
+    const updatedGame = await getGameStatus(gameId);
+
+    await pusherServer.trigger(`game-${gameId}`, "ability-config-updated", {
+      activeRoleAbilities: updatedGame?.activeRoleAbilities || null,
+    });
+
+    revalidatePath(`/dashboard/moderator/lobby/${gameId}`);
+    return { success: true, activeRoleAbilities: updatedGame?.activeRoleAbilities || null };
+  } catch (error: any) {
+    console.error("Set game role abilities error:", error);
+    return { error: error.message || "انتخاب توانایی‌های سناریو انجام نشد" };
   }
 }
 
@@ -703,9 +801,19 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
     const note = data.note?.trim().slice(0, 500) || null;
     const wasUsed = data.wasUsed !== false;
     const effectType = normalizeEffectType(data.effectType);
+    const targetCount = Math.max(1, Math.min(4, Math.floor(Number(data.targetCount) || 1)));
 
     if (!abilityLabel || !abilityKey) {
       throw new Error("نوع اتفاق شب را انتخاب کنید.");
+    }
+
+    const roleAbilityMatch = abilityKey.match(/^role:([^:]+):(.+)$/);
+    if (roleAbilityMatch) {
+      const [, roleId, abilityId] = roleAbilityMatch;
+      const activeConfig = normalizeActiveRoleAbilityConfig(game.activeRoleAbilities);
+      if (Object.prototype.hasOwnProperty.call(activeConfig, roleId) && !activeConfig[roleId].includes(abilityId)) {
+        throw new Error("این توانایی برای سناریوی فعلی فعال نشده است.");
+      }
     }
 
     const players = await prisma.gamePlayer.findMany({
@@ -716,9 +824,14 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
     const actorPlayerId = data.actorPlayerId || null;
     const targetPlayerId = data.targetPlayerId || null;
     const secondaryTargetPlayerId = data.secondaryTargetPlayerId || null;
+    const extraTargetPlayerIds = (Array.isArray(data.extraTargetPlayerIds) ? data.extraTargetPlayerIds : [])
+      .map((playerId) => String(playerId || "").trim())
+      .filter((playerId, index, list) => playerId && list.indexOf(playerId) === index)
+      .slice(0, Math.max(0, targetCount - 2));
     const convertedRoleId = data.convertedRoleId || null;
     const targetPlayer = targetPlayerId ? players.find((player) => player.id === targetPlayerId) : null;
     const secondaryTargetPlayer = secondaryTargetPlayerId ? players.find((player) => player.id === secondaryTargetPlayerId) : null;
+    const extraTargetPlayers = extraTargetPlayerIds.map((playerId) => players.find((player) => player.id === playerId)).filter(Boolean) as typeof players;
 
     if (actorPlayerId && !playerIds.has(actorPlayerId)) {
       throw new Error("بازیکن انجام‌دهنده در این بازی نیست.");
@@ -728,6 +841,19 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
     }
     if (secondaryTargetPlayerId && !playerIds.has(secondaryTargetPlayerId)) {
       throw new Error("بازیکن دوم در این بازی نیست.");
+    }
+    if (extraTargetPlayerIds.some((playerId) => !playerIds.has(playerId))) {
+      throw new Error("یکی از هدف‌های اضافه در این بازی نیست.");
+    }
+    if (wasUsed && targetCount > 1 && !secondaryTargetPlayerId) {
+      throw new Error("برای این توانایی باید هدف دوم هم انتخاب شود.");
+    }
+    if (wasUsed && targetCount > 2 && extraTargetPlayerIds.length < targetCount - 2) {
+      throw new Error("تعداد هدف‌های انتخاب‌شده با تنظیم توانایی مطابقت ندارد.");
+    }
+    const allTargetIds = [targetPlayerId, secondaryTargetPlayerId, ...extraTargetPlayerIds].filter(Boolean);
+    if (wasUsed && new Set(allTargetIds).size !== allTargetIds.length) {
+      throw new Error("هدف‌های یک توانایی باید بازیکنان متفاوت باشند.");
     }
     if (wasUsed && effectType === "TWO_NAME_INQUIRY" && !secondaryTargetPlayerId) {
       throw new Error("برای بازپرسی، دو اسم باید ثبت شود.");
@@ -760,8 +886,10 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
 
     const details = {
       effectType,
+      targetCount,
       secondaryTargetPlayerId: secondaryTargetPlayer?.id || null,
       secondaryTargetName: secondaryTargetPlayer?.name || null,
+      extraTargets: extraTargetPlayers.map((player) => ({ id: player.id, name: player.name })),
       convertedRoleId: convertedRole?.id || null,
       convertedRoleName: convertedRole?.name || null,
       previousRoleName: targetPlayer?.role?.name || null,

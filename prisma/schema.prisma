@@ -145,6 +145,7 @@ model Game {
   scenario           Scenario?  @relation(fields: [scenarioId], references: [id])
   winningAlignment   Alignment?
   nightRecordsPublic Boolean    @default(false)
+  activeRoleAbilities Json?
 
   histories   GameHistory[]
   players     GamePlayer[]

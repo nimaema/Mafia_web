@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getPusherClient } from "@/lib/pusher-client";
-import { getGameStatus, startGame, setGameScenario, createCustomGameScenario } from "@/actions/game";
+import { createCustomGameScenario, getGameStatus, setGameRoleAbilities, setGameScenario, startGame } from "@/actions/game";
 import { getScenarios } from "@/actions/admin";
 import { getRoles } from "@/actions/role";
 import { usePopup } from "@/components/PopupProvider";
@@ -13,6 +13,29 @@ type Player = {
   id: string;
   name: string;
   isAlive?: boolean;
+};
+
+type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
+
+type RoleNightAbility = {
+  id: string;
+  label: string;
+  usesPerGame: number | null;
+  usesPerNight: number | null;
+  targetsPerUse: number;
+  selfTargetLimit: number | null;
+  effectType: AbilityEffectType;
+  choices: { id: string; label: string; usesPerGame: number | null; effectType?: AbilityEffectType }[];
+};
+
+type ActiveRoleAbilityConfig = Record<string, string[]>;
+
+type ScenarioAbilityRole = {
+  roleId: string;
+  name: string;
+  alignment?: string;
+  count: number;
+  abilities: RoleNightAbility[];
 };
 
 function alignmentClass(alignment?: string) {
@@ -25,6 +48,75 @@ function alignmentLabel(alignment?: string) {
   if (alignment === "MAFIA") return "مافیا";
   if (alignment === "CITIZEN") return "شهروند";
   return "مستقل";
+}
+
+function normalizeEffectType(value: unknown): AbilityEffectType {
+  if (value === "CONVERT_TO_MAFIA" || value === "YAKUZA" || value === "TWO_NAME_INQUIRY") return value;
+  return "NONE";
+}
+
+function effectLabel(effectType?: AbilityEffectType) {
+  if (effectType === "CONVERT_TO_MAFIA") return "خریداری";
+  if (effectType === "YAKUZA") return "یاکوزا";
+  if (effectType === "TWO_NAME_INQUIRY") return "بازپرسی دو نفره";
+  return "ثبت ساده";
+}
+
+function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      const ability = item as Partial<RoleNightAbility>;
+      const label = String(ability.label || "").trim();
+      if (!label) return null;
+      return {
+        id: String(ability.id || `ability-${index + 1}`),
+        label,
+        usesPerGame: typeof ability.usesPerGame === "number" ? ability.usesPerGame : null,
+        usesPerNight: typeof ability.usesPerNight === "number" ? ability.usesPerNight : null,
+        targetsPerUse: typeof ability.targetsPerUse === "number" ? Math.max(1, Math.min(4, ability.targetsPerUse)) : 1,
+        selfTargetLimit: typeof ability.selfTargetLimit === "number" ? ability.selfTargetLimit : null,
+        effectType: normalizeEffectType(ability.effectType),
+        choices: Array.isArray(ability.choices) ? ability.choices : [],
+      };
+    })
+    .filter(Boolean) as RoleNightAbility[];
+}
+
+function normalizeActiveRoleAbilityConfig(value: unknown): ActiveRoleAbilityConfig {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.entries(value as Record<string, unknown>).reduce<ActiveRoleAbilityConfig>((config, [roleId, abilityIds]) => {
+    if (!Array.isArray(abilityIds)) return config;
+    config[roleId] = abilityIds.map((item) => String(item || "").trim()).filter(Boolean);
+    return config;
+  }, {});
+}
+
+function defaultAbilityConfigForScenario(scenario: any): ActiveRoleAbilityConfig {
+  const roles = Array.isArray(scenario?.roles) ? scenario.roles : [];
+  return roles.reduce((config: ActiveRoleAbilityConfig, item: any) => {
+    const abilities = normalizeRoleAbilities(item.role?.nightAbilities);
+    if (abilities.length === 1) config[item.roleId] = [abilities[0].id];
+    if (abilities.length > 1) config[item.roleId] = [];
+    return config;
+  }, {});
+}
+
+function abilityConfigForGame(game: any): ActiveRoleAbilityConfig {
+  const existing = normalizeActiveRoleAbilityConfig(game?.activeRoleAbilities);
+  return Object.keys(existing).length > 0 ? existing : defaultAbilityConfigForScenario(game?.scenario);
+}
+
+function abilityLimitLabel(ability: RoleNightAbility) {
+  const parts = [
+    ability.usesPerGame ? `${ability.usesPerGame} بار در بازی` : "نامحدود",
+    ability.usesPerNight ? `${ability.usesPerNight} بار در شب` : "هر شب آزاد",
+    `${ability.targetsPerUse || 1} هدف`,
+  ];
+  if (ability.selfTargetLimit) parts.push(`${ability.selfTargetLimit} بار روی خودش`);
+  if (ability.effectType !== "NONE") parts.push(effectLabel(ability.effectType));
+  if (ability.choices.length) parts.push(`${ability.choices.length} انتخاب داخلی`);
+  return parts.join("، ");
 }
 
 export default function GameLobbyPage() {
@@ -43,6 +135,8 @@ export default function GameLobbyPage() {
   const [customRoleSearch, setCustomRoleSearch] = useState("");
   const [saveCustomScenario, setSaveCustomScenario] = useState(false);
   const [customScenarioName, setCustomScenarioName] = useState("");
+  const [abilityConfig, setAbilityConfig] = useState<ActiveRoleAbilityConfig>({});
+  const [savingAbilities, setSavingAbilities] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -65,6 +159,7 @@ export default function GameLobbyPage() {
         }
 
         setGame(gameRes);
+        setAbilityConfig(abilityConfigForGame(gameRes));
         setPlayers((gameRes.players || []).map((player: any) => ({ id: player.id, name: player.name, isAlive: player.isAlive })));
         setScenarios(scenariosRes);
         setRoles(rolesRes);
@@ -91,8 +186,18 @@ export default function GameLobbyPage() {
       setPlayers((prev) => prev.filter((player) => player.id !== data.playerId));
     });
 
-    channel.bind("scenario-updated", (data: { scenario: any }) => {
-      setGame((prev: any) => (prev ? { ...prev, scenario: data.scenario } : prev));
+    channel.bind("scenario-updated", (data: { scenario: any; activeRoleAbilities?: unknown }) => {
+      setGame((prev: any) => (prev ? { ...prev, scenario: data.scenario, activeRoleAbilities: data.activeRoleAbilities ?? prev.activeRoleAbilities } : prev));
+      if ("activeRoleAbilities" in data) {
+        setAbilityConfig(normalizeActiveRoleAbilityConfig(data.activeRoleAbilities));
+      } else if (data.scenario) {
+        setAbilityConfig(defaultAbilityConfigForScenario(data.scenario));
+      }
+    });
+
+    channel.bind("ability-config-updated", (data: { activeRoleAbilities?: unknown }) => {
+      setGame((prev: any) => (prev ? { ...prev, activeRoleAbilities: data.activeRoleAbilities ?? null } : prev));
+      setAbilityConfig(normalizeActiveRoleAbilityConfig(data.activeRoleAbilities));
     });
 
     return () => {
@@ -125,6 +230,24 @@ export default function GameLobbyPage() {
       })),
     [game]
   );
+
+  const scenarioAbilityRoles = useMemo<ScenarioAbilityRole[]>(
+    () =>
+      (game?.scenario?.roles || [])
+        .map((item: any) => ({
+          roleId: item.roleId,
+          name: item.role?.name || "نقش",
+          alignment: item.role?.alignment,
+          count: item.count,
+          abilities: normalizeRoleAbilities(item.role?.nightAbilities),
+        }))
+        .filter((item: ScenarioAbilityRole) => item.abilities.length > 0),
+    [game]
+  );
+
+  const missingAbilityRoleNames = scenarioAbilityRoles
+    .filter((item) => item.abilities.length > 1 && (abilityConfig[item.roleId]?.length || 0) === 0)
+    .map((item) => item.name);
 
   const lobbyPlayers = useMemo(
     () =>
@@ -180,7 +303,9 @@ export default function GameLobbyPage() {
       ? `${requiredPlayers - players.length} بازیکن دیگر برای این سناریو لازم است.`
       : players.length > requiredPlayers
         ? "تعداد بازیکنان از ظرفیت سناریو بیشتر است."
-        : "";
+        : missingAbilityRoleNames.length > 0
+          ? `توانایی فعال ${missingAbilityRoleNames.slice(0, 2).join("، ")} را برای این بازی انتخاب کنید.`
+          : "";
 
   const handleSelectScenario = async (scenarioId: string) => {
     setSettingScenario(true);
@@ -190,6 +315,7 @@ export default function GameLobbyPage() {
     } else {
       const updatedGame = await getGameStatus(gameId);
       setGame(updatedGame);
+      setAbilityConfig(abilityConfigForGame(updatedGame));
       showToast(scenarioId ? "سناریو با موفقیت انتخاب شد" : "سناریو برداشته شد", "success");
     }
     setSettingScenario(false);
@@ -243,6 +369,7 @@ export default function GameLobbyPage() {
     } else {
       const updatedGame = await getGameStatus(gameId);
       setGame(updatedGame);
+      setAbilityConfig(abilityConfigForGame(updatedGame));
       if (saveCustomScenario) {
         const nextScenarios = await getScenarios();
         setScenarios(nextScenarios);
@@ -253,6 +380,29 @@ export default function GameLobbyPage() {
       showToast(saveCustomScenario ? "سناریوی سفارشی ذخیره و اعمال شد" : "سناریوی سفارشی اعمال شد", "success");
     }
     setSettingScenario(false);
+  };
+
+  const toggleAbilityForRole = (roleId: string, abilityId: string) => {
+    setAbilityConfig((previous) => {
+      const current = previous[roleId] || [];
+      const next = current.includes(abilityId)
+        ? current.filter((item) => item !== abilityId)
+        : [...current, abilityId];
+      return { ...previous, [roleId]: next };
+    });
+  };
+
+  const handleSaveAbilityConfig = async () => {
+    setSavingAbilities(true);
+    const res = await setGameRoleAbilities(gameId, abilityConfig);
+    if (res.success) {
+      setAbilityConfig(normalizeActiveRoleAbilityConfig(res.activeRoleAbilities));
+      setGame((previous: any) => (previous ? { ...previous, activeRoleAbilities: res.activeRoleAbilities } : previous));
+      showToast("توانایی‌های این بازی ذخیره شد", "success");
+    } else {
+      showAlert("خطا", res.error || "ذخیره توانایی‌ها انجام نشد", "error");
+    }
+    setSavingAbilities(false);
   };
 
   const copyJoinLink = async () => {
@@ -396,6 +546,76 @@ export default function GameLobbyPage() {
         </div>
       </section>
 
+      {scenarioAbilityRoles.length > 0 && (
+        <section className="ui-card overflow-hidden">
+          <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="ui-kicker">توانایی‌های همین بازی</p>
+              <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">انتخاب اکشن‌های فعال سناریو</h2>
+              <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                نقش‌هایی که چند توانایی دارند، فقط با انتخاب شما در اتاق شب ظاهر می‌شوند.
+              </p>
+            </div>
+            <button onClick={handleSaveAbilityConfig} disabled={savingAbilities || settingScenario} className="ui-button-primary min-h-11 px-4 text-sm">
+              <span className="material-symbols-outlined text-xl">tune</span>
+              ذخیره توانایی‌ها
+            </button>
+          </div>
+
+          <div className="grid gap-3 p-4 lg:grid-cols-2 2xl:grid-cols-3">
+            {scenarioAbilityRoles.map((role) => {
+              const selectedIds = abilityConfig[role.roleId] || [];
+              return (
+                <article key={role.roleId} className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/70">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-black text-zinc-950 dark:text-white">{role.name}</p>
+                      <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-black">
+                        <span className={`rounded-lg border px-2 py-1 ${alignmentClass(role.alignment)}`}>{alignmentLabel(role.alignment)}</span>
+                        <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                          {role.count} نقش در سناریو
+                        </span>
+                      </div>
+                    </div>
+                    <span className={selectedIds.length > 0 ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
+                      {selectedIds.length || "بدون"} فعال
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid gap-2">
+                    {role.abilities.map((ability) => {
+                      const active = selectedIds.includes(ability.id);
+                      return (
+                        <button
+                          key={ability.id}
+                          type="button"
+                          onClick={() => toggleAbilityForRole(role.roleId, ability.id)}
+                          className={`rounded-lg border p-3 text-right transition-all ${
+                            active
+                              ? "border-lime-500/30 bg-lime-500/10 shadow-sm shadow-lime-500/10"
+                              : "border-zinc-200 bg-zinc-50 hover:border-zinc-300 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/20"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-black text-zinc-950 dark:text-white">{ability.label}</p>
+                              <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{abilityLimitLabel(ability)}</p>
+                            </div>
+                            <span className={`material-symbols-outlined text-xl ${active ? "text-lime-600 dark:text-lime-300" : "text-zinc-300 dark:text-zinc-600"}`}>
+                              {active ? "check_circle" : "radio_button_unchecked"}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <LobbyPreviewCard
         title={game?.name || "لابی بازی مافیا"}
         subtitle="نمای بازیکنان، ظرفیت و ترکیب سناریوی انتخاب‌شده."
@@ -411,8 +631,8 @@ export default function GameLobbyPage() {
       />
 
       {showCustomModal && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 p-0 backdrop-blur-xl sm:items-center sm:p-4">
-          <div className="ui-card flex h-[100dvh] w-full flex-col overflow-hidden rounded-none sm:h-auto sm:max-h-[92vh] sm:max-w-6xl sm:rounded-lg">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 p-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] backdrop-blur-xl sm:items-center sm:p-4">
+          <div className="ui-card flex max-h-[calc(100dvh-7.5rem)] w-full flex-col overflow-hidden rounded-lg sm:max-h-[92vh] sm:max-w-6xl">
             <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/90 p-4 dark:border-white/10 dark:bg-white/[0.03] sm:p-5">
               <div className="min-w-0">
                 <p className="ui-kicker">سناریوی سفارشی</p>
@@ -546,7 +766,7 @@ export default function GameLobbyPage() {
               </div>
             </div>
 
-            <div className="grid gap-3 border-t border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-900/95 sm:grid-cols-[minmax(0,1fr)_220px] sm:p-5">
+            <div className="sticky bottom-0 grid gap-3 border-t border-zinc-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] dark:border-white/10 dark:bg-zinc-900/95 sm:grid-cols-[minmax(0,1fr)_220px] sm:p-5">
               <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
                 <input
                   type="checkbox"

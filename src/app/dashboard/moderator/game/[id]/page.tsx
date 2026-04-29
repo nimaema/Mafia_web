@@ -21,6 +21,7 @@ type RoleNightAbility = {
   label: string;
   usesPerGame: number | null;
   usesPerNight: number | null;
+  targetsPerUse: number;
   selfTargetLimit: number | null;
   choices: {
     id: string;
@@ -61,6 +62,7 @@ type NightEventRecord = {
     effectType?: AbilityEffectType;
     secondaryTargetPlayerId?: string | null;
     secondaryTargetName?: string | null;
+    extraTargets?: { id: string; name: string }[];
     convertedRoleId?: string | null;
     convertedRoleName?: string | null;
     previousRoleName?: string | null;
@@ -80,6 +82,7 @@ type NightActionOption = {
   candidates: PlayerRecord[];
   usesPerGame: number | null;
   usesPerNight: number | null;
+  targetsPerUse: number;
   selfTargetLimit: number | null;
   effectType: AbilityEffectType;
   choices: RoleNightAbility["choices"];
@@ -132,6 +135,7 @@ function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
         label,
         usesPerGame: typeof ability.usesPerGame === "number" ? ability.usesPerGame : null,
         usesPerNight: typeof ability.usesPerNight === "number" ? ability.usesPerNight : null,
+        targetsPerUse: typeof ability.targetsPerUse === "number" ? Math.max(1, Math.min(4, ability.targetsPerUse)) : 1,
         selfTargetLimit: typeof ability.selfTargetLimit === "number" ? ability.selfTargetLimit : null,
         effectType: normalizeEffectType(ability.effectType),
         choices: Array.isArray(ability.choices)
@@ -153,6 +157,15 @@ function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
     .filter(Boolean) as RoleNightAbility[];
 }
 
+function normalizeActiveRoleAbilityConfig(value: unknown): Record<string, string[]> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.entries(value as Record<string, unknown>).reduce<Record<string, string[]>>((config, [roleId, abilityIds]) => {
+    if (!Array.isArray(abilityIds)) return config;
+    config[roleId] = abilityIds.map((item) => String(item || "").trim()).filter(Boolean);
+    return config;
+  }, {});
+}
+
 function usageLabel(usesPerGame: number | null) {
   return usesPerGame ? `${usesPerGame} بار` : "نامحدود";
 }
@@ -160,6 +173,7 @@ function usageLabel(usesPerGame: number | null) {
 function abilityLimitLabel(option: NightActionOption) {
   const parts = [`کل: ${usageLabel(option.usesPerGame)}`];
   if (option.usesPerNight) parts.push(`هر شب: ${option.usesPerNight}`);
+  parts.push(`${option.targetsPerUse || 1} هدف`);
   if (option.selfTargetLimit) parts.push(`روی خود: ${option.selfTargetLimit}`);
   if (option.effectType !== "NONE") parts.push(effectLabel(option.effectType));
   if (option.choices.length) parts.push(`${option.choices.length} انتخاب`);
@@ -186,6 +200,7 @@ export default function ModeratorGamePage() {
   const [actorPlayerId, setActorPlayerId] = useState("");
   const [targetPlayerId, setTargetPlayerId] = useState("");
   const [secondaryTargetPlayerId, setSecondaryTargetPlayerId] = useState("");
+  const [extraTargetPlayerIds, setExtraTargetPlayerIds] = useState<string[]>([]);
   const [convertedRoleId, setConvertedRoleId] = useState("");
   const [nightNote, setNightNote] = useState("");
 
@@ -211,6 +226,7 @@ export default function ModeratorGamePage() {
   const alivePlayers = players.filter((player) => player.isAlive !== false);
   const eliminatedPlayers = players.filter((player) => player.isAlive === false);
   const nightEvents: NightEventRecord[] = game?.nightEvents || [];
+  const activeRoleAbilities = useMemo(() => normalizeActiveRoleAbilityConfig(game?.activeRoleAbilities), [game?.activeRoleAbilities]);
 
   const actionOptions = useMemo<NightActionOption[]>(() => {
     const mafiaPlayers = players.filter((player) => player.role?.alignment === "MAFIA");
@@ -224,6 +240,7 @@ export default function ModeratorGamePage() {
         candidates: mafiaPlayers,
         usesPerGame: null,
         usesPerNight: 1,
+        targetsPerUse: 1,
         selfTargetLimit: null,
         effectType: "NONE",
         choices: [],
@@ -235,7 +252,12 @@ export default function ModeratorGamePage() {
     players.forEach((player) => {
       const role = player.role;
       if (!role?.id) return;
-      normalizeRoleAbilities(role.nightAbilities).forEach((ability) => {
+      const abilities = normalizeRoleAbilities(role.nightAbilities);
+      const configuredAbilityIds = activeRoleAbilities[role.id];
+      const visibleAbilities = Array.isArray(configuredAbilityIds)
+        ? abilities.filter((ability) => configuredAbilityIds.includes(ability.id))
+        : abilities;
+      visibleAbilities.forEach((ability) => {
         const key = `role:${role.id}:${ability.id}`;
         const existing = roleAbilityMap.get(key);
         if (existing) {
@@ -250,6 +272,7 @@ export default function ModeratorGamePage() {
           candidates: [player],
           usesPerGame: ability.usesPerGame,
           usesPerNight: ability.usesPerNight,
+          targetsPerUse: ability.targetsPerUse,
           selfTargetLimit: ability.selfTargetLimit,
           effectType: normalizeEffectType(ability.effectType),
           choices: ability.choices,
@@ -259,7 +282,7 @@ export default function ModeratorGamePage() {
     });
 
     return [...options, ...roleAbilityMap.values()];
-  }, [players]);
+  }, [activeRoleAbilities, players]);
 
   useEffect(() => {
     if (actionOptions.length === 0) return;
@@ -272,14 +295,19 @@ export default function ModeratorGamePage() {
   const selectedAction = actionOptions.find((option) => option.key === selectedActionKey) || actionOptions[0];
   const selectedChoice = selectedAction?.choices.find((choice) => choice.id === selectedChoiceKey) || selectedAction?.choices[0] || null;
   const selectedEffectType = normalizeEffectType(selectedChoice?.effectType !== "NONE" ? selectedChoice?.effectType : selectedAction?.effectType);
+  const selectedTargetCount = Math.max(
+    selectedEffectType === "TWO_NAME_INQUIRY" ? 2 : 1,
+    selectedAction?.targetsPerUse || 1
+  );
   const needsConversionRole = selectedEffectType === "CONVERT_TO_MAFIA" || selectedEffectType === "YAKUZA";
-  const needsSecondaryTarget = selectedEffectType === "YAKUZA" || selectedEffectType === "TWO_NAME_INQUIRY";
+  const needsSecondaryTarget = selectedEffectType === "YAKUZA" || selectedEffectType === "TWO_NAME_INQUIRY" || selectedTargetCount > 1;
   const targetPlayerOptions = needsConversionRole
     ? players.filter((player) => player.role?.alignment !== "MAFIA")
     : players;
   const secondaryTargetOptions = selectedEffectType === "YAKUZA"
     ? players.filter((player) => player.role?.alignment === "MAFIA")
     : players;
+  const extraTargetSlots = Math.max(0, selectedTargetCount - 2);
 
   useEffect(() => {
     if (!selectedAction) return;
@@ -299,6 +327,10 @@ export default function ModeratorGamePage() {
       setConvertedRoleId(simpleMafia.id);
     }
   }, [convertedRoleId, mafiaConversionRoles]);
+
+  useEffect(() => {
+    setExtraTargetPlayerIds((current) => current.slice(0, extraTargetSlots));
+  }, [extraTargetSlots, selectedActionKey]);
 
   const groupedNightEvents = useMemo(() => {
     const groups = new Map<number, NightEventRecord[]>();
@@ -346,10 +378,19 @@ export default function ModeratorGamePage() {
     }
     if (eventWasUsed && needsSecondaryTarget && !secondaryTargetPlayerId) {
       showAlert(
-        selectedEffectType === "YAKUZA" ? "بازیکن قربانی" : "اسم دوم",
-        selectedEffectType === "YAKUZA" ? "برای یاکوزا، بازیکن مافیایی قربانی را انتخاب کنید." : "برای بازپرسی، اسم دوم را هم انتخاب کنید.",
+        selectedEffectType === "YAKUZA" ? "بازیکن قربانی" : "هدف دوم",
+        selectedEffectType === "YAKUZA" ? "برای یاکوزا، بازیکن مافیایی قربانی را انتخاب کنید." : "برای این توانایی هدف دوم را هم انتخاب کنید.",
         "warning"
       );
+      return;
+    }
+    if (eventWasUsed && extraTargetSlots > 0 && extraTargetPlayerIds.slice(0, extraTargetSlots).filter(Boolean).length < extraTargetSlots) {
+      showAlert("هدف‌های اضافه", "همه هدف‌های لازم برای این توانایی را انتخاب کنید.", "warning");
+      return;
+    }
+    const selectedTargets = [targetPlayerId, secondaryTargetPlayerId, ...extraTargetPlayerIds.slice(0, extraTargetSlots)].filter(Boolean);
+    if (eventWasUsed && new Set(selectedTargets).size !== selectedTargets.length) {
+      showAlert("هدف تکراری", "برای یک توانایی، هر هدف باید یک بازیکن متفاوت باشد.", "warning");
       return;
     }
     if (eventWasUsed && needsConversionRole && !convertedRoleId) {
@@ -416,6 +457,8 @@ export default function ModeratorGamePage() {
       actorPlayerId: actorPlayerId || null,
       targetPlayerId: eventWasUsed ? targetPlayerId : null,
       secondaryTargetPlayerId: eventWasUsed ? secondaryTargetPlayerId || null : null,
+      extraTargetPlayerIds: eventWasUsed ? extraTargetPlayerIds.slice(0, extraTargetSlots).filter(Boolean) : [],
+      targetCount: eventWasUsed ? selectedTargetCount : 1,
       convertedRoleId: eventWasUsed && needsConversionRole ? convertedRoleId : null,
       effectType: selectedEffectType,
       actorAlignment: selectedAction.actorAlignment || null,
@@ -427,6 +470,7 @@ export default function ModeratorGamePage() {
       showToast("رکورد شب ثبت شد", "success");
       setTargetPlayerId("");
       setSecondaryTargetPlayerId("");
+      setExtraTargetPlayerIds([]);
       setNightNote("");
       setEventWasUsed(true);
       await refreshGame();
@@ -641,7 +685,7 @@ export default function ModeratorGamePage() {
                 <div className="mt-4 space-y-3">
                   <label className="flex flex-col gap-2">
                     <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نوع اتفاق</span>
-                    <select value={selectedActionKey} onChange={(event) => { setSelectedActionKey(event.target.value); setActorPlayerId(""); setTargetPlayerId(""); setSecondaryTargetPlayerId(""); }}>
+                    <select value={selectedActionKey} onChange={(event) => { setSelectedActionKey(event.target.value); setActorPlayerId(""); setTargetPlayerId(""); setSecondaryTargetPlayerId(""); setExtraTargetPlayerIds([]); }}>
                       {actionOptions.map((option) => (
                         <option key={option.key} value={option.key}>
                           {option.label} - {option.sourceLabel} ({abilityLimitLabel(option)})
@@ -676,6 +720,7 @@ export default function ModeratorGamePage() {
                           if (!item.value) {
                             setTargetPlayerId("");
                             setSecondaryTargetPlayerId("");
+                            setExtraTargetPlayerIds([]);
                           }
                         }}
                         className={`flex min-h-10 items-center justify-center gap-2 rounded-lg text-xs font-black transition-all ${
@@ -719,7 +764,7 @@ export default function ModeratorGamePage() {
                   {needsSecondaryTarget && (
                     <label className="flex flex-col gap-2">
                       <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">
-                        {selectedEffectType === "YAKUZA" ? "مافیای قربانی یاکوزا" : "اسم دوم بازپرسی"}
+                        {selectedEffectType === "YAKUZA" ? "مافیای قربانی یاکوزا" : selectedEffectType === "TWO_NAME_INQUIRY" ? "اسم دوم بازپرسی" : "هدف دوم"}
                       </span>
                       <select value={secondaryTargetPlayerId} onChange={(event) => setSecondaryTargetPlayerId(event.target.value)} disabled={!eventWasUsed}>
                         <option value="">انتخاب بازیکن</option>
@@ -730,6 +775,34 @@ export default function ModeratorGamePage() {
                         ))}
                       </select>
                     </label>
+                  )}
+
+                  {extraTargetSlots > 0 && (
+                    <div className="grid gap-2">
+                      {Array.from({ length: extraTargetSlots }).map((_, index) => (
+                        <label key={`extra-target-${index}`} className="flex flex-col gap-2">
+                          <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">هدف {index + 3}</span>
+                          <select
+                            value={extraTargetPlayerIds[index] || ""}
+                            onChange={(event) =>
+                              setExtraTargetPlayerIds((current) => {
+                                const next = [...current];
+                                next[index] = event.target.value;
+                                return next;
+                              })
+                            }
+                            disabled={!eventWasUsed}
+                          >
+                            <option value="">انتخاب بازیکن</option>
+                            {players.map((player) => (
+                              <option key={player.id} value={player.id}>
+                                {player.name} - {player.role?.name || "بدون نقش"} {player.isAlive === false ? "(حذف‌شده)" : ""}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      ))}
+                    </div>
                   )}
 
                   {needsConversionRole && (
@@ -748,7 +821,7 @@ export default function ModeratorGamePage() {
 
                   {selectedEffectType !== "NONE" && (
                     <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 text-xs font-bold leading-6 text-lime-700 dark:text-lime-300">
-                      اثر ویژه: {effectLabel(selectedEffectType)}
+                      رفتار ثبت‌شده: {effectLabel(selectedEffectType)}
                     </div>
                   )}
 
@@ -820,7 +893,12 @@ export default function ModeratorGamePage() {
                                   </p>
                                   {event.details?.secondaryTargetName && (
                                     <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                      {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "اسم دوم"}: {event.details.secondaryTargetName}
+                                      {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
+                                    </p>
+                                  )}
+                                  {Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
+                                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                      هدف‌های اضافه: {event.details.extraTargets.map((target) => target.name).join("، ")}
                                     </p>
                                   )}
                                   {event.details?.convertedRoleName && (

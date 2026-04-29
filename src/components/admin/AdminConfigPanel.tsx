@@ -33,6 +33,7 @@ type RoleNightAbility = {
   label: string;
   usesPerGame: number | null;
   usesPerNight: number | null;
+  targetsPerUse: number;
   selfTargetLimit: number | null;
   effectType: AbilityEffectType;
   choices: RoleNightAbilityChoice[];
@@ -74,9 +75,9 @@ const STANDARD_SCENARIO_NAMES = [
 
 const ABILITY_EFFECT_OPTIONS: { value: AbilityEffectType; label: string; description: string }[] = [
   { value: "NONE", label: "ثبت ساده", description: "فقط در گزارش شب ثبت می‌شود." },
-  { value: "CONVERT_TO_MAFIA", label: "خریداری گادفادر", description: "هدف به نقش مافیایی انتخاب‌شده تبدیل می‌شود." },
-  { value: "YAKUZA", label: "یاکوزای گادفادر", description: "یک مافیا حذف و یک شهروند خریداری می‌شود." },
-  { value: "TWO_NAME_INQUIRY", label: "بازپرسی بازپرس", description: "دو اسم برای پاسخ گرداننده ثبت می‌شود." },
+  { value: "CONVERT_TO_MAFIA", label: "خریداری", description: "هدف به نقش مافیایی انتخاب‌شده تبدیل می‌شود." },
+  { value: "YAKUZA", label: "یاکوزا", description: "یک مافیا حذف و یک شهروند خریداری می‌شود." },
+  { value: "TWO_NAME_INQUIRY", label: "بازپرسی دو نفره", description: "دو اسم برای پاسخ گرداننده ثبت می‌شود." },
 ];
 
 function normalizeEffectType(value: unknown): AbilityEffectType {
@@ -125,6 +126,7 @@ function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
         label,
         usesPerGame: typeof record.usesPerGame === "number" ? record.usesPerGame : null,
         usesPerNight: typeof record.usesPerNight === "number" ? record.usesPerNight : null,
+        targetsPerUse: typeof record.targetsPerUse === "number" ? Math.max(1, Math.min(4, record.targetsPerUse)) : 1,
         selfTargetLimit: typeof record.selfTargetLimit === "number" ? record.selfTargetLimit : null,
         effectType: normalizeEffectType(record.effectType),
         choices: Array.isArray(record.choices)
@@ -153,9 +155,10 @@ function limitLabel(value: number | null) {
 function abilityUsageLabel(ability: RoleNightAbility) {
   const parts = [`کل: ${limitLabel(ability.usesPerGame)}`];
   if (ability.usesPerNight) parts.push(`هر شب: ${ability.usesPerNight}`);
+  parts.push(`${ability.targetsPerUse || 1} هدف در هر استفاده`);
   if (ability.selfTargetLimit) parts.push(`روی خود: ${ability.selfTargetLimit}`);
   if (ability.effectType !== "NONE") {
-    parts.push(ABILITY_EFFECT_OPTIONS.find((option) => option.value === ability.effectType)?.label || "اثر ویژه");
+    parts.push(ABILITY_EFFECT_OPTIONS.find((option) => option.value === ability.effectType)?.label || "رفتار ثبت");
   }
   if (ability.choices.length) parts.push(`${ability.choices.length} انتخاب`);
   return parts.join("، ");
@@ -713,6 +716,7 @@ export default function AdminDashboard() {
                             label: "",
                             usesPerGame: null,
                             usesPerNight: 1,
+                            targetsPerUse: 1,
                             selfTargetLimit: null,
                             effectType: "NONE",
                             choices: [],
@@ -742,7 +746,7 @@ export default function AdminDashboard() {
                             placeholder="مثلاً نجات دکتر"
                             className="min-h-10 text-sm"
                           />
-                          <div className="grid gap-2 sm:grid-cols-3">
+                          <div className="grid gap-2 sm:grid-cols-4">
                             <label className="flex flex-col gap-1">
                               <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">کل بازی</span>
                               <select
@@ -782,6 +786,24 @@ export default function AdminDashboard() {
                             </label>
 
                             <label className="flex flex-col gap-1">
+                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">هدف در هر استفاده</span>
+                              <select
+                                value={ability.targetsPerUse || 1}
+                                onChange={(event) =>
+                                  updateRoleAbility(ability.id, {
+                                    targetsPerUse: Number(event.target.value),
+                                  })
+                                }
+                                className="min-h-10 text-sm"
+                              >
+                                <option value="1">۱ نفر</option>
+                                <option value="2">۲ نفر</option>
+                                <option value="3">۳ نفر</option>
+                                <option value="4">۴ نفر</option>
+                              </select>
+                            </label>
+
+                            <label className="flex flex-col gap-1">
                               <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">روی خودش</span>
                               <select
                                 value={ability.selfTargetLimit ?? "INFINITE"}
@@ -801,7 +823,7 @@ export default function AdminDashboard() {
                           </div>
 
                           <label className="flex flex-col gap-1">
-                            <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">اثر ویژه، فقط اگر این نقش دارد</span>
+                            <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">رفتار در گزارش و بازی</span>
                             <select
                               value={ability.effectType}
                               onChange={(event) =>
@@ -820,9 +842,9 @@ export default function AdminDashboard() {
                           <div className="rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/50">
                             <div className="flex items-center justify-between gap-2">
                               <div>
-                                <p className="text-[11px] font-black text-zinc-700 dark:text-zinc-300">زیرگزینه‌های اختیاری این توانایی</p>
+                                <p className="text-[11px] font-black text-zinc-700 dark:text-zinc-300">انتخاب‌های اختیاری داخل توانایی</p>
                                 <p className="mt-0.5 text-[10px] leading-4 text-zinc-500 dark:text-zinc-400">
-                                  فقط وقتی یک توانایی چند انتخاب جدا دارد؛ مثل تفنگدار با تفنگ واقعی و تفنگ مشقی. برای دکتر یا بازپرس معمولاً خالی می‌ماند.
+                                  وقتی یک توانایی چند اجرای متفاوت دارد، مثل تفنگ واقعی و مشقی، اینجا نام هر انتخاب را جدا کنید.
                                 </p>
                               </div>
                               <button

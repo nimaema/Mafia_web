@@ -310,7 +310,12 @@ export default function UserGamePage() {
                             </p>
                             {event.details?.secondaryTargetName && (
                               <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-                                {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "اسم دوم"}: {event.details.secondaryTargetName}
+                                {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
+                              </p>
+                            )}
+                            {Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
+                              <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                                هدف‌های اضافه: {event.details.extraTargets.map((target: { name: string }) => target.name).join("، ")}
                               </p>
                             )}
                             {event.details?.convertedRoleName && (

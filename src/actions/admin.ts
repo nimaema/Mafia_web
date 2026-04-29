@@ -25,6 +25,7 @@ type RoleNightAbilityInput = {
   label: string;
   usesPerGame?: number | null;
   usesPerNight?: number | null;
+  targetsPerUse?: number | null;
   selfTargetLimit?: number | null;
   effectType?: string | null;
   choices?: RoleNightAbilityChoiceInput[];
@@ -94,6 +95,7 @@ function normalizeNightAbilities(abilities?: RoleNightAbilityInput[]): Prisma.In
         label,
         usesPerGame: cleanLimit(ability.usesPerGame),
         usesPerNight: cleanLimit(ability.usesPerNight, 10),
+        targetsPerUse: cleanLimit(ability.targetsPerUse, 4) || 1,
         selfTargetLimit: cleanLimit(ability.selfTargetLimit),
         effectType: cleanEffectType(ability.effectType),
         choices,
