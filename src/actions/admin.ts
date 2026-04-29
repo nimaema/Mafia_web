@@ -106,6 +106,31 @@ function normalizeNightAbilities(abilities?: RoleNightAbilityInput[]): Prisma.In
   return cleanAbilities.length ? (cleanAbilities as Prisma.InputJsonValue) : Prisma.JsonNull;
 }
 
+function validateNightAbilities(abilities?: RoleNightAbilityInput[]) {
+  if (!Array.isArray(abilities)) return;
+
+  for (const ability of abilities) {
+    const label = ability.label?.trim();
+    if (!label) continue;
+    const rawUsesPerNight = ability.usesPerNight as unknown;
+    const usesPerNight =
+      rawUsesPerNight === null || rawUsesPerNight === undefined || rawUsesPerNight === ""
+        ? null
+        : Math.max(1, Math.min(10, Number(rawUsesPerNight) || 1));
+    const needsChoices = usesPerNight === null || usesPerNight > 1;
+    if (!needsChoices) continue;
+
+    const requiredChoices = usesPerNight && usesPerNight > 1 ? usesPerNight : 2;
+    const filledChoices = Array.isArray(ability.choices)
+      ? ability.choices.filter((choice) => choice.label?.trim()).length
+      : 0;
+
+    if (filledChoices < requiredChoices) {
+      throw new Error(`برای توانایی «${label}» حداقل ${requiredChoices} انتخاب نام‌گذاری‌شده وارد کنید.`);
+    }
+  }
+}
+
 // User Management
 export async function getAllUsers() {
   await checkAdmin();
@@ -267,6 +292,7 @@ export async function getMafiaRolesSafe(): Promise<SafeListResult<any>> {
 
 export async function createMafiaRole(data: { name: string; description: string; alignment: Alignment; nightAbilities?: RoleNightAbilityInput[] }) {
   await checkModerator();
+  validateNightAbilities(data.nightAbilities);
   const role = await prisma.mafiaRole.create({
     data: {
       name: data.name,
@@ -282,6 +308,7 @@ export async function createMafiaRole(data: { name: string; description: string;
 
 export async function updateMafiaRole(id: string, data: { name: string; description: string; alignment: Alignment; nightAbilities?: RoleNightAbilityInput[] }) {
   await checkModerator();
+  validateNightAbilities(data.nightAbilities);
   const role = await prisma.mafiaRole.update({
     where: { id },
     data: {

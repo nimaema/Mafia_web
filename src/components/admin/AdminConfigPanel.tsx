@@ -155,13 +155,17 @@ function limitLabel(value: number | null) {
 function abilityUsageLabel(ability: RoleNightAbility) {
   const parts = [`کل: ${limitLabel(ability.usesPerGame)}`];
   if (ability.usesPerNight) parts.push(`هر شب: ${ability.usesPerNight}`);
-  parts.push(`${ability.targetsPerUse || 1} هدف در هر استفاده`);
   if (ability.selfTargetLimit) parts.push(`روی خود: ${ability.selfTargetLimit}`);
-  if (ability.effectType !== "NONE") {
-    parts.push(ABILITY_EFFECT_OPTIONS.find((option) => option.value === ability.effectType)?.label || "رفتار ثبت");
-  }
   if (ability.choices.length) parts.push(`${ability.choices.length} انتخاب`);
   return parts.join("، ");
+}
+
+function abilityNeedsChoices(ability: RoleNightAbility) {
+  return ability.usesPerNight === null || ability.usesPerNight > 1;
+}
+
+function requiredChoiceCount(ability: RoleNightAbility) {
+  return ability.usesPerNight && ability.usesPerNight > 1 ? ability.usesPerNight : 2;
 }
 
 function scenarioTotalPlayers(scenario: ScenarioRecord) {
@@ -288,6 +292,20 @@ export default function AdminDashboard() {
       showAlert("نام نقش", "نام نقش را وارد کنید.", "warning");
       return;
     }
+    const incompleteMultiUseAbility = newRoleAbilities.find((ability) => {
+      if (!ability.label.trim() || !abilityNeedsChoices(ability)) return false;
+      const filledChoices = ability.choices.filter((choice) => choice.label.trim()).length;
+      return filledChoices < requiredChoiceCount(ability);
+    });
+
+    if (incompleteMultiUseAbility) {
+      showAlert(
+        "انتخاب‌های توانایی",
+        `برای «${incompleteMultiUseAbility.label}» حداقل ${requiredChoiceCount(incompleteMultiUseAbility)} انتخاب نام‌گذاری‌شده وارد کنید.`,
+        "warning"
+      );
+      return;
+    }
 
     try {
       if (editingRoleId) {
@@ -310,9 +328,9 @@ export default function AdminDashboard() {
 
       resetRoleForm();
       await refreshData();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      showAlert("خطا", "ثبت نقش ناموفق بود", "error");
+      showAlert("خطا", error.message || "ثبت نقش ناموفق بود", "error");
     }
   };
 
@@ -737,16 +755,20 @@ export default function AdminDashboard() {
                   ) : (
                     <div className="mt-3 space-y-2">
                       {newRoleAbilities.map((ability) => (
-                        <div key={ability.id} className="grid gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
-                          <input
-                            value={ability.label}
-                            onChange={(event) =>
-                              updateRoleAbility(ability.id, { label: event.target.value.slice(0, 60) })
-                            }
-                            placeholder="مثلاً نجات دکتر"
-                            className="min-h-10 text-sm"
-                          />
-                          <div className="grid gap-2 sm:grid-cols-4">
+                        <div key={ability.id} className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]">
+                          <div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,1.2fr)_170px_170px_160px_40px]">
+                            <label className="flex flex-col gap-1">
+                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">نام توانایی</span>
+                              <input
+                                value={ability.label}
+                                onChange={(event) =>
+                                  updateRoleAbility(ability.id, { label: event.target.value.slice(0, 60) })
+                                }
+                                placeholder="مثلاً نجات دکتر"
+                                className="min-h-10 text-sm"
+                              />
+                            </label>
+
                             <label className="flex flex-col gap-1">
                               <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">کل بازی</span>
                               <select
@@ -778,28 +800,10 @@ export default function AdminDashboard() {
                                 }
                                 className="min-h-10 text-sm"
                               >
+                                <option value="1">۱ بار</option>
+                                <option value="2">۲ بار</option>
+                                <option value="3">۳ بار</option>
                                 <option value="INFINITE">نامحدود</option>
-                                <option value="1">۱ انتخاب</option>
-                                <option value="2">۲ انتخاب</option>
-                                <option value="3">۳ انتخاب</option>
-                              </select>
-                            </label>
-
-                            <label className="flex flex-col gap-1">
-                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">هدف در هر استفاده</span>
-                              <select
-                                value={ability.targetsPerUse || 1}
-                                onChange={(event) =>
-                                  updateRoleAbility(ability.id, {
-                                    targetsPerUse: Number(event.target.value),
-                                  })
-                                }
-                                className="min-h-10 text-sm"
-                              >
-                                <option value="1">۱ نفر</option>
-                                <option value="2">۲ نفر</option>
-                                <option value="3">۳ نفر</option>
-                                <option value="4">۴ نفر</option>
                               </select>
                             </label>
 
@@ -820,46 +824,38 @@ export default function AdminDashboard() {
                                 <option value="3">۳ بار</option>
                               </select>
                             </label>
+
+                            <button
+                              type="button"
+                              onClick={() => setNewRoleAbilities((previous) => previous.filter((item) => item.id !== ability.id))}
+                              className="mt-auto flex min-h-10 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                              aria-label="حذف توانایی"
+                            >
+                              <span className="material-symbols-outlined text-lg">delete</span>
+                            </button>
                           </div>
 
-                          <label className="flex flex-col gap-1">
-                            <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">رفتار در گزارش و بازی</span>
-                            <select
-                              value={ability.effectType}
-                              onChange={(event) =>
-                                updateRoleAbility(ability.id, { effectType: event.target.value as AbilityEffectType })
-                              }
-                              className="min-h-10 text-sm"
-                            >
-                              {ABILITY_EFFECT_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label} - {option.description}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-
-                          <div className="rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/50">
-                            <div className="flex items-center justify-between gap-2">
-                              <div>
-                                <p className="text-[11px] font-black text-zinc-700 dark:text-zinc-300">انتخاب‌های اختیاری داخل توانایی</p>
-                                <p className="mt-0.5 text-[10px] leading-4 text-zinc-500 dark:text-zinc-400">
-                                  وقتی یک توانایی چند اجرای متفاوت دارد، مثل تفنگ واقعی و مشقی، اینجا نام هر انتخاب را جدا کنید.
-                                </p>
+                          {abilityNeedsChoices(ability) && (
+                            <div className="border-t border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/45">
+                              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                  <p className="text-xs font-black text-zinc-950 dark:text-white">انتخاب‌های داخل توانایی</p>
+                                  <p className="mt-1 text-[10px] leading-5 text-zinc-500 dark:text-zinc-400">
+                                    چون این توانایی در یک شب بیشتر از یک‌بار قابل ثبت است، نام هر انتخاب باید جدا وارد شود.
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => addAbilityChoice(ability.id)}
+                                  className="ui-button-secondary min-h-9 shrink-0 px-3 text-xs"
+                                >
+                                  افزودن انتخاب
+                                </button>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => addAbilityChoice(ability.id)}
-                                className="ui-button-secondary min-h-8 shrink-0 px-2 text-[10px]"
-                              >
-                                افزودن انتخاب
-                              </button>
-                            </div>
 
-                            {ability.choices.length > 0 && (
-                              <div className="mt-2 space-y-2">
+                              <div className="mt-3 space-y-2">
                                 {ability.choices.map((choice) => (
-                                  <div key={choice.id} className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_120px_170px_34px]">
+                                  <div key={choice.id} className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_130px_150px_36px]">
                                     <input
                                       value={choice.label}
                                       onChange={(event) =>
@@ -911,21 +907,19 @@ export default function AdminDashboard() {
                                   </div>
                                 ))}
                               </div>
-                            )}
-                          </div>
 
-                          <div className="grid grid-cols-[minmax(0,1fr)_40px] gap-2">
-                            <div className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-bold leading-5 text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
-                              {abilityUsageLabel(ability)}
+                              <p className={`mt-3 rounded-lg border px-3 py-2 text-[10px] font-bold leading-5 ${
+                                ability.choices.filter((choice) => choice.label.trim()).length >= requiredChoiceCount(ability)
+                                  ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+                                  : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                              }`}>
+                                حداقل {requiredChoiceCount(ability)} انتخاب نام‌گذاری‌شده لازم است.
+                              </p>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => setNewRoleAbilities((previous) => previous.filter((item) => item.id !== ability.id))}
-                              className="flex min-h-10 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
-                              aria-label="حذف توانایی"
-                            >
-                              <span className="material-symbols-outlined text-lg">delete</span>
-                            </button>
+                          )}
+
+                          <div className="border-t border-zinc-200 bg-white px-3 py-2 text-[10px] font-bold leading-5 text-zinc-500 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-400">
+                            {abilityUsageLabel(ability)}
                           </div>
                         </div>
                       ))}
