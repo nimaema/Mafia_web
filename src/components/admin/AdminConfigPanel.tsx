@@ -142,14 +142,16 @@ function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
 }
 
 function nightLimitLabel(value: number | null) {
-  return value ? `${value} شب` : "هر شب";
+  return value ? `فقط ${value} شب در کل بازی` : "قابل استفاده در هر شب";
 }
 
 function abilityUsageLabel(ability: RoleNightAbility) {
-  const parts = [`شب‌ها: ${nightLimitLabel(ability.usesPerGame)}`];
-  parts.push(`${ability.targetsPerUse || 1} نفر/گزینه`);
-  parts.push(`روی خود: ${ability.selfTargetLimit ?? 0}`);
-  if (ability.choices.length) parts.push(`${ability.choices.length} انتخاب`);
+  const targetCount = ability.targetsPerUse || 1;
+  const selfLimit = ability.selfTargetLimit ?? 0;
+  const parts = [nightLimitLabel(ability.usesPerGame)];
+  parts.push(targetCount > 1 ? `هر ثبت شامل ${targetCount} هدف/گزینه` : "هر ثبت روی ۱ هدف");
+  parts.push(selfLimit > 0 ? `روی خودش تا ${selfLimit} بار` : "روی خودش مجاز نیست");
+  if (ability.choices.length) parts.push(`${ability.choices.length} نام برای هدف‌ها`);
   return parts.join("، ");
 }
 
@@ -741,84 +743,88 @@ export default function AdminDashboard() {
                     <div className="mt-3 space-y-2">
                       {newRoleAbilities.map((ability) => (
                         <div key={ability.id} className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]">
-                          <div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,1.2fr)_170px_170px_160px_40px]">
-                            <label className="flex flex-col gap-1">
-                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">نام توانایی</span>
-                              <input
-                                value={ability.label}
-                                onChange={(event) =>
-                                  updateRoleAbility(ability.id, { label: event.target.value.slice(0, 60) })
-                                }
-                                placeholder="مثلاً نجات دکتر"
-                                className="min-h-10 text-sm"
-                              />
-                            </label>
+                          <div className="p-3">
+                            <div className="flex items-end gap-2">
+                              <label className="flex min-w-0 flex-1 flex-col gap-1">
+                                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">نام توانایی</span>
+                                <input
+                                  value={ability.label}
+                                  onChange={(event) =>
+                                    updateRoleAbility(ability.id, { label: event.target.value.slice(0, 60) })
+                                  }
+                                  placeholder="مثلاً یاکوزا، نجات دکتر یا بازپرسی"
+                                  className="min-h-10 text-sm"
+                                />
+                              </label>
 
-                            <label className="flex flex-col gap-1">
-                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">چند شب</span>
-                              <select
-                                value={ability.usesPerGame ?? "INFINITE"}
-                                onChange={(event) =>
-                                  updateRoleAbility(ability.id, {
-                                    usesPerGame: event.target.value === "INFINITE" ? null : Number(event.target.value),
-                                  })
-                                }
-                                className="min-h-10 text-sm"
+                              <button
+                                type="button"
+                                onClick={() => setNewRoleAbilities((previous) => previous.filter((item) => item.id !== ability.id))}
+                                className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                                aria-label="حذف توانایی"
                               >
-                                <option value="INFINITE">هر شب</option>
-                                <option value="1">۱ شب</option>
-                                <option value="2">۲ شب</option>
-                                <option value="3">۳ شب</option>
-                                <option value="4">۴ شب</option>
-                                <option value="5">۵ شب</option>
-                              </select>
-                            </label>
+                                <span className="material-symbols-outlined text-lg">delete</span>
+                              </button>
+                            </div>
 
-                            <label className="flex flex-col gap-1">
-                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">روی چند نفر</span>
-                              <select
-                                value={ability.targetsPerUse || 1}
-                                onChange={(event) =>
-                                  updateAbilityTargetsPerUse(ability.id, Number(event.target.value))
-                                }
-                                className="min-h-10 text-sm"
-                              >
-                                <option value="1">۱ نفر</option>
-                                <option value="2">۲ نفر</option>
-                                <option value="3">۳ نفر</option>
-                                <option value="4">۴ نفر</option>
-                                <option value="5">۵ نفر</option>
-                              </select>
-                            </label>
+                            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                              <label className="flex min-w-0 flex-col gap-1">
+                                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">چند شب</span>
+                                <select
+                                  value={ability.usesPerGame ?? "INFINITE"}
+                                  onChange={(event) =>
+                                    updateRoleAbility(ability.id, {
+                                      usesPerGame: event.target.value === "INFINITE" ? null : Number(event.target.value),
+                                    })
+                                  }
+                                  className="min-h-10 text-sm"
+                                >
+                                  <option value="INFINITE">هر شب</option>
+                                  <option value="1">۱ شب</option>
+                                  <option value="2">۲ شب</option>
+                                  <option value="3">۳ شب</option>
+                                  <option value="4">۴ شب</option>
+                                  <option value="5">۵ شب</option>
+                                </select>
+                              </label>
 
-                            <label className="flex flex-col gap-1">
-                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">روی خودش</span>
-                              <select
-                                value={ability.selfTargetLimit ?? 0}
-                                onChange={(event) =>
-                                  updateRoleAbility(ability.id, {
-                                    selfTargetLimit: Number(event.target.value),
-                                  })
-                                }
-                                className="min-h-10 text-sm"
-                              >
-                                <option value="0">۰ بار</option>
-                                <option value="1">۱ بار</option>
-                                <option value="2">۲ بار</option>
-                                <option value="3">۳ بار</option>
-                                <option value="4">۴ بار</option>
-                                <option value="5">۵ بار</option>
-                              </select>
-                            </label>
+                              <label className="flex min-w-0 flex-col gap-1">
+                                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">روی چند نفر</span>
+                                <select
+                                  value={ability.targetsPerUse || 1}
+                                  onChange={(event) =>
+                                    updateAbilityTargetsPerUse(ability.id, Number(event.target.value))
+                                  }
+                                  className="min-h-10 text-sm"
+                                >
+                                  <option value="1">۱ نفر</option>
+                                  <option value="2">۲ نفر</option>
+                                  <option value="3">۳ نفر</option>
+                                  <option value="4">۴ نفر</option>
+                                  <option value="5">۵ نفر</option>
+                                </select>
+                              </label>
 
-                            <button
-                              type="button"
-                              onClick={() => setNewRoleAbilities((previous) => previous.filter((item) => item.id !== ability.id))}
-                              className="mt-auto flex min-h-10 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
-                              aria-label="حذف توانایی"
-                            >
-                              <span className="material-symbols-outlined text-lg">delete</span>
-                            </button>
+                              <label className="flex min-w-0 flex-col gap-1">
+                                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">روی خودش</span>
+                                <select
+                                  value={ability.selfTargetLimit ?? 0}
+                                  onChange={(event) =>
+                                    updateRoleAbility(ability.id, {
+                                      selfTargetLimit: Number(event.target.value),
+                                    })
+                                  }
+                                  className="min-h-10 text-sm"
+                                >
+                                  <option value="0">۰ بار</option>
+                                  <option value="1">۱ بار</option>
+                                  <option value="2">۲ بار</option>
+                                  <option value="3">۳ بار</option>
+                                  <option value="4">۴ بار</option>
+                                  <option value="5">۵ بار</option>
+                                </select>
+                              </label>
+                            </div>
                           </div>
 
                           {abilityNeedsChoices(ability) && (

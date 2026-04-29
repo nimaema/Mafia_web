@@ -62,6 +62,17 @@ function effectLabel(effectType?: AbilityEffectType) {
   return "ثبت ساده";
 }
 
+function inferEffectTypeFromLabel(label: string): AbilityEffectType {
+  const normalized = label
+    .toLowerCase()
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک");
+  if (normalized.includes("یاکوز") || normalized.includes("yakuza")) return "YAKUZA";
+  if (normalized.includes("خرید") || normalized.includes("kharid") || normalized.includes("convert")) return "CONVERT_TO_MAFIA";
+  if (normalized.includes("بازپرس") || normalized.includes("bazpors") || normalized.includes("inquiry")) return "TWO_NAME_INQUIRY";
+  return "NONE";
+}
+
 function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -108,14 +119,17 @@ function abilityConfigForGame(game: any): ActiveRoleAbilityConfig {
 }
 
 function abilityLimitLabel(ability: RoleNightAbility) {
+  const targetCount = ability.targetsPerUse || 1;
+  const selfLimit = ability.selfTargetLimit ?? 0;
+  const storedEffectType = normalizeEffectType(ability.effectType);
+  const effectType = storedEffectType !== "NONE" ? storedEffectType : inferEffectTypeFromLabel(ability.label);
   const parts = [
-    ability.usesPerGame ? `${ability.usesPerGame} بار در بازی` : "نامحدود",
-    ability.usesPerNight ? `${ability.usesPerNight} بار در شب` : "هر شب آزاد",
-    `${ability.targetsPerUse || 1} هدف`,
+    ability.usesPerGame ? `فقط ${ability.usesPerGame} شب در کل بازی` : "قابل استفاده در هر شب",
+    targetCount > 1 ? `هر ثبت شامل ${targetCount} هدف/گزینه` : "هر ثبت روی ۱ هدف",
   ];
-  if (ability.selfTargetLimit !== null) parts.push(`${ability.selfTargetLimit} بار روی خودش`);
-  if (ability.effectType !== "NONE") parts.push(effectLabel(ability.effectType));
-  if (ability.choices.length) parts.push(`${ability.choices.length} انتخاب داخلی`);
+  parts.push(selfLimit > 0 ? `روی خودش تا ${selfLimit} بار` : "روی خودش مجاز نیست");
+  if (effectType !== "NONE") parts.push(`رفتار گزارش: ${effectLabel(effectType)}`);
+  if (ability.choices.length) parts.push(`${ability.choices.length} نام برای هدف‌ها`);
   return parts.join("، ");
 }
 
@@ -345,24 +359,23 @@ export default function GameLobbyPage() {
   };
 
   const handleCreateCustomScenario = async () => {
-    if (selectedCustomCount === 0) return;
+    if (selectedCustomCount === 0) {
+      showAlert("سناریوی سفارشی", "حداقل یک نقش برای این سناریو انتخاب کنید.", "warning");
+      return;
+    }
 
-    setSettingScenario(true);
-    setShowCustomModal(false);
     if (saveCustomScenario && !customScenarioName.trim()) {
       showAlert("نام سناریو", "برای ذخیره در کتابخانه، یک نام کوتاه و مشخص وارد کنید.", "warning");
-      setSettingScenario(false);
-      setShowCustomModal(true);
       return;
     }
 
     if (selectedCustomCount !== players.length) {
       showAlert("تعداد نقش‌ها", `تعداد نقش‌ها (${selectedCustomCount}) باید با تعداد بازیکنان حاضر (${players.length}) برابر باشد.`, "warning");
-      setSettingScenario(false);
-      setShowCustomModal(true);
       return;
     }
 
+    const shouldSaveScenario = saveCustomScenario;
+    setSettingScenario(true);
     const res = await createCustomGameScenario(gameId, customRoles, saveCustomScenario, customScenarioName);
     if (!res.success) {
       showAlert("خطا", res.error || "خطا در ایجاد سناریو سفارشی", "error");
@@ -370,14 +383,23 @@ export default function GameLobbyPage() {
       const updatedGame = await getGameStatus(gameId);
       setGame(updatedGame);
       setAbilityConfig(abilityConfigForGame(updatedGame));
-      if (saveCustomScenario) {
+      if (shouldSaveScenario) {
         const nextScenarios = await getScenarios();
         setScenarios(nextScenarios);
       }
+      setShowCustomModal(false);
       setCustomRoleSearch("");
       setSaveCustomScenario(false);
       setCustomScenarioName("");
-      showToast(saveCustomScenario ? "سناریوی سفارشی ذخیره و اعمال شد" : "سناریوی سفارشی اعمال شد", "success");
+      const hasConfigurableAbilities = (updatedGame?.scenario?.roles || []).some((item: any) => normalizeRoleAbilities(item.role?.nightAbilities).length > 1);
+      showToast(
+        hasConfigurableAbilities
+          ? "سناریو اعمال شد؛ توانایی‌های فعال همین بازی را انتخاب کنید."
+          : shouldSaveScenario
+            ? "سناریوی سفارشی ذخیره و اعمال شد"
+            : "سناریوی سفارشی اعمال شد",
+        "success"
+      );
     }
     setSettingScenario(false);
   };
@@ -794,7 +816,7 @@ export default function GameLobbyPage() {
 
               <button
                 onClick={handleCreateCustomScenario}
-                disabled={selectedCustomCount === 0 || selectedCustomCount !== players.length || (saveCustomScenario && !customScenarioName.trim())}
+                disabled={settingScenario || selectedCustomCount === 0}
                 className="ui-button-primary min-h-12 w-full"
               >
                 <span className="material-symbols-outlined text-xl">save</span>

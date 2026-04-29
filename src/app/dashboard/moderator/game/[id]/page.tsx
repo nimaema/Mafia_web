@@ -106,6 +106,17 @@ function effectLabel(effectType?: AbilityEffectType) {
   return "ثبت ساده";
 }
 
+function inferEffectTypeFromLabel(label: string): AbilityEffectType {
+  const normalized = label
+    .toLowerCase()
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک");
+  if (normalized.includes("یاکوز") || normalized.includes("yakuza")) return "YAKUZA";
+  if (normalized.includes("خرید") || normalized.includes("kharid") || normalized.includes("convert")) return "CONVERT_TO_MAFIA";
+  if (normalized.includes("بازپرس") || normalized.includes("bazpors") || normalized.includes("inquiry")) return "TWO_NAME_INQUIRY";
+  return "NONE";
+}
+
 function alignmentLabel(alignment?: Alignment | null) {
   if (alignment === "CITIZEN") return "شهروند";
   if (alignment === "MAFIA") return "مافیا";
@@ -172,16 +183,20 @@ function normalizeActiveRoleAbilityConfig(value: unknown): Record<string, string
 }
 
 function usageLabel(usesPerGame: number | null) {
-  return usesPerGame ? `${usesPerGame} بار` : "نامحدود";
+  return usesPerGame ? `${usesPerGame} بار در کل بازی` : "بدون سقف کلی";
 }
 
 function abilityLimitLabel(option: NightActionOption) {
-  const parts = [`کل: ${usageLabel(option.usesPerGame)}`];
-  if (option.usesPerNight) parts.push(`هر شب: ${option.usesPerNight}`);
-  parts.push(`${option.targetsPerUse || 1} هدف`);
-  if (option.selfTargetLimit !== null) parts.push(`روی خود: ${option.selfTargetLimit}`);
+  const targetCount = option.targetsPerUse || 1;
+  const selfLimit = option.selfTargetLimit ?? 0;
+  const parts = [
+    option.usesPerGame ? `سقف هر انجام‌دهنده: ${option.usesPerGame} بار در کل بازی` : "قابل ثبت بدون سقف کلی",
+    option.usesPerNight ? `در هر شب تا ${option.usesPerNight} بار` : "قابل ثبت در هر شب",
+    targetCount > 1 ? `هر ثبت شامل ${targetCount} هدف/گزینه` : "هر ثبت روی ۱ هدف",
+  ];
+  parts.push(selfLimit > 0 ? `روی خودش تا ${selfLimit} بار` : "روی خودش مجاز نیست");
   if (option.effectType !== "NONE") parts.push(effectLabel(option.effectType));
-  if (option.choices.length) parts.push(`${option.choices.length} انتخاب`);
+  if (option.choices.length) parts.push(`${option.choices.length} نام برای هدف‌ها`);
   return parts.join("، ");
 }
 
@@ -365,6 +380,8 @@ export default function ModeratorGamePage() {
         : abilities;
       visibleAbilities.forEach((ability) => {
         const key = `role:${role.id}:${ability.id}`;
+        const storedEffectType = normalizeEffectType(ability.effectType);
+        const effectType = storedEffectType !== "NONE" ? storedEffectType : inferEffectTypeFromLabel(ability.label);
         const existing = roleAbilityMap.get(key);
         if (existing) {
           existing.candidates.push(player);
@@ -380,7 +397,7 @@ export default function ModeratorGamePage() {
           usesPerNight: ability.usesPerNight,
           targetsPerUse: ability.targetsPerUse,
           selfTargetLimit: ability.selfTargetLimit,
-          effectType: normalizeEffectType(ability.effectType),
+          effectType,
           choices: ability.choices,
           className: alignmentClass(role.alignment),
         });
@@ -404,7 +421,7 @@ export default function ModeratorGamePage() {
     ? null
     : selectedAction?.choices.find((choice) => choice.id === selectedChoiceKey) || selectedAction?.choices[0] || null;
   const fixedEffectType = normalizeEffectType(selectedChoice?.effectType !== "NONE" ? selectedChoice?.effectType : selectedAction?.effectType);
-  const canChooseReportEffect = selectedAction?.source === "role" && fixedEffectType === "NONE";
+  const canChooseReportEffect = false;
   const selectedEffectType = fixedEffectType !== "NONE" ? fixedEffectType : canChooseReportEffect ? reportEffectType : "NONE";
   const selectedTargetCount = Math.max(
     selectedEffectType === "TWO_NAME_INQUIRY" ? 2 : 1,

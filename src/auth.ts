@@ -83,10 +83,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.email = user.email
         token.picture = user.image || token.picture
       }
-      
-      // Handle session updates
-      if (trigger === "update") {
-        if (token.sub) {
+
+      if (token.sub) {
+        try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.sub },
             select: {
@@ -99,15 +98,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (dbUser) {
             token.name = dbUser.name
             token.email = dbUser.email
-            token.picture = dbUser.image || token.picture
+            token.picture = dbUser.image || undefined
             token.role = dbUser.role
           }
-        } else if (session?.user) {
-          token.name = session.user.name
-          token.email = session.user.email
-          token.picture = session.user.image || token.picture
-          if (session.user.role) token.role = session.user.role
+        } catch (error) {
+          console.error("Failed to refresh auth token user:", error)
         }
+      } else if (trigger === "update" && session?.user) {
+        token.name = session.user.name
+        token.email = session.user.email
+        token.picture = session.user.image || token.picture
+        if (session.user.role) token.role = session.user.role
       }
       return token
     },

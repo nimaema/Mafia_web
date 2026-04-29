@@ -42,10 +42,19 @@ type DayEliminationInput = {
 };
 
 type ActiveRoleAbilityConfig = Record<string, string[]>;
+type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
 
 async function checkModerator() {
   const session = await auth();
-  if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
+  if (!session?.user?.id) {
+    throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی گرداننده یا مدیر)");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, isBanned: true },
+  });
+  if (!user || user.isBanned || (user.role !== "ADMIN" && user.role !== "MODERATOR")) {
     throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی گرداننده یا مدیر)");
   }
   return session.user.id;
@@ -53,7 +62,15 @@ async function checkModerator() {
 
 async function checkModeratorForGame(gameId: string) {
   const session = await auth();
-  if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
+  if (!session?.user?.id) {
+    throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی گرداننده یا مدیر)");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, isBanned: true },
+  });
+  if (!user || user.isBanned || (user.role !== "ADMIN" && user.role !== "MODERATOR")) {
     throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی گرداننده یا مدیر)");
   }
 
@@ -63,19 +80,30 @@ async function checkModeratorForGame(gameId: string) {
   });
 
   if (!game) throw new Error("بازی یافت نشد");
-  if (session.user.role !== "ADMIN" && game.moderatorId !== session.user.id) {
+  if (user.role !== "ADMIN" && game.moderatorId !== session.user.id) {
     throw new Error("فقط گرداننده همین بازی می‌تواند این عملیات را انجام دهد.");
   }
 
-  return { userId: session.user.id, role: session.user.role, game };
+  return { userId: session.user.id, role: user.role, game };
 }
 
 function isAlignment(value: unknown): value is Alignment {
   return value === "CITIZEN" || value === "MAFIA" || value === "NEUTRAL";
 }
 
-function normalizeEffectType(value: unknown) {
+function normalizeEffectType(value: unknown): AbilityEffectType {
   if (value === "CONVERT_TO_MAFIA" || value === "YAKUZA" || value === "TWO_NAME_INQUIRY") return value;
+  return "NONE";
+}
+
+function inferEffectTypeFromLabel(label: string): AbilityEffectType {
+  const normalized = label
+    .toLowerCase()
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک");
+  if (normalized.includes("یاکوز") || normalized.includes("yakuza")) return "YAKUZA";
+  if (normalized.includes("خرید") || normalized.includes("kharid") || normalized.includes("convert")) return "CONVERT_TO_MAFIA";
+  if (normalized.includes("بازپرس") || normalized.includes("bazpors") || normalized.includes("inquiry")) return "TWO_NAME_INQUIRY";
   return "NONE";
 }
 
@@ -89,6 +117,23 @@ function normalizeRoleAbilityIds(value: unknown) {
       return label && id ? id : null;
     })
     .filter(Boolean) as string[];
+}
+
+function normalizeRoleAbilityDefinitions(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      const record = item as { id?: unknown; label?: unknown; effectType?: unknown };
+      const label = String(record.label || "").trim();
+      const id = String(record.id || `ability-${index + 1}`).trim();
+      if (!label || !id) return null;
+      return {
+        id,
+        label,
+        effectType: normalizeEffectType(record.effectType),
+      };
+    })
+    .filter(Boolean) as Array<{ id: string; label: string; effectType: AbilityEffectType }>;
 }
 
 function normalizeActiveRoleAbilityConfig(value: unknown, allowedRoleAbilities?: Map<string, Set<string>>): ActiveRoleAbilityConfig {
@@ -349,11 +394,19 @@ export async function getModeratorGames(timestamp?: number) {
   noStore();
   await expireStaleGames();
   const session = await auth();
-  if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
+  if (!session?.user?.id) {
     throw new Error("شما دسترسی لازم برای این عملیات را ندارید.");
   }
 
-  const isAdmin = session.user.role === "ADMIN";
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, isBanned: true },
+  });
+  if (!user || user.isBanned || (user.role !== "ADMIN" && user.role !== "MODERATOR")) {
+    throw new Error("شما دسترسی لازم برای این عملیات را ندارید.");
+  }
+
+  const isAdmin = user.role === "ADMIN";
   
   const games = await prisma.game.findMany({
     where: { 
@@ -427,9 +480,15 @@ export async function getGameStatus(gameId: string) {
 
   if (!game) return null;
 
+  const currentUser = session?.user?.id
+    ? await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { role: true, isBanned: true },
+      })
+    : null;
   const canSeePrivateNightEvents =
-    session?.user?.role === "ADMIN" ||
-    (session?.user?.role === "MODERATOR" && session.user.id === game.moderatorId);
+    (!currentUser?.isBanned && currentUser?.role === "ADMIN") ||
+    (!currentUser?.isBanned && currentUser?.role === "MODERATOR" && session?.user?.id === game.moderatorId);
   const visibleNightEvents = canSeePrivateNightEvents || game.nightRecordsPublic
     ? game.nightEvents
     : game.nightEvents.filter((event) => event.isPublic);
@@ -519,7 +578,7 @@ export async function getPlayerGameView(gameId: string) {
 
 export async function startGame(gameId: string) {
   try {
-    await checkModerator();
+    await checkModeratorForGame(gameId);
     
     // Fetch game with scenario and players
     const game = await prisma.game.findUnique({
@@ -591,7 +650,10 @@ export async function startGame(gameId: string) {
 
 export async function setGameScenario(gameId: string, scenarioId: string) {
   try {
-    await checkModerator();
+    const { game } = await checkModeratorForGame(gameId);
+    if (game.status !== "WAITING") {
+      throw new Error("سناریو فقط قبل از شروع بازی قابل تغییر است.");
+    }
     let selectedScenario: { roles: Array<{ roleId: string; count: number; role: { nightAbilities: Prisma.JsonValue } }> } | null = null;
     if (scenarioId) {
       const [game, scenario] = await Promise.all([
@@ -710,7 +772,10 @@ export async function createCustomGameScenario(
   scenarioName?: string
 ) {
   try {
-    const moderatorId = await checkModerator();
+    const { userId: moderatorId, game: currentGame } = await checkModeratorForGame(gameId);
+    if (currentGame.status !== "WAITING") {
+      throw new Error("سناریوی سفارشی فقط قبل از شروع بازی قابل تغییر است.");
+    }
     const uniqueSuffix = `${gameId.slice(0, 6)}-${Date.now().toString(36)}`;
     const totalRoles = roles.reduce((sum, role) => sum + role.count, 0);
     const game = await prisma.game.findUnique({
@@ -752,7 +817,7 @@ export async function createCustomGameScenario(
     return await setGameScenario(gameId, scenario.id);
   } catch (error: any) {
     console.error("Create custom scenario error:", error);
-    return { error: "خطا در ایجاد سناریوی سفارشی" };
+    return { error: error.message || "خطا در ایجاد سناریوی سفارشی" };
   }
 }
 
@@ -809,7 +874,7 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
     const abilitySource = data.abilitySource?.trim().slice(0, 40) || null;
     const note = data.note?.trim().slice(0, 500) || null;
     const wasUsed = data.wasUsed !== false;
-    const effectType = normalizeEffectType(data.effectType);
+    let effectType = normalizeEffectType(data.effectType);
     const targetCount = Math.max(1, Math.min(5, Math.floor(Number(data.targetCount) || 1)));
 
     if (!abilityLabel || !abilityKey) {
@@ -844,6 +909,26 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
     const targetLabels = (Array.isArray(data.targetLabels) ? data.targetLabels : [])
       .map((label) => String(label || "").trim().slice(0, 60))
       .slice(0, targetCount);
+
+    if (roleAbilityMatch) {
+      const [, roleId, abilityId] = roleAbilityMatch;
+      const role = players.find((player) => player.role?.id === roleId)?.role;
+      const ability = normalizeRoleAbilityDefinitions(role?.nightAbilities).find((item) => item.id === abilityId);
+      if (!ability) {
+        throw new Error("تعریف توانایی این نقش در بازی پیدا نشد.");
+      }
+
+      const configuredEffectType = ability.effectType !== "NONE"
+        ? ability.effectType
+        : inferEffectTypeFromLabel(ability.label);
+      if (configuredEffectType !== "NONE") {
+        effectType = configuredEffectType;
+      } else if (effectType !== "NONE") {
+        throw new Error("رفتار ویژه فقط برای توانایی‌هایی مثل یاکوزا، خریداری یا بازپرسی قابل ثبت است.");
+      }
+    } else if (effectType !== "NONE") {
+      throw new Error("رفتار ویژه فقط برای توانایی نقش قابل ثبت است.");
+    }
 
     if (actorPlayerId && !playerIds.has(actorPlayerId)) {
       throw new Error("بازیکن انجام‌دهنده در این بازی نیست.");

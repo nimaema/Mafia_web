@@ -5,6 +5,17 @@ import { prisma } from "@/lib/prisma";
 import { gameDisplayName, scenarioDisplayDescription, scenarioDisplayName } from "@/lib/gameDisplay";
 import { unstable_noStore as noStore } from "next/cache";
 
+async function isCurrentAdmin() {
+  const session = await auth();
+  if (!session?.user?.id) return false;
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, isBanned: true },
+  });
+  return Boolean(user && !user.isBanned && user.role === "ADMIN");
+}
+
 function formatHistoryRecord(rg: any) {
   return {
     id: rg.gameId,
@@ -270,8 +281,7 @@ export async function getUserHistoryPage(page = 0, pageSize = 10) {
 }
 
 export async function deleteGameHistory(gameId: string) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") {
+  if (!(await isCurrentAdmin())) {
     throw new Error("شما دسترسی لازم برای این عملیات را ندارید");
   }
 
@@ -294,8 +304,7 @@ export async function deleteGameHistory(gameId: string) {
 
 export async function getAdminGameHistoryPage(page = 0, pageSize = 10) {
   noStore();
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") {
+  if (!(await isCurrentAdmin())) {
     return {
       items: [],
       total: 0,

@@ -35,7 +35,15 @@ const READ_ERROR = "اطلاعات این بخش بارگذاری نشد. اتص
 
 async function checkAdmin() {
   const session = await auth();
-  if (!session?.user?.id || session.user.role !== "ADMIN") {
+  if (!session?.user?.id) {
+    throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی مدیر)");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, isBanned: true },
+  });
+  if (!user || user.isBanned || user.role !== "ADMIN") {
     throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی مدیر)");
   }
   return session.user.id;
@@ -43,7 +51,15 @@ async function checkAdmin() {
 
 async function checkModerator() {
   const session = await auth();
-  if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "MODERATOR")) {
+  if (!session?.user?.id) {
+    throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی گرداننده یا مدیر)");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, isBanned: true },
+  });
+  if (!user || user.isBanned || (user.role !== "ADMIN" && user.role !== "MODERATOR")) {
     throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی گرداننده یا مدیر)");
   }
   return session.user.id;
