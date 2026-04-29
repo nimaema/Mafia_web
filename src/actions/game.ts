@@ -24,11 +24,20 @@ type NightEventInput = {
   targetPlayerId?: string | null;
   secondaryTargetPlayerId?: string | null;
   extraTargetPlayerIds?: string[] | null;
+  targetLabels?: string[] | null;
   targetCount?: number | null;
   convertedRoleId?: string | null;
   effectType?: "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY" | null;
   actorAlignment?: Alignment | null;
   wasUsed?: boolean;
+  note?: string | null;
+};
+
+type DayEliminationInput = {
+  dayNumber: number;
+  targetPlayerId: string;
+  methodKey?: string | null;
+  methodLabel?: string | null;
   note?: string | null;
 };
 
@@ -801,7 +810,7 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
     const note = data.note?.trim().slice(0, 500) || null;
     const wasUsed = data.wasUsed !== false;
     const effectType = normalizeEffectType(data.effectType);
-    const targetCount = Math.max(1, Math.min(4, Math.floor(Number(data.targetCount) || 1)));
+    const targetCount = Math.max(1, Math.min(5, Math.floor(Number(data.targetCount) || 1)));
 
     if (!abilityLabel || !abilityKey) {
       throw new Error("نوع اتفاق شب را انتخاب کنید.");
@@ -832,6 +841,9 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
     const targetPlayer = targetPlayerId ? players.find((player) => player.id === targetPlayerId) : null;
     const secondaryTargetPlayer = secondaryTargetPlayerId ? players.find((player) => player.id === secondaryTargetPlayerId) : null;
     const extraTargetPlayers = extraTargetPlayerIds.map((playerId) => players.find((player) => player.id === playerId)).filter(Boolean) as typeof players;
+    const targetLabels = (Array.isArray(data.targetLabels) ? data.targetLabels : [])
+      .map((label) => String(label || "").trim().slice(0, 60))
+      .slice(0, targetCount);
 
     if (actorPlayerId && !playerIds.has(actorPlayerId)) {
       throw new Error("بازیکن انجام‌دهنده در این بازی نیست.");
@@ -890,6 +902,15 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
       secondaryTargetPlayerId: secondaryTargetPlayer?.id || null,
       secondaryTargetName: secondaryTargetPlayer?.name || null,
       extraTargets: extraTargetPlayers.map((player) => ({ id: player.id, name: player.name })),
+      targetLabels: targetLabels.length
+        ? [targetPlayer, secondaryTargetPlayer, ...extraTargetPlayers]
+            .slice(0, targetCount)
+            .map((player, index) => ({
+              label: targetLabels[index] || `گزینه ${index + 1}`,
+              playerId: player?.id || null,
+              playerName: player?.name || null,
+            }))
+        : [],
       convertedRoleId: convertedRole?.id || null,
       convertedRoleName: convertedRole?.name || null,
       previousRoleName: targetPlayer?.role?.name || null,
@@ -957,6 +978,88 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
   } catch (error: any) {
     console.error("Record night event error:", error);
     return { error: error.message || "ثبت اتفاق شب انجام نشد" };
+  }
+}
+
+export async function recordDayElimination(gameId: string, data: DayEliminationInput) {
+  try {
+    const { game } = await checkModeratorForGame(gameId);
+    if (game.status === "FINISHED") {
+      throw new Error("بازی پایان یافته و امکان ثبت حذف روز ندارد.");
+    }
+
+    const dayNumber = Math.max(1, Math.min(99, Math.floor(Number(data.dayNumber) || 1)));
+    const targetPlayerId = data.targetPlayerId?.trim();
+    const methodKey = (data.methodKey || "custom").trim().slice(0, 40) || "custom";
+    const methodLabel = (data.methodLabel || "حذف روز").trim().slice(0, 80) || "حذف روز";
+    const note = data.note?.trim().slice(0, 500) || null;
+
+    if (!targetPlayerId) {
+      throw new Error("بازیکن حذف‌شده را انتخاب کنید.");
+    }
+
+    const targetPlayer = await prisma.gamePlayer.findUnique({
+      where: { id: targetPlayerId },
+      include: { role: true },
+    });
+
+    if (!targetPlayer || targetPlayer.gameId !== gameId) {
+      throw new Error("بازیکن انتخاب‌شده در این بازی نیست.");
+    }
+
+    const details = {
+      phase: "DAY",
+      methodKey,
+      methodLabel,
+      effectType: "NONE",
+    };
+
+    const [updatedPlayer, dayEvent] = await prisma.$transaction(async (tx) => {
+      const updated = await tx.gamePlayer.update({
+        where: { id: targetPlayerId },
+        data: { isAlive: false, eliminatedAt: new Date() },
+        include: { role: true },
+      });
+
+      const event = await tx.nightEvent.create({
+        data: {
+          gameId,
+          nightNumber: dayNumber,
+          abilityKey: `day:${methodKey}`,
+          abilityLabel: `حذف روز: ${methodLabel}`,
+          abilitySource: "روز",
+          targetPlayerId,
+          wasUsed: true,
+          details: details as Prisma.InputJsonValue,
+          note,
+        },
+        include: {
+          actorPlayer: { include: { role: true } },
+          targetPlayer: { include: { role: true } },
+        },
+      });
+
+      return [updated, event];
+    });
+
+    await pusherServer.trigger(`game-${gameId}`, "player-status-updated", {
+      playerId: targetPlayerId,
+      isAlive: updatedPlayer.isAlive,
+      eliminatedAt: updatedPlayer.eliminatedAt,
+    });
+    await pusherServer.trigger(`game-${gameId}`, "game-state-updated", {
+      reason: "DAY_ELIMINATION",
+      targetPlayerId,
+      methodKey,
+    });
+
+    revalidatePath(`/dashboard/moderator/game/${gameId}`);
+    revalidatePath(`/game/${gameId}`);
+
+    return { success: true, event: sanitizeNightEvents([dayEvent])[0] };
+  } catch (error: any) {
+    console.error("Record day elimination error:", error);
+    return { error: error.message || "ثبت حذف روز انجام نشد" };
   }
 }
 

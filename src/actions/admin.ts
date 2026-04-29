@@ -56,6 +56,10 @@ function normalizeNightAbilities(abilities?: RoleNightAbilityInput[]): Prisma.In
     value === null || value === undefined || value === ""
       ? null
       : Math.max(1, Math.min(max, Number(value) || 1));
+  const cleanSelfLimit = (value: unknown) =>
+    value === null || value === undefined || value === ""
+      ? 0
+      : Math.max(0, Math.min(5, Number(value) || 0));
 
   const cleanId = (value: string, fallback: string) =>
     value
@@ -70,17 +74,18 @@ function normalizeNightAbilities(abilities?: RoleNightAbilityInput[]): Prisma.In
       const label = ability.label?.trim().slice(0, 60);
       if (!label) return null;
       const id = cleanId(ability.id || label, `ability-${index + 1}`);
-      const usesPerNight = cleanLimit(ability.usesPerNight, 10);
-      const needsChoices = usesPerNight === null || (usesPerNight || 1) > 1;
+      const targetsPerUse = cleanLimit(ability.targetsPerUse, 5) || 1;
+      const needsChoices = targetsPerUse > 1;
       const choices = needsChoices && Array.isArray(ability.choices)
         ? ability.choices
+            .slice(0, targetsPerUse)
             .map((choice, choiceIndex) => {
               const choiceLabel = choice.label?.trim().slice(0, 60);
               if (!choiceLabel) return null;
               return {
                 id: cleanId(choice.id || choiceLabel, `${id}-choice-${choiceIndex + 1}`),
                 label: choiceLabel,
-                usesPerGame: cleanLimit(choice.usesPerGame),
+                usesPerGame: null,
                 effectType: "NONE",
               };
             })
@@ -91,9 +96,9 @@ function normalizeNightAbilities(abilities?: RoleNightAbilityInput[]): Prisma.In
         id,
         label,
         usesPerGame: cleanLimit(ability.usesPerGame),
-        usesPerNight,
-        targetsPerUse: cleanLimit(ability.targetsPerUse, 4) || 1,
-        selfTargetLimit: cleanLimit(ability.selfTargetLimit),
+        usesPerNight: 1,
+        targetsPerUse,
+        selfTargetLimit: cleanSelfLimit(ability.selfTargetLimit),
         effectType: "NONE",
         choices,
       };
@@ -109,21 +114,15 @@ function validateNightAbilities(abilities?: RoleNightAbilityInput[]) {
   for (const ability of abilities) {
     const label = ability.label?.trim();
     if (!label) continue;
-    const rawUsesPerNight = ability.usesPerNight as unknown;
-    const usesPerNight =
-      rawUsesPerNight === null || rawUsesPerNight === undefined || rawUsesPerNight === ""
-        ? null
-        : Math.max(1, Math.min(10, Number(rawUsesPerNight) || 1));
-    const needsChoices = usesPerNight === null || usesPerNight > 1;
-    if (!needsChoices) continue;
+    const targetsPerUse = Math.max(1, Math.min(5, Number(ability.targetsPerUse) || 1));
+    if (targetsPerUse <= 1) continue;
 
-    const requiredChoices = usesPerNight && usesPerNight > 1 ? usesPerNight : 2;
     const filledChoices = Array.isArray(ability.choices)
       ? ability.choices.filter((choice) => choice.label?.trim()).length
       : 0;
 
-    if (filledChoices < requiredChoices) {
-      throw new Error(`برای توانایی «${label}» حداقل ${requiredChoices} انتخاب نام‌گذاری‌شده وارد کنید.`);
+    if (filledChoices < targetsPerUse) {
+      throw new Error(`برای توانایی «${label}» باید نام ${targetsPerUse} گزینه را وارد کنید.`);
     }
   }
 }

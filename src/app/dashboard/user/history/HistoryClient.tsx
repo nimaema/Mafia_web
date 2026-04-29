@@ -37,6 +37,7 @@ type HistoryItem = {
       effectType?: string;
       secondaryTargetName?: string | null;
       extraTargets?: { id: string; name: string }[];
+      targetLabels?: { label: string; playerName?: string | null }[];
       convertedRoleName?: string | null;
       previousRoleName?: string | null;
     } | null;
@@ -328,12 +329,17 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
                           {event.actorName || event.abilitySource || (event.actorAlignment ? alignmentLabel(event.actorAlignment) : "نامشخص")}
                           {event.wasUsed === false ? " ← بدون هدف" : ` ← ${event.targetName || "نامشخص"}`}
                         </p>
-                      {event.details?.secondaryTargetName && (
+                      {Array.isArray(event.details?.targetLabels) && event.details.targetLabels.length > 0 && (
+                        <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                          گزینه‌ها: {event.details.targetLabels.map((target) => `${target.label}: ${target.playerName || "نامشخص"}`).join("، ")}
+                        </p>
+                      )}
+                      {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && event.details?.secondaryTargetName && (
                         <p className="mt-1 text-zinc-500 dark:text-zinc-400">
                           {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
                         </p>
                       )}
-                      {Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
+                      {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
                         <p className="mt-1 text-zinc-500 dark:text-zinc-400">
                           هدف‌های اضافه: {event.details.extraTargets.map((target: { name: string }) => target.name).join("، ")}
                         </p>

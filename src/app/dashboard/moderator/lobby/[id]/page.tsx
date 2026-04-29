@@ -74,8 +74,8 @@ function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
         label,
         usesPerGame: typeof ability.usesPerGame === "number" ? ability.usesPerGame : null,
         usesPerNight: typeof ability.usesPerNight === "number" ? ability.usesPerNight : null,
-        targetsPerUse: typeof ability.targetsPerUse === "number" ? Math.max(1, Math.min(4, ability.targetsPerUse)) : 1,
-        selfTargetLimit: typeof ability.selfTargetLimit === "number" ? ability.selfTargetLimit : null,
+        targetsPerUse: typeof ability.targetsPerUse === "number" ? Math.max(1, Math.min(5, ability.targetsPerUse)) : 1,
+        selfTargetLimit: typeof ability.selfTargetLimit === "number" ? Math.max(0, Math.min(5, ability.selfTargetLimit)) : 0,
         effectType: normalizeEffectType(ability.effectType),
         choices: Array.isArray(ability.choices) ? ability.choices : [],
       };
@@ -113,7 +113,7 @@ function abilityLimitLabel(ability: RoleNightAbility) {
     ability.usesPerNight ? `${ability.usesPerNight} بار در شب` : "هر شب آزاد",
     `${ability.targetsPerUse || 1} هدف`,
   ];
-  if (ability.selfTargetLimit) parts.push(`${ability.selfTargetLimit} بار روی خودش`);
+  if (ability.selfTargetLimit !== null) parts.push(`${ability.selfTargetLimit} بار روی خودش`);
   if (ability.effectType !== "NONE") parts.push(effectLabel(ability.effectType));
   if (ability.choices.length) parts.push(`${ability.choices.length} انتخاب داخلی`);
   return parts.join("، ");

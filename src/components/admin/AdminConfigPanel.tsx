@@ -119,8 +119,8 @@ function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
         label,
         usesPerGame: typeof record.usesPerGame === "number" ? record.usesPerGame : null,
         usesPerNight: typeof record.usesPerNight === "number" ? record.usesPerNight : null,
-        targetsPerUse: typeof record.targetsPerUse === "number" ? Math.max(1, Math.min(4, record.targetsPerUse)) : 1,
-        selfTargetLimit: typeof record.selfTargetLimit === "number" ? record.selfTargetLimit : null,
+        targetsPerUse: typeof record.targetsPerUse === "number" ? Math.max(1, Math.min(5, record.targetsPerUse)) : 1,
+        selfTargetLimit: typeof record.selfTargetLimit === "number" ? Math.max(0, Math.min(5, record.selfTargetLimit)) : 0,
         effectType: normalizeEffectType(record.effectType),
         choices: Array.isArray(record.choices)
           ? record.choices
@@ -141,24 +141,24 @@ function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
     .filter(Boolean) as RoleNightAbility[];
 }
 
-function limitLabel(value: number | null) {
-  return value ? `${value} بار` : "نامحدود";
+function nightLimitLabel(value: number | null) {
+  return value ? `${value} شب` : "هر شب";
 }
 
 function abilityUsageLabel(ability: RoleNightAbility) {
-  const parts = [`کل: ${limitLabel(ability.usesPerGame)}`];
-  if (ability.usesPerNight) parts.push(`هر شب: ${ability.usesPerNight}`);
-  if (ability.selfTargetLimit) parts.push(`روی خود: ${ability.selfTargetLimit}`);
+  const parts = [`شب‌ها: ${nightLimitLabel(ability.usesPerGame)}`];
+  parts.push(`${ability.targetsPerUse || 1} نفر/گزینه`);
+  parts.push(`روی خود: ${ability.selfTargetLimit ?? 0}`);
   if (ability.choices.length) parts.push(`${ability.choices.length} انتخاب`);
   return parts.join("، ");
 }
 
 function abilityNeedsChoices(ability: RoleNightAbility) {
-  return ability.usesPerNight === null || ability.usesPerNight > 1;
+  return (ability.targetsPerUse || 1) > 1;
 }
 
 function requiredChoiceCount(ability: RoleNightAbility) {
-  return ability.usesPerNight && ability.usesPerNight > 1 ? ability.usesPerNight : 2;
+  return Math.max(2, Math.min(5, ability.targetsPerUse || 1));
 }
 
 function scenarioTotalPlayers(scenario: ScenarioRecord) {
@@ -294,7 +294,7 @@ export default function AdminDashboard() {
     if (incompleteMultiUseAbility) {
       showAlert(
         "انتخاب‌های توانایی",
-        `برای «${incompleteMultiUseAbility.label}» حداقل ${requiredChoiceCount(incompleteMultiUseAbility)} انتخاب نام‌گذاری‌شده وارد کنید.`,
+        `برای «${incompleteMultiUseAbility.label}» باید نام ${requiredChoiceCount(incompleteMultiUseAbility)} گزینه را وارد کنید.`,
         "warning"
       );
       return;
@@ -449,36 +449,21 @@ export default function AdminDashboard() {
     );
   };
 
-  const updateAbilityUsesPerNight = (abilityId: string, value: number | null) => {
+  const updateAbilityTargetsPerUse = (abilityId: string, value: number) => {
     setNewRoleAbilities((previous) =>
       previous.map((ability) => {
         if (ability.id !== abilityId) return ability;
-        const nextAbility = { ...ability, usesPerNight: value };
+        const targetsPerUse = Math.max(1, Math.min(5, value));
+        const nextAbility = { ...ability, targetsPerUse };
         if (!abilityNeedsChoices(nextAbility)) return { ...nextAbility, choices: [] };
 
         const minimumChoices = requiredChoiceCount(nextAbility);
-        const choices = [...nextAbility.choices];
+        const choices = [...nextAbility.choices].slice(0, minimumChoices);
         while (choices.length < minimumChoices) {
           choices.push({ id: `choice-${Date.now()}-${choices.length}`, label: "", usesPerGame: null, effectType: "NONE" });
         }
         return { ...nextAbility, choices };
       })
-    );
-  };
-
-  const addAbilityChoice = (abilityId: string) => {
-    setNewRoleAbilities((previous) =>
-      previous.map((ability) =>
-        ability.id === abilityId
-          ? {
-              ...ability,
-              choices: [
-                ...ability.choices,
-                { id: `choice-${Date.now()}`, label: "", usesPerGame: null, effectType: "NONE" },
-              ],
-            }
-          : ability
-      )
     );
   };
 
@@ -492,16 +477,6 @@ export default function AdminDashboard() {
                 choice.id === choiceId ? { ...choice, ...patch } : choice
               ),
             }
-          : ability
-      )
-    );
-  };
-
-  const deleteAbilityChoice = (abilityId: string, choiceId: string) => {
-    setNewRoleAbilities((previous) =>
-      previous.map((ability) =>
-        ability.id === abilityId
-          ? { ...ability, choices: ability.choices.filter((choice) => choice.id !== choiceId) }
           : ability
       )
     );
@@ -745,7 +720,7 @@ export default function AdminDashboard() {
                             usesPerGame: null,
                             usesPerNight: 1,
                             targetsPerUse: 1,
-                            selfTargetLimit: null,
+                            selfTargetLimit: 0,
                             effectType: "NONE",
                             choices: [],
                           },
@@ -780,7 +755,7 @@ export default function AdminDashboard() {
                             </label>
 
                             <label className="flex flex-col gap-1">
-                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">کل بازی</span>
+                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">چند شب</span>
                               <select
                                 value={ability.usesPerGame ?? "INFINITE"}
                                 onChange={(event) =>
@@ -790,49 +765,49 @@ export default function AdminDashboard() {
                                 }
                                 className="min-h-10 text-sm"
                               >
-                                <option value="INFINITE">نامحدود</option>
-                                <option value="1">۱ بار</option>
-                                <option value="2">۲ بار</option>
-                                <option value="3">۳ بار</option>
-                                <option value="4">۴ بار</option>
-                                <option value="5">۵ بار</option>
+                                <option value="INFINITE">هر شب</option>
+                                <option value="1">۱ شب</option>
+                                <option value="2">۲ شب</option>
+                                <option value="3">۳ شب</option>
+                                <option value="4">۴ شب</option>
+                                <option value="5">۵ شب</option>
                               </select>
                             </label>
 
                             <label className="flex flex-col gap-1">
-                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">هر شب</span>
+                              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">روی چند نفر</span>
                               <select
-                                value={ability.usesPerNight ?? "INFINITE"}
+                                value={ability.targetsPerUse || 1}
                                 onChange={(event) =>
-                                  updateAbilityUsesPerNight(
-                                    ability.id,
-                                    event.target.value === "INFINITE" ? null : Number(event.target.value)
-                                  )
+                                  updateAbilityTargetsPerUse(ability.id, Number(event.target.value))
                                 }
                                 className="min-h-10 text-sm"
                               >
-                                <option value="1">۱ بار</option>
-                                <option value="2">۲ بار</option>
-                                <option value="3">۳ بار</option>
-                                <option value="INFINITE">نامحدود</option>
+                                <option value="1">۱ نفر</option>
+                                <option value="2">۲ نفر</option>
+                                <option value="3">۳ نفر</option>
+                                <option value="4">۴ نفر</option>
+                                <option value="5">۵ نفر</option>
                               </select>
                             </label>
 
                             <label className="flex flex-col gap-1">
                               <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">روی خودش</span>
                               <select
-                                value={ability.selfTargetLimit ?? "INFINITE"}
+                                value={ability.selfTargetLimit ?? 0}
                                 onChange={(event) =>
                                   updateRoleAbility(ability.id, {
-                                    selfTargetLimit: event.target.value === "INFINITE" ? null : Number(event.target.value),
+                                    selfTargetLimit: Number(event.target.value),
                                   })
                                 }
                                 className="min-h-10 text-sm"
                               >
-                                <option value="INFINITE">نامحدود</option>
+                                <option value="0">۰ بار</option>
                                 <option value="1">۱ بار</option>
                                 <option value="2">۲ بار</option>
                                 <option value="3">۳ بار</option>
+                                <option value="4">۴ بار</option>
+                                <option value="5">۵ بار</option>
                               </select>
                             </label>
 
@@ -852,21 +827,17 @@ export default function AdminDashboard() {
                                 <div>
                                   <p className="text-xs font-black text-zinc-950 dark:text-white">انتخاب‌های داخل توانایی</p>
                                   <p className="mt-1 text-[10px] leading-5 text-zinc-500 dark:text-zinc-400">
-                                    چون این توانایی در یک شب بیشتر از یک‌بار قابل ثبت است، نام هر انتخاب باید جدا وارد شود.
+                                    چون این توانایی روی چند نفر/گزینه اعمال می‌شود، نام هر گزینه را جدا وارد کنید.
                                   </p>
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => addAbilityChoice(ability.id)}
-                                  className="ui-button-secondary min-h-9 shrink-0 px-3 text-xs"
-                                >
-                                  افزودن انتخاب
-                                </button>
                               </div>
 
                               <div className="mt-3 space-y-2">
-                                {ability.choices.map((choice) => (
-                                  <div key={choice.id} className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_130px_36px]">
+                                {ability.choices.slice(0, requiredChoiceCount(ability)).map((choice, choiceIndex) => (
+                                  <div key={choice.id} className="grid gap-2 lg:grid-cols-[90px_minmax(0,1fr)]">
+                                    <div className="flex min-h-9 items-center rounded-lg border border-zinc-200 bg-zinc-50 px-3 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                                      گزینه {choiceIndex + 1}
+                                    </div>
                                     <input
                                       value={choice.label}
                                       onChange={(event) =>
@@ -874,32 +845,9 @@ export default function AdminDashboard() {
                                           label: event.target.value.slice(0, 60),
                                         })
                                       }
-                                      placeholder="مثلاً تفنگ واقعی"
+                                      placeholder={choiceIndex === 0 ? "مثلاً تفنگ واقعی" : "مثلاً تفنگ مشقی"}
                                       className="min-h-9 text-xs"
                                     />
-                                    <select
-                                      value={choice.usesPerGame ?? "INFINITE"}
-                                      onChange={(event) =>
-                                        updateAbilityChoice(ability.id, choice.id, {
-                                          usesPerGame: event.target.value === "INFINITE" ? null : Number(event.target.value),
-                                        })
-                                      }
-                                      className="min-h-9 text-xs"
-                                    >
-                                      <option value="INFINITE">نامحدود</option>
-                                      <option value="1">۱ بار</option>
-                                      <option value="2">۲ بار</option>
-                                      <option value="3">۳ بار</option>
-                                      <option value="4">۴ بار</option>
-                                    </select>
-                                    <button
-                                      type="button"
-                                      onClick={() => deleteAbilityChoice(ability.id, choice.id)}
-                                      className="flex min-h-9 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
-                                      aria-label="حذف انتخاب"
-                                    >
-                                      <span className="material-symbols-outlined text-base">close</span>
-                                    </button>
                                   </div>
                                 ))}
                               </div>
@@ -909,7 +857,7 @@ export default function AdminDashboard() {
                                   ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"
                                   : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
                               }`}>
-                                حداقل {requiredChoiceCount(ability)} انتخاب نام‌گذاری‌شده لازم است.
+                                نام {requiredChoiceCount(ability)} گزینه لازم است.
                               </p>
                             </div>
                           )}

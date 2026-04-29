@@ -8,6 +8,7 @@ import {
   endGame,
   getGameStatus,
   publishNightRecords,
+  recordDayElimination,
   recordNightEvent,
   setPlayerAliveStatus,
 } from "@/actions/game";
@@ -59,10 +60,14 @@ type NightEventRecord = {
   actorAlignment?: Alignment | null;
   wasUsed?: boolean;
   details?: {
+    phase?: "NIGHT" | "DAY";
+    methodKey?: string | null;
+    methodLabel?: string | null;
     effectType?: AbilityEffectType;
     secondaryTargetPlayerId?: string | null;
     secondaryTargetName?: string | null;
     extraTargets?: { id: string; name: string }[];
+    targetLabels?: { label: string; playerId?: string | null; playerName?: string | null }[];
     convertedRoleId?: string | null;
     convertedRoleName?: string | null;
     previousRoleName?: string | null;
@@ -135,8 +140,8 @@ function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
         label,
         usesPerGame: typeof ability.usesPerGame === "number" ? ability.usesPerGame : null,
         usesPerNight: typeof ability.usesPerNight === "number" ? ability.usesPerNight : null,
-        targetsPerUse: typeof ability.targetsPerUse === "number" ? Math.max(1, Math.min(4, ability.targetsPerUse)) : 1,
-        selfTargetLimit: typeof ability.selfTargetLimit === "number" ? ability.selfTargetLimit : null,
+        targetsPerUse: typeof ability.targetsPerUse === "number" ? Math.max(1, Math.min(5, ability.targetsPerUse)) : 1,
+        selfTargetLimit: typeof ability.selfTargetLimit === "number" ? Math.max(0, Math.min(5, ability.selfTargetLimit)) : 0,
         effectType: normalizeEffectType(ability.effectType),
         choices: Array.isArray(ability.choices)
           ? ability.choices
@@ -174,15 +179,109 @@ function abilityLimitLabel(option: NightActionOption) {
   const parts = [`کل: ${usageLabel(option.usesPerGame)}`];
   if (option.usesPerNight) parts.push(`هر شب: ${option.usesPerNight}`);
   parts.push(`${option.targetsPerUse || 1} هدف`);
-  if (option.selfTargetLimit) parts.push(`روی خود: ${option.selfTargetLimit}`);
+  if (option.selfTargetLimit !== null) parts.push(`روی خود: ${option.selfTargetLimit}`);
   if (option.effectType !== "NONE") parts.push(effectLabel(option.effectType));
   if (option.choices.length) parts.push(`${option.choices.length} انتخاب`);
   return parts.join("، ");
 }
 
+const DAY_ELIMINATION_METHODS = [
+  { key: "vote", label: "رای‌گیری", icon: "how_to_vote" },
+  { key: "gun", label: "شلیک روز", icon: "target" },
+  { key: "bazporsi", label: "بازپرسی", icon: "find_in_page" },
+  { key: "custom", label: "روش سناریو", icon: "edit_note" },
+];
+
 function getInitial(name: string) {
   const trimmed = name.trim();
   return trimmed ? trimmed.slice(0, 1).toUpperCase() : "?";
+}
+
+function isDayEvent(event: NightEventRecord) {
+  return event.details?.phase === "DAY" || event.abilityKey.startsWith("day:");
+}
+
+function reportEventTitle(event: NightEventRecord) {
+  if (isDayEvent(event)) return event.details?.methodLabel || event.abilityLabel.replace(/^حذف روز:\s*/, "") || "حذف روز";
+  return `${event.abilityLabel}${event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}`;
+}
+
+function reportActorTargetLine(event: NightEventRecord) {
+  const actor = event.actorPlayer?.name || event.abilitySource || alignmentLabel(event.actorAlignment);
+  const target = event.targetPlayer?.name || "نامشخص";
+  return event.wasUsed === false ? `${actor} ← بدون هدف` : `${actor} ← ${target}`;
+}
+
+function ReportEventRow({
+  event,
+  busy,
+  onDelete,
+}: {
+  event: NightEventRecord;
+  busy: boolean;
+  onDelete: (event: NightEventRecord) => void;
+}) {
+  const dayEvent = isDayEvent(event);
+  const tone = dayEvent
+    ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+    : event.wasUsed === false
+      ? "border-zinc-300 bg-zinc-100 text-zinc-600 dark:border-white/10 dark:bg-white/[0.05] dark:text-zinc-300"
+      : "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300";
+
+  return (
+    <article className="rounded-lg border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-black ${tone}`}>
+              <span className="material-symbols-outlined text-sm">{dayEvent ? "wb_sunny" : "dark_mode"}</span>
+              {dayEvent ? "روز" : event.wasUsed === false ? "استفاده نشد" : "شب"}
+            </span>
+            <p className="text-sm font-black text-zinc-950 dark:text-white">{reportEventTitle(event)}</p>
+            {event.details?.effectType && event.details.effectType !== "NONE" && (
+              <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
+                {effectLabel(event.details.effectType)}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{reportActorTargetLine(event)}</p>
+          {Array.isArray(event.details?.targetLabels) && event.details.targetLabels.length > 0 && (
+            <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+              گزینه‌ها: {event.details.targetLabels.map((target) => `${target.label}: ${target.playerName || "نامشخص"}`).join("، ")}
+            </p>
+          )}
+          {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && event.details?.secondaryTargetName && (
+            <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+              {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
+            </p>
+          )}
+          {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
+            <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+              هدف‌های اضافه: {event.details.extraTargets.map((target) => target.name).join("، ")}
+            </p>
+          )}
+          {event.details?.convertedRoleName && (
+            <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+              تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
+            </p>
+          )}
+          {event.note && (
+            <p className="mt-2 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs leading-5 text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
+              {event.note}
+            </p>
+          )}
+        </div>
+        <button
+          onClick={() => onDelete(event)}
+          disabled={busy}
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+          aria-label="حذف رکورد"
+        >
+          <span className="material-symbols-outlined text-base">delete</span>
+        </button>
+      </div>
+    </article>
+  );
 }
 
 export default function ModeratorGamePage() {
@@ -204,6 +303,11 @@ export default function ModeratorGamePage() {
   const [convertedRoleId, setConvertedRoleId] = useState("");
   const [reportEffectType, setReportEffectType] = useState<AbilityEffectType>("NONE");
   const [nightNote, setNightNote] = useState("");
+  const [dayNumber, setDayNumber] = useState(1);
+  const [dayTargetPlayerId, setDayTargetPlayerId] = useState("");
+  const [dayMethodKey, setDayMethodKey] = useState("vote");
+  const [customDayMethod, setCustomDayMethod] = useState("");
+  const [dayNote, setDayNote] = useState("");
 
   const refreshGame = async (showLoader = false) => {
     if (showLoader) setLoading(true);
@@ -215,6 +319,7 @@ export default function ModeratorGamePage() {
     setGame(result);
     const latestNight = Math.max(1, ...(result.nightEvents || []).map((event: NightEventRecord) => event.nightNumber));
     setNightNumber((current) => Math.max(current, latestNight));
+    setDayNumber((current) => Math.max(current, latestNight));
     setLoading(false);
   };
 
@@ -242,7 +347,7 @@ export default function ModeratorGamePage() {
         usesPerGame: null,
         usesPerNight: 1,
         targetsPerUse: 1,
-        selfTargetLimit: null,
+        selfTargetLimit: 0,
         effectType: "NONE",
         choices: [],
         className: "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300",
@@ -294,7 +399,10 @@ export default function ModeratorGamePage() {
   }, [actionOptions, selectedActionKey]);
 
   const selectedAction = actionOptions.find((option) => option.key === selectedActionKey) || actionOptions[0];
-  const selectedChoice = selectedAction?.choices.find((choice) => choice.id === selectedChoiceKey) || selectedAction?.choices[0] || null;
+  const usesTargetSlotChoices = Boolean(selectedAction && selectedAction.targetsPerUse > 1 && selectedAction.choices.length >= selectedAction.targetsPerUse);
+  const selectedChoice = usesTargetSlotChoices
+    ? null
+    : selectedAction?.choices.find((choice) => choice.id === selectedChoiceKey) || selectedAction?.choices[0] || null;
   const fixedEffectType = normalizeEffectType(selectedChoice?.effectType !== "NONE" ? selectedChoice?.effectType : selectedAction?.effectType);
   const canChooseReportEffect = selectedAction?.source === "role" && fixedEffectType === "NONE";
   const selectedEffectType = fixedEffectType !== "NONE" ? fixedEffectType : canChooseReportEffect ? reportEffectType : "NONE";
@@ -339,13 +447,17 @@ export default function ModeratorGamePage() {
     setExtraTargetPlayerIds((current) => current.slice(0, extraTargetSlots));
   }, [extraTargetSlots, selectedActionKey]);
 
-  const groupedNightEvents = useMemo(() => {
-    const groups = new Map<number, NightEventRecord[]>();
+  const reportRounds = useMemo(() => {
+    const groups = new Map<number, { night: NightEventRecord[]; day: NightEventRecord[] }>();
     nightEvents.forEach((event) => {
-      const existing = groups.get(event.nightNumber) || [];
-      groups.set(event.nightNumber, [...existing, event]);
+      const existing = groups.get(event.nightNumber) || { night: [], day: [] };
+      if (isDayEvent(event)) existing.day.push(event);
+      else existing.night.push(event);
+      groups.set(event.nightNumber, existing);
     });
-    return [...groups.entries()].sort(([left], [right]) => left - right);
+    return [...groups.entries()]
+      .sort(([left], [right]) => left - right)
+      .map(([round, events]) => ({ round, ...events }));
   }, [nightEvents]);
 
   const handleTogglePlayer = (player: PlayerRecord) => {
@@ -426,7 +538,7 @@ export default function ModeratorGamePage() {
         return;
       }
     }
-    if (eventWasUsed && selectedChoice?.usesPerGame && actorPlayerId) {
+    if (eventWasUsed && !usesTargetSlotChoices && selectedChoice?.usesPerGame && actorPlayerId) {
       const usedChoice = nightEvents.filter(
         (event) =>
           event.wasUsed !== false &&
@@ -439,16 +551,26 @@ export default function ModeratorGamePage() {
         return;
       }
     }
-    if (eventWasUsed && selectedAction.selfTargetLimit && actorPlayerId && targetPlayerId === actorPlayerId) {
+    if (eventWasUsed && selectedAction.selfTargetLimit !== null && actorPlayerId && selectedTargets.includes(actorPlayerId)) {
       const selfUses = nightEvents.filter(
         (event) =>
           event.wasUsed !== false &&
           event.abilityKey === selectedAction.key &&
           event.actorPlayer?.id === actorPlayerId &&
-          event.targetPlayer?.id === actorPlayerId
+          (
+            event.targetPlayer?.id === actorPlayerId ||
+            event.details?.secondaryTargetPlayerId === actorPlayerId ||
+            (Array.isArray(event.details?.extraTargets) && event.details.extraTargets.some((target) => target.id === actorPlayerId))
+          )
       ).length;
       if (selfUses >= selectedAction.selfTargetLimit) {
-        showAlert("سقف استفاده روی خود", `این نقش فقط ${selectedAction.selfTargetLimit} بار می‌تواند روی خودش استفاده کند.`, "warning");
+        showAlert(
+          "سقف استفاده روی خود",
+          selectedAction.selfTargetLimit === 0
+            ? "این نقش در این تنظیمات نمی‌تواند روی خودش استفاده شود."
+            : `این نقش فقط ${selectedAction.selfTargetLimit} بار می‌تواند روی خودش استفاده کند.`,
+          "warning"
+        );
         return;
       }
     }
@@ -458,13 +580,16 @@ export default function ModeratorGamePage() {
       nightNumber,
       abilityKey: selectedAction.key,
       abilityLabel: selectedAction.label,
-      abilityChoiceKey: selectedChoice?.id || null,
-      abilityChoiceLabel: selectedChoice?.label || null,
+      abilityChoiceKey: !usesTargetSlotChoices ? selectedChoice?.id || null : null,
+      abilityChoiceLabel: !usesTargetSlotChoices ? selectedChoice?.label || null : null,
       abilitySource: selectedAction.source === "side" ? selectedAction.sourceLabel : selectedAction.sourceLabel,
       actorPlayerId: actorPlayerId || null,
       targetPlayerId: eventWasUsed ? targetPlayerId : null,
       secondaryTargetPlayerId: eventWasUsed ? secondaryTargetPlayerId || null : null,
       extraTargetPlayerIds: eventWasUsed ? extraTargetPlayerIds.slice(0, extraTargetSlots).filter(Boolean) : [],
+      targetLabels: eventWasUsed && usesTargetSlotChoices
+        ? selectedAction.choices.slice(0, selectedTargetCount).map((choice) => choice.label)
+        : [],
       targetCount: eventWasUsed ? selectedTargetCount : 1,
       convertedRoleId: eventWasUsed && needsConversionRole ? convertedRoleId : null,
       effectType: selectedEffectType,
@@ -483,6 +608,40 @@ export default function ModeratorGamePage() {
       await refreshGame();
     } else {
       showAlert("خطا", result.error || "ثبت اتفاق شب انجام نشد", "error");
+    }
+    setBusy(false);
+  };
+
+  const handleRecordDayElimination = async () => {
+    if (!dayTargetPlayerId) {
+      showAlert("حذف روز", "بازیکن حذف‌شده در روز را انتخاب کنید.", "warning");
+      return;
+    }
+
+    const preset = DAY_ELIMINATION_METHODS.find((method) => method.key === dayMethodKey);
+    const methodLabel = dayMethodKey === "custom" ? customDayMethod.trim() : preset?.label || "حذف روز";
+    if (!methodLabel) {
+      showAlert("روش حذف", "برای روش سناریویی یک عنوان کوتاه وارد کنید.", "warning");
+      return;
+    }
+
+    setBusy(true);
+    const result = await recordDayElimination(gameId, {
+      dayNumber,
+      targetPlayerId: dayTargetPlayerId,
+      methodKey: dayMethodKey,
+      methodLabel,
+      note: dayNote,
+    });
+
+    if (result.success) {
+      showToast("حذف روز در گزارش ثبت شد", "success");
+      setDayTargetPlayerId("");
+      setCustomDayMethod("");
+      setDayNote("");
+      await refreshGame();
+    } else {
+      showAlert("خطا", result.error || "ثبت حذف روز انجام نشد", "error");
     }
     setBusy(false);
   };
@@ -701,7 +860,7 @@ export default function ModeratorGamePage() {
                     </select>
                   </label>
 
-                  {selectedAction?.choices.length > 0 && (
+                  {selectedAction?.choices.length > 0 && !usesTargetSlotChoices && (
                     <label className="flex flex-col gap-2">
                       <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">انتخاب داخل توانایی</span>
                       <select value={selectedChoiceKey} onChange={(event) => setSelectedChoiceKey(event.target.value)}>
@@ -780,7 +939,13 @@ export default function ModeratorGamePage() {
 
                   <label className="flex flex-col gap-2">
                     <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">
-                      {selectedEffectType === "TWO_NAME_INQUIRY" ? "اسم اول" : selectedEffectType === "YAKUZA" ? "بازیکن خریداری‌شونده" : "هدف یا اثر"}
+                      {usesTargetSlotChoices
+                        ? selectedAction.choices[0]?.label || "گزینه ۱"
+                        : selectedEffectType === "TWO_NAME_INQUIRY"
+                          ? "اسم اول"
+                          : selectedEffectType === "YAKUZA"
+                            ? "بازیکن خریداری‌شونده"
+                            : "هدف یا اثر"}
                     </span>
                     <select value={targetPlayerId} onChange={(event) => setTargetPlayerId(event.target.value)} disabled={!eventWasUsed}>
                       <option value="">انتخاب بازیکن</option>
@@ -795,7 +960,13 @@ export default function ModeratorGamePage() {
                   {needsSecondaryTarget && (
                     <label className="flex flex-col gap-2">
                       <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">
-                        {selectedEffectType === "YAKUZA" ? "مافیای قربانی یاکوزا" : selectedEffectType === "TWO_NAME_INQUIRY" ? "اسم دوم بازپرسی" : "هدف دوم"}
+                        {selectedEffectType === "YAKUZA"
+                          ? "مافیای قربانی یاکوزا"
+                          : usesTargetSlotChoices
+                            ? selectedAction.choices[1]?.label || "گزینه ۲"
+                            : selectedEffectType === "TWO_NAME_INQUIRY"
+                              ? "اسم دوم بازپرسی"
+                              : "هدف دوم"}
                       </span>
                       <select value={secondaryTargetPlayerId} onChange={(event) => setSecondaryTargetPlayerId(event.target.value)} disabled={!eventWasUsed}>
                         <option value="">انتخاب بازیکن</option>
@@ -812,7 +983,9 @@ export default function ModeratorGamePage() {
                     <div className="grid gap-2">
                       {Array.from({ length: extraTargetSlots }).map((_, index) => (
                         <label key={`extra-target-${index}`} className="flex flex-col gap-2">
-                          <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">هدف {index + 3}</span>
+                          <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">
+                            {usesTargetSlotChoices ? selectedAction.choices[index + 2]?.label || `گزینه ${index + 3}` : `هدف ${index + 3}`}
+                          </span>
                           <select
                             value={extraTargetPlayerIds[index] || ""}
                             onChange={(event) =>
@@ -874,88 +1047,154 @@ export default function ModeratorGamePage() {
                     <span className="material-symbols-outlined text-xl">add_notes</span>
                     ثبت در شب {nightNumber}
                   </button>
+
+                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-black text-zinc-950 dark:text-white">ثبت حذف روز</p>
+                        <p className="mt-1 text-xs leading-5 text-amber-700 dark:text-amber-300">رای‌گیری، شلیک روز، بازپرسی یا هر روش سناریویی.</p>
+                      </div>
+                      <div className="flex items-center gap-1 rounded-lg border border-amber-500/20 bg-white/70 p-1 dark:bg-zinc-950/50">
+                        <button type="button" onClick={() => setDayNumber((value) => Math.max(1, value - 1))} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
+                          <span className="material-symbols-outlined text-sm">remove</span>
+                        </button>
+                        <span className="w-7 text-center text-xs font-black text-zinc-950 dark:text-white">{dayNumber}</span>
+                        <button type="button" onClick={() => setDayNumber((value) => value + 1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
+                          <span className="material-symbols-outlined text-sm">add</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-1 rounded-lg border border-amber-500/20 bg-white/70 p-1 dark:bg-zinc-950/50">
+                      {DAY_ELIMINATION_METHODS.map((method) => (
+                        <button
+                          key={method.key}
+                          type="button"
+                          onClick={() => setDayMethodKey(method.key)}
+                          className={`flex min-h-9 items-center justify-center gap-1 rounded-lg text-[10px] font-black transition-all ${
+                            dayMethodKey === method.key
+                              ? "bg-amber-500 text-zinc-950 shadow-sm"
+                              : "text-amber-700 hover:bg-amber-500/10 dark:text-amber-300"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-sm">{method.icon}</span>
+                          {method.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {dayMethodKey === "custom" && (
+                      <label className="mt-3 flex flex-col gap-2">
+                        <span className="text-xs font-black text-amber-700 dark:text-amber-300">عنوان روش سناریویی</span>
+                        <input
+                          value={customDayMethod}
+                          onChange={(event) => setCustomDayMethod(event.target.value.slice(0, 80))}
+                          placeholder="مثلاً حکم قاضی یا چالش روز"
+                          className="min-h-10 text-sm"
+                        />
+                      </label>
+                    )}
+
+                    <label className="mt-3 flex flex-col gap-2">
+                      <span className="text-xs font-black text-amber-700 dark:text-amber-300">بازیکن حذف‌شده</span>
+                      <select value={dayTargetPlayerId} onChange={(event) => setDayTargetPlayerId(event.target.value)} disabled={game?.status === "FINISHED"}>
+                        <option value="">انتخاب بازیکن</option>
+                        {players.map((player) => (
+                          <option key={player.id} value={player.id}>
+                            {player.name} - {player.role?.name || "بدون نقش"} {player.isAlive === false ? "(حذف‌شده)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="mt-3 flex flex-col gap-2">
+                      <span className="text-xs font-black text-amber-700 dark:text-amber-300">یادداشت روز</span>
+                      <textarea
+                        value={dayNote}
+                        onChange={(event) => setDayNote(event.target.value.slice(0, 500))}
+                        placeholder="مثلاً با رای‌گیری روز حذف شد."
+                        className="min-h-20 resize-none text-sm"
+                      />
+                    </label>
+
+                    <button
+                      onClick={handleRecordDayElimination}
+                      disabled={busy || game?.status === "FINISHED"}
+                      className="mt-3 flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 text-sm font-black text-zinc-950 transition-all hover:bg-amber-400 disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-lg">person_remove</span>
+                      ثبت حذف روز {dayNumber}
+                    </button>
+                  </div>
                 </div>
               </aside>
 
               <section className="min-w-0">
-                {groupedNightEvents.length === 0 ? (
+                {reportRounds.length === 0 ? (
                   <div className="flex min-h-72 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-8 text-center dark:border-white/10 dark:bg-white/[0.03]">
                     <div className="ui-icon size-16">
                       <span className="material-symbols-outlined text-3xl text-zinc-400">dark_mode</span>
                     </div>
                     <div>
-                      <p className="font-black text-zinc-950 dark:text-white">هنوز اتفاق شبی ثبت نشده است</p>
-                      <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">اگر گرداننده بخواهد، می‌تواند ذخیره دکتر، شلیک مافیا و اکشن‌های نقش‌ها را اینجا نگه دارد.</p>
+                      <p className="font-black text-zinc-950 dark:text-white">هنوز گزارشی ثبت نشده است</p>
+                      <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">اتفاقات شب و حذف‌های روز در یک گزارش فشرده کنار هم می‌آیند.</p>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {groupedNightEvents.map(([groupNightNumber, events]) => (
-                      <details key={groupNightNumber} open={groupNightNumber === nightNumber} className="group rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]">
-                        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4">
+                  <div className="grid gap-3 xl:grid-cols-2">
+                    {reportRounds.map((round) => (
+                      <article key={round.round} className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]">
+                        <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-zinc-950/60">
                           <div>
-                            <p className="text-sm font-black text-zinc-950 dark:text-white">شب {groupNightNumber}</p>
-                            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{events.length} اتفاق ثبت‌شده</p>
+                            <p className="text-sm font-black text-zinc-950 dark:text-white">دور {round.round}</p>
+                            <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
+                              {round.night.length} رکورد شب، {round.day.length} حذف روز
+                            </p>
                           </div>
-                          <span className="material-symbols-outlined text-zinc-400 transition-transform group-open:rotate-180">keyboard_arrow_down</span>
-                        </summary>
-
-                        <div className="space-y-2 border-t border-zinc-200 p-3 dark:border-white/10">
-                          {events.map((event) => (
-                            <article key={event.id} className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/70">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <p className="truncate text-sm font-black text-zinc-950 dark:text-white">
-                                      {event.abilityLabel}{event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}
-                                    </p>
-                                    <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
-                                      {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
-                                    </span>
-                                    {event.details?.effectType && event.details.effectType !== "NONE" && (
-                                      <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
-                                        {effectLabel(event.details.effectType)}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                    {event.actorPlayer?.name || event.abilitySource || alignmentLabel(event.actorAlignment)}
-                                    {event.wasUsed !== false ? ` ← ${event.targetPlayer?.name || "نامشخص"}` : " ← بدون هدف"}
-                                  </p>
-                                  {event.details?.secondaryTargetName && (
-                                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                      {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
-                                    </p>
-                                  )}
-                                  {Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
-                                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                      هدف‌های اضافه: {event.details.extraTargets.map((target) => target.name).join("، ")}
-                                    </p>
-                                  )}
-                                  {event.details?.convertedRoleName && (
-                                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                      تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
-                                    </p>
-                                  )}
-                                </div>
-                                <button
-                                  onClick={() => handleDeleteNightEvent(event)}
-                                  disabled={busy}
-                                  className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
-                                  aria-label="حذف رکورد"
-                                >
-                                  <span className="material-symbols-outlined text-base">delete</span>
-                                </button>
-                              </div>
-                              {event.note && (
-                                <p className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-xs leading-6 text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
-                                  {event.note}
-                                </p>
-                              )}
-                            </article>
-                          ))}
+                          <div className="flex gap-1">
+                            <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">شب {round.round}</span>
+                            <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300">روز {round.round}</span>
+                          </div>
                         </div>
-                      </details>
+
+                        <div className="grid gap-3 p-3">
+                          <div>
+                            <div className="mb-2 flex items-center gap-2 text-xs font-black text-zinc-500 dark:text-zinc-400">
+                              <span className="material-symbols-outlined text-base text-lime-500">dark_mode</span>
+                              اتفاقات شب
+                            </div>
+                            <div className="space-y-2">
+                              {round.night.length > 0 ? (
+                                round.night.map((event) => (
+                                  <ReportEventRow key={event.id} event={event} busy={busy} onDelete={handleDeleteNightEvent} />
+                                ))
+                              ) : (
+                                <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-3 text-xs font-bold text-zinc-400 dark:border-white/10 dark:bg-zinc-950/40">
+                                  رکورد شب ندارد.
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="mb-2 flex items-center gap-2 text-xs font-black text-zinc-500 dark:text-zinc-400">
+                              <span className="material-symbols-outlined text-base text-amber-500">wb_sunny</span>
+                              حذف‌های روز
+                            </div>
+                            <div className="space-y-2">
+                              {round.day.length > 0 ? (
+                                round.day.map((event) => (
+                                  <ReportEventRow key={event.id} event={event} busy={busy} onDelete={handleDeleteNightEvent} />
+                                ))
+                              ) : (
+                                <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-3 text-xs font-bold text-zinc-400 dark:border-white/10 dark:bg-zinc-950/40">
+                                  حذف روز ثبت نشده است.
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </article>
                     ))}
                   </div>
                 )}
