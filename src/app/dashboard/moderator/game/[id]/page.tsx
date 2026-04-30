@@ -229,22 +229,35 @@ function playTimerAlarm(existingContext?: AudioContext | null) {
     audioContext.resume().catch(() => null);
   }
 
-  [0, 0.18, 0.36].forEach((offset) => {
+  const pattern = [
+    { offset: 0, frequency: 880 },
+    { offset: 0.28, frequency: 1180 },
+    { offset: 0.56, frequency: 880 },
+    { offset: 1.02, frequency: 1180 },
+    { offset: 1.3, frequency: 880 },
+    { offset: 1.58, frequency: 1180 },
+  ];
+
+  pattern.forEach(({ offset, frequency }) => {
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.value = 880;
+    oscillator.type = "square";
+    oscillator.frequency.value = frequency;
     gain.gain.setValueAtTime(0.001, audioContext.currentTime + offset);
-    gain.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + offset + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + offset + 0.14);
+    gain.gain.exponentialRampToValueAtTime(0.42, audioContext.currentTime + offset + 0.025);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + offset + 0.24);
     oscillator.connect(gain);
     gain.connect(audioContext.destination);
     oscillator.start(audioContext.currentTime + offset);
-    oscillator.stop(audioContext.currentTime + offset + 0.16);
+    oscillator.stop(audioContext.currentTime + offset + 0.26);
   });
 
+  if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+    navigator.vibrate?.([260, 110, 260, 110, 420]);
+  }
+
   if (!contextFromCaller) {
-    window.setTimeout(() => audioContext.close().catch(() => null), 900);
+    window.setTimeout(() => audioContext.close().catch(() => null), 2400);
   }
 }
 
@@ -321,6 +334,14 @@ function SpeechTimer({
     setRemaining(duration);
   };
 
+  const updateDuration = (nextSeconds: number) => {
+    const normalized = Math.max(5, Math.min(900, Math.round(nextSeconds)));
+    setDuration(normalized);
+    setRemaining(normalized);
+    setRunning(false);
+    alarmedRef.current = false;
+  };
+
   return (
     <article className={`overflow-hidden rounded-lg border ${toneClass}`}>
       <div className="flex items-start justify-between gap-3 p-3">
@@ -340,7 +361,7 @@ function SpeechTimer({
         <div className="h-2 overflow-hidden rounded-full bg-white/70 dark:bg-zinc-950/50">
           <div className={tone === "lime" ? "h-full rounded-full bg-lime-500 transition-[width]" : "h-full rounded-full bg-amber-500 transition-[width]"} style={{ width: `${progress}%` }} />
         </div>
-        <div className="mt-3 grid grid-cols-[1fr_44px_44px] gap-2">
+        <div className="mt-3 grid grid-cols-[1fr_44px_96px] gap-2">
           <button type="button" onClick={toggleRunning} className="ui-button-primary min-h-10 px-3 text-xs">
             <span className="material-symbols-outlined text-base">{running ? "pause" : "play_arrow"}</span>
             {running ? "مکث" : remaining > 0 && remaining < duration ? "ادامه" : "شروع"}
@@ -348,24 +369,32 @@ function SpeechTimer({
           <button type="button" onClick={reset} className="ui-button-secondary min-h-10 px-0" aria-label="بازنشانی">
             <span className="material-symbols-outlined text-base">replay</span>
           </button>
-          <select
-            value={duration}
-            onChange={(event) => {
-              const next = Number(event.target.value);
-              setDuration(next);
-              setRemaining(next);
-              setRunning(false);
-              alarmedRef.current = false;
-            }}
-            className="min-h-10 rounded-lg px-1 text-center text-[10px]"
-            aria-label="مدت تایمر"
-          >
-            <option value={30}>۳۰</option>
-            <option value={45}>۴۵</option>
-            <option value={60}>۶۰</option>
-            <option value={90}>۹۰</option>
-            <option value={120}>۱۲۰</option>
-          </select>
+          <label className="relative">
+            <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-400">ثانیه</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={5}
+              max={900}
+              step={5}
+              value={duration}
+              onChange={(event) => updateDuration(Number(event.target.value) || defaultSeconds)}
+              className="min-h-10 w-full rounded-lg pl-10 pr-2 text-center text-xs font-black tabular-nums"
+              aria-label="مدت تایمر به ثانیه"
+            />
+          </label>
+        </div>
+        <div className="mt-2 grid grid-cols-4 gap-1">
+          {[-15, 15, 30, 60].map((delta) => (
+            <button
+              key={delta}
+              type="button"
+              onClick={() => updateDuration(duration + delta)}
+              className="rounded-lg border border-zinc-200 bg-white/60 py-1.5 text-[10px] font-black text-zinc-600 transition-all hover:bg-white dark:border-white/10 dark:bg-zinc-950/30 dark:text-zinc-300"
+            >
+              {delta > 0 ? `+${delta}` : delta}
+            </button>
+          ))}
         </div>
       </div>
     </article>
@@ -510,7 +539,8 @@ export default function ModeratorGamePage() {
   const [dayMethodKey, setDayMethodKey] = useState("vote");
   const [customDayMethod, setCustomDayMethod] = useState("");
   const [dayNote, setDayNote] = useState("");
-  const [reportMode, setReportMode] = useState<"NIGHT" | "DAY">("NIGHT");
+  const [reportMode, setReportMode] = useState<"NIGHT" | "DAY">("DAY");
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   const refreshGame = async (showLoader = false) => {
     if (showLoader) setLoading(true);
@@ -520,9 +550,11 @@ export default function ModeratorGamePage() {
       return;
     }
     setGame(result);
-    const latestNight = Math.max(1, ...(result.nightEvents || []).map((event: NightEventRecord) => event.nightNumber));
+    const events = (result.nightEvents || []) as NightEventRecord[];
+    const latestNight = Math.max(1, ...events.filter((event) => !isDayEvent(event)).map((event) => event.nightNumber));
+    const latestDay = Math.max(1, ...events.filter((event) => isDayEvent(event)).map((event) => event.nightNumber));
     setNightNumber((current) => Math.max(current, latestNight));
-    setDayNumber((current) => Math.max(current, latestNight));
+    setDayNumber((current) => Math.max(current, latestDay));
     setLoading(false);
   };
 
@@ -664,6 +696,47 @@ export default function ModeratorGamePage() {
       .sort(([left], [right]) => left - right)
       .map(([round, events]) => ({ round, ...events }));
   }, [nightEvents]);
+
+  const mafiaShotAction = actionOptions.find((option) => option.key === "side:mafia-shot");
+  const roleActionOptions = actionOptions.filter((option) => option.source === "role");
+  const latestReportRound = Math.max(
+    dayNumber,
+    nightNumber,
+    reportRounds.reduce((latest, round) => Math.max(latest, round.round), 1)
+  );
+  const phaseTimeline = Array.from({ length: latestReportRound }, (_, index) => {
+    const round = index + 1;
+    const reportRound = reportRounds.find((item) => item.round === round);
+    return {
+      round,
+      dayCount: reportRound?.day.length || 0,
+      nightCount: reportRound?.night.length || 0,
+    };
+  });
+
+  const resetNightTargets = () => {
+    setTargetPlayerId("");
+    setSecondaryTargetPlayerId("");
+    setExtraTargetPlayerIds([]);
+  };
+
+  const openNightAction = (option: NightActionOption, actor?: PlayerRecord | null, wasUsed = true) => {
+    setReportMode("NIGHT");
+    setSelectedActionKey(option.key);
+    setSelectedChoiceKey(option.choices[0]?.id || "");
+    setActorPlayerId(actor?.id || "");
+    setEventWasUsed(wasUsed);
+    resetNightTargets();
+    setNightNote("");
+    setReportModalOpen(true);
+  };
+
+  const openDayRecord = (methodKey = dayMethodKey, targetId = "") => {
+    setReportMode("DAY");
+    setDayMethodKey(methodKey);
+    setDayTargetPlayerId(targetId);
+    setReportModalOpen(true);
+  };
 
   const handleTogglePlayer = (player: PlayerRecord) => {
     const nextAlive = player.isAlive === false;
@@ -810,6 +883,7 @@ export default function ModeratorGamePage() {
       setExtraTargetPlayerIds([]);
       setNightNote("");
       setEventWasUsed(true);
+      setReportModalOpen(false);
       await refreshGame();
     } else {
       showAlert("خطا", result.error || "ثبت اتفاق شب انجام نشد", "error");
@@ -844,6 +918,7 @@ export default function ModeratorGamePage() {
       setDayTargetPlayerId("");
       setCustomDayMethod("");
       setDayNote("");
+      setReportModalOpen(false);
       await refreshGame();
     } else {
       showAlert("خطا", result.error || "ثبت حذف روز انجام نشد", "error");
@@ -908,21 +983,18 @@ export default function ModeratorGamePage() {
   return (
     <div className="flex flex-col gap-5 pb-20" dir="rtl">
       <header className="ui-card overflow-hidden">
-        <div className="flex flex-col gap-5 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] xl:flex-row xl:items-start xl:justify-between">
-          <div className="flex min-w-0 items-start gap-4">
-            <div className="ui-icon-accent size-14">
-              <span className="material-symbols-outlined text-3xl">shield_person</span>
+        <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="ui-icon-accent size-11">
+              <span className="material-symbols-outlined text-2xl">shield_person</span>
             </div>
             <div className="min-w-0">
               <p className="ui-kicker">اتاق گرداننده</p>
-              <h1 className="mt-1 truncate text-3xl font-black text-zinc-950 dark:text-white">{game?.name || "بازی مافیا"}</h1>
-              <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                وضعیت بازیکنان، دفترچه اتفاقات شب و نتیجه نهایی بازی در یک صفحه کنترل می‌شود.
-              </p>
+              <h1 className="mt-1 truncate text-xl font-black text-zinc-950 dark:text-white sm:text-2xl">{game?.name || "بازی مافیا"}</h1>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs font-black text-zinc-600 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300">
               #{game?.code || gameId.slice(0, 6).toUpperCase()}
             </span>
@@ -936,17 +1008,20 @@ export default function ModeratorGamePage() {
           </div>
         </div>
 
-        <div className="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[
             ["سناریو", game?.scenario?.name || "نامشخص", "account_tree", "text-lime-500"],
-            ["بازیکنان فعال", `${alivePlayers.length} نفر`, "sensors", "text-emerald-500"],
-            ["حذف‌شده‌ها", `${eliminatedPlayers.length} نفر`, "person_off", "text-red-500"],
-            ["رکورد شب", `${nightEvents.length} مورد`, "dark_mode", "text-sky-500"],
+            ["فعال", `${alivePlayers.length}/${players.length}`, "sensors", "text-emerald-500"],
+            ["حذف‌شده", `${eliminatedPlayers.length}`, "person_off", "text-red-500"],
+            ["گزارش‌ها", `${nightEvents.length}`, "edit_note", "text-sky-500"],
           ].map(([label, value, icon, color]) => (
-            <div key={label} className="ui-muted p-4">
-              <span className={`material-symbols-outlined text-xl ${color}`}>{icon}</span>
-              <p className="mt-3 truncate text-lg font-black text-zinc-950 dark:text-white">{value}</p>
-              <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+            <div
+              key={label}
+              className="flex min-w-max items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60"
+            >
+              <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+              <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">{label}</span>
+              <span className="max-w-44 truncate text-sm font-black text-zinc-950 dark:text-white">{value}</span>
             </div>
           ))}
         </div>
@@ -1059,60 +1134,209 @@ export default function ModeratorGamePage() {
 
             <div className="grid gap-5 p-5 lg:grid-cols-[360px_minmax(0,1fr)]">
               <aside className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-black text-zinc-950 dark:text-white">{reportMode === "NIGHT" ? "ثبت اتفاق شب" : "ثبت حذف روز"}</p>
-                    <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-                      {reportMode === "NIGHT" ? "توانایی، هدف و نتیجه هر شب را مرحله‌به‌مرحله ثبت کنید." : "حذف‌های روز مثل رای‌گیری، شلیک یا روش سناریویی را جدا ثبت کنید."}
-                    </p>
-                  </div>
-                  {reportMode === "NIGHT" ? (
-                    <div className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
-                      <button type="button" onClick={() => setNightNumber((value) => Math.max(1, value - 1))} className="flex size-8 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-white/10">
-                        <span className="material-symbols-outlined text-base">remove</span>
-                      </button>
-                      <span className="w-8 text-center text-sm font-black text-zinc-950 dark:text-white">{nightNumber}</span>
-                      <button type="button" onClick={() => setNightNumber((value) => value + 1)} className="flex size-8 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-white/10">
-                        <span className="material-symbols-outlined text-base">add</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 rounded-lg border border-amber-500/20 bg-white p-1 dark:bg-zinc-950">
-                      <button type="button" onClick={() => setDayNumber((value) => Math.max(1, value - 1))} className="flex size-8 items-center justify-center rounded-md hover:bg-amber-50 dark:hover:bg-white/10">
-                        <span className="material-symbols-outlined text-base">remove</span>
-                      </button>
-                      <span className="w-8 text-center text-sm font-black text-zinc-950 dark:text-white">{dayNumber}</span>
-                      <button type="button" onClick={() => setDayNumber((value) => value + 1)} className="flex size-8 items-center justify-center rounded-md hover:bg-amber-50 dark:hover:bg-white/10">
-                        <span className="material-symbols-outlined text-base">add</span>
-                      </button>
-                    </div>
-                  )}
+                <div>
+                  <p className="text-sm font-black text-zinc-950 dark:text-white">ثبت مرحله‌ای اتفاقات</p>
+                  <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                    بازی از روز اول شروع می‌شود؛ برای هر روز یا شب، اول بازیکن/توانایی را انتخاب کنید و جزئیات در پنجره جدا ثبت می‌شود.
+                  </p>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
-                  {[
-                    { value: "NIGHT" as const, label: "شب", icon: "dark_mode" },
-                    { value: "DAY" as const, label: "روز", icon: "wb_sunny" },
-                  ].map((item) => (
-                    <button
-                      key={item.value}
-                      type="button"
-                      onClick={() => setReportMode(item.value)}
-                      className={`flex min-h-10 items-center justify-center gap-2 rounded-lg text-xs font-black transition-all ${
-                        reportMode === item.value
-                          ? item.value === "NIGHT"
-                            ? "bg-lime-500 text-zinc-950 shadow-sm"
-                            : "bg-amber-500 text-zinc-950 shadow-sm"
-                          : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/[0.06]"
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-base">{item.icon}</span>
-                      {item.label}
-                    </button>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openDayRecord(dayMethodKey)}
+                    disabled={busy || game?.status === "FINISHED"}
+                    className="group rounded-lg border border-amber-500/25 bg-amber-500/10 p-3 text-right transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-xl text-amber-600 dark:text-amber-300">wb_sunny</span>
+                    <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">ثبت روز {dayNumber}</p>
+                    <p className="mt-1 text-[10px] font-bold text-amber-700 dark:text-amber-300">حذف، رای یا اتفاق روز</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => selectedAction && openNightAction(selectedAction)}
+                    disabled={busy || game?.status === "FINISHED" || !selectedAction}
+                    className="group rounded-lg border border-lime-500/25 bg-lime-500/10 p-3 text-right transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-xl text-lime-600 dark:text-lime-300">dark_mode</span>
+                    <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">ثبت شب {nightNumber}</p>
+                    <p className="mt-1 text-[10px] font-bold text-lime-700 dark:text-lime-300">توانایی یا شات شب</p>
+                  </button>
+                </div>
+
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDayNumber((value) => value + 1)}
+                    className="ui-button-secondary min-h-9 px-2 text-xs"
+                  >
+                    <span className="material-symbols-outlined text-base">add_circle</span>
+                    روز بعدی
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNightNumber((value) => value + 1)}
+                    className="ui-button-secondary min-h-9 px-2 text-xs"
+                  >
+                    <span className="material-symbols-outlined text-base">add_circle</span>
+                    شب بعدی
+                  </button>
+                </div>
+
+                <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {phaseTimeline.map((phase) => (
+                    <div key={phase.round} className="min-w-24 rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/60">
+                      <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">دور {phase.round}</p>
+                      <div className="mt-2 flex gap-1">
+                        <span className={`rounded-md px-2 py-1 text-[10px] font-black ${phase.dayCount ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : "bg-zinc-100 text-zinc-400 dark:bg-white/5"}`}>
+                          روز {phase.dayCount}
+                        </span>
+                        <span className={`rounded-md px-2 py-1 text-[10px] font-black ${phase.nightCount ? "bg-lime-500/15 text-lime-700 dark:text-lime-300" : "bg-zinc-100 text-zinc-400 dark:bg-white/5"}`}>
+                          شب {phase.nightCount}
+                        </span>
+                      </div>
+                    </div>
                   ))}
                 </div>
 
                 <div className="mt-4 space-y-3">
+                  <div className="rounded-lg border border-amber-500/20 bg-white p-3 dark:border-amber-500/20 dark:bg-zinc-950/50">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-black text-zinc-950 dark:text-white">حذف یا اتفاق روز</p>
+                      <span className="rounded-md bg-amber-500/15 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300">روز {dayNumber}</span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-1">
+                      {DAY_ELIMINATION_METHODS.map((method) => (
+                        <button
+                          key={method.key}
+                          type="button"
+                          onClick={() => openDayRecord(method.key)}
+                          disabled={busy || game?.status === "FINISHED"}
+                          className="flex min-h-9 items-center justify-center gap-1 rounded-lg border border-amber-500/15 bg-amber-500/10 px-2 text-[10px] font-black text-amber-700 transition-all hover:bg-amber-500/20 disabled:opacity-50 dark:text-amber-300"
+                        >
+                          <span className="material-symbols-outlined text-sm">{method.icon}</span>
+                          {method.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-3 grid max-h-48 gap-2 overflow-y-auto pr-1">
+                      {players.map((player) => {
+                        const image = playerImage(player);
+                        return (
+                          <button
+                            key={`day-${player.id}`}
+                            type="button"
+                            onClick={() => openDayRecord(dayMethodKey, player.id)}
+                            disabled={busy || game?.status === "FINISHED"}
+                            className="flex min-h-12 items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-right transition-all hover:border-amber-500/40 hover:bg-amber-500/10 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03]"
+                          >
+                            <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-xs font-black text-white dark:bg-white dark:text-zinc-950">
+                              {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-xs font-black text-zinc-950 dark:text-white">{player.name}</span>
+                              <span className="block truncate text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{player.role?.name || "بدون نقش"}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-lime-500/20 bg-white p-3 dark:border-lime-500/20 dark:bg-zinc-950/50">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-black text-zinc-950 dark:text-white">اتفاقات شب</p>
+                      <span className="rounded-md bg-lime-500/15 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">شب {nightNumber}</span>
+                    </div>
+                    {mafiaShotAction && (
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openNightAction(mafiaShotAction, null, true)}
+                          disabled={busy || game?.status === "FINISHED"}
+                          className="flex min-h-10 items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-2 text-xs font-black text-red-600 transition-all hover:bg-red-500/20 disabled:opacity-50 dark:text-red-300"
+                        >
+                          <span className="material-symbols-outlined text-base">target</span>
+                          شلیک مافیا
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openNightAction(mafiaShotAction, null, false)}
+                          disabled={busy || game?.status === "FINISHED"}
+                          className="flex min-h-10 items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-zinc-100 px-2 text-xs font-black text-zinc-600 transition-all hover:bg-zinc-200 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300"
+                        >
+                          <span className="material-symbols-outlined text-base">block</span>
+                          شات نداریم
+                        </button>
+                      </div>
+                    )}
+                    <div className="mt-3 grid max-h-[360px] gap-2 overflow-y-auto pr-1">
+                      {roleActionOptions.length === 0 ? (
+                        <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-3 text-xs font-bold text-zinc-400 dark:border-white/10 dark:bg-white/[0.03]">
+                          برای نقش‌های این بازی توانایی شب فعال نشده است.
+                        </div>
+                      ) : (
+                        roleActionOptions.map((option) => (
+                          <div key={option.key} className={`rounded-lg border p-2 ${option.className}`}>
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="truncate text-xs font-black">{option.sourceLabel}</p>
+                                <p className="mt-1 truncate text-[10px] font-bold opacity-80">{option.label}، {abilityLimitLabel(option)}</p>
+                              </div>
+                              <span className="material-symbols-outlined text-base">{option.effectType === "NONE" ? "auto_fix_high" : "hub"}</span>
+                            </div>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {option.candidates.map((player) => {
+                                const image = playerImage(player);
+                                return (
+                                  <button
+                                    key={`${option.key}-${player.id}`}
+                                    type="button"
+                                    onClick={() => openNightAction(option, player, true)}
+                                    disabled={busy || game?.status === "FINISHED"}
+                                    className="flex min-h-8 items-center gap-1.5 rounded-lg bg-white/70 px-2 text-[10px] font-black text-zinc-800 transition-all hover:bg-white disabled:opacity-50 dark:bg-zinc-950/35 dark:text-white"
+                                  >
+                                    <span className="flex size-6 items-center justify-center overflow-hidden rounded-md bg-zinc-950 text-[10px] text-white dark:bg-white dark:text-zinc-950">
+                                      {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
+                                    </span>
+                                    <span className="max-w-20 truncate">{player.name}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {reportModalOpen && (
+                  <div
+                    className="fixed inset-0 z-[120] flex items-end justify-center bg-zinc-950/60 p-3 pb-24 backdrop-blur-sm sm:items-center sm:pb-3"
+                    onClick={() => setReportModalOpen(false)}
+                  >
+                    <section
+                      className="flex max-h-[calc(100dvh-7rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-950/25 dark:border-white/10 dark:bg-zinc-950"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/90 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                        <div className="min-w-0">
+                          <p className="ui-kicker">{reportMode === "NIGHT" ? `شب ${nightNumber}` : `روز ${dayNumber}`}</p>
+                          <h3 className="mt-1 truncate text-lg font-black text-zinc-950 dark:text-white">
+                            {reportMode === "NIGHT" ? "جزئیات اتفاق شب" : "جزئیات اتفاق روز"}
+                          </h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setReportModalOpen(false)}
+                          className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition-all hover:bg-zinc-100 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
+                          aria-label="بستن"
+                        >
+                          <span className="material-symbols-outlined text-xl">close</span>
+                        </button>
+                      </div>
+                      <div className="custom-scrollbar flex-1 space-y-3 overflow-y-auto p-4">
                   {reportMode === "NIGHT" ? (
                     <>
                   <label className="flex flex-col gap-2">
@@ -1386,7 +1610,10 @@ export default function ModeratorGamePage() {
                     </button>
                   </div>
                   )}
-                </div>
+                      </div>
+                    </section>
+                  </div>
+                )}
               </aside>
 
               <section className="min-w-0">
