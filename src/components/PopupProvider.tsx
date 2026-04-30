@@ -3,10 +3,12 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Modal, Toast } from './ThemedPopups';
 
+type PopupType = 'info' | 'error' | 'warning' | 'success';
+
 type PopupContextType = {
-  showAlert: (title: string, message: string, type?: 'info' | 'error' | 'warning' | 'success') => void;
+  showAlert: (title: string, message: string, type?: PopupType) => void;
   showConfirm: (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'error') => void;
-  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  showToast: (message: string, type?: PopupType) => void;
 };
 
 const PopupContext = createContext<PopupContextType | undefined>(undefined);
@@ -16,7 +18,7 @@ export function PopupProvider({ children }: { children: ReactNode }) {
     isOpen: boolean;
     title: string;
     message: string;
-    type: 'info' | 'error' | 'warning' | 'success';
+    type: PopupType;
     onConfirm?: () => void;
   }>({
     isOpen: false,
@@ -25,9 +27,9 @@ export function PopupProvider({ children }: { children: ReactNode }) {
     type: 'info'
   });
 
-  const [toasts, setToasts] = useState<{ id: number; message: string; type: 'success' | 'error' | 'info' }[]>([]);
+  const [toasts, setToasts] = useState<{ id: number; message: string; type: PopupType }[]>([]);
 
-  const showAlert = (title: string, message: string, type: 'info' | 'error' | 'warning' | 'success' = 'info') => {
+  const showAlert = (title: string, message: string, type: PopupType = 'info') => {
     setModal({ isOpen: true, title, message, type });
   };
 
@@ -35,7 +37,7 @@ export function PopupProvider({ children }: { children: ReactNode }) {
     setModal({ isOpen: true, title, message, type, onConfirm });
   };
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+  const showToast = (message: string, type: PopupType = 'success') => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
   };

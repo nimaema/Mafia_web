@@ -91,12 +91,40 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
 
 type ToastProps = {
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'warning' | 'info';
   onClose: () => void;
 };
 
 export const Toast = ({ message, type, onClose }: ToastProps) => {
   const durationMs = 5000;
+  const palette =
+    type === 'success'
+      ? {
+          shell: 'border-lime-500/30 bg-lime-50/95 text-lime-700 shadow-lime-950/10 dark:border-lime-400/25 dark:bg-lime-950/35 dark:text-lime-300',
+          icon: 'check_circle',
+          iconBox: 'bg-lime-500 text-zinc-950',
+          progress: 'bg-lime-500',
+        }
+      : type === 'error'
+        ? {
+            shell: 'border-red-500/30 bg-red-50/95 text-red-700 shadow-red-950/10 dark:border-red-400/25 dark:bg-red-950/35 dark:text-red-300',
+            icon: 'error',
+            iconBox: 'bg-red-500 text-white',
+            progress: 'bg-red-500',
+          }
+        : type === 'warning'
+          ? {
+              shell: 'border-amber-500/35 bg-amber-50/95 text-amber-800 shadow-amber-950/10 dark:border-amber-400/25 dark:bg-amber-950/35 dark:text-amber-300',
+              icon: 'warning',
+              iconBox: 'bg-amber-500 text-zinc-950',
+              progress: 'bg-amber-500',
+            }
+          : {
+              shell: 'border-sky-500/30 bg-sky-50/95 text-sky-700 shadow-sky-950/10 dark:border-sky-400/25 dark:bg-sky-950/35 dark:text-sky-300',
+              icon: 'info',
+              iconBox: 'bg-sky-500 text-white',
+              progress: 'bg-sky-500',
+            };
 
   useEffect(() => {
     const timer = setTimeout(onClose, durationMs);
@@ -105,13 +133,9 @@ export const Toast = ({ message, type, onClose }: ToastProps) => {
 
   return (
     <div className="fixed bottom-24 md:bottom-8 right-4 left-4 md:left-auto md:w-96 z-[300] animate-in slide-in-from-bottom-10 duration-300">
-      <div className={`relative overflow-hidden p-4 rounded-lg border backdrop-blur-xl shadow-2xl flex items-center gap-4 ${
-        type === 'success' ? 'bg-lime-500/10 border-lime-500/20 text-lime-600 dark:text-lime-400' :
-        type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400' :
-        'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'
-      }`}>
-        <span className="material-symbols-outlined font-black">
-          {type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info'}
+      <div className={`relative flex items-center gap-4 overflow-hidden rounded-lg border p-4 shadow-2xl backdrop-blur-xl ${palette.shell}`}>
+        <span className={`material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-lg font-black shadow-sm ${palette.iconBox}`}>
+          {palette.icon}
         </span>
         <span className="font-bold text-sm flex-1">{message}</span>
         <button onClick={onClose} className="opacity-50 hover:opacity-100 transition-opacity">
@@ -119,9 +143,7 @@ export const Toast = ({ message, type, onClose }: ToastProps) => {
         </button>
         <span className="absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded-b-lg bg-black/5 dark:bg-white/10">
           <span
-            className={`block h-full ${
-              type === 'success' ? 'bg-lime-500' : type === 'error' ? 'bg-red-500' : 'bg-sky-500'
-            }`}
+            className={`block h-full ${palette.progress}`}
             style={{ animation: `toast-progress ${durationMs}ms linear forwards` }}
           />
         </span>
