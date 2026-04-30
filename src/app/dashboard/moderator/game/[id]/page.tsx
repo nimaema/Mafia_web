@@ -965,17 +965,34 @@ export default function ModeratorGamePage() {
               </span>
             </div>
 
-            <div className="grid gap-3 p-4">
+            <div className="p-4">
+              <div className="mb-4 grid gap-2 sm:grid-cols-3">
+                {[
+                  ["کل بازیکنان", players.length, "groups", "text-zinc-500"],
+                  ["فعال", alivePlayers.length, "sensors", "text-lime-600 dark:text-lime-300"],
+                  ["حذف‌شده", eliminatedPlayers.length, "person_off", "text-red-600 dark:text-red-300"],
+                ].map(([label, value, icon, color]) => (
+                  <div key={String(label)} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className={`material-symbols-outlined text-xl ${color}`}>{icon}</span>
+                      <span className="text-lg font-black text-zinc-950 dark:text-white">{value}</span>
+                    </div>
+                    <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60">
               {players.map((player, index) => {
                 const alive = player.isAlive !== false;
                 const image = playerImage(player);
                 return (
                   <article
                     key={player.id}
-                    className={`relative overflow-hidden rounded-lg border p-3 transition-all ${
+                    className={`relative overflow-hidden border-b border-zinc-200 p-3 transition-all last:border-b-0 dark:border-white/10 ${
                       alive
-                        ? "border-zinc-200 bg-white hover:border-lime-500/30 dark:border-white/10 dark:bg-zinc-950/70"
-                        : "border-red-500/20 bg-red-500/10 dark:border-red-400/20"
+                        ? "bg-white hover:bg-lime-500/[0.04] dark:bg-transparent dark:hover:bg-white/[0.04]"
+                        : "bg-red-500/10"
                     }`}
                   >
                     <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${alive ? "bg-lime-500" : "bg-red-500"}`} />
@@ -1018,6 +1035,7 @@ export default function ModeratorGamePage() {
                   </article>
                 );
               })}
+              </div>
             </div>
           </div>
 

@@ -91,6 +91,8 @@ export function LobbyPreviewCard({
 }: LobbyPreviewCardProps) {
   const progress = capacity > 0 ? Math.min(100, Math.round((playerCount / capacity) * 100)) : 0;
   const seatsLeft = capacity > 0 ? Math.max(capacity - playerCount, 0) : null;
+  const aliveCount = players.filter((player) => player.isAlive !== false).length;
+  const eliminatedCount = Math.max(0, players.length - aliveCount);
   const citizenCount = roleBreakdown.filter((role) => role.alignment === "CITIZEN").reduce((sum, role) => sum + role.count, 0);
   const mafiaCount = roleBreakdown.filter((role) => role.alignment === "MAFIA").reduce((sum, role) => sum + role.count, 0);
   const neutralCount = roleBreakdown.filter((role) => role.alignment === "NEUTRAL").reduce((sum, role) => sum + role.count, 0);
@@ -287,41 +289,65 @@ export function LobbyPreviewCard({
 
           {!compact && (
             <div className="p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-black text-zinc-950 dark:text-white">بازیکنان حاضر</h3>
-                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                  {capacity > 0 ? `${playerCount} از ${capacity}` : `${playerCount} نفر`}
-                </span>
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="ui-kicker">فهرست بازیکنان</p>
+                  <h3 className="mt-1 text-xl font-black text-zinc-950 dark:text-white">حاضر در لابی</h3>
+                </div>
+                <div className="flex flex-wrap gap-2 text-[10px] font-black">
+                  <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
+                    {capacity > 0 ? `${playerCount} از ${capacity}` : `${playerCount} نفر`}
+                  </span>
+                  <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-lime-700 dark:text-lime-300">
+                    {aliveCount} فعال
+                  </span>
+                  {eliminatedCount > 0 && (
+                    <span className="rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-red-600 dark:text-red-300">
+                      {eliminatedCount} حذف‌شده
+                    </span>
+                  )}
+                </div>
               </div>
 
-              <div className="grid gap-2 md:grid-cols-2">
+              <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60">
                 {players.length ? (
                   players.map((player, index) => {
                     const alive = player.isAlive !== false;
                     return (
-                    <div key={player.id} className={`group relative overflow-hidden rounded-lg border p-3 transition-all ${alive ? "border-zinc-200 bg-zinc-50 hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]" : "border-red-500/20 bg-red-500/10"}`}>
+                    <div
+                      key={player.id}
+                      className={`group relative grid gap-3 border-b border-zinc-200 p-3 transition-all last:border-b-0 dark:border-white/10 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center ${
+                        alive ? "bg-white hover:bg-lime-500/[0.04] dark:bg-transparent dark:hover:bg-white/[0.04]" : "bg-red-500/10"
+                      }`}
+                    >
                       <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${alive ? "bg-lime-500" : "bg-red-500"}`} />
-                      <div className="flex items-center gap-3 pr-1">
+                      <div className="flex min-w-0 items-center gap-3 pr-1">
                         <PlayerAvatar player={player} alive={alive} />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{player.name}</p>
+                          <div className="flex min-w-0 flex-wrap items-center gap-2">
+                            <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{player.name}</p>
+                            {player.current && (
+                              <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[9px] font-black text-lime-700 dark:text-lime-300">شما</span>
+                            )}
+                          </div>
                           <p className={alive ? "mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400" : "mt-1 text-[10px] font-bold text-red-600 dark:text-red-300"}>
-                            {alive ? `بازیکن ${index + 1}، حاضر در بازی` : "حذف‌شده از بازی"}
+                            {alive ? "آماده ورود به بازی" : "از بازی حذف شده"}
                           </p>
                         </div>
-                        <span className={player.current ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-600 dark:text-lime-300" : alive ? "rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-1 text-[10px] font-black text-red-600 dark:text-red-300"}>
-                          {player.current ? "شما" : alive ? "فعال" : "حذف‌شده"}
-                        </span>
                       </div>
-                      <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white/70 px-3 py-2 text-[10px] font-bold text-zinc-500 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-400">
-                        <span>ردیف ورود</span>
-                        <span className="font-black text-zinc-950 dark:text-white">#{index + 1}</span>
+                      <div className="flex items-center justify-between gap-2 sm:justify-end">
+                        <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 font-mono text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">
+                          #{index + 1}
+                        </span>
+                        <span className={alive ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[10px] font-black text-red-600 dark:text-red-300"}>
+                          {alive ? "فعال" : "حذف‌شده"}
+                        </span>
                       </div>
                     </div>
                     );
                   })
                 ) : (
-                  <div className="col-span-full flex min-h-44 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
+                  <div className="flex min-h-44 flex-col items-center justify-center gap-3 bg-zinc-50 p-6 text-center dark:bg-white/[0.03]">
                     <div className="flex size-14 items-center justify-center rounded-lg bg-white text-zinc-400 shadow-sm shadow-zinc-950/5 dark:bg-zinc-950">
                       <span className="material-symbols-outlined text-3xl">group_add</span>
                     </div>
@@ -343,34 +369,52 @@ export function LobbyPreviewCard({
         </div>
 
         <aside className="flex flex-col bg-white dark:bg-zinc-950/20">
-          <div className="border-b border-zinc-200 p-5 dark:border-white/10">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-black text-zinc-950 dark:text-white">ترکیب سناریو</p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  {roleBreakdown.length ? `${roleBreakdown.length} نقش تعریف شده` : "در انتظار انتخاب"}
-                </p>
-              </div>
-              <span className="material-symbols-outlined text-zinc-400">account_tree</span>
-            </div>
-
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {[
-                ["شهروند", citizenCount, "text-sky-500"],
-                ["مافیا", mafiaCount, "text-red-500"],
-                ["مستقل", neutralCount, "text-amber-500"],
-              ].map(([label, value, color]) => (
-                <div key={label} className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
-                  <p className={`text-sm font-black ${color}`}>{value}</p>
-                  <p className="mt-1 text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+          <div className="relative overflow-hidden border-b border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.28),transparent_28rem)]" />
+            <div className="relative">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">سناریو</p>
+                  <h3 className="mt-2 line-clamp-2 break-words text-xl font-black leading-7 text-white">{scenarioName}</h3>
+                  <p className="mt-2 text-xs font-bold text-zinc-300">
+                    {roleBreakdown.length ? `${roleBreakdown.length} نوع نقش، ${capacity || playerCount} ظرفیت` : "در انتظار انتخاب سناریو"}
+                  </p>
                 </div>
-              ))}
+                <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-2xl text-zinc-950 shadow-sm shadow-lime-500/30">account_tree</span>
+              </div>
+
+              <div className="mt-5 overflow-hidden rounded-full bg-white/10">
+                <div className="flex h-2.5">
+                  {[
+                    ["bg-sky-400", citizenCount],
+                    ["bg-red-400", mafiaCount],
+                    ["bg-amber-400", neutralCount],
+                  ].map(([className, value]) => (
+                    Number(value) > 0 && (
+                      <span key={String(className)} className={String(className)} style={{ width: `${capacity ? Math.max(6, (Number(value) / capacity) * 100) : 0}%` }} />
+                    )
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {[
+                  ["شهروند", citizenCount, "text-sky-200"],
+                  ["مافیا", mafiaCount, "text-red-200"],
+                  ["مستقل", neutralCount, "text-amber-200"],
+                ].map(([label, value, color]) => (
+                  <div key={label} className="rounded-lg border border-white/10 bg-white/10 p-2 text-center backdrop-blur">
+                    <p className={`text-base font-black ${color}`}>{value}</p>
+                    <p className="mt-1 text-[9px] font-bold text-zinc-300">{label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           <div className="p-5">
             {roleBreakdown.length ? (
-              <details className="group rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]" open={compact}>
+              <details className="group overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]" open={compact}>
                 <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
                     <p className="text-sm font-black text-zinc-950 dark:text-white">فهرست نقش‌ها</p>
@@ -382,9 +426,12 @@ export function LobbyPreviewCard({
                 <div className="custom-scrollbar max-h-[360px] overflow-y-auto border-t border-zinc-200 p-3 dark:border-white/10">
                   <div className={compact ? "flex flex-wrap gap-2" : "grid gap-2"}>
                     {(compact ? roleBreakdown.slice(0, 5) : roleBreakdown).map((role) => (
-                      <div key={role.id || role.name} className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/60">
+                      <div key={role.id || role.name} className="relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/60">
+                        <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${
+                          role.alignment === "CITIZEN" ? "bg-sky-500" : role.alignment === "MAFIA" ? "bg-red-500" : "bg-amber-500"
+                        }`} />
                         <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0">
+                          <div className="min-w-0 pr-1">
                             <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{role.name}</p>
                             <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
                           </div>

@@ -194,11 +194,11 @@ export default function ProfileForm({
             <div className="min-w-0">
               <p className="text-sm font-black text-zinc-950 dark:text-white">تصویر بازیکن</p>
               <p className="mt-1 max-w-lg text-xs leading-6 text-zinc-500 dark:text-zinc-400">
-                تصویر قبل از ذخیره به یک مربع کوچک فشرده می‌شود تا فضای دیتابیس را اشغال نکند.
+                یک تصویر واضح انتخاب کنید تا در لابی و صفحه بازی کنار نام شما نمایش داده شود.
               </p>
               {imageValue.startsWith("data:image/") && (
                 <p className="mt-2 inline-flex rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">
-                  آماده ذخیره، حدود {Math.max(1, Math.round((imageValue.length * 3) / 4 / 1024))}KB
+                  تصویر آماده ذخیره است
                 </p>
               )}
             </div>

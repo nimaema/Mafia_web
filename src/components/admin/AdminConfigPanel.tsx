@@ -1223,8 +1223,6 @@ export default function AdminDashboard() {
                         const totalPlayers = scenarioTotalPlayers(scenario);
                         const alignmentCounts = scenarioAlignmentCounts(scenario);
                         const dominantAlignment = scenarioDominantAlignment(scenario);
-                        const previewRoles = scenario.roles.slice(0, 3);
-                        const extraRoles = Math.max(0, scenario.roles.length - previewRoles.length);
                         const composition = [
                           { label: "شهروند", value: alignmentCounts.CITIZEN, alignment: "CITIZEN" as Alignment, barClass: "bg-sky-500" },
                           { label: "مافیا", value: alignmentCounts.MAFIA, alignment: "MAFIA" as Alignment, barClass: "bg-red-500" },
@@ -1284,16 +1282,16 @@ export default function AdminDashboard() {
                               </div>
                             </div>
 
-                            <p className="mt-4 line-clamp-2 min-h-10 text-sm leading-5 text-zinc-600 dark:text-zinc-300">
+                            <p className="mt-4 line-clamp-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
                               {scenario.description || "توضیحی برای این سناریو ثبت نشده است."}
                             </p>
 
-                            <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                              <div className="flex items-center justify-between gap-3 text-xs">
-                                <span className="font-black text-zinc-950 dark:text-white">ترکیب بازی</span>
+                            <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]">
+                              <div className="flex items-center justify-between gap-3 px-3 py-2 text-xs">
+                                <span className="font-black text-zinc-950 dark:text-white">ترکیب سناریو</span>
                                 <span className="font-bold text-zinc-500 dark:text-zinc-400">{scenario.roles.length} نوع نقش</span>
                               </div>
-                              <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
+                              <div className="flex h-2 overflow-hidden bg-zinc-200 dark:bg-white/10">
                                 {composition.map((item) => (
                                   item.value > 0 && (
                                     <span
@@ -1304,9 +1302,9 @@ export default function AdminDashboard() {
                                   )
                                 ))}
                               </div>
-                              <div className="mt-3 grid grid-cols-3 gap-2">
+                              <div className="grid grid-cols-3 gap-px bg-zinc-200 dark:bg-white/10">
                                 {composition.map(({ label, value, alignment }) => (
-                                  <div key={label} className={`rounded-lg border px-2 py-1.5 text-center ${alignmentClass(alignment)}`}>
+                                  <div key={label} className={`border-0 bg-white px-2 py-2 text-center dark:bg-zinc-950/70 ${alignmentClass(alignment)}`}>
                                     <p className="text-sm font-black">{value}</p>
                                     <p className="mt-0.5 text-[9px] font-bold">{label}</p>
                                   </div>
@@ -1316,10 +1314,7 @@ export default function AdminDashboard() {
 
                             <div className="mt-4 flex items-center gap-3 border-t border-zinc-200 pt-3 dark:border-white/10">
                               <div className="min-w-0 flex-1">
-                                <p className="truncate text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                                  {previewRoles.map((scenarioRole) => `${scenarioRole.role.name} x${scenarioRole.count}`).join("، ")}
-                                  {extraRoles > 0 ? `، +${extraRoles} نقش دیگر` : ""}
-                                </p>
+                                <p className="truncate text-xs font-bold text-zinc-500 dark:text-zinc-400">برای دیدن نقش‌ها و ظرفیت دقیق وارد جزئیات شوید.</p>
                               </div>
                               <div className="mr-auto flex items-center gap-1 text-[10px] font-black text-zinc-400 transition-colors group-hover:text-lime-600 dark:group-hover:text-lime-300">
                                 جزئیات
