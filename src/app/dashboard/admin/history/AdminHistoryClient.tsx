@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { deleteGameHistory, getAdminGameHistoryPage } from "@/actions/dashboard";
+import { publishNightRecords } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
 
 type AdminHistoryData = Awaited<ReturnType<typeof getAdminGameHistoryPage>>;
@@ -253,6 +254,18 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
     }, "error");
   };
 
+  const publishReport = (gameId: string) => {
+    showConfirm("عمومی کردن گزارش بازی", "بازیکنان همین بازی می‌توانند گزارش شب و روز را در تاریخچه خود ببینند. ادامه می‌دهید؟", async () => {
+      const result = await publishNightRecords(gameId);
+      if (result.success) {
+        showToast("گزارش برای بازیکنان منتشر شد", "success");
+        setData(await getAdminGameHistoryPage(data.page, data.pageSize));
+      } else {
+        showAlert("خطا", result.error || "انتشار گزارش انجام نشد", "error");
+      }
+    });
+  };
+
   return (
     <div className="space-y-5" dir="rtl">
       <section className="ui-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -307,6 +320,16 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
                 <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-3 text-xs font-bold leading-6 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
                   برای این بازی هنوز گزارش شب ثبت نشده است.
                 </div>
+              )}
+              {game.nightEvents.length > 0 && (
+                <button
+                  onClick={() => publishReport(game.id)}
+                  disabled={game.nightRecordsPublic || isPending}
+                  className={game.nightRecordsPublic ? "ui-button-secondary min-h-11 w-full text-lime-700 dark:text-lime-300" : "ui-button-primary min-h-11 w-full"}
+                >
+                  <span className="material-symbols-outlined text-lg">{game.nightRecordsPublic ? "public" : "publish"}</span>
+                  {game.nightRecordsPublic ? "گزارش برای بازیکنان فعال است" : "انتشار گزارش برای بازیکنان"}
+                </button>
               )}
               <button onClick={() => removeGame(game.id)} className="ui-button-danger min-h-11 w-full">
                 <span className="material-symbols-outlined text-lg">delete_forever</span>

@@ -948,12 +948,6 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
     if (extraTargetPlayerIds.some((playerId) => !playerIds.has(playerId))) {
       throw new Error("یکی از هدف‌های اضافه در این بازی نیست.");
     }
-    if (wasUsed && targetCount > 1 && !secondaryTargetPlayerId) {
-      throw new Error("برای این توانایی باید هدف دوم هم انتخاب شود.");
-    }
-    if (wasUsed && targetCount > 2 && extraTargetPlayerIds.length < targetCount - 2) {
-      throw new Error("تعداد هدف‌های انتخاب‌شده با تنظیم توانایی مطابقت ندارد.");
-    }
     const allTargetIds = [targetPlayerId, secondaryTargetPlayerId, ...extraTargetPlayerIds].filter(Boolean);
     if (wasUsed && new Set(allTargetIds).size !== allTargetIds.length) {
       throw new Error("هدف‌های یک توانایی باید بازیکنان متفاوت باشند.");
@@ -1001,6 +995,7 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
               playerId: player?.id || null,
               playerName: player?.name || null,
             }))
+            .filter((target) => target.playerId)
         : [],
       convertedRoleId: convertedRole?.id || null,
       convertedRoleName: convertedRole?.name || null,
@@ -1198,6 +1193,7 @@ export async function publishNightRecords(gameId: string) {
     revalidatePath(`/dashboard/moderator/game/${gameId}`);
     revalidatePath(`/game/${gameId}`);
     revalidatePath("/dashboard/user/history");
+    revalidatePath("/dashboard/admin/history");
 
     return { success: true };
   } catch (error: any) {

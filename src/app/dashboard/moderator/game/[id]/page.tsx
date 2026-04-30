@@ -96,6 +96,13 @@ type NightActionOption = {
   className: string;
 };
 
+type PlayerPickerRequest = {
+  slot: "target" | "secondary" | "extra" | "day";
+  title: string;
+  options: PlayerRecord[];
+  index?: number;
+};
+
 function normalizeEffectType(value: unknown): AbilityEffectType {
   if (value === "CONVERT_TO_MAFIA" || value === "YAKUZA" || value === "TWO_NAME_INQUIRY") return value;
   return "NONE";
@@ -200,6 +207,16 @@ function abilityLimitLabel(option: NightActionOption) {
   if (option.effectType !== "NONE") parts.push(effectLabel(option.effectType));
   if (option.choices.length) parts.push(`${option.choices.length} نام برای هدف‌ها`);
   return parts.join("، ");
+}
+
+function abilityCompactLabel(option: NightActionOption) {
+  const parts = [
+    option.usesPerNight ? `هر شب ${option.usesPerNight}` : "هر شب آزاد",
+    option.targetsPerUse > 1 ? `${option.targetsPerUse} هدف ممکن` : "۱ هدف",
+  ];
+  if (option.usesPerGame) parts.push(`کل ${option.usesPerGame}`);
+  if (option.effectType !== "NONE") parts.push(effectLabel(option.effectType));
+  return parts.join(" | ");
 }
 
 const DAY_ELIMINATION_METHODS = [
@@ -541,6 +558,7 @@ export default function ModeratorGamePage() {
   const [dayNote, setDayNote] = useState("");
   const [reportMode, setReportMode] = useState<"NIGHT" | "DAY">("DAY");
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [playerPicker, setPlayerPicker] = useState<PlayerPickerRequest | null>(null);
 
   const refreshGame = async (showLoader = false) => {
     if (showLoader) setLoading(true);
@@ -648,7 +666,8 @@ export default function ModeratorGamePage() {
     selectedAction?.targetsPerUse || 1
   );
   const needsConversionRole = selectedEffectType === "CONVERT_TO_MAFIA" || selectedEffectType === "YAKUZA";
-  const needsSecondaryTarget = selectedEffectType === "YAKUZA" || selectedEffectType === "TWO_NAME_INQUIRY" || selectedTargetCount > 1;
+  const needsSecondaryTarget = selectedEffectType === "YAKUZA" || selectedEffectType === "TWO_NAME_INQUIRY";
+  const showsSecondaryTarget = needsSecondaryTarget || selectedTargetCount > 1;
   const targetPlayerOptions = needsConversionRole
     ? players.filter((player) => player.role?.alignment !== "MAFIA")
     : players;
@@ -738,6 +757,116 @@ export default function ModeratorGamePage() {
     setReportModalOpen(true);
   };
 
+  const openPlayerPicker = (request: PlayerPickerRequest) => {
+    setPlayerPicker(request);
+  };
+
+  const pickPlayer = (playerId: string) => {
+    if (!playerPicker) return;
+    if (playerPicker.slot === "target") setTargetPlayerId(playerId);
+    if (playerPicker.slot === "secondary") setSecondaryTargetPlayerId(playerId);
+    if (playerPicker.slot === "day") setDayTargetPlayerId(playerId);
+    if (playerPicker.slot === "extra" && typeof playerPicker.index === "number") {
+      setExtraTargetPlayerIds((current) => {
+        const next = [...current];
+        next[playerPicker.index as number] = playerId;
+        return next;
+      });
+    }
+    setPlayerPicker(null);
+  };
+
+  const clearPlayerSlot = (slot: PlayerPickerRequest["slot"], index?: number) => {
+    if (slot === "target") setTargetPlayerId("");
+    if (slot === "secondary") setSecondaryTargetPlayerId("");
+    if (slot === "day") setDayTargetPlayerId("");
+    if (slot === "extra" && typeof index === "number") {
+      setExtraTargetPlayerIds((current) => {
+        const next = [...current];
+        next[index] = "";
+        return next;
+      });
+    }
+  };
+
+  const playerById = (playerId?: string) => players.find((player) => player.id === playerId);
+
+  const finishCurrentPhase = () => {
+    if (reportMode === "DAY") {
+      setReportMode("NIGHT");
+      setNightNumber((current) => Math.max(current, dayNumber));
+      setReportModalOpen(false);
+      setPlayerPicker(null);
+      showToast(`شب ${dayNumber} فعال شد`, "success");
+      return;
+    }
+    const nextRound = nightNumber + 1;
+    setReportMode("DAY");
+    setDayNumber((current) => Math.max(current, nextRound));
+    setNightNumber(nextRound);
+    setReportModalOpen(false);
+    setPlayerPicker(null);
+    showToast(`روز ${nextRound} فعال شد`, "success");
+  };
+
+  const renderPlayerButton = ({
+    label,
+    value,
+    slot,
+    options,
+    index,
+    disabled = false,
+    required = false,
+  }: {
+    label: string;
+    value?: string;
+    slot: PlayerPickerRequest["slot"];
+    options: PlayerRecord[];
+    index?: number;
+    disabled?: boolean;
+    required?: boolean;
+  }) => {
+    const selectedPlayer = playerById(value);
+    const image = selectedPlayer ? playerImage(selectedPlayer) : null;
+    return (
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">{label}</span>
+          {!required && value && (
+            <button
+              type="button"
+              onClick={() => clearPlayerSlot(slot, index)}
+              className="text-[10px] font-black text-zinc-400 transition-colors hover:text-red-500"
+            >
+              پاک کردن
+            </button>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => openPlayerPicker({ slot, title: label, options, index })}
+          disabled={disabled}
+          className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-2 text-right transition-all hover:border-lime-500/40 hover:bg-lime-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950/60"
+        >
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-xs font-black text-white dark:bg-white dark:text-zinc-950">
+              {selectedPlayer ? image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(selectedPlayer.name) : <span className="material-symbols-outlined text-lg">person_search</span>}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-black text-zinc-950 dark:text-white">
+                {selectedPlayer?.name || "انتخاب بازیکن"}
+              </span>
+              <span className="block truncate text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
+                {selectedPlayer?.role?.name || "پنجره انتخاب باز می‌شود"}
+              </span>
+            </span>
+          </span>
+          <span className="material-symbols-outlined text-lg text-zinc-400">open_in_new</span>
+        </button>
+      </div>
+    );
+  };
+
   const handleTogglePlayer = (player: PlayerRecord) => {
     const nextAlive = player.isAlive === false;
     showConfirm(
@@ -779,10 +908,6 @@ export default function ModeratorGamePage() {
         selectedEffectType === "YAKUZA" ? "برای یاکوزا، بازیکن مافیایی قربانی را انتخاب کنید." : "برای این توانایی هدف دوم را هم انتخاب کنید.",
         "warning"
       );
-      return;
-    }
-    if (eventWasUsed && extraTargetSlots > 0 && extraTargetPlayerIds.slice(0, extraTargetSlots).filter(Boolean).length < extraTargetSlots) {
-      showAlert("هدف‌های اضافه", "همه هدف‌های لازم برای این توانایی را انتخاب کنید.", "warning");
       return;
     }
     const selectedTargets = [targetPlayerId, secondaryTargetPlayerId, ...extraTargetPlayerIds.slice(0, extraTargetSlots)].filter(Boolean);
@@ -884,6 +1009,7 @@ export default function ModeratorGamePage() {
       setNightNote("");
       setEventWasUsed(true);
       setReportModalOpen(false);
+      setPlayerPicker(null);
       await refreshGame();
     } else {
       showAlert("خطا", result.error || "ثبت اتفاق شب انجام نشد", "error");
@@ -919,6 +1045,9 @@ export default function ModeratorGamePage() {
       setCustomDayMethod("");
       setDayNote("");
       setReportModalOpen(false);
+      setPlayerPicker(null);
+      setReportMode("NIGHT");
+      setNightNumber((current) => Math.max(current, dayNumber));
       await refreshGame();
     } else {
       showAlert("خطا", result.error || "ثبت حذف روز انجام نشد", "error");
@@ -1141,45 +1270,28 @@ export default function ModeratorGamePage() {
                   </p>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className={`mt-4 rounded-lg border p-3 ${reportMode === "DAY" ? "border-amber-500/25 bg-amber-500/10" : "border-lime-500/25 bg-lime-500/10"}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">مرحله فعال</p>
+                      <p className="mt-1 text-lg font-black text-zinc-950 dark:text-white">
+                        {reportMode === "DAY" ? `روز ${dayNumber}` : `شب ${nightNumber}`}
+                      </p>
+                      <p className="mt-1 text-[10px] font-bold leading-5 text-zinc-500 dark:text-zinc-400">
+                        {reportMode === "DAY" ? "اتفاقات روز را ثبت کنید؛ بعد از پایان روز، شب همان دور فعال می‌شود." : "همه اتفاقات شب را ثبت کنید؛ بعد از پایان شب، روز بعد فعال می‌شود."}
+                      </p>
+                    </div>
+                    <span className={`material-symbols-outlined text-2xl ${reportMode === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-lime-600 dark:text-lime-300"}`}>
+                      {reportMode === "DAY" ? "wb_sunny" : "dark_mode"}
+                    </span>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => openDayRecord(dayMethodKey)}
+                    onClick={finishCurrentPhase}
                     disabled={busy || game?.status === "FINISHED"}
-                    className="group rounded-lg border border-amber-500/25 bg-amber-500/10 p-3 text-right transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                    className="mt-3 min-h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-xs font-black text-zinc-700 transition-all hover:bg-zinc-50 disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950/60 dark:text-zinc-200 dark:hover:bg-white/10"
                   >
-                    <span className="material-symbols-outlined text-xl text-amber-600 dark:text-amber-300">wb_sunny</span>
-                    <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">ثبت روز {dayNumber}</p>
-                    <p className="mt-1 text-[10px] font-bold text-amber-700 dark:text-amber-300">حذف، رای یا اتفاق روز</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => selectedAction && openNightAction(selectedAction)}
-                    disabled={busy || game?.status === "FINISHED" || !selectedAction}
-                    className="group rounded-lg border border-lime-500/25 bg-lime-500/10 p-3 text-right transition-all hover:-translate-y-0.5 disabled:opacity-50"
-                  >
-                    <span className="material-symbols-outlined text-xl text-lime-600 dark:text-lime-300">dark_mode</span>
-                    <p className="mt-2 text-sm font-black text-zinc-950 dark:text-white">ثبت شب {nightNumber}</p>
-                    <p className="mt-1 text-[10px] font-bold text-lime-700 dark:text-lime-300">توانایی یا شات شب</p>
-                  </button>
-                </div>
-
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setDayNumber((value) => value + 1)}
-                    className="ui-button-secondary min-h-9 px-2 text-xs"
-                  >
-                    <span className="material-symbols-outlined text-base">add_circle</span>
-                    روز بعدی
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNightNumber((value) => value + 1)}
-                    className="ui-button-secondary min-h-9 px-2 text-xs"
-                  >
-                    <span className="material-symbols-outlined text-base">add_circle</span>
-                    شب بعدی
+                    {reportMode === "DAY" ? `پایان روز و شروع شب ${dayNumber}` : `پایان شب و شروع روز ${nightNumber + 1}`}
                   </button>
                 </div>
 
@@ -1200,6 +1312,7 @@ export default function ModeratorGamePage() {
                 </div>
 
                 <div className="mt-4 space-y-3">
+                  {reportMode === "DAY" ? (
                   <div className="rounded-lg border border-amber-500/20 bg-white p-3 dark:border-amber-500/20 dark:bg-zinc-950/50">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs font-black text-zinc-950 dark:text-white">حذف یا اتفاق روز</p>
@@ -1242,7 +1355,7 @@ export default function ModeratorGamePage() {
                       })}
                     </div>
                   </div>
-
+                  ) : (
                   <div className="rounded-lg border border-lime-500/20 bg-white p-3 dark:border-lime-500/20 dark:bg-zinc-950/50">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs font-black text-zinc-950 dark:text-white">اتفاقات شب</p>
@@ -1281,7 +1394,7 @@ export default function ModeratorGamePage() {
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
                                 <p className="truncate text-xs font-black">{option.sourceLabel}</p>
-                                <p className="mt-1 truncate text-[10px] font-bold opacity-80">{option.label}، {abilityLimitLabel(option)}</p>
+                                <p className="mt-1 truncate text-[10px] font-bold opacity-80">{option.label} | {abilityCompactLabel(option)}</p>
                               </div>
                               <span className="material-symbols-outlined text-base">{option.effectType === "NONE" ? "auto_fix_high" : "hub"}</span>
                             </div>
@@ -1309,12 +1422,16 @@ export default function ModeratorGamePage() {
                       )}
                     </div>
                   </div>
+                  )}
                 </div>
 
                 {reportModalOpen && (
                   <div
                     className="fixed inset-0 z-[120] flex items-end justify-center bg-zinc-950/60 p-3 pb-24 backdrop-blur-sm sm:items-center sm:pb-3"
-                    onClick={() => setReportModalOpen(false)}
+                    onClick={() => {
+                      setReportModalOpen(false);
+                      setPlayerPicker(null);
+                    }}
                   >
                     <section
                       className="flex max-h-[calc(100dvh-7rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-950/25 dark:border-white/10 dark:bg-zinc-950"
@@ -1329,7 +1446,10 @@ export default function ModeratorGamePage() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setReportModalOpen(false)}
+                          onClick={() => {
+                            setReportModalOpen(false);
+                            setPlayerPicker(null);
+                          }}
                           className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition-all hover:bg-zinc-100 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
                           aria-label="بستن"
                         >
@@ -1339,28 +1459,40 @@ export default function ModeratorGamePage() {
                       <div className="custom-scrollbar flex-1 space-y-3 overflow-y-auto p-4">
                   {reportMode === "NIGHT" ? (
                     <>
-                  <label className="flex flex-col gap-2">
-                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نوع اتفاق</span>
-                    <select value={selectedActionKey} onChange={(event) => { setSelectedActionKey(event.target.value); setActorPlayerId(""); setTargetPlayerId(""); setSecondaryTargetPlayerId(""); setExtraTargetPlayerIds([]); }}>
-                      {actionOptions.map((option) => (
-                        <option key={option.key} value={option.key}>
-                          {option.label} - {option.sourceLabel} ({abilityLimitLabel(option)})
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <div className={`rounded-lg border p-3 ${selectedAction?.source === "side" ? "border-red-500/20 bg-red-500/10" : selectedAction?.className || "border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]"}`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">{selectedAction?.source === "side" ? "جبهه مافیا" : selectedAction?.sourceLabel}</p>
+                        <p className="mt-1 truncate text-base font-black text-zinc-950 dark:text-white">{selectedAction?.label || "اتفاق شب"}</p>
+                      </div>
+                      <span className="material-symbols-outlined text-xl">{selectedAction?.source === "side" ? "target" : "auto_fix_high"}</span>
+                    </div>
+                    {selectedAction?.source !== "side" && selectedAction && (
+                      <p className="mt-2 text-[10px] font-bold leading-5 opacity-80">{abilityCompactLabel(selectedAction)}</p>
+                    )}
+                  </div>
 
                   {selectedAction?.choices.length > 0 && !usesTargetSlotChoices && (
-                    <label className="flex flex-col gap-2">
-                      <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">انتخاب داخل توانایی</span>
-                      <select value={selectedChoiceKey} onChange={(event) => setSelectedChoiceKey(event.target.value)}>
+                    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
+                      <p className="mb-2 text-xs font-black text-zinc-500 dark:text-zinc-400">نوع استفاده</p>
+                      <div className="grid gap-1.5 sm:grid-cols-2">
                         {selectedAction.choices.map((choice) => (
-                          <option key={choice.id} value={choice.id}>
-                            {choice.label} ({usageLabel(choice.usesPerGame)}، {effectLabel(choice.effectType)})
-                          </option>
+                          <button
+                            key={choice.id}
+                            type="button"
+                            onClick={() => setSelectedChoiceKey(choice.id)}
+                            className={`min-h-10 rounded-lg border px-3 text-right text-xs font-black transition-all ${
+                              selectedChoiceKey === choice.id
+                                ? "border-lime-500/40 bg-lime-500/15 text-lime-700 dark:text-lime-300"
+                                : "border-zinc-200 bg-white text-zinc-600 hover:border-lime-500/30 dark:border-white/10 dark:bg-zinc-950/60 dark:text-zinc-300"
+                            }`}
+                          >
+                            {choice.label}
+                            <span className="mt-1 block text-[10px] font-bold opacity-70">{usageLabel(choice.usesPerGame)} | {effectLabel(choice.effectType)}</span>
+                          </button>
                         ))}
-                      </select>
-                    </label>
+                      </div>
+                    </div>
                   )}
 
                   {canChooseReportEffect ? (
@@ -1387,114 +1519,88 @@ export default function ModeratorGamePage() {
                     </div>
                   ) : null}
 
-                  <div className="grid grid-cols-2 gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
-                    {[
-                      { value: true, label: "استفاده شد", icon: "check_circle" },
-                      { value: false, label: "استفاده نشد", icon: "radio_button_unchecked" },
-                    ].map((item) => (
-                      <button
-                        key={item.label}
-                        type="button"
-                        onClick={() => {
-                          setEventWasUsed(item.value);
-                          if (!item.value) {
-                            setTargetPlayerId("");
-                            setSecondaryTargetPlayerId("");
-                            setExtraTargetPlayerIds([]);
-                          }
-                        }}
-                        className={`flex min-h-10 items-center justify-center gap-2 rounded-lg text-xs font-black transition-all ${
-                          eventWasUsed === item.value
-                            ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
-                            : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/[0.06]"
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-base">{item.icon}</span>
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  <label className="flex flex-col gap-2">
-                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">انجام‌دهنده</span>
-                    <select value={actorPlayerId} onChange={(event) => setActorPlayerId(event.target.value)}>
-                      <option value="">{selectedAction?.source === "side" ? "ثبت به نام جبهه" : "انتخاب بازیکن"}</option>
-                      {selectedAction?.candidates.map((player) => (
-                        <option key={player.id} value={player.id}>
-                          {player.name} - {player.role?.name || selectedAction.sourceLabel}
-                        </option>
+                  {selectedAction?.source === "side" && (
+                    <div className="grid grid-cols-2 gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
+                      {[
+                        { value: true, label: "شات", icon: "target" },
+                        { value: false, label: "بدون شات", icon: "block" },
+                      ].map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => {
+                            setEventWasUsed(item.value);
+                            if (!item.value) {
+                              setTargetPlayerId("");
+                              setSecondaryTargetPlayerId("");
+                              setExtraTargetPlayerIds([]);
+                            }
+                          }}
+                          className={`flex min-h-10 items-center justify-center gap-2 rounded-lg text-xs font-black transition-all ${
+                            eventWasUsed === item.value
+                              ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
+                              : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/[0.06]"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-base">{item.icon}</span>
+                          {item.label}
+                        </button>
                       ))}
-                    </select>
-                  </label>
-
-                  <label className="flex flex-col gap-2">
-                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">
-                      {usesTargetSlotChoices
-                        ? selectedAction.choices[0]?.label || "گزینه ۱"
-                        : selectedEffectType === "TWO_NAME_INQUIRY"
-                          ? "اسم اول"
-                          : selectedEffectType === "YAKUZA"
-                            ? "بازیکن خریداری‌شونده"
-                            : "هدف یا اثر"}
-                    </span>
-                    <select value={targetPlayerId} onChange={(event) => setTargetPlayerId(event.target.value)} disabled={!eventWasUsed}>
-                      <option value="">انتخاب بازیکن</option>
-                      {targetPlayerOptions.map((player) => (
-                        <option key={player.id} value={player.id}>
-                          {player.name} {player.isAlive === false ? "(حذف‌شده)" : ""}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  {needsSecondaryTarget && (
-                    <label className="flex flex-col gap-2">
-                      <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">
-                        {selectedEffectType === "YAKUZA"
-                          ? "مافیای قربانی یاکوزا"
-                          : usesTargetSlotChoices
-                            ? selectedAction.choices[1]?.label || "گزینه ۲"
-                            : selectedEffectType === "TWO_NAME_INQUIRY"
-                              ? "اسم دوم بازپرسی"
-                              : "هدف دوم"}
-                      </span>
-                      <select value={secondaryTargetPlayerId} onChange={(event) => setSecondaryTargetPlayerId(event.target.value)} disabled={!eventWasUsed}>
-                        <option value="">انتخاب بازیکن</option>
-                        {secondaryTargetOptions.map((player) => (
-                          <option key={player.id} value={player.id}>
-                            {player.name} - {player.role?.name || "بدون نقش"} {player.isAlive === false ? "(حذف‌شده)" : ""}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    </div>
                   )}
+
+                  {selectedAction?.source === "role" && actorPlayerId && (
+                    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                      <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">انجام‌دهنده</p>
+                      <p className="mt-1 text-sm font-black text-zinc-950 dark:text-white">
+                        {playerById(actorPlayerId)?.name || "بازیکن انتخاب‌شده"} | {playerById(actorPlayerId)?.role?.name || selectedAction.sourceLabel}
+                      </p>
+                    </div>
+                  )}
+
+                  {renderPlayerButton({
+                    label: usesTargetSlotChoices
+                      ? selectedAction.choices[0]?.label || "گزینه ۱"
+                      : selectedEffectType === "TWO_NAME_INQUIRY"
+                        ? "اسم اول"
+                        : selectedEffectType === "YAKUZA"
+                          ? "بازیکن خریداری‌شونده"
+                          : "هدف",
+                    value: targetPlayerId,
+                    slot: "target",
+                    options: targetPlayerOptions,
+                    disabled: !eventWasUsed,
+                    required: true,
+                  })}
+
+                  {showsSecondaryTarget && renderPlayerButton({
+                    label: selectedEffectType === "YAKUZA"
+                      ? "مافیای قربانی یاکوزا"
+                      : usesTargetSlotChoices
+                        ? selectedAction.choices[1]?.label || "گزینه ۲"
+                        : selectedEffectType === "TWO_NAME_INQUIRY"
+                          ? "اسم دوم بازپرسی"
+                          : "هدف دوم اختیاری",
+                    value: secondaryTargetPlayerId,
+                    slot: "secondary",
+                    options: secondaryTargetOptions,
+                    disabled: !eventWasUsed,
+                    required: needsSecondaryTarget,
+                  })}
 
                   {extraTargetSlots > 0 && (
                     <div className="grid gap-2">
                       {Array.from({ length: extraTargetSlots }).map((_, index) => (
-                        <label key={`extra-target-${index}`} className="flex flex-col gap-2">
-                          <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">
-                            {usesTargetSlotChoices ? selectedAction.choices[index + 2]?.label || `گزینه ${index + 3}` : `هدف ${index + 3}`}
-                          </span>
-                          <select
-                            value={extraTargetPlayerIds[index] || ""}
-                            onChange={(event) =>
-                              setExtraTargetPlayerIds((current) => {
-                                const next = [...current];
-                                next[index] = event.target.value;
-                                return next;
-                              })
-                            }
-                            disabled={!eventWasUsed}
-                          >
-                            <option value="">انتخاب بازیکن</option>
-                            {players.map((player) => (
-                              <option key={player.id} value={player.id}>
-                                {player.name} - {player.role?.name || "بدون نقش"} {player.isAlive === false ? "(حذف‌شده)" : ""}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+                        <div key={`extra-target-${index}`}>
+                          {renderPlayerButton({
+                            label: usesTargetSlotChoices ? selectedAction.choices[index + 2]?.label || `گزینه ${index + 3}` : `هدف ${index + 3} اختیاری`,
+                            value: extraTargetPlayerIds[index] || "",
+                            slot: "extra",
+                            options: players,
+                            index,
+                            disabled: !eventWasUsed,
+                          })}
+                        </div>
                       ))}
                     </div>
                   )}
@@ -1578,17 +1684,16 @@ export default function ModeratorGamePage() {
                       </label>
                     )}
 
-                    <label className="mt-3 flex flex-col gap-2">
-                      <span className="text-xs font-black text-amber-700 dark:text-amber-300">بازیکن حذف‌شده</span>
-                      <select value={dayTargetPlayerId} onChange={(event) => setDayTargetPlayerId(event.target.value)} disabled={game?.status === "FINISHED"}>
-                        <option value="">انتخاب بازیکن</option>
-                        {players.map((player) => (
-                          <option key={player.id} value={player.id}>
-                            {player.name} - {player.role?.name || "بدون نقش"} {player.isAlive === false ? "(حذف‌شده)" : ""}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    <div className="mt-3">
+                      {renderPlayerButton({
+                        label: "بازیکن حذف‌شده",
+                        value: dayTargetPlayerId,
+                        slot: "day",
+                        options: players,
+                        disabled: game?.status === "FINISHED",
+                        required: true,
+                      })}
+                    </div>
 
                     <label className="mt-3 flex flex-col gap-2">
                       <span className="text-xs font-black text-amber-700 dark:text-amber-300">یادداشت روز</span>
@@ -1610,6 +1715,61 @@ export default function ModeratorGamePage() {
                     </button>
                   </div>
                   )}
+                      </div>
+                    </section>
+                  </div>
+                )}
+                {playerPicker && (
+                  <div
+                    className="fixed inset-0 z-[150] flex items-end justify-center bg-zinc-950/65 p-3 pb-24 backdrop-blur-sm sm:items-center sm:pb-3"
+                    onClick={() => setPlayerPicker(null)}
+                  >
+                    <section
+                      className="flex max-h-[calc(100dvh-7rem)] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-950/30 dark:border-white/10 dark:bg-zinc-950"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/90 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                        <div>
+                          <p className="ui-kicker">انتخاب بازیکن</p>
+                          <h3 className="mt-1 text-lg font-black text-zinc-950 dark:text-white">{playerPicker.title}</h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setPlayerPicker(null)}
+                          className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition-all hover:bg-zinc-100 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
+                          aria-label="بستن انتخاب بازیکن"
+                        >
+                          <span className="material-symbols-outlined text-xl">close</span>
+                        </button>
+                      </div>
+                      <div className="custom-scrollbar grid gap-2 overflow-y-auto p-4 sm:grid-cols-2">
+                        {playerPicker.options.map((player) => {
+                          const image = playerImage(player);
+                          const alive = player.isAlive !== false;
+                          return (
+                            <button
+                              key={`${playerPicker.slot}-${playerPicker.index ?? "main"}-${player.id}`}
+                              type="button"
+                              onClick={() => pickPlayer(player.id)}
+                              className={`flex min-h-16 items-center gap-3 rounded-lg border p-3 text-right transition-all hover:-translate-y-0.5 ${
+                                alive
+                                  ? "border-zinc-200 bg-zinc-50 hover:border-lime-500/40 hover:bg-lime-500/10 dark:border-white/10 dark:bg-white/[0.03]"
+                                  : "border-red-500/20 bg-red-500/10"
+                              }`}
+                            >
+                              <span className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-sm font-black text-white dark:bg-white dark:text-zinc-950">
+                                {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
+                                <span className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white dark:border-zinc-950 ${alive ? "bg-lime-500" : "bg-red-500"}`} />
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block truncate text-sm font-black text-zinc-950 dark:text-white">{player.name}</span>
+                                <span className="mt-0.5 block truncate text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                                  {player.role?.name || "بدون نقش"} | {alive ? "فعال" : "حذف‌شده"}
+                                </span>
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </section>
                   </div>
