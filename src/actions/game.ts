@@ -283,7 +283,7 @@ export async function joinGame(code: string, playerName: string, password?: stri
 
     const dbUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { name: true, email: true }
+      select: { name: true, email: true, image: true }
     });
     const finalPlayerName = dbUser?.name || playerName.trim() || dbUser?.email || "بازیکن";
 
@@ -301,6 +301,8 @@ export async function joinGame(code: string, playerName: string, password?: stri
       player: {
         id: player.id,
         name: finalPlayerName,
+        image: dbUser?.image || null,
+        userId: session.user.id,
         isAlive: player.isAlive,
       }
     });
@@ -464,7 +466,8 @@ export async function getGameStatus(gameId: string) {
       },
       players: {
         include: {
-          role: true
+          role: true,
+          user: { select: { image: true } }
         },
         orderBy: { createdAt: "asc" }
       },
@@ -531,7 +534,8 @@ export async function getPlayerGameView(gameId: string) {
       },
       players: {
         include: {
-          role: true
+          role: true,
+          user: { select: { image: true } }
         },
         orderBy: { createdAt: "asc" }
       },
@@ -560,6 +564,7 @@ export async function getPlayerGameView(gameId: string) {
       id: player.id,
       name: player.name,
       userId: player.userId,
+      image: player.user?.image || null,
       isAlive: player.isAlive,
       eliminatedAt: player.eliminatedAt,
     })),
@@ -568,6 +573,7 @@ export async function getPlayerGameView(gameId: string) {
           id: currentPlayer.id,
           name: currentPlayer.name,
           userId: currentPlayer.userId,
+          image: currentPlayer.user?.image || null,
           isAlive: currentPlayer.isAlive,
           eliminatedAt: currentPlayer.eliminatedAt,
           role: currentPlayer.role,

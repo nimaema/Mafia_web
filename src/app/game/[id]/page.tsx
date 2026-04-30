@@ -27,6 +27,11 @@ function effectLabel(effectType?: string) {
   return "ثبت ساده";
 }
 
+function getInitial(name: string) {
+  const trimmed = name.trim();
+  return trimmed ? trimmed.slice(0, 1).toUpperCase() : "؟";
+}
+
 export default function UserGamePage() {
   const params = useParams();
   const router = useRouter();
@@ -228,13 +233,19 @@ export default function UserGamePage() {
                   {players.filter((player: any) => player.isAlive !== false).length} فعال
                 </span>
               </div>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid gap-2">
                 {players.map((player: any) => {
                   const alive = player.isAlive !== false;
                   return (
-                    <div key={player.id} className={alive ? "rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]" : "rounded-lg border border-red-500/20 bg-red-500/10 p-2"}>
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{player.name}</p>
+                    <div key={player.id} className={alive ? "relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]" : "relative overflow-hidden rounded-lg border border-red-500/20 bg-red-500/10 p-2"}>
+                      <div className={`absolute inset-y-2 right-0 w-1 rounded-l-full ${alive ? "bg-lime-500" : "bg-red-500"}`} />
+                      <div className="flex items-center justify-between gap-2 pr-1">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <div className={`flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg text-xs font-black ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
+                            {player.image ? <img src={player.image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
+                          </div>
+                          <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{player.name}</p>
+                        </div>
                         <span className={alive ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[9px] font-black text-lime-700 dark:text-lime-300" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[9px] font-black text-red-600 dark:text-red-300"}>
                           {alive ? "فعال" : "حذف‌شده"}
                         </span>

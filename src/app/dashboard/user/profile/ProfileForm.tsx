@@ -1,16 +1,95 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { updateProfile, changePassword } from "@/actions/user";
 import { signIn, useSession } from "next-auth/react";
 import { usePopup } from "@/components/PopupProvider";
 import { useEffect } from "react";
 
-export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { user: { name: string, email: string }, hasGoogleProvider?: boolean, hasPassword?: boolean }) {
+const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
+const OUTPUT_SIZE = 320;
+const TARGET_DATA_URL_LENGTH = 150_000;
+
+function getInitial(name: string) {
+  const trimmed = name.trim();
+  return trimmed ? trimmed.slice(0, 1).toUpperCase() : "؟";
+}
+
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+async function compressProfileImage(file: File) {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("فقط فایل تصویری قابل بارگذاری است.");
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    throw new Error("حجم فایل اولیه زیاد است. لطفاً تصویری زیر ۳ مگابایت انتخاب کنید.");
+  }
+
+  const source = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+  const image = await loadImage(source);
+  const canvas = document.createElement("canvas");
+  canvas.width = OUTPUT_SIZE;
+  canvas.height = OUTPUT_SIZE;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("پردازش تصویر در مرورگر انجام نشد.");
+
+  const sourceSize = Math.min(image.width, image.height);
+  const sourceX = Math.max(0, (image.width - sourceSize) / 2);
+  const sourceY = Math.max(0, (image.height - sourceSize) / 2);
+  context.fillStyle = "#111827";
+  context.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+  context.drawImage(image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+
+  const qualities = [0.82, 0.72, 0.62, 0.52];
+  for (const quality of qualities) {
+    const dataUrl = canvas.toDataURL("image/webp", quality);
+    if (dataUrl.length <= TARGET_DATA_URL_LENGTH) return dataUrl;
+  }
+
+  const smallerCanvas = document.createElement("canvas");
+  smallerCanvas.width = 240;
+  smallerCanvas.height = 240;
+  const smallerContext = smallerCanvas.getContext("2d");
+  if (!smallerContext) throw new Error("پردازش تصویر در مرورگر انجام نشد.");
+  smallerContext.drawImage(canvas, 0, 0, 240, 240);
+  const compact = smallerCanvas.toDataURL("image/webp", 0.52);
+  if (compact.length > TARGET_DATA_URL_LENGTH) {
+    throw new Error("تصویر بعد از فشرده‌سازی هنوز بزرگ است. لطفاً تصویر ساده‌تری انتخاب کنید.");
+  }
+  return compact;
+}
+
+export default function ProfileForm({
+  user,
+  hasGoogleProvider,
+  hasPassword,
+}: {
+  user: { name: string, email: string, image?: string | null },
+  hasGoogleProvider?: boolean,
+  hasPassword?: boolean,
+}) {
   const { update } = useSession();
   const { showToast, showAlert } = usePopup();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [nameValue, setNameValue] = useState(user.name || "");
   const [nameWarning, setNameWarning] = useState("");
+  const [imageValue, setImageValue] = useState(user.image || "");
+  const [imagePreview, setImagePreview] = useState(user.image || "");
+  const [removeProfileImage, setRemoveProfileImage] = useState(false);
+  const [imageWarning, setImageWarning] = useState("");
+  const [imageProcessing, setImageProcessing] = useState(false);
 
   const checkName = (value: string) => {
     const longPart = value.trim().split(/\s+/).find((part) => part.length > 25);
@@ -52,6 +131,26 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
     }
   }, [pwdResult]);
 
+  const handleImageChange = async (file?: File) => {
+    if (!file) return;
+    setImageProcessing(true);
+    setImageWarning("");
+    try {
+      const compressed = await compressProfileImage(file);
+      setImageValue(compressed);
+      setImagePreview(compressed);
+      setRemoveProfileImage(false);
+      showToast("تصویر آماده ذخیره شد", "success");
+    } catch (error: any) {
+      const message = error?.message || "تصویر قابل استفاده نیست.";
+      setImageWarning(message);
+      showAlert("تصویر پروفایل", message, "warning");
+    } finally {
+      setImageProcessing(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="grid gap-5">
     <form action={action} noValidate className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.03]" onSubmit={(event) => {
@@ -64,13 +163,86 @@ export default function ProfileForm({ user, hasGoogleProvider, hasPassword }: { 
         event.preventDefault();
         showAlert("نام طولانی است", nameWarning, "warning");
       }
+      if (imageWarning || imageProcessing) {
+        event.preventDefault();
+        showAlert("تصویر پروفایل", imageProcessing ? "کمی صبر کنید تا تصویر آماده شود." : imageWarning, "warning");
+      }
     }}>
+      <input type="hidden" name="profileImage" value={imageValue} />
+      <input type="hidden" name="removeProfileImage" value={removeProfileImage ? "true" : "false"} />
       <div className="mb-5 flex items-start gap-3">
         <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-xl text-zinc-950 shadow-sm shadow-lime-500/20">manage_accounts</span>
         <div>
           <h3 className="text-xl font-black text-zinc-950 dark:text-white">اطلاعات پروفایل</h3>
           <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">نام نمایشی و ایمیل حساب را مدیریت کنید.</p>
         </div>
+      </div>
+
+      <div className="mb-5 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-zinc-950/50">
+        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white text-3xl font-black text-zinc-400 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950">
+              {imagePreview ? (
+                <img src={imagePreview} alt="" className="size-full object-cover" />
+              ) : (
+                getInitial(nameValue)
+              )}
+              <span className="absolute inset-x-0 bottom-0 bg-zinc-950/70 py-1 text-center text-[9px] font-black text-white">
+                پروفایل
+              </span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-black text-zinc-950 dark:text-white">تصویر بازیکن</p>
+              <p className="mt-1 max-w-lg text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+                تصویر قبل از ذخیره به یک مربع کوچک فشرده می‌شود تا فضای دیتابیس را اشغال نکند.
+              </p>
+              {imageValue.startsWith("data:image/") && (
+                <p className="mt-2 inline-flex rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">
+                  آماده ذخیره، حدود {Math.max(1, Math.round((imageValue.length * 3) / 4 / 1024))}KB
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-2 sm:w-44">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={(event) => handleImageChange(event.target.files?.[0])}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={imageProcessing}
+              className="ui-button-primary min-h-10 px-3 text-xs"
+            >
+              <span className={`material-symbols-outlined text-base ${imageProcessing ? "animate-spin" : ""}`}>{imageProcessing ? "refresh" : "upload"}</span>
+              {imageProcessing ? "پردازش..." : "انتخاب تصویر"}
+            </button>
+            {(imagePreview || imageValue) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setImageValue("");
+                  setImagePreview("");
+                  setRemoveProfileImage(true);
+                  setImageWarning("");
+                }}
+                className="ui-button-secondary min-h-10 px-3 text-xs text-red-600 dark:text-red-300"
+              >
+                <span className="material-symbols-outlined text-base">delete</span>
+                حذف تصویر
+              </button>
+            )}
+          </div>
+        </div>
+        {imageWarning && (
+          <p className="border-t border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs font-bold text-amber-700 dark:text-amber-300">
+            {imageWarning}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

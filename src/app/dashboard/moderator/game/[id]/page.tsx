@@ -36,6 +36,8 @@ type RoleNightAbility = {
 type PlayerRecord = {
   id: string;
   name: string;
+  user?: { image?: string | null } | null;
+  image?: string | null;
   isAlive?: boolean;
   eliminatedAt?: Date | string | null;
   role?: {
@@ -391,6 +393,10 @@ function ModeratorTimerBoard() {
 function getInitial(name: string) {
   const trimmed = name.trim();
   return trimmed ? trimmed.slice(0, 1).toUpperCase() : "?";
+}
+
+function playerImage(player: PlayerRecord) {
+  return player.image || player.user?.image || null;
 }
 
 function isDayEvent(event: NightEventRecord) {
@@ -959,9 +965,10 @@ export default function ModeratorGamePage() {
               </span>
             </div>
 
-            <div className="grid gap-3 p-4 md:grid-cols-2 2xl:grid-cols-3">
+            <div className="grid gap-3 p-4">
               {players.map((player, index) => {
                 const alive = player.isAlive !== false;
+                const image = playerImage(player);
                 return (
                   <article
                     key={player.id}
@@ -971,40 +978,43 @@ export default function ModeratorGamePage() {
                         : "border-red-500/20 bg-red-500/10 dark:border-red-400/20"
                     }`}
                   >
-                    <div className={`absolute inset-x-0 top-0 h-1 ${alive ? "bg-lime-500" : "bg-red-500"}`} />
-                    <div className="flex items-start justify-between gap-3 pt-1">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg text-sm font-black ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
-                          {getInitial(player.name)}
+                    <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${alive ? "bg-lime-500" : "bg-red-500"}`} />
+                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)_118px] lg:items-center">
+                      <div className="flex min-w-0 items-center gap-3 pr-1">
+                        <div className={`relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg text-base font-black shadow-sm shadow-zinc-950/10 ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
+                          {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
+                          <span className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white dark:border-zinc-950 ${alive ? "bg-lime-500" : "bg-red-500"}`} />
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-base font-black text-zinc-950 dark:text-white">{player.name}</p>
-                          <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">بازیکن {index + 1}</p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-base font-black text-zinc-950 dark:text-white">{player.name}</p>
+                            <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${alive ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300" : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300"}`}>
+                              {alive ? "فعال" : "حذف‌شده"}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">ردیف ورود #{index + 1}</p>
                         </div>
                       </div>
-                      <span className={`rounded-lg border px-2 py-1 text-[10px] font-black ${alive ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300" : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300"}`}>
-                        {alive ? "فعال" : "حذف‌شده"}
-                      </span>
-                    </div>
 
-                    <div className={`mt-3 rounded-lg border p-3 ${alignmentClass(player.role?.alignment)}`}>
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-black">{player.role?.name || "بدون نقش"}</p>
-                        <span className="material-symbols-outlined text-lg">{alignmentIcon(player.role?.alignment)}</span>
+                      <div className={`rounded-lg border p-3 ${alignmentClass(player.role?.alignment)}`}>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate text-sm font-black">{player.role?.name || "بدون نقش"}</p>
+                          <span className="material-symbols-outlined text-lg">{alignmentIcon(player.role?.alignment)}</span>
+                        </div>
+                        <p className="mt-1 line-clamp-1 text-xs leading-5 opacity-80">
+                          {player.role?.description || "توضیحی ثبت نشده است."}
+                        </p>
                       </div>
-                      <p className="mt-2 line-clamp-2 text-xs leading-5 opacity-80">
-                        {player.role?.description || "توضیحی ثبت نشده است."}
-                      </p>
-                    </div>
 
-                    <button
-                      onClick={() => handleTogglePlayer(player)}
-                      disabled={busy}
-                      className={alive ? "ui-button-secondary mt-3 min-h-10 w-full text-red-600 dark:text-red-300" : "ui-button-secondary mt-3 min-h-10 w-full text-lime-700 dark:text-lime-300"}
-                    >
-                      <span className="material-symbols-outlined text-lg">{alive ? "person_off" : "person_add"}</span>
-                      {alive ? "ثبت حذف" : "بازگرداندن"}
-                    </button>
+                      <button
+                        onClick={() => handleTogglePlayer(player)}
+                        disabled={busy}
+                        className={alive ? "ui-button-secondary min-h-10 w-full text-red-600 dark:text-red-300" : "ui-button-secondary min-h-10 w-full text-lime-700 dark:text-lime-300"}
+                      >
+                        <span className="material-symbols-outlined text-lg">{alive ? "person_off" : "person_add"}</span>
+                        {alive ? "ثبت حذف" : "بازگرداندن"}
+                      </button>
+                    </div>
                   </article>
                 );
               })}

@@ -12,6 +12,7 @@ type Player = {
   id: string;
   name: string;
   userId?: string | null;
+  image?: string | null;
   isAlive?: boolean;
 };
 
@@ -52,6 +53,7 @@ export default function UserLobbyPage() {
           id: player.id,
           name: player.name,
           userId: player.userId,
+          image: player.image || player.user?.image || null,
           isAlive: player.isAlive,
         }));
         const userIsInLobby = Boolean(session?.user?.id && nextPlayers.some((player: Player) => player.userId === session.user.id));
@@ -123,6 +125,7 @@ export default function UserLobbyPage() {
                 id: result.playerId,
                 name: playerName,
                 userId: session?.user?.id,
+                image: session?.user?.image || null,
                 isAlive: true,
               },
             ]
@@ -148,6 +151,7 @@ export default function UserLobbyPage() {
         id: player.id,
         name: player.name,
         current: Boolean(session?.user?.id && player.userId === session.user.id),
+        image: player.image || null,
         isAlive: player.isAlive,
       })),
     [players, session?.user?.id]

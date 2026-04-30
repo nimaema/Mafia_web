@@ -12,6 +12,7 @@ import { LobbyPreviewCard } from "@/components/game/LobbyPreviewCard";
 type Player = {
   id: string;
   name: string;
+  image?: string | null;
   isAlive?: boolean;
 };
 
@@ -48,6 +49,18 @@ function alignmentLabel(alignment?: string) {
   if (alignment === "MAFIA") return "مافیا";
   if (alignment === "CITIZEN") return "شهروند";
   return "مستقل";
+}
+
+function scenarioCounts(scenario: any) {
+  return (scenario?.roles || []).reduce(
+    (counts: Record<string, number>, item: any) => {
+      const alignment = item.role?.alignment || "NEUTRAL";
+      counts[alignment] += item.count || 0;
+      counts.total += item.count || 0;
+      return counts;
+    },
+    { CITIZEN: 0, MAFIA: 0, NEUTRAL: 0, total: 0 }
+  );
 }
 
 function normalizeEffectType(value: unknown): AbilityEffectType {
@@ -174,7 +187,7 @@ export default function GameLobbyPage() {
 
         setGame(gameRes);
         setAbilityConfig(abilityConfigForGame(gameRes));
-        setPlayers((gameRes.players || []).map((player: any) => ({ id: player.id, name: player.name, isAlive: player.isAlive })));
+        setPlayers((gameRes.players || []).map((player: any) => ({ id: player.id, name: player.name, image: player.image || player.user?.image || null, isAlive: player.isAlive })));
         setScenarios(scenariosRes);
         setRoles(rolesRes);
         setLoading(false);
@@ -268,6 +281,7 @@ export default function GameLobbyPage() {
       players.map((player) => ({
         id: player.id,
         name: player.name,
+        image: player.image || null,
         isAlive: player.isAlive,
       })),
     [players]
@@ -311,6 +325,7 @@ export default function GameLobbyPage() {
         ? `${customScenarioDelta} نقش بیشتر از بازیکنان`
         : `${Math.abs(customScenarioDelta)} نقش کمتر از بازیکنان`;
   const seatsRemaining = requiredPlayers ? requiredPlayers - players.length : 0;
+  const activeScenarioCounts = scenarioCounts(game?.scenario);
   const startDisabledReason = !game?.scenario
     ? "برای شروع بازی ابتدا سناریو را انتخاب کنید."
     : players.length < requiredPlayers
@@ -474,14 +489,40 @@ export default function GameLobbyPage() {
         <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_340px]">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
             {game?.scenario ? (
-              <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
+              <div className="relative overflow-hidden rounded-lg border border-lime-500/20 bg-white p-4 shadow-sm shadow-zinc-950/5 dark:bg-zinc-950/70">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 to-sky-400" />
+                <div className="flex items-start justify-between gap-3 pt-1">
+                  <div className="min-w-0">
                     <p className="text-xs font-black text-lime-700 dark:text-lime-300">سناریوی فعال</p>
-                    <p className="mt-1 text-xl font-black text-zinc-950 dark:text-white">{game.scenario.name}</p>
+                    <p className="mt-1 line-clamp-2 break-words text-xl font-black leading-7 text-zinc-950 dark:text-white">{game.scenario.name}</p>
                     <p className="mt-1 text-sm font-bold text-lime-700 dark:text-lime-300">{players.length} / {requiredPlayers} بازیکن</p>
                   </div>
                   <span className="rounded-lg bg-lime-500 px-2.5 py-1 text-[10px] font-black text-zinc-950">فعال</span>
+                </div>
+                <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                  <div className="flex h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
+                    {[
+                      ["bg-sky-500", activeScenarioCounts.CITIZEN],
+                      ["bg-red-500", activeScenarioCounts.MAFIA],
+                      ["bg-amber-500", activeScenarioCounts.NEUTRAL],
+                    ].map(([className, value]) => (
+                      Number(value) > 0 && (
+                        <span key={String(className)} className={String(className)} style={{ width: `${activeScenarioCounts.total ? Math.max(6, (Number(value) / activeScenarioCounts.total) * 100) : 0}%` }} />
+                      )
+                    ))}
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {[
+                      ["شهروند", activeScenarioCounts.CITIZEN, "text-sky-600 dark:text-sky-300"],
+                      ["مافیا", activeScenarioCounts.MAFIA, "text-red-600 dark:text-red-300"],
+                      ["مستقل", activeScenarioCounts.NEUTRAL, "text-amber-600 dark:text-amber-300"],
+                    ].map(([label, value, color]) => (
+                      <div key={String(label)} className="rounded-lg bg-white px-2 py-1.5 text-center dark:bg-zinc-950/60">
+                        <p className={`text-sm font-black ${color}`}>{value}</p>
+                        <p className="mt-0.5 text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <button onClick={() => handleSelectScenario("")} className="ui-button-secondary mt-4 min-h-10 px-4 text-xs" disabled={settingScenario}>
                   <span className="material-symbols-outlined text-lg">swap_horiz</span>
@@ -528,19 +569,36 @@ export default function GameLobbyPage() {
               <div className="lg:col-span-2">
                 <p className="mb-2 text-xs font-black text-zinc-500 dark:text-zinc-400">پیشنهاد مناسب تعداد فعلی</p>
                 <div className="grid gap-2 sm:grid-cols-3">
-                  {recommendedScenarios.slice(0, 3).map((scenario) => (
-                    <button
-                      key={scenario.id}
-                      onClick={() => handleSelectScenario(scenario.id)}
-                      disabled={settingScenario}
-                      className="rounded-lg border border-lime-500/25 bg-lime-500/10 p-3 text-right transition-all hover:bg-lime-500/15 disabled:opacity-50"
-                    >
-                      <p className="font-black text-zinc-950 dark:text-white">{scenario.name}</p>
-                      <p className="mt-1 text-xs text-lime-700 dark:text-lime-300">
-                        {scenario.roles.reduce((sum: number, item: any) => sum + item.count, 0)} نفره
-                      </p>
-                    </button>
-                  ))}
+                  {recommendedScenarios.slice(0, 3).map((scenario) => {
+                    const counts = scenarioCounts(scenario);
+                    return (
+                      <button
+                        key={scenario.id}
+                        onClick={() => handleSelectScenario(scenario.id)}
+                        disabled={settingScenario}
+                        className="group relative overflow-hidden rounded-lg border border-lime-500/25 bg-white p-3 text-right shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/40 hover:shadow-lg hover:shadow-zinc-950/10 disabled:opacity-50 dark:bg-zinc-950/70"
+                      >
+                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 to-sky-400" />
+                        <p className="mt-1 line-clamp-2 break-words font-black leading-6 text-zinc-950 dark:text-white">{scenario.name}</p>
+                        <div className="mt-3 flex items-center justify-between gap-2 text-[10px] font-black text-zinc-500 dark:text-zinc-400">
+                          <span>{counts.total} نفره</span>
+                          <span>{scenario.roles.length} نوع نقش</span>
+                        </div>
+                        <div className="mt-3 grid grid-cols-3 gap-1.5">
+                          {[
+                            ["شهر", counts.CITIZEN, "text-sky-600 dark:text-sky-300"],
+                            ["مافیا", counts.MAFIA, "text-red-600 dark:text-red-300"],
+                            ["مستقل", counts.NEUTRAL, "text-amber-600 dark:text-amber-300"],
+                          ].map(([label, value, color]) => (
+                            <span key={String(label)} className="rounded-lg border border-zinc-200 bg-zinc-50 px-1.5 py-1 text-center dark:border-white/10 dark:bg-white/[0.03]">
+                              <span className={`block text-xs ${color}`}>{value}</span>
+                              <span className="block text-[8px] text-zinc-500 dark:text-zinc-400">{label}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

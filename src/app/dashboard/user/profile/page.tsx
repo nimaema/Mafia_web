@@ -28,11 +28,12 @@ export default async function ProfilePage() {
   const hasPassword = !!dbUser?.password_hash;
   const role = session.user.role;
   const roleText = role === "ADMIN" ? "مدیر سیستم" : role === "MODERATOR" ? "گرداننده" : "بازیکن";
+  const profileImage = dbUser?.image || session.user.image;
   const userData = {
     name: dbUser?.name || session.user.name || "",
-    email: dbUser?.email || session.user.email || ""
+    email: dbUser?.email || session.user.email || "",
+    image: profileImage || null,
   };
-  const profileImage = dbUser?.image || session.user.image;
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
