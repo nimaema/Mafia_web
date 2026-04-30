@@ -31,6 +31,7 @@ type LobbyPreviewCardProps = {
   actionArea?: ReactNode;
   footer?: ReactNode;
   compact?: boolean;
+  mobileMinimal?: boolean;
 };
 
 function alignmentClass(alignment?: Alignment) {
@@ -88,6 +89,7 @@ export function LobbyPreviewCard({
   actionArea,
   footer,
   compact = false,
+  mobileMinimal = false,
 }: LobbyPreviewCardProps) {
   const progress = capacity > 0 ? Math.min(100, Math.round((playerCount / capacity) * 100)) : 0;
   const seatsLeft = capacity > 0 ? Math.max(capacity - playerCount, 0) : null;
@@ -110,9 +112,9 @@ export function LobbyPreviewCard({
                 <span className="material-symbols-outlined text-2xl">groups</span>
               </div>
               <div className="min-w-0">
-                <p className="ui-kicker">اتاق انتظار</p>
-                <h2 className="mt-1 truncate text-2xl font-black text-zinc-950 dark:text-white">{title}</h2>
-                <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                <p className={mobileMinimal ? "hidden sm:block ui-kicker" : "ui-kicker"}>اتاق انتظار</p>
+                <h2 className="mt-1 truncate text-xl font-black text-zinc-950 dark:text-white sm:text-2xl">{title}</h2>
+                <p className={mobileMinimal ? "mt-1 hidden text-xs leading-5 text-zinc-500 dark:text-zinc-400 sm:line-clamp-2" : "mt-1 line-clamp-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400"}>
                   {subtitle || "نمای زنده لابی، ظرفیت و ترکیب سناریو."}
                 </p>
               </div>
@@ -189,7 +191,7 @@ export function LobbyPreviewCard({
             </div>
           </div>
 
-          <aside className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+          <aside className={mobileMinimal ? "hidden rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03] sm:block" : "rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]"}>
             <div className="grid grid-cols-3 gap-1.5">
               {[
                 ["شهروند", citizenCount, "text-sky-500"],
