@@ -298,8 +298,13 @@ export function ScenariosManager({
             const total = scenarioTotalPlayers(scenario);
             const counts = scenarioAlignmentCounts(scenario);
             const dominantAlignment = scenarioDominantAlignment(scenario);
-            const previewRoles = scenario.roles.slice(0, 4);
+            const previewRoles = scenario.roles.slice(0, 3);
             const extraRoles = Math.max(0, scenario.roles.length - previewRoles.length);
+            const composition = [
+              { label: "شهروند", value: counts.CITIZEN, alignment: "CITIZEN" as Alignment, barClass: "bg-sky-500" },
+              { label: "مافیا", value: counts.MAFIA, alignment: "MAFIA" as Alignment, barClass: "bg-red-500" },
+              { label: "مستقل", value: counts.NEUTRAL, alignment: "NEUTRAL" as Alignment, barClass: "bg-amber-500" },
+            ];
 
             return (
               <article
@@ -313,7 +318,7 @@ export function ScenariosManager({
                     setSelectedScenario(scenario);
                   }
                 }}
-                className="group relative cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-lime-500/30 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                className="group relative cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-lime-500/30 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
               >
                 <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(dominantAlignment)}`} />
                 <div className="flex items-start justify-between gap-3 pt-1">
@@ -354,34 +359,43 @@ export function ScenariosManager({
                   </div>
                 </div>
 
-                <p className="mt-3 line-clamp-2 min-h-10 text-sm leading-5 text-zinc-600 dark:text-zinc-300">
+                <p className="mt-4 line-clamp-2 min-h-10 text-sm leading-5 text-zinc-600 dark:text-zinc-300">
                   {scenario.description || "توضیحی برای این سناریو ثبت نشده است."}
                 </p>
 
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  {[
-                    { label: "شهروند", value: counts.CITIZEN, alignment: "CITIZEN" as Alignment },
-                    { label: "مافیا", value: counts.MAFIA, alignment: "MAFIA" as Alignment },
-                    { label: "مستقل", value: counts.NEUTRAL, alignment: "NEUTRAL" as Alignment },
-                  ].map(({ label, value, alignment }) => (
-                    <div key={label} className={`rounded-lg border p-2 text-center ${alignmentClass(alignment)}`}>
-                      <p className="text-sm font-black">{value}</p>
-                      <p className="mt-1 text-[9px] font-bold">{label}</p>
-                    </div>
-                  ))}
+                <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                  <div className="flex items-center justify-between gap-3 text-xs">
+                    <span className="font-black text-zinc-950 dark:text-white">ترکیب بازی</span>
+                    <span className="font-bold text-zinc-500 dark:text-zinc-400">{scenario.roles.length} نوع نقش</span>
+                  </div>
+                  <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
+                    {composition.map((item) => (
+                      item.value > 0 && (
+                        <span
+                          key={item.label}
+                          className={item.barClass}
+                          style={{ width: `${total > 0 ? Math.max(6, (item.value / total) * 100) : 0}%` }}
+                        />
+                      )
+                    ))}
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {composition.map(({ label, value, alignment }) => (
+                      <div key={label} className={`rounded-lg border px-2 py-1.5 text-center ${alignmentClass(alignment)}`}>
+                        <p className="text-sm font-black">{value}</p>
+                        <p className="mt-0.5 text-[9px] font-bold">{label}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-2 border-t border-zinc-200 pt-3 dark:border-white/10">
-                  {previewRoles.map((scenarioRole) => (
-                    <span key={`${scenario.id}-${scenarioRole.roleId}`} className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(scenarioRole.role.alignment)}`}>
-                      {scenarioRole.role.name} x{scenarioRole.count}
-                    </span>
-                  ))}
-                  {extraRoles > 0 && (
-                    <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">
-                      +{extraRoles} نقش دیگر
-                    </span>
-                  )}
+                <div className="mt-4 flex items-center gap-3 border-t border-zinc-200 pt-3 dark:border-white/10">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                      {previewRoles.map((scenarioRole) => `${scenarioRole.role.name} x${scenarioRole.count}`).join("، ")}
+                      {extraRoles > 0 ? `، +${extraRoles} نقش دیگر` : ""}
+                    </p>
+                  </div>
                   <div className="mr-auto flex items-center gap-1 text-[10px] font-black text-zinc-400 transition-colors group-hover:text-lime-600 dark:group-hover:text-lime-300">
                     جزئیات
                     <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>

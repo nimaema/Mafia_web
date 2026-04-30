@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -207,6 +207,187 @@ const DAY_ELIMINATION_METHODS = [
   { key: "custom", label: "روش سناریو", icon: "edit_note" },
 ];
 
+function formatTimer(seconds: number) {
+  const safeSeconds = Math.max(0, seconds);
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainder = safeSeconds % 60;
+  return `${minutes}:${remainder.toString().padStart(2, "0")}`;
+}
+
+function createTimerAudioContext() {
+  const AudioContextCtor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  return AudioContextCtor ? new AudioContextCtor() : null;
+}
+
+function playTimerAlarm(existingContext?: AudioContext | null) {
+  const contextFromCaller = Boolean(existingContext);
+  const audioContext = existingContext || createTimerAudioContext();
+  if (!audioContext) return;
+  if (audioContext.state === "suspended") {
+    audioContext.resume().catch(() => null);
+  }
+
+  [0, 0.18, 0.36].forEach((offset) => {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.value = 880;
+    gain.gain.setValueAtTime(0.001, audioContext.currentTime + offset);
+    gain.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + offset + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + offset + 0.14);
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(audioContext.currentTime + offset);
+    oscillator.stop(audioContext.currentTime + offset + 0.16);
+  });
+
+  if (!contextFromCaller) {
+    window.setTimeout(() => audioContext.close().catch(() => null), 900);
+  }
+}
+
+function SpeechTimer({
+  title,
+  subtitle,
+  icon,
+  defaultSeconds,
+  tone,
+}: {
+  title: string;
+  subtitle: string;
+  icon: string;
+  defaultSeconds: number;
+  tone: "lime" | "amber";
+}) {
+  const [duration, setDuration] = useState(defaultSeconds);
+  const [remaining, setRemaining] = useState(defaultSeconds);
+  const [running, setRunning] = useState(false);
+  const alarmedRef = useRef(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const progress = duration > 0 ? Math.max(0, Math.min(100, (remaining / duration) * 100)) : 0;
+  const toneClass = tone === "lime"
+    ? "border-lime-500/25 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+    : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300";
+
+  useEffect(() => {
+    if (!running) return;
+    const timer = window.setInterval(() => {
+      setRemaining((value) => {
+        if (value <= 1) {
+          window.clearInterval(timer);
+          setRunning(false);
+          if (!alarmedRef.current) {
+            alarmedRef.current = true;
+            playTimerAlarm(audioContextRef.current);
+          }
+          return 0;
+        }
+        return value - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [running]);
+
+  useEffect(() => {
+    return () => {
+      audioContextRef.current?.close().catch(() => null);
+    };
+  }, []);
+
+  const primeAlarm = () => {
+    if (!audioContextRef.current || audioContextRef.current.state === "closed") {
+      audioContextRef.current = createTimerAudioContext();
+    }
+    audioContextRef.current?.resume().catch(() => null);
+  };
+
+  const toggleRunning = () => {
+    primeAlarm();
+    if (running) {
+      setRunning(false);
+      return;
+    }
+    alarmedRef.current = false;
+    setRemaining((value) => (value > 0 ? value : duration));
+    setRunning(true);
+  };
+
+  const reset = () => {
+    alarmedRef.current = false;
+    setRunning(false);
+    setRemaining(duration);
+  };
+
+  return (
+    <article className={`overflow-hidden rounded-lg border ${toneClass}`}>
+      <div className="flex items-start justify-between gap-3 p-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/70 text-xl dark:bg-zinc-950/40">
+            {icon}
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-black text-zinc-950 dark:text-white">{title}</p>
+            <p className="mt-1 text-[10px] font-bold leading-5 opacity-80">{subtitle}</p>
+          </div>
+        </div>
+        <p className="font-mono text-2xl font-black tabular-nums text-zinc-950 dark:text-white">{formatTimer(remaining)}</p>
+      </div>
+
+      <div className="px-3 pb-3">
+        <div className="h-2 overflow-hidden rounded-full bg-white/70 dark:bg-zinc-950/50">
+          <div className={tone === "lime" ? "h-full rounded-full bg-lime-500 transition-[width]" : "h-full rounded-full bg-amber-500 transition-[width]"} style={{ width: `${progress}%` }} />
+        </div>
+        <div className="mt-3 grid grid-cols-[1fr_44px_44px] gap-2">
+          <button type="button" onClick={toggleRunning} className="ui-button-primary min-h-10 px-3 text-xs">
+            <span className="material-symbols-outlined text-base">{running ? "pause" : "play_arrow"}</span>
+            {running ? "مکث" : remaining > 0 && remaining < duration ? "ادامه" : "شروع"}
+          </button>
+          <button type="button" onClick={reset} className="ui-button-secondary min-h-10 px-0" aria-label="بازنشانی">
+            <span className="material-symbols-outlined text-base">replay</span>
+          </button>
+          <select
+            value={duration}
+            onChange={(event) => {
+              const next = Number(event.target.value);
+              setDuration(next);
+              setRemaining(next);
+              setRunning(false);
+              alarmedRef.current = false;
+            }}
+            className="min-h-10 rounded-lg px-1 text-center text-[10px]"
+            aria-label="مدت تایمر"
+          >
+            <option value={30}>۳۰</option>
+            <option value={45}>۴۵</option>
+            <option value={60}>۶۰</option>
+            <option value={90}>۹۰</option>
+            <option value={120}>۱۲۰</option>
+          </select>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ModeratorTimerBoard() {
+  return (
+    <section className="ui-card overflow-hidden">
+      <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+        <p className="ui-kicker">تایمر صحبت</p>
+        <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">نوبت و چالش</h2>
+        <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+          هنگام شروع صحبت بازیکن یا چالش، تایمر مناسب را بزنید؛ پایان زمان با صدا اعلام می‌شود.
+        </p>
+      </div>
+      <div className="grid gap-3 p-4">
+        <SpeechTimer title="نوبت اصلی" subtitle="برای صحبت معمول بازیکن" icon="record_voice_over" defaultSeconds={60} tone="lime" />
+        <SpeechTimer title="چالش" subtitle="زمان کوتاه برای پاسخ یا دفاع" icon="forum" defaultSeconds={30} tone="amber" />
+      </div>
+    </section>
+  );
+}
+
 function getInitial(name: string) {
   const trimmed = name.trim();
   return trimmed ? trimmed.slice(0, 1).toUpperCase() : "?";
@@ -323,6 +504,7 @@ export default function ModeratorGamePage() {
   const [dayMethodKey, setDayMethodKey] = useState("vote");
   const [customDayMethod, setCustomDayMethod] = useState("");
   const [dayNote, setDayNote] = useState("");
+  const [reportMode, setReportMode] = useState<"NIGHT" | "DAY">("NIGHT");
 
   const refreshGame = async (showLoader = false) => {
     if (showLoader) setLoading(true);
@@ -832,8 +1014,8 @@ export default function ModeratorGamePage() {
           <div className="ui-card overflow-hidden">
             <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="ui-kicker">دفترچه شب</p>
-                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">رکورد اتفاقات شب</h2>
+                <p className="ui-kicker">دفترچه اجرا</p>
+                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">رکورد اتفاقات شب و روز</h2>
               </div>
               {game?.status === "FINISHED" && nightEvents.length > 0 && (
                 <button
@@ -851,21 +1033,60 @@ export default function ModeratorGamePage() {
               <aside className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-black text-zinc-950 dark:text-white">ثبت اتفاق جدید</p>
-                    <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">برای شب‌های طولانی هم فقط شماره شب را جلو ببرید.</p>
+                    <p className="text-sm font-black text-zinc-950 dark:text-white">{reportMode === "NIGHT" ? "ثبت اتفاق شب" : "ثبت حذف روز"}</p>
+                    <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                      {reportMode === "NIGHT" ? "توانایی، هدف و نتیجه هر شب را مرحله‌به‌مرحله ثبت کنید." : "حذف‌های روز مثل رای‌گیری، شلیک یا روش سناریویی را جدا ثبت کنید."}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
-                    <button type="button" onClick={() => setNightNumber((value) => Math.max(1, value - 1))} className="flex size-8 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-white/10">
-                      <span className="material-symbols-outlined text-base">remove</span>
+                  {reportMode === "NIGHT" ? (
+                    <div className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
+                      <button type="button" onClick={() => setNightNumber((value) => Math.max(1, value - 1))} className="flex size-8 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-white/10">
+                        <span className="material-symbols-outlined text-base">remove</span>
+                      </button>
+                      <span className="w-8 text-center text-sm font-black text-zinc-950 dark:text-white">{nightNumber}</span>
+                      <button type="button" onClick={() => setNightNumber((value) => value + 1)} className="flex size-8 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-white/10">
+                        <span className="material-symbols-outlined text-base">add</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 rounded-lg border border-amber-500/20 bg-white p-1 dark:bg-zinc-950">
+                      <button type="button" onClick={() => setDayNumber((value) => Math.max(1, value - 1))} className="flex size-8 items-center justify-center rounded-md hover:bg-amber-50 dark:hover:bg-white/10">
+                        <span className="material-symbols-outlined text-base">remove</span>
+                      </button>
+                      <span className="w-8 text-center text-sm font-black text-zinc-950 dark:text-white">{dayNumber}</span>
+                      <button type="button" onClick={() => setDayNumber((value) => value + 1)} className="flex size-8 items-center justify-center rounded-md hover:bg-amber-50 dark:hover:bg-white/10">
+                        <span className="material-symbols-outlined text-base">add</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
+                  {[
+                    { value: "NIGHT" as const, label: "شب", icon: "dark_mode" },
+                    { value: "DAY" as const, label: "روز", icon: "wb_sunny" },
+                  ].map((item) => (
+                    <button
+                      key={item.value}
+                      type="button"
+                      onClick={() => setReportMode(item.value)}
+                      className={`flex min-h-10 items-center justify-center gap-2 rounded-lg text-xs font-black transition-all ${
+                        reportMode === item.value
+                          ? item.value === "NIGHT"
+                            ? "bg-lime-500 text-zinc-950 shadow-sm"
+                            : "bg-amber-500 text-zinc-950 shadow-sm"
+                          : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/[0.06]"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-base">{item.icon}</span>
+                      {item.label}
                     </button>
-                    <span className="w-8 text-center text-sm font-black text-zinc-950 dark:text-white">{nightNumber}</span>
-                    <button type="button" onClick={() => setNightNumber((value) => value + 1)} className="flex size-8 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-white/10">
-                      <span className="material-symbols-outlined text-base">add</span>
-                    </button>
-                  </div>
+                  ))}
                 </div>
 
                 <div className="mt-4 space-y-3">
+                  {reportMode === "NIGHT" ? (
+                    <>
                   <label className="flex flex-col gap-2">
                     <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نوع اتفاق</span>
                     <select value={selectedActionKey} onChange={(event) => { setSelectedActionKey(event.target.value); setActorPlayerId(""); setTargetPlayerId(""); setSecondaryTargetPlayerId(""); setExtraTargetPlayerIds([]); }}>
@@ -1064,21 +1285,14 @@ export default function ModeratorGamePage() {
                     <span className="material-symbols-outlined text-xl">add_notes</span>
                     ثبت در شب {nightNumber}
                   </button>
-
+                    </>
+                  ) : (
                   <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3">
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <span className="material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500 text-xl text-zinc-950">wb_sunny</span>
                       <div>
                         <p className="text-sm font-black text-zinc-950 dark:text-white">ثبت حذف روز</p>
                         <p className="mt-1 text-xs leading-5 text-amber-700 dark:text-amber-300">رای‌گیری، شلیک روز، بازپرسی یا هر روش سناریویی.</p>
-                      </div>
-                      <div className="flex items-center gap-1 rounded-lg border border-amber-500/20 bg-white/70 p-1 dark:bg-zinc-950/50">
-                        <button type="button" onClick={() => setDayNumber((value) => Math.max(1, value - 1))} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
-                          <span className="material-symbols-outlined text-sm">remove</span>
-                        </button>
-                        <span className="w-7 text-center text-xs font-black text-zinc-950 dark:text-white">{dayNumber}</span>
-                        <button type="button" onClick={() => setDayNumber((value) => value + 1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
-                          <span className="material-symbols-outlined text-sm">add</span>
-                        </button>
                       </div>
                     </div>
 
@@ -1143,6 +1357,7 @@ export default function ModeratorGamePage() {
                       ثبت حذف روز {dayNumber}
                     </button>
                   </div>
+                  )}
                 </div>
               </aside>
 
@@ -1221,6 +1436,8 @@ export default function ModeratorGamePage() {
         </section>
 
         <aside className="space-y-5 xl:sticky xl:top-5 xl:h-fit">
+          {game?.status !== "FINISHED" && <ModeratorTimerBoard />}
+
           <section className="ui-card overflow-hidden">
             <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
               <p className="ui-kicker">اتاق نتیجه</p>

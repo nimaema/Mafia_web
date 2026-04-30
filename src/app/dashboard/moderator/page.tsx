@@ -290,45 +290,54 @@ export default function ModeratorDashboard() {
                 const capacity = scenarioCapacity(game);
                 const players = game._count?.players || 0;
                 const progress = capacity > 0 ? Math.min(100, Math.round((players / capacity) * 100)) : 0;
+                const isInProgress = game.status === "IN_PROGRESS";
+                const statusTone = isInProgress
+                  ? "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+                  : "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300";
 
                 return (
-                  <article key={game.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="truncate text-lg font-black text-zinc-950 dark:text-white">{game.name}</h2>
-                          <span className="rounded-lg bg-zinc-900 px-2 py-1 font-mono text-[10px] font-black text-white dark:bg-white dark:text-zinc-950">
-                            #{game.code}
-                          </span>
+                  <article key={game.id} className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-4 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-xl hover:shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950">
+                    <div className={`absolute inset-x-0 top-0 h-1 ${isInProgress ? "bg-sky-500" : "bg-lime-500"}`} />
+                    <div className="flex items-start justify-between gap-4 pt-1">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div className={`flex size-12 shrink-0 items-center justify-center rounded-lg border ${statusTone}`}>
+                          <span className="material-symbols-outlined text-2xl">{isInProgress ? "sports_esports" : "groups"}</span>
                         </div>
-                        <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-black">
-                          <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-lime-700 dark:text-lime-300">
-                            {statusLabel(game.status)}
-                          </span>
-                          <span className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
-                            {game.scenario?.name || "سناریو تعیین نشده"}
-                          </span>
-                          {game.password && (
-                            <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-amber-600 dark:text-amber-300">
-                              خصوصی
-                            </span>
-                          )}
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">{isInProgress ? "بازی در جریان" : "اتاق انتظار"}</p>
+                          <h2 className="mt-1 line-clamp-2 break-words text-lg font-black leading-6 text-zinc-950 dark:text-white">{game.name}</h2>
+                          <p className="mt-1 line-clamp-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{game.scenario?.name || "سناریو هنوز انتخاب نشده"}</p>
                         </div>
                       </div>
-                      <div className="ui-muted shrink-0 px-3 py-2 text-center">
-                        <p className="text-lg font-black text-zinc-950 dark:text-white">{players}</p>
-                        <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">بازیکن</p>
-                      </div>
+                      <span className="shrink-0 rounded-lg bg-zinc-950 px-2.5 py-1 font-mono text-[10px] font-black text-white dark:bg-white dark:text-zinc-950">
+                        #{game.code}
+                      </span>
                     </div>
 
-                    <div className="mt-4">
+                    <div className="mt-4 grid grid-cols-3 gap-2">
+                      {[
+                        [statusLabel(game.status), isInProgress ? "play_circle" : "pending_actions", statusTone],
+                        [`${players}${capacity ? `/${capacity}` : ""}`, "group", "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300"],
+                        [game.password ? "خصوصی" : "باز", game.password ? "lock" : "lock_open", game.password ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300"],
+                      ].map(([label, icon, className]) => (
+                        <div key={label} className={`rounded-lg border px-2 py-2 text-center text-[10px] font-black ${className}`}>
+                          <span className="material-symbols-outlined block text-base">{icon}</span>
+                          <span className="mt-1 block truncate">{label}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
                       <div className="mb-2 flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                        <span>ظرفیت سناریو</span>
-                        <span>{capacity ? `${players} / ${capacity}` : "بعد از انتخاب سناریو"}</span>
+                        <span>پیشرفت ظرفیت</span>
+                        <span>{capacity ? `${players} از ${capacity}` : "بعد از انتخاب سناریو"}</span>
                       </div>
-                      <div className="h-2 rounded-full bg-zinc-200 dark:bg-white/10">
-                        <div className="h-2 rounded-full bg-lime-500 transition-[width]" style={{ width: `${progress}%` }}></div>
+                      <div className="h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
+                        <div className={`h-full rounded-full transition-[width] ${isInProgress ? "bg-sky-500" : "bg-lime-500"}`} style={{ width: `${progress}%` }} />
                       </div>
+                      <p className="mt-2 truncate text-[10px] font-bold text-zinc-400 dark:text-zinc-500">
+                        گرداننده: {game.moderator?.name || "نامشخص"}
+                      </p>
                     </div>
 
                     <div className="mt-4 grid grid-cols-[44px_minmax(0,1fr)] gap-2">
@@ -343,8 +352,8 @@ export default function ModeratorDashboard() {
                         href={game.status === "WAITING" ? `/dashboard/moderator/lobby/${game.id}` : `/dashboard/moderator/game/${game.id}`}
                         className="ui-button-primary min-h-11"
                       >
-                        <span className="material-symbols-outlined text-xl">login</span>
-                        ورود به مدیریت
+                        <span className="material-symbols-outlined text-xl">{isInProgress ? "play_arrow" : "tune"}</span>
+                        {isInProgress ? "ادامه اتاق بازی" : "مدیریت لابی"}
                       </Link>
                     </div>
                   </article>

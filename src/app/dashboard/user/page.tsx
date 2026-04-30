@@ -266,7 +266,7 @@ export default function UserDashboard() {
               </Link>
             </div>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
               {activeGames.slice(0, 4).map((game) => {
                 const capacity = game.scenario?.roles?.reduce((total: number, role: any) => total + role.count, 0) || 0;
                 const joinedPlayers = game._count?.players || 0;
@@ -274,33 +274,42 @@ export default function UserDashboard() {
                 const progress = capacity ? Math.min(100, Math.round((joinedPlayers / capacity) * 100)) : 0;
 
                 return (
-                  <Link
-                    key={game.id}
-                    href={`/lobby/${game.id}`}
-                    className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-4 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/35 hover:shadow-lg hover:shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950"
-                  >
-                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 to-sky-400" />
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-black text-lime-600 dark:text-lime-400">اتاق انتظار</p>
-                        <h3 className="mt-1 line-clamp-2 break-words font-black leading-6 text-zinc-950 dark:text-white">{game.name}</h3>
-                        <p className="mt-1 line-clamp-1 text-xs text-zinc-500 dark:text-zinc-400">{game.scenario?.name || "سناریو انتخاب نشده"}</p>
-                      </div>
-                      <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 font-mono text-[10px] font-black text-lime-700 dark:text-lime-300">
-                        #{game.code}
-                      </span>
-                    </div>
-                    <div className="mt-4">
-                      <div className="flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                        <span>{joinedPlayers}{capacity ? ` / ${capacity}` : ""} بازیکن</span>
-                        <span>{seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "تکمیل" : `${seatsLeft} ظرفیت`}</span>
-                      </div>
-                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-                        <div className="h-full rounded-full bg-lime-500 transition-[width]" style={{ width: `${progress}%` }} />
-                      </div>
-                    </div>
-                  </Link>
-                );
+	                  <Link
+	                    key={game.id}
+	                    href={`/lobby/${game.id}`}
+	                    className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-4 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/35 hover:shadow-lg hover:shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950"
+	                  >
+	                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 to-sky-400" />
+	                    <div className="flex items-start justify-between gap-3">
+	                      <div className="flex min-w-0 items-start gap-3">
+	                        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300">
+	                          <span className="material-symbols-outlined text-xl">groups</span>
+	                        </span>
+	                        <div className="min-w-0">
+	                          <p className="text-[10px] font-black text-lime-600 dark:text-lime-400">اتاق انتظار</p>
+	                          <h3 className="mt-1 line-clamp-2 break-words font-black leading-6 text-zinc-950 dark:text-white">{game.name}</h3>
+	                          <p className="mt-1 line-clamp-1 text-xs text-zinc-500 dark:text-zinc-400">{game.scenario?.name || "سناریو انتخاب نشده"}</p>
+	                        </div>
+	                      </div>
+	                      <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 font-mono text-[10px] font-black text-lime-700 dark:text-lime-300">
+	                        #{game.code}
+	                      </span>
+	                    </div>
+	                    <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+	                      <div className="flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400">
+	                        <span>{joinedPlayers}{capacity ? ` / ${capacity}` : ""} بازیکن</span>
+	                        <span>{seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "تکمیل" : `${seatsLeft} ظرفیت`}</span>
+	                      </div>
+	                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+	                        <div className="h-full rounded-full bg-lime-500 transition-[width]" style={{ width: `${progress}%` }} />
+	                      </div>
+	                    </div>
+	                    <div className="mt-3 flex items-center justify-between text-xs font-black text-zinc-500 dark:text-zinc-400">
+	                      <span>ورود به لابی</span>
+	                      <span className="material-symbols-outlined text-base transition-transform group-hover:-translate-x-1">arrow_back</span>
+	                    </div>
+	                  </Link>
+	                );
               })}
             </div>
           )}
