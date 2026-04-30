@@ -293,7 +293,7 @@ export function ScenariosManager({
           </div>
         </section>
       ) : (
-        <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+        <section className="grid gap-4 lg:grid-cols-2">
           {filteredScenarios.map((scenario) => {
             const total = scenarioTotalPlayers(scenario);
             const counts = scenarioAlignmentCounts(scenario);
@@ -316,7 +316,7 @@ export function ScenariosManager({
                     setSelectedScenario(scenario);
                   }
                 }}
-                className="group relative cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-lime-500/30 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                className="group relative cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-lime-500/30 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
               >
                 <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(dominantAlignment)}`} />
                 <div className="flex items-start justify-between gap-3 pt-1">
@@ -326,7 +326,7 @@ export function ScenariosManager({
                     </div>
                     <div className="min-w-0">
                       <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">سناریوی {alignmentLabel(dominantAlignment)}</p>
-                      <h3 className="mt-1 line-clamp-2 break-words text-base font-black leading-6 text-zinc-950 dark:text-white">{scenario.name}</h3>
+                      <h3 className="mt-1 break-words text-xl font-black leading-8 text-zinc-950 dark:text-white">{scenario.name}</h3>
                     </div>
                   </div>
 
@@ -357,7 +357,7 @@ export function ScenariosManager({
                   </div>
                 </div>
 
-                <p className="mt-4 line-clamp-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+                <p className="mt-4 line-clamp-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
                   {scenario.description || "توضیحی برای این سناریو ثبت نشده است."}
                 </p>
 

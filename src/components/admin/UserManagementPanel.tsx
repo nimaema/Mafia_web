@@ -502,18 +502,21 @@ export function UserManagementPanel() {
         </div>
       </section>
 
-      <main className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
+      <main className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_430px]">
         <section className="ui-card relative min-h-[520px] overflow-hidden">
-          <div className="flex items-center justify-between border-b border-zinc-200 p-5 dark:border-white/10">
+          <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-black text-zinc-950 dark:text-white">فهرست کاربران</p>
+              <p className="ui-kicker">لیست عملیاتی</p>
+              <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">کاربران سیستم</h2>
               <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">
                 {filteredUsers.length} نتیجه از {users.length} کاربر
               </p>
             </div>
-            <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
-              انتخاب برای جزئیات
-            </span>
+            <div className="flex flex-wrap gap-2 text-[10px] font-black">
+              <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-lime-700 dark:text-lime-300">{counts.onlineUsers} آنلاین</span>
+              <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-sky-700 dark:text-sky-300">{counts.admins + counts.moderators} مدیر/گرداننده</span>
+              <span className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">برای جزئیات انتخاب کنید</span>
+            </div>
           </div>
 
           {loading ? (
@@ -546,8 +549,8 @@ export function UserManagementPanel() {
               </div>
             </div>
           ) : (
-            <div className="custom-scrollbar max-h-[680px] overflow-y-auto p-3">
-              <div className="grid gap-3 md:grid-cols-2">
+            <div className="custom-scrollbar max-h-[720px] overflow-y-auto">
+              <div className="divide-y divide-zinc-200 dark:divide-white/10">
                 {filteredUsers.map((user) => {
                   const hasGoogle = user.accounts.some((account) => account.provider === "google");
                   const hasPassword = Boolean(user.password_hash);
@@ -558,57 +561,71 @@ export function UserManagementPanel() {
                     <button
                       key={user.id}
                       onClick={() => setSelectedUserId(user.id)}
-                      className={`group relative w-full overflow-hidden rounded-lg border p-3 text-right transition-all hover:-translate-y-0.5 ${
+                      className={`group relative grid w-full gap-3 p-4 text-right transition-all lg:grid-cols-[minmax(0,1fr)_180px_104px] lg:items-center ${
                         isSelected
-                          ? "border-lime-500/40 bg-lime-500/10 shadow-lg shadow-lime-500/10"
-                          : "border-zinc-200 bg-white hover:border-lime-500/25 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                          ? "bg-lime-500/10"
+                          : "bg-white hover:bg-zinc-50 dark:bg-transparent dark:hover:bg-white/[0.04]"
                       }`}
                     >
-                      <span className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${roleAccentClass(user.role)}`} />
-                      <div className="flex items-start justify-between gap-4 pt-1">
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="relative flex size-[52px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 text-sm font-black text-zinc-700 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200">
-                            {user.image ? (
-                              <img src={user.image} alt="" className="size-full object-cover" />
-                            ) : (
-                              getInitial(user.name, user.email)
+                      <span className={`absolute inset-y-4 right-0 w-1 rounded-l-full bg-gradient-to-b ${roleAccentClass(user.role)}`} />
+                      <div className="flex min-w-0 items-center gap-3 pr-1">
+                        <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 text-sm font-black text-zinc-700 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200">
+                          {user.image ? (
+                            <img src={user.image} alt="" className="size-full object-cover" />
+                          ) : (
+                            getInitial(user.name, user.email)
+                          )}
+                          <span className={`absolute bottom-1 right-1 size-3.5 rounded-full border-2 border-white dark:border-zinc-950 ${presence.online ? "bg-lime-500" : "bg-zinc-300 dark:bg-zinc-700"}`} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex min-w-0 flex-wrap items-center gap-2">
+                            <p className="truncate text-base font-black text-zinc-950 dark:text-white">{user.name || "بدون نام"}</p>
+                            <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${roleClass(user.role)}`}>
+                              {roleLabel(user.role)}
+                            </span>
+                            {user.isBanned && (
+                              <span className="rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[10px] font-black text-red-500">
+                                مسدود
+                              </span>
                             )}
-                            <span className={`absolute bottom-1 right-1 size-3 rounded-full border-2 border-white dark:border-zinc-950 ${presence.online ? "bg-lime-500" : "bg-zinc-300 dark:bg-zinc-700"}`} />
                           </div>
-                          <div className="min-w-0">
-                            <p className="truncate font-black text-zinc-950 dark:text-white">{user.name || "بدون نام"}</p>
-                            <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400" dir="ltr">{user.email || "بدون ایمیل"}</p>
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${roleClass(user.role)}`}>
-                                {roleLabel(user.role)}
-                              </span>
-                              <span className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-black ${presence.className}`}>
-                                <span className="material-symbols-outlined text-[13px]">{presence.icon}</span>
-                                {presence.label}
-                              </span>
-                              {user.isBanned && (
-                                <span className="rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[10px] font-black text-red-500">
-                                  مسدود
-                                </span>
-                              )}
-                              <span className="rounded-lg border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
-                                {[hasPassword ? "رمز" : null, hasGoogle ? "گوگل" : null].filter(Boolean).join(" + ") || "نامشخص"}
-                              </span>
-                              <span className={user.emailVerified ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
-                                {user.emailVerified ? "تایید" : "نیاز به تایید"}
-                              </span>
-                            </div>
+                          <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400" dir="ltr">{user.email || "بدون ایمیل"}</p>
+                          <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-black lg:hidden">
+                            <span className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 ${presence.className}`}>
+                              <span className="material-symbols-outlined text-[13px]">{presence.icon}</span>
+                              {presence.label}
+                            </span>
+                            <span className={user.emailVerified ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-lime-700 dark:text-lime-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-amber-700 dark:text-amber-300"}>
+                              {user.emailVerified ? "تایید" : "نیاز به تایید"}
+                            </span>
                           </div>
                         </div>
-                        <div className="hidden shrink-0 grid-cols-2 gap-2 text-center lg:grid">
-                          <div className="ui-muted min-w-20 p-2">
-                            <p className="text-base font-black text-zinc-950 dark:text-white">{user._count.gameHistories}</p>
-                            <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">بازی</p>
-                          </div>
-                          <div className="ui-muted min-w-20 p-2">
-                            <p className="text-base font-black text-zinc-950 dark:text-white">{user._count.gamesHosted}</p>
-                            <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">لابی</p>
-                          </div>
+                      </div>
+
+                      <div className="hidden min-w-0 lg:block">
+                        <div className={`inline-flex max-w-full items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-black ${presence.className}`}>
+                          <span className="material-symbols-outlined text-sm">{presence.icon}</span>
+                          <span className="truncate">{presence.label}</span>
+                        </div>
+                        <p className="mt-2 truncate text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{presence.detail}</p>
+                        <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-black">
+                          <span className="rounded-lg border border-zinc-200 bg-white px-2 py-0.5 text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
+                            {[hasPassword ? "رمز" : null, hasGoogle ? "گوگل" : null].filter(Boolean).join(" + ") || "نامشخص"}
+                          </span>
+                          <span className={user.emailVerified ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-lime-700 dark:text-lime-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-amber-700 dark:text-amber-300"}>
+                            {user.emailVerified ? "تایید" : "نیاز به تایید"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-center">
+                        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
+                          <p className="text-base font-black text-zinc-950 dark:text-white">{user._count.gameHistories}</p>
+                          <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">بازی</p>
+                        </div>
+                        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
+                          <p className="text-base font-black text-zinc-950 dark:text-white">{user._count.gamesHosted}</p>
+                          <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">لابی</p>
                         </div>
                       </div>
                     </button>
@@ -622,9 +639,11 @@ export function UserManagementPanel() {
         <aside className="ui-card h-fit overflow-hidden xl:sticky xl:top-6">
           {selectedUser ? (
             <div>
-              <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-                <div className="flex items-start gap-4">
-                  <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white text-xl font-black text-zinc-700 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-200">
+              <div className="relative overflow-hidden border-b border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10">
+                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${roleAccentClass(selectedUser.role)}`} />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.22),transparent_30rem)]" />
+                <div className="relative flex items-start gap-4">
+                  <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-white/10 text-2xl font-black text-white shadow-xl shadow-black/20">
                     {selectedUser.image ? (
                       <img src={selectedUser.image} alt="" className="size-full object-cover" />
                     ) : (
@@ -632,9 +651,16 @@ export function UserManagementPanel() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="ui-kicker">پرونده کاربر</p>
-                    <h2 className="mt-1 truncate text-xl font-black text-zinc-950 dark:text-white">{selectedUser.name || "بدون نام"}</h2>
-                    <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400" dir="ltr">{selectedUser.email || "بدون ایمیل"}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">پرونده کاربر</p>
+                    <h2 className="mt-2 line-clamp-2 break-words text-2xl font-black leading-8 text-white">{selectedUser.name || "بدون نام"}</h2>
+                    <p className="mt-1 truncate text-xs text-zinc-300" dir="ltr">{selectedUser.email || "بدون ایمیل"}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className="rounded-lg border border-white/10 bg-white/10 px-2.5 py-1 text-[10px] font-black text-white">{roleLabel(selectedUser.role)}</span>
+                      <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black ${selectedPresence?.online ? "border-lime-400/30 bg-lime-400/10 text-lime-200" : "border-white/10 bg-white/10 text-zinc-300"}`}>
+                        <span className="material-symbols-outlined text-sm">{selectedPresence?.icon}</span>
+                        {selectedPresence?.label || "آفلاین"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
