@@ -23,7 +23,7 @@ RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl postgresql-client
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -48,7 +48,7 @@ COPY --from=builder /app/prisma ./prisma
 # Copy entrypoint script
 COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
-RUN mkdir -p ./data && chown -R nextjs:nodejs ./data
+RUN mkdir -p ./data ./backups && chown -R nextjs:nodejs ./data ./backups
 
 USER nextjs
 

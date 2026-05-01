@@ -26,6 +26,8 @@ services:
       - PUSHER_SECRET=${PUSHER_SECRET}
       - NEXT_PUBLIC_PUSHER_CLUSTER=${NEXT_PUBLIC_PUSHER_CLUSTER}
       - INITIAL_ADMIN_PASSWORD=${INITIAL_ADMIN_PASSWORD:-admin123}
+      - DB_BACKUP_DIR=${DB_BACKUP_DIR:-/app/backups}
+      - DB_BACKUP_RETENTION_DAYS=${DB_BACKUP_RETENTION_DAYS:-7}
     depends_on:
       - db
     # Port is not exposed to host to ensure strict zero-trust networking
@@ -33,6 +35,7 @@ services:
       - "3000:3000"
     volumes:
       - scenario_data:/app/data
+      - db_backups:/app/backups
 
   db:
     image: postgres:15-alpine
@@ -46,6 +49,20 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  db-backup:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://mafia:mafiapass@db:5432/mafiadb
+      - DB_BACKUP_RETENTION_DAYS=${DB_BACKUP_RETENTION_DAYS:-7}
+      - DB_BACKUP_INTERVAL_SECONDS=${DB_BACKUP_INTERVAL_SECONDS:-86400}
+    depends_on:
+      - db
+    volumes:
+      - db_backups:/backups
+      - ./scripts/backup-db.sh:/usr/local/bin/backup-db.sh:ro
+    command: ["sh", "/usr/local/bin/backup-db.sh"]
+
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: always
@@ -58,3 +75,4 @@ services:
 volumes:
   pgdata:
   scenario_data:
+  db_backups:
