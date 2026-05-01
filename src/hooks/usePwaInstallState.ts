@@ -24,10 +24,10 @@ const genericGuide: PwaBrowserGuide = {
   label: "مرورگر موبایل",
   icon: "install_mobile",
   steps: [
-    "منوی مرورگر را باز کنید.",
-    "گزینه Install app یا Add to Home Screen را انتخاب کنید.",
-    "نام برنامه را تأیید کنید و Add یا Install را بزنید.",
-    "از آیکن مافیا بورد روی صفحه اصلی وارد شوید.",
+    "همین صفحه را در مرورگر موبایل نگه دارید و منوی اصلی مرورگر را باز کنید.",
+    "گزینه Install app، Add to Home Screen یا افزودن به صفحه اصلی را پیدا کنید.",
+    "نام برنامه را همان مافیا بورد بگذارید و Add یا Install را تأیید کنید.",
+    "بعد از نصب، مرورگر را ببندید و از آیکن مافیا بورد روی صفحه اصلی وارد شوید.",
   ],
   note: "اگر گزینه نصب را نمی‌بینید، صفحه را یک بار رفرش کنید یا با Safari در iPhone و Chrome در Android باز کنید.",
 };
@@ -57,12 +57,12 @@ function detectGuide(userAgent: string): PwaBrowserGuide {
       label: "Safari روی iPhone",
       icon: "ios_share",
       steps: [
-        "پایین صفحه دکمه Share را بزنید.",
-        "در لیست بازشده Add to Home Screen را انتخاب کنید.",
-        "نام مافیا بورد را تأیید کنید و Add را بزنید.",
-        "از آیکن نصب‌شده وارد شوید تا تایمر، گزارش بازی و تجربه تمام‌صفحه فعال باشد.",
+        "در نوار پایین Safari دکمه Share را بزنید؛ همان آیکنی که شبیه مربع با فلش رو به بالا است.",
+        "در لیست بازشده کمی پایین بروید و Add to Home Screen را انتخاب کنید.",
+        "نام مافیا بورد را تأیید کنید و دکمه Add بالای صفحه را بزنید.",
+        "بعد از اضافه شدن آیکن، Safari را ببندید و از آیکن مافیا بورد وارد شوید تا حالت تمام‌صفحه فعال شود.",
       ],
-      note: "در iPhone نصب کامل PWA فقط از Safari انجام می‌شود.",
+      note: "در iPhone نصب کامل PWA فقط از Safari انجام می‌شود. اگر این گزینه را نمی‌بینید، مطمئن شوید صفحه داخل تب معمولی Safari باز است.",
     };
   }
 
@@ -72,10 +72,10 @@ function detectGuide(userAgent: string): PwaBrowserGuide {
       label: "مرورگر iPhone",
       icon: "open_in_browser",
       steps: [
-        "برای نصب کامل، همین آدرس را در Safari باز کنید.",
+        "آدرس همین صفحه را کپی کنید یا از منوی مرورگر گزینه Open in Safari را بزنید.",
         "در Safari دکمه Share پایین صفحه را بزنید.",
-        "Add to Home Screen را انتخاب کنید.",
-        "بعد از نصب، برنامه را از آیکن صفحه اصلی باز کنید.",
+        "Add to Home Screen را انتخاب کنید و نام مافیا بورد را تأیید کنید.",
+        "بعد از نصب، از آیکن صفحه اصلی وارد شوید؛ برگشتن به Chrome یا Firefox حالت کامل PWA را فعال نمی‌کند.",
       ],
       note: "Chrome و Firefox روی iPhone معمولاً نصب کامل PWA را به Safari می‌سپارند.",
     };
@@ -87,10 +87,10 @@ function detectGuide(userAgent: string): PwaBrowserGuide {
       label: "Samsung Internet",
       icon: "add_to_home_screen",
       steps: [
-        "منوی سه‌خط یا سه‌نقطه پایین صفحه را باز کنید.",
-        "Add page to یا Install app را بزنید.",
-        "Home screen را انتخاب کنید.",
-        "Add را بزنید و از آیکن مافیا بورد وارد شوید.",
+        "منوی سه‌خط یا سه‌نقطه پایین صفحه Samsung Internet را باز کنید.",
+        "Add page to یا Install app را بزنید؛ اگر هر دو را دیدید Install app بهتر است.",
+        "Home screen را انتخاب کنید و نام برنامه را تأیید کنید.",
+        "Add را بزنید، سپس از آیکن مافیا بورد روی صفحه اصلی وارد شوید.",
       ],
       note: "اگر Install app دیده شد، همان گزینه تجربه کامل‌تری نسبت به میانبر ساده می‌دهد.",
     };
@@ -102,10 +102,10 @@ function detectGuide(userAgent: string): PwaBrowserGuide {
       label: "Firefox روی Android",
       icon: "add_to_home_screen",
       steps: [
-        "منوی سه‌نقطه کنار نوار آدرس را باز کنید.",
+        "منوی سه‌نقطه کنار نوار آدرس Firefox را باز کنید.",
         "Install یا Add to Home screen را انتخاب کنید.",
-        "پیام نصب را تأیید کنید.",
-        "از آیکن نصب‌شده وارد شوید.",
+        "پیام نصب را تأیید کنید و اجازه دهید آیکن روی صفحه اصلی ساخته شود.",
+        "از آیکن نصب‌شده وارد شوید تا نوار مرورگر حذف و فضای کامل بازی فعال شود.",
       ],
       note: "در بعضی نسخه‌ها متن گزینه به جای Install، عبارت Add to Home screen است.",
     };
@@ -117,10 +117,10 @@ function detectGuide(userAgent: string): PwaBrowserGuide {
       label: "Edge روی Android",
       icon: "install_mobile",
       steps: [
-        "منوی سه‌نقطه پایین صفحه را باز کنید.",
+        "منوی سه‌نقطه پایین صفحه Edge را باز کنید.",
         "Apps یا Add to phone را انتخاب کنید.",
-        "Install this site as an app را بزنید.",
-        "بعد از نصب، از آیکن برنامه وارد شوید.",
+        "Install this site as an app را بزنید و پیام نصب را تأیید کنید.",
+        "بعد از نصب، از آیکن برنامه وارد شوید، نه از تب مرورگر.",
       ],
       note: "اگر گزینه Apps دیده نشد، صفحه را رفرش کنید و دوباره منو را باز کنید.",
     };
@@ -132,10 +132,10 @@ function detectGuide(userAgent: string): PwaBrowserGuide {
       label: "Chrome روی Android",
       icon: "install_mobile",
       steps: [
-        "منوی سه‌نقطه بالای صفحه را باز کنید.",
-        "Install app یا Add to Home screen را بزنید.",
-        "Install را تأیید کنید.",
-        "از آیکن مافیا بورد روی صفحه اصلی وارد شوید.",
+        "منوی سه‌نقطه بالای Chrome را باز کنید.",
+        "Install app را بزنید؛ اگر نبود Add to Home screen را انتخاب کنید.",
+        "در پیام نصب، Install یا Add را تأیید کنید.",
+        "بعد از نصب، از آیکن مافیا بورد روی صفحه اصلی وارد شوید تا کنترل‌های پیشرفته موبایل فعال شوند.",
       ],
       note: "در Chrome معمولاً اگر نصب مستقیم ممکن باشد، همین صفحه دکمه نصب هم نشان می‌دهد.",
     };
