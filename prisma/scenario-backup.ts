@@ -1,7 +1,9 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { Alignment } from "@prisma/client";
 import {
+  ROLE_BACKUP_VERSION,
   SCENARIO_BACKUP_VERSION,
+  type RoleBackupFile,
   type RoleDefinition,
   type ScenarioBackupFile,
   type ScenarioDefinition,
@@ -9,14 +11,28 @@ import {
 
 const SCENARIO_BACKUP_DIR = "data";
 const SCENARIO_BACKUP_FILE = "data/scenario-backup.json";
+const ROLE_BACKUP_FILE = "data/role-backup.json";
 
 export function scenarioBackupPath() {
   return SCENARIO_BACKUP_FILE;
 }
 
+export function roleBackupPath() {
+  return ROLE_BACKUP_FILE;
+}
+
 export async function scenarioBackupExists() {
   try {
     await access(scenarioBackupPath());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function roleBackupExists() {
+  try {
+    await access(roleBackupPath());
     return true;
   } catch {
     return false;
@@ -82,8 +98,33 @@ export async function readScenarioBackupFile(): Promise<ScenarioBackupFile | nul
   }
 }
 
+export async function readRoleBackupFile(): Promise<RoleBackupFile | null> {
+  try {
+    const raw = await readFile(roleBackupPath(), "utf8");
+    const parsed = JSON.parse(raw);
+    const roles = Array.isArray(parsed.roles) ? parsed.roles.map(normalizeBackupRole).filter(Boolean) : [];
+
+    if (roles.length === 0) return null;
+
+    return {
+      version: ROLE_BACKUP_VERSION,
+      exportedAt: typeof parsed.exportedAt === "string" ? parsed.exportedAt : new Date().toISOString(),
+      roles: roles as RoleDefinition[],
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function writeScenarioBackupFile(backup: ScenarioBackupFile) {
   const target = scenarioBackupPath();
+  await mkdir(SCENARIO_BACKUP_DIR, { recursive: true });
+  await writeFile(target, `${JSON.stringify(backup, null, 2)}\n`, "utf8");
+  return target;
+}
+
+export async function writeRoleBackupFile(backup: RoleBackupFile) {
+  const target = roleBackupPath();
   await mkdir(SCENARIO_BACKUP_DIR, { recursive: true });
   await writeFile(target, `${JSON.stringify(backup, null, 2)}\n`, "utf8");
   return target;

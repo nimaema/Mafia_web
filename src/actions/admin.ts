@@ -10,6 +10,7 @@ import {
   mergeRoleDefinitions,
   STANDARD_ROLE_DEFINITIONS,
   STANDARD_SCENARIO_DEFINITIONS,
+  type RoleBackupFile,
   type RoleDefinition,
   type ScenarioBackupFile,
   type ScenarioDefinition,
@@ -357,6 +358,47 @@ export async function deleteMafiaRole(id: string) {
   
   await prisma.mafiaRole.delete({ where: { id } });
   revalidatePath("/dashboard/admin");
+}
+
+export async function exportRoleBackup() {
+  await checkModerator();
+  const { writeRoleBackupFile } = await import("../../prisma/scenario-backup");
+
+  const roles = await prisma.mafiaRole.findMany({
+    orderBy: [{ alignment: "asc" }, { name: "asc" }],
+  });
+
+  const backup: RoleBackupFile = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    roles: roles.map((role) => ({
+      name: role.name,
+      alignment: role.alignment,
+      description: role.description || "",
+      is_permanent: role.is_permanent,
+      nightAbilities: role.nightAbilities,
+    })),
+  };
+
+  const filePath = await writeRoleBackupFile(backup);
+  return { success: true, filePath, roles: backup.roles.length };
+}
+
+export async function restoreRoleBackup() {
+  await checkModerator();
+  const { readRoleBackupFile, roleBackupPath } = await import("../../prisma/scenario-backup");
+
+  const backup = await readRoleBackupFile();
+  if (!backup) {
+    throw new Error(`فایل بکاپ نقش‌ها پیدا نشد یا قابل خواندن نیست: ${roleBackupPath()}`);
+  }
+
+  const result = await syncScenarioDefinitions(
+    mergeRoleDefinitions(STANDARD_ROLE_DEFINITIONS, backup.roles),
+    []
+  );
+
+  return { success: true, roles: result.roles, filePath: roleBackupPath() };
 }
 
 // Scenario Management

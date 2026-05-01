@@ -5,12 +5,14 @@ import {
   createMafiaRole,
   updateMafiaRole,
   deleteMafiaRole,
+  exportRoleBackup,
   createScenario,
   updateScenario,
   deleteScenario,
   installStandardScenarios,
   exportScenarioBackup,
   restoreScenarioBackup,
+  restoreRoleBackup,
   getMafiaRolesSafe,
   getScenariosSafe,
 } from "@/actions/admin";
@@ -231,6 +233,7 @@ export default function AdminDashboard() {
   const [showStats, setShowStats] = useState(false);
   const [roleSearch, setRoleSearch] = useState("");
   const [roleAlignmentFilter, setRoleAlignmentFilter] = useState<RoleAlignmentFilter>("ALL");
+  const [roleBackupBusy, setRoleBackupBusy] = useState(false);
   const [scenarioSearch, setScenarioSearch] = useState("");
   const [scenarioRoleSearch, setScenarioRoleSearch] = useState("");
   const [scenarioBackupBusy, setScenarioBackupBusy] = useState(false);
@@ -373,6 +376,38 @@ export default function AdminDashboard() {
         }
       },
       "error"
+    );
+  };
+
+  const handleRoleBackup = async () => {
+    setRoleBackupBusy(true);
+    try {
+      const result = await exportRoleBackup();
+      showToast(`${result.roles} نقش در فایل سرور ذخیره شد`, "success");
+    } catch (error: any) {
+      showAlert("بکاپ نقش‌ها", error.message || "بکاپ نقش‌ها انجام نشد.", "error");
+    } finally {
+      setRoleBackupBusy(false);
+    }
+  };
+
+  const handleRoleRestore = () => {
+    showConfirm(
+      "بازیابی نقش‌ها",
+      "نقش‌های داخل فایل بکاپ روی دیتابیس اعمال می‌شوند. نقش‌های موجود حذف نمی‌شوند، اما موارد هم‌نام بروزرسانی می‌شوند.",
+      async () => {
+        setRoleBackupBusy(true);
+        try {
+          const result = await restoreRoleBackup();
+          showToast(`${result.roles} نقش از فایل بکاپ اعمال شد`, "success");
+          await refreshData();
+        } catch (error: any) {
+          showAlert("بازیابی نقش‌ها", error.message || "بازیابی نقش‌ها انجام نشد.", "error");
+        } finally {
+          setRoleBackupBusy(false);
+        }
+      },
+      "warning"
     );
   };
 
@@ -756,6 +791,40 @@ export default function AdminDashboard() {
                     لغو
                   </button>
                 )}
+              </div>
+
+              <div className="mt-4 rounded-lg border border-sky-500/20 bg-sky-500/10 p-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-sky-500/20 bg-white text-sky-700 dark:bg-zinc-950 dark:text-sky-300">
+                    <span className="material-symbols-outlined text-lg">cloud_done</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-black text-zinc-950 dark:text-white">پشتیبان نقش‌ها</p>
+                    <p className="mt-1 text-[10px] leading-5 text-zinc-600 dark:text-zinc-300">
+                      نقش‌ها، جبهه‌ها، توضیحات و توانایی‌های شب را جداگانه روی فایل سرور ذخیره یا بازیابی کنید.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleRoleBackup}
+                    disabled={roleBackupBusy}
+                    className="ui-button-secondary min-h-9 px-3 text-xs"
+                  >
+                    <span className="material-symbols-outlined text-base">backup</span>
+                    ذخیره بکاپ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRoleRestore}
+                    disabled={roleBackupBusy}
+                    className="ui-button-secondary min-h-9 px-3 text-xs"
+                  >
+                    <span className="material-symbols-outlined text-base">settings_backup_restore</span>
+                    بازیابی
+                  </button>
+                </div>
               </div>
 
               <form onSubmit={handleAddRole} noValidate className="mt-5 flex flex-col gap-4">

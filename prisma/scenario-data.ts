@@ -21,7 +21,14 @@ export type ScenarioBackupFile = {
   scenarios: ScenarioDefinition[];
 };
 
+export type RoleBackupFile = {
+  version: 1;
+  exportedAt: string;
+  roles: RoleDefinition[];
+};
+
 export const SCENARIO_BACKUP_VERSION = 1;
+export const ROLE_BACKUP_VERSION = 1;
 
 export function mergeRoleDefinitions(...groups: RoleDefinition[][]) {
   const merged = new Map<string, RoleDefinition>();
