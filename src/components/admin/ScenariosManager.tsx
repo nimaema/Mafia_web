@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Alignment } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import { createScenario, deleteScenario, exportScenarioBackup, restoreScenarioBackup, updateScenario } from "@/actions/admin";
 import { usePopup } from "@/components/PopupProvider";
 import { ScenarioRoleComposition } from "@/components/ScenarioRoleComposition";
@@ -91,6 +92,8 @@ export function ScenariosManager({
   initialScenarios: ScenarioRecord[];
 }) {
   const { showAlert, showConfirm, showToast } = usePopup();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   const [scenarios, setScenarios] = useState<ScenarioRecord[]>(initialScenarios);
   const [loading, setLoading] = useState(false);
   const [editingScenario, setEditingScenario] = useState<ScenarioRecord | null>(null);
@@ -299,6 +302,7 @@ export function ScenariosManager({
         </div>
       </section>
 
+      {isAdmin && (
       <section className="ui-card overflow-hidden">
         <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
@@ -324,6 +328,7 @@ export function ScenariosManager({
           </div>
         </div>
       </section>
+      )}
 
       <section className="ui-card overflow-hidden">
         <button

@@ -1,6 +1,7 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { Alignment } from "@prisma/client";
 import {
+  type BackupAuthor,
   ROLE_BACKUP_VERSION,
   SCENARIO_BACKUP_VERSION,
   type RoleBackupFile,
@@ -78,6 +79,17 @@ function normalizeBackupScenario(scenario: any): ScenarioDefinition | null {
   };
 }
 
+function normalizeBackupAuthor(author: any): BackupAuthor | null {
+  const id = typeof author?.id === "string" ? author.id.trim() : "";
+  if (!id) return null;
+
+  return {
+    id,
+    name: typeof author.name === "string" && author.name.trim() ? author.name.trim() : null,
+    email: typeof author.email === "string" && author.email.trim() ? author.email.trim() : null,
+  };
+}
+
 export async function readScenarioBackupFile(): Promise<ScenarioBackupFile | null> {
   try {
     const raw = await readFile(scenarioBackupPath(), "utf8");
@@ -90,6 +102,7 @@ export async function readScenarioBackupFile(): Promise<ScenarioBackupFile | nul
     return {
       version: SCENARIO_BACKUP_VERSION,
       exportedAt: typeof parsed.exportedAt === "string" ? parsed.exportedAt : new Date().toISOString(),
+      exportedBy: normalizeBackupAuthor(parsed.exportedBy),
       roles: roles as RoleDefinition[],
       scenarios: scenarios as ScenarioDefinition[],
     };
@@ -109,6 +122,7 @@ export async function readRoleBackupFile(): Promise<RoleBackupFile | null> {
     return {
       version: ROLE_BACKUP_VERSION,
       exportedAt: typeof parsed.exportedAt === "string" ? parsed.exportedAt : new Date().toISOString(),
+      exportedBy: normalizeBackupAuthor(parsed.exportedBy),
       roles: roles as RoleDefinition[],
     };
   } catch {

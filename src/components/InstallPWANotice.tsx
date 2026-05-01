@@ -13,8 +13,8 @@ type BeforeInstallPromptEvent = Event & {
 
 const installBenefits = [
   { icon: "fullscreen", title: "تمام‌صفحه" },
-  { icon: "timer", title: "تایمر بهتر" },
-  { icon: "edit_note", title: "گزارش کامل" },
+  { icon: "touch_app", title: "دسترسی سریع" },
+  { icon: "phone_iphone", title: "نمای پایدار" },
 ];
 
 const afterInstallTips = [
@@ -36,6 +36,7 @@ export function InstallPWANotice() {
   const pwa = usePwaInstallState();
   const { data: session, status } = useSession();
   const [visible, setVisible] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const promptKey =
     session?.user?.id && session.expires
@@ -65,6 +66,7 @@ export function InstallPWANotice() {
   const close = () => {
     if (promptKey) markDismissed(promptKey);
     setVisible(false);
+    setExpanded(false);
   };
 
   const install = async () => {
@@ -76,6 +78,27 @@ export function InstallPWANotice() {
   };
 
   if (!visible || !pwa.isMobileBrowser) return null;
+
+  if (!expanded) {
+    return (
+      <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+5.8rem)] z-[260] flex justify-center md:hidden" dir="rtl">
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="flex w-full max-w-md items-center gap-3 rounded-2xl border border-zinc-200 bg-white/95 p-3 text-right shadow-2xl shadow-zinc-950/20 backdrop-blur-xl transition-all active:scale-[0.99] dark:border-white/10 dark:bg-zinc-950/95"
+        >
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-lime-500 text-zinc-950">
+            <span className="material-symbols-outlined text-2xl">{pwa.guide.platformIcon}</span>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-black text-zinc-950 dark:text-white">نصب اختیاری مافیا بورد</span>
+            <span className="mt-0.5 block truncate text-xs font-bold text-zinc-500 dark:text-zinc-400">برای تجربه تمام‌صفحه و دسترسی سریع‌تر لمس کنید.</span>
+          </span>
+          <span className="material-symbols-outlined text-zinc-400">expand_less</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[260] flex items-end justify-center bg-zinc-950/85 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] text-right backdrop-blur-xl sm:items-center sm:p-4" dir="rtl">
@@ -105,7 +128,7 @@ export function InstallPWANotice() {
           </div>
 
           <p className="mt-3 text-xs font-bold leading-6 text-zinc-300">
-            برای فعال شدن تایمر، گزارش بازی و تجربه تمام‌صفحه روی موبایل، برنامه را نصب کنید.
+            همه امکانات در مرورگر موبایل هم فعال هستند؛ نصب برنامه فقط تجربه تمام‌صفحه و دسترسی سریع‌تر می‌دهد.
           </p>
 
           <div className="mt-3 grid grid-cols-3 gap-2">
@@ -182,7 +205,7 @@ export function InstallPWANotice() {
               </button>
             )}
             <button type="button" onClick={close} className="ui-button-secondary min-h-11 w-full">
-              فعلاً ادامه می‌دهم
+              بستن راهنما
             </button>
           </div>
         </footer>

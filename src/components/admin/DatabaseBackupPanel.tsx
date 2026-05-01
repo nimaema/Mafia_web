@@ -8,6 +8,7 @@ import {
   restoreDatabaseBackup,
   restoreDatabaseBackupDataOnly,
 } from "@/actions/dbBackups";
+import { getRoleScenarioBackupOverview } from "@/actions/admin";
 import { usePopup } from "@/components/PopupProvider";
 
 type DatabaseBackupRecord = {
@@ -15,6 +16,35 @@ type DatabaseBackupRecord = {
   kind: "auto" | "manual" | "pre-restore";
   createdAt: string;
   sizeBytes: number;
+};
+
+type BackupDiffItem = {
+  name: string;
+  changes?: string[];
+};
+
+type RoleScenarioBackupOverview = {
+  roleBackup: {
+    exportedAt: string;
+    exportedBy: { id: string; name: string | null; email?: string | null } | null;
+    roles: number;
+    diff: {
+      added: BackupDiffItem[];
+      deleted: BackupDiffItem[];
+      modified: BackupDiffItem[];
+    };
+  } | null;
+  scenarioBackup: {
+    exportedAt: string;
+    exportedBy: { id: string; name: string | null; email?: string | null } | null;
+    roles: number;
+    scenarios: number;
+    diff: {
+      added: BackupDiffItem[];
+      deleted: BackupDiffItem[];
+      modified: BackupDiffItem[];
+    };
+  } | null;
 };
 
 function formatBackupDate(value: string) {
@@ -42,11 +72,23 @@ function backupKindClass(kind: DatabaseBackupRecord["kind"]) {
   return "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300";
 }
 
+function backupAuthorLabel(author?: { name: string | null; email?: string | null } | null) {
+  return author?.name || author?.email || "ثبت نشده";
+}
+
+function diffTone(type: "added" | "deleted" | "modified") {
+  if (type === "added") return "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300";
+  if (type === "deleted") return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
+  return "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300";
+}
+
 export function DatabaseBackupPanel() {
   const { showAlert, showConfirm, showToast } = usePopup();
   const [databaseBackups, setDatabaseBackups] = useState<DatabaseBackupRecord[]>([]);
   const [databaseBackupsLoading, setDatabaseBackupsLoading] = useState(true);
   const [databaseBackupBusy, setDatabaseBackupBusy] = useState<string | null>(null);
+  const [roleScenarioBackupOverview, setRoleScenarioBackupOverview] = useState<RoleScenarioBackupOverview | null>(null);
+  const [roleScenarioBackupsLoading, setRoleScenarioBackupsLoading] = useState(true);
 
   const databaseBackupStats = useMemo(() => {
     const totalSizeBytes = databaseBackups.reduce((sum, backup) => sum + backup.sizeBytes, 0);
@@ -59,8 +101,12 @@ export function DatabaseBackupPanel() {
   }, [databaseBackups]);
 
   useEffect(() => {
-    refreshDatabaseBackups();
+    refreshAllBackups();
   }, []);
+
+  const refreshAllBackups = async () => {
+    await Promise.all([refreshDatabaseBackups(), refreshRoleScenarioBackupOverview()]);
+  };
 
   const refreshDatabaseBackups = async () => {
     setDatabaseBackupsLoading(true);
@@ -71,6 +117,18 @@ export function DatabaseBackupPanel() {
       showAlert("بکاپ دیتابیس", error.message || "لیست بکاپ‌ها بارگذاری نشد.", "error");
     } finally {
       setDatabaseBackupsLoading(false);
+    }
+  };
+
+  const refreshRoleScenarioBackupOverview = async () => {
+    setRoleScenarioBackupsLoading(true);
+    try {
+      const overview = await getRoleScenarioBackupOverview();
+      setRoleScenarioBackupOverview(overview as RoleScenarioBackupOverview);
+    } catch (error: any) {
+      showAlert("بکاپ نقش‌ها و سناریوها", error.message || "اطلاعات بکاپ نقش‌ها و سناریوها بارگذاری نشد.", "error");
+    } finally {
+      setRoleScenarioBackupsLoading(false);
     }
   };
 
@@ -153,6 +211,78 @@ export function DatabaseBackupPanel() {
     );
   };
 
+  const renderDiffList = (title: string, type: "added" | "deleted" | "modified", items: BackupDiffItem[]) => (
+    <div className={`rounded-lg border p-3 ${diffTone(type)}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-black">{title}</p>
+        <span className="rounded-md bg-white/60 px-2 py-0.5 text-[10px] font-black dark:bg-zinc-950/50">{items.length}</span>
+      </div>
+      <div className="mt-2 grid gap-1.5">
+        {items.length ? (
+          items.slice(0, 8).map((item) => (
+            <div key={`${type}-${item.name}`} className="rounded-md bg-white/60 px-2 py-1.5 text-[11px] font-bold leading-5 dark:bg-zinc-950/45">
+              <span className="block truncate">{item.name}</span>
+              {item.changes?.length ? <span className="mt-0.5 block truncate opacity-75">{item.changes.join("، ")}</span> : null}
+            </div>
+          ))
+        ) : (
+          <p className="rounded-md bg-white/60 px-2 py-2 text-[11px] font-bold opacity-70 dark:bg-zinc-950/45">موردی ثبت نشده</p>
+        )}
+        {items.length > 8 && <p className="text-[10px] font-black opacity-70">+{items.length - 8} مورد دیگر</p>}
+      </div>
+    </div>
+  );
+
+  const renderConfigBackupCard = (
+    title: string,
+    icon: string,
+    backup: NonNullable<RoleScenarioBackupOverview["roleBackup"] | RoleScenarioBackupOverview["scenarioBackup"]> | null,
+    countLabel: string
+  ) => (
+    <article className="overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-zinc-950/60">
+      <div className="flex items-start justify-between gap-3 border-b border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+        <div className="flex items-start gap-3">
+          <div className="ui-icon">
+            <span className="material-symbols-outlined text-lg text-sky-600 dark:text-sky-300">{icon}</span>
+          </div>
+          <div>
+            <p className="text-sm font-black text-zinc-950 dark:text-white">{title}</p>
+            <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">
+              {backup ? `${countLabel} | آخرین ذخیره: ${formatBackupDate(backup.exportedAt)}` : "هنوز فایل بکاپی ذخیره نشده است"}
+            </p>
+          </div>
+        </div>
+        {roleScenarioBackupsLoading && <span className="material-symbols-outlined animate-spin text-zinc-400">progress_activity</span>}
+      </div>
+
+      {backup ? (
+        <div className="p-4">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">ذخیره‌کننده</p>
+              <p className="mt-1 truncate text-sm font-black text-zinc-950 dark:text-white">{backupAuthorLabel(backup.exportedBy)}</p>
+            </div>
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">زمان ذخیره</p>
+              <p className="mt-1 text-sm font-black text-zinc-950 dark:text-white">{formatBackupDate(backup.exportedAt)}</p>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 lg:grid-cols-3">
+            {renderDiffList("اضافه شده بعد از بکاپ", "added", backup.diff.added)}
+            {renderDiffList("حذف شده از دیتابیس", "deleted", backup.diff.deleted)}
+            {renderDiffList("تغییر کرده بعد از بکاپ", "modified", backup.diff.modified)}
+          </div>
+        </div>
+      ) : (
+        <div className="p-4">
+          <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-4 text-sm font-bold leading-6 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+            بعد از ذخیره بکاپ نقش‌ها یا سناریوها، زمان، شخص ذخیره‌کننده و تغییرات نسبت به دیتابیس فعلی اینجا دیده می‌شود.
+          </div>
+        </div>
+      )}
+    </article>
+  );
+
   return (
     <div className="flex min-h-[80vh] flex-col gap-5" dir="rtl">
       <header className="ui-card overflow-hidden">
@@ -173,8 +303,8 @@ export function DatabaseBackupPanel() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={refreshDatabaseBackups}
-              disabled={databaseBackupsLoading || Boolean(databaseBackupBusy)}
+              onClick={refreshAllBackups}
+              disabled={databaseBackupsLoading || roleScenarioBackupsLoading || Boolean(databaseBackupBusy)}
               className="ui-button-secondary min-h-10 px-3 text-xs"
             >
               <span className="material-symbols-outlined text-base">refresh</span>
@@ -255,6 +385,23 @@ export function DatabaseBackupPanel() {
             <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
           </div>
         ))}
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-2">
+        {renderConfigBackupCard(
+          "آخرین بکاپ نقش‌ها",
+          "theater_comedy",
+          roleScenarioBackupOverview?.roleBackup || null,
+          roleScenarioBackupOverview?.roleBackup ? `${roleScenarioBackupOverview.roleBackup.roles} نقش` : ""
+        )}
+        {renderConfigBackupCard(
+          "آخرین بکاپ سناریوها",
+          "account_tree",
+          roleScenarioBackupOverview?.scenarioBackup || null,
+          roleScenarioBackupOverview?.scenarioBackup
+            ? `${roleScenarioBackupOverview.scenarioBackup.scenarios} سناریو، ${roleScenarioBackupOverview.scenarioBackup.roles} نقش`
+            : ""
+        )}
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">

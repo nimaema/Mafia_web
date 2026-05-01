@@ -17,6 +17,7 @@ export type ScenarioDefinition = {
 export type ScenarioBackupFile = {
   version: 1;
   exportedAt: string;
+  exportedBy?: BackupAuthor | null;
   roles: RoleDefinition[];
   scenarios: ScenarioDefinition[];
 };
@@ -24,7 +25,14 @@ export type ScenarioBackupFile = {
 export type RoleBackupFile = {
   version: 1;
   exportedAt: string;
+  exportedBy?: BackupAuthor | null;
   roles: RoleDefinition[];
+};
+
+export type BackupAuthor = {
+  id: string;
+  name: string | null;
+  email?: string | null;
 };
 
 export const SCENARIO_BACKUP_VERSION = 1;

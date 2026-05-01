@@ -10,6 +10,7 @@ import {
   mergeRoleDefinitions,
   STANDARD_ROLE_DEFINITIONS,
   STANDARD_SCENARIO_DEFINITIONS,
+  type BackupAuthor,
   type RoleBackupFile,
   type RoleDefinition,
   type ScenarioBackupFile,
@@ -20,6 +21,17 @@ type SafeListResult<T> = {
   success: boolean;
   data: T[];
   error?: string;
+};
+
+type BackupDiffItem = {
+  name: string;
+  changes?: string[];
+};
+
+type BackupDiff = {
+  added: BackupDiffItem[];
+  deleted: BackupDiffItem[];
+  modified: BackupDiffItem[];
 };
 
 type RoleNightAbilityChoiceInput = {
@@ -79,6 +91,19 @@ async function checkModerator() {
     throw new Error("شما دسترسی لازم برای این عملیات را ندارید. (نیاز به دسترسی گرداننده یا مدیر)");
   }
   return session.user.id;
+}
+
+async function getBackupAuthor(adminId: string): Promise<BackupAuthor> {
+  const admin = await prisma.user.findUnique({
+    where: { id: adminId },
+    select: { name: true, email: true },
+  });
+
+  return {
+    id: adminId,
+    name: admin?.name || null,
+    email: admin?.email || null,
+  };
 }
 
 function normalizeNightAbilities(abilities?: RoleNightAbilityInput[]): Prisma.InputJsonValue | typeof Prisma.JsonNull {
@@ -360,8 +385,84 @@ export async function deleteMafiaRole(id: string) {
   revalidatePath("/dashboard/admin");
 }
 
+function cleanText(value?: string | null) {
+  return (value || "").trim();
+}
+
+function stableJson(value: unknown) {
+  return JSON.stringify(value ?? null);
+}
+
+function roleCompareFields(role: Pick<RoleDefinition, "alignment" | "description" | "is_permanent" | "nightAbilities">) {
+  return {
+    alignment: role.alignment,
+    description: cleanText(role.description),
+    is_permanent: Boolean(role.is_permanent),
+    nightAbilities: stableJson(role.nightAbilities),
+  };
+}
+
+function scenarioCompareFields(scenario: ScenarioDefinition) {
+  const roles = [...scenario.roles]
+    .map((role) => ({ name: role.name, count: role.count }))
+    .sort((left, right) => left.name.localeCompare(right.name, "fa"));
+
+  return {
+    description: cleanText(scenario.description),
+    totalPlayers: roles.reduce((sum, role) => sum + role.count, 0),
+    roles: stableJson(roles),
+  };
+}
+
+function buildRoleDiff(currentRoles: RoleDefinition[], backupRoles: RoleDefinition[]): BackupDiff {
+  const currentMap = new Map(currentRoles.map((role) => [role.name, role]));
+  const backupMap = new Map(backupRoles.map((role) => [role.name, role]));
+  const added = currentRoles.filter((role) => !backupMap.has(role.name)).map((role) => ({ name: role.name }));
+  const deleted = backupRoles.filter((role) => !currentMap.has(role.name)).map((role) => ({ name: role.name }));
+  const modified = currentRoles.flatMap((role) => {
+    const backupRole = backupMap.get(role.name);
+    if (!backupRole) return [];
+
+    const current = roleCompareFields(role);
+    const backup = roleCompareFields(backupRole);
+    const changes = [
+      current.alignment !== backup.alignment ? "جبهه" : "",
+      current.description !== backup.description ? "توضیح" : "",
+      current.is_permanent !== backup.is_permanent ? "وضعیت ثابت" : "",
+      current.nightAbilities !== backup.nightAbilities ? "توانایی شب" : "",
+    ].filter(Boolean);
+
+    return changes.length ? [{ name: role.name, changes }] : [];
+  });
+
+  return { added, deleted, modified };
+}
+
+function buildScenarioDiff(currentScenarios: ScenarioDefinition[], backupScenarios: ScenarioDefinition[]): BackupDiff {
+  const currentMap = new Map(currentScenarios.map((scenario) => [scenario.name, scenario]));
+  const backupMap = new Map(backupScenarios.map((scenario) => [scenario.name, scenario]));
+  const added = currentScenarios.filter((scenario) => !backupMap.has(scenario.name)).map((scenario) => ({ name: scenario.name }));
+  const deleted = backupScenarios.filter((scenario) => !currentMap.has(scenario.name)).map((scenario) => ({ name: scenario.name }));
+  const modified = currentScenarios.flatMap((scenario) => {
+    const backupScenario = backupMap.get(scenario.name);
+    if (!backupScenario) return [];
+
+    const current = scenarioCompareFields(scenario);
+    const backup = scenarioCompareFields(backupScenario);
+    const changes = [
+      current.description !== backup.description ? "توضیح" : "",
+      current.totalPlayers !== backup.totalPlayers ? "تعداد نفرات" : "",
+      current.roles !== backup.roles ? "ترکیب نقش‌ها" : "",
+    ].filter(Boolean);
+
+    return changes.length ? [{ name: scenario.name, changes }] : [];
+  });
+
+  return { added, deleted, modified };
+}
+
 export async function exportRoleBackup() {
-  await checkAdmin();
+  const adminId = await checkAdmin();
   const { writeRoleBackupFile } = await import("../../prisma/scenario-backup");
 
   const roles = await prisma.mafiaRole.findMany({
@@ -371,6 +472,7 @@ export async function exportRoleBackup() {
   const backup: RoleBackupFile = {
     version: 1,
     exportedAt: new Date().toISOString(),
+    exportedBy: await getBackupAuthor(adminId),
     roles: roles.map((role) => ({
       name: role.name,
       alignment: role.alignment,
@@ -381,6 +483,7 @@ export async function exportRoleBackup() {
   };
 
   const filePath = await writeRoleBackupFile(backup);
+  revalidatePath("/dashboard/admin/backups");
   return { success: true, filePath, roles: backup.roles.length };
 }
 
@@ -398,6 +501,7 @@ export async function restoreRoleBackup() {
     []
   );
 
+  revalidatePath("/dashboard/admin/backups");
   return { success: true, roles: result.roles, filePath: roleBackupPath() };
 }
 
@@ -558,7 +662,7 @@ async function syncScenarioDefinitions(roleDefinitions: RoleDefinition[], scenar
 }
 
 export async function exportScenarioBackup() {
-  await checkAdmin();
+  const adminId = await checkAdmin();
   const { writeScenarioBackupFile } = await import("../../prisma/scenario-backup");
 
   const [roles, scenarios] = await Promise.all([
@@ -578,6 +682,7 @@ export async function exportScenarioBackup() {
   const backup: ScenarioBackupFile = {
     version: 1,
     exportedAt: new Date().toISOString(),
+    exportedBy: await getBackupAuthor(adminId),
     roles: roles.map((role) => ({
       name: role.name,
       alignment: role.alignment,
@@ -596,7 +701,66 @@ export async function exportScenarioBackup() {
   };
 
   const filePath = await writeScenarioBackupFile(backup);
+  revalidatePath("/dashboard/admin/backups");
   return { success: true, filePath, scenarios: backup.scenarios.length, roles: backup.roles.length };
+}
+
+export async function getRoleScenarioBackupOverview() {
+  await checkAdmin();
+  const { readRoleBackupFile, readScenarioBackupFile } = await import("../../prisma/scenario-backup");
+
+  const [roleBackup, scenarioBackup, currentRoles, currentScenarios] = await Promise.all([
+    readRoleBackupFile(),
+    readScenarioBackupFile(),
+    prisma.mafiaRole.findMany({ orderBy: [{ alignment: "asc" }, { name: "asc" }] }),
+    prisma.scenario.findMany({
+      where: persistentScenarioWhere,
+      include: {
+        roles: {
+          include: { role: true },
+          orderBy: { role: { name: "asc" } },
+        },
+      },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
+  const currentRoleDefinitions: RoleDefinition[] = currentRoles.map((role) => ({
+    name: role.name,
+    alignment: role.alignment,
+    description: role.description || "",
+    is_permanent: role.is_permanent,
+    nightAbilities: role.nightAbilities,
+  }));
+
+  const currentScenarioDefinitions: ScenarioDefinition[] = currentScenarios.map((scenario) => ({
+    name: scenario.name,
+    description: scenario.description || "",
+    roles: scenario.roles.map((scenarioRole) => ({
+      name: scenarioRole.role.name,
+      count: scenarioRole.count,
+    })),
+  }));
+
+  return {
+    roleBackup: roleBackup
+      ? {
+          exportedAt: roleBackup.exportedAt,
+          exportedBy: roleBackup.exportedBy || null,
+          roles: roleBackup.roles.length,
+          diff: buildRoleDiff(currentRoleDefinitions, roleBackup.roles),
+        }
+      : null,
+    scenarioBackup: scenarioBackup
+      ? {
+          exportedAt: scenarioBackup.exportedAt,
+          exportedBy: scenarioBackup.exportedBy || null,
+          roles: scenarioBackup.roles.length,
+          scenarios: scenarioBackup.scenarios.length,
+          diff: buildScenarioDiff(currentScenarioDefinitions, scenarioBackup.scenarios),
+        }
+      : null,
+  };
 }
 
 export async function restoreScenarioBackup() {
@@ -613,6 +777,7 @@ export async function restoreScenarioBackup() {
     backup.scenarios
   );
 
+  revalidatePath("/dashboard/admin/backups");
   return { success: true, ...result, filePath: scenarioBackupPath() };
 }
 
