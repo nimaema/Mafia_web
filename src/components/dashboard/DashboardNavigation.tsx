@@ -47,18 +47,6 @@ function roleLabel(role?: string | null) {
   return "بازیکن";
 }
 
-function roleIcon(role?: string | null) {
-  if (role === "ADMIN") return "admin_panel_settings";
-  if (role === "MODERATOR") return "sports_esports";
-  return "person";
-}
-
-function roleTone(role?: string | null) {
-  if (role === "ADMIN") return "border-sky-400/30 bg-sky-400/15 text-sky-200";
-  if (role === "MODERATOR") return "border-lime-400/30 bg-lime-400/15 text-lime-200";
-  return "border-white/15 bg-white/10 text-zinc-200";
-}
-
 function userInitial(name?: string | null) {
   const trimmed = name?.trim();
   return trimmed ? trimmed[0] : "م";
@@ -283,49 +271,27 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         <div className="motion-pop overflow-hidden rounded-[1.25rem] border border-zinc-800 bg-zinc-950 text-white shadow-2xl shadow-zinc-950/20 dark:border-white/10">
           <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
           <div className="p-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white text-lg font-black text-zinc-950 shadow-lg shadow-black/20">
-                  {user.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={user.image} alt="" className="size-full object-cover" />
-                  ) : (
-                    <span>{userInitial(user.name)}</span>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-black">{user.name || "بازیکن مافیا"}</p>
-                  <p className="mt-0.5 truncate text-[11px] font-bold text-zinc-400">در حال مشاهده: {currentLabel}</p>
-                </div>
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white text-base font-black text-zinc-950 shadow-lg shadow-black/20">
+                {user.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={user.image} alt="" className="size-full object-cover" />
+                ) : (
+                  <span>{userInitial(user.name)}</span>
+                )}
               </div>
-              <span className={cx("material-symbols-outlined grid size-9 shrink-0 place-items-center rounded-xl border text-lg leading-none", roleTone(user.role))}>
-                {roleIcon(user.role)}
-              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black">{user.name || "بازیکن مافیا"}</p>
+                <p className="mt-0.5 truncate text-[11px] font-bold text-lime-200">{roleLabel(user.role)}</p>
+              </div>
             </div>
 
-            <div className="mt-3 grid grid-cols-[0.9fr_1.1fr] gap-2">
-              <div className="min-w-0 rounded-xl border border-white/10 bg-white/10 px-2.5 py-2">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-bold text-zinc-400">دسترسی</p>
-                    <p className="mt-0.5 truncate text-xs font-black text-white">{roleLabel(user.role)}</p>
-                  </div>
-                  <span className="flex shrink-0 items-center gap-1 rounded-full border border-lime-300/20 bg-lime-300/10 px-2 py-1 text-[10px] font-black text-lime-200">
-                    <span className="size-1.5 rounded-full bg-lime-400" />
-                    فعال
-                  </span>
-                </div>
-              </div>
-              <div className="grid min-w-0 grid-cols-[2rem_minmax(0,1fr)] gap-2 rounded-xl border border-white/10 bg-white/[0.07] px-2.5 py-2">
-                <span className="material-symbols-outlined grid size-8 place-items-center rounded-lg bg-white/10 text-base leading-none text-lime-200">
-                  calendar_month
-                </span>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-black text-zinc-400">امروز</p>
-                  <p className="mt-0.5 truncate text-xs font-black text-white">{panelDate.shamsiCompact}</p>
-                  <p className="truncate text-[10px] font-bold text-zinc-400" dir="ltr">{panelDate.miladiCompact}</p>
-                </div>
-              </div>
+            <div className="mt-2 grid min-w-0 grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-white/10 bg-white/[0.07] px-2.5 py-1.5">
+              <span className="material-symbols-outlined grid size-7 place-items-center rounded-lg bg-white/10 text-sm leading-none text-lime-200">
+                calendar_month
+              </span>
+              <p className="truncate text-[11px] font-black text-white">{panelDate.shamsiCompact}</p>
+              <p className="shrink-0 text-[10px] font-bold text-zinc-400" dir="ltr">{panelDate.miladiCompact}</p>
             </div>
           </div>
         </div>

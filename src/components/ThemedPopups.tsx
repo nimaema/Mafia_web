@@ -16,11 +16,42 @@ type ModalProps = {
 export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText = "تایید", cancelText = "لغو", type = 'info' }: ModalProps) => {
   if (!isOpen) return null;
 
-  const accentClass =
-    type === 'error' ? 'bg-red-500' :
-    type === 'warning' ? 'bg-amber-500' :
-    type === 'success' ? 'bg-lime-500' :
-    'bg-sky-500';
+  const palette =
+    type === 'error'
+      ? {
+          accent: 'bg-red-500',
+          orb: 'bg-red-500/10',
+          iconShell: 'bg-red-500/10 text-red-500',
+          icon: 'error',
+          confirm: 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20',
+          single: 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20',
+        }
+      : type === 'warning'
+        ? {
+            accent: 'bg-amber-500',
+            orb: 'bg-amber-500/10',
+            iconShell: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+            icon: 'warning',
+            confirm: 'bg-amber-500 text-zinc-950 hover:bg-amber-400 shadow-amber-500/20',
+            single: 'bg-amber-500 text-zinc-950 hover:bg-amber-400 shadow-amber-500/20',
+          }
+        : type === 'success'
+          ? {
+              accent: 'bg-lime-500',
+              orb: 'bg-lime-500/10',
+              iconShell: 'bg-lime-500/10 text-lime-600 dark:text-lime-400',
+              icon: 'check_circle',
+              confirm: 'bg-lime-500 text-zinc-950 hover:bg-lime-400 shadow-lime-500/20',
+              single: 'bg-lime-500 text-zinc-950 hover:bg-lime-400 shadow-lime-500/20',
+            }
+          : {
+              accent: 'bg-sky-500',
+              orb: 'bg-sky-500/10',
+              iconShell: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
+              icon: 'info',
+              confirm: 'bg-sky-500 text-white hover:bg-sky-600 shadow-sky-500/20',
+              single: 'bg-sky-500 text-white hover:bg-sky-600 shadow-sky-500/20',
+            };
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -28,8 +59,8 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
         className="absolute inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm transition-opacity" 
         onClick={onClose}
       />
-      <div className="relative bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-lg w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-lime-500/5 blur-[60px] pointer-events-none"></div>
+      <div className="motion-pop relative w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-zinc-950">
+        <div className={`pointer-events-none absolute right-0 top-0 h-32 w-32 blur-[60px] ${palette.orb}`}></div>
         <button
           type="button"
           onClick={onClose}
@@ -41,14 +72,9 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
         
         <div className="p-8 flex flex-col gap-6 relative z-10">
           <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-              type === 'error' ? 'bg-red-500/10 text-red-500' : 
-              type === 'warning' ? 'bg-amber-500/10 text-amber-500' : 
-              type === 'success' ? 'bg-lime-500/10 text-lime-500' : 
-              'bg-blue-500/10 text-blue-500'
-            }`}>
+            <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${palette.iconShell}`}>
               <span className="material-symbols-outlined text-2xl font-black">
-                {type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'success' ? 'check_circle' : 'info'}
+                {palette.icon}
               </span>
             </div>
             <h3 className="text-xl font-black text-slate-900 dark:text-white">{title}</h3>
@@ -62,11 +88,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
             {onConfirm && (
               <button 
                 onClick={() => { onConfirm(); onClose(); }}
-                className={`flex-1 py-4 rounded-lg font-black text-sm transition-all shadow-lg ${
-                  type === 'error' ? 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20' :
-                  type === 'warning' ? 'bg-amber-500 text-zinc-950 hover:bg-amber-400 shadow-amber-500/20' :
-                  'bg-lime-500 text-zinc-950 hover:bg-lime-400 shadow-lime-500/20'
-                }`}
+                className={`flex-1 rounded-lg py-4 text-sm font-black shadow-lg transition-all ${palette.confirm}`}
               >
                 {confirmText}
               </button>
@@ -74,7 +96,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
             <button 
               onClick={onClose}
               className={`flex-1 py-4 rounded-lg font-black text-sm transition-all ${
-                onConfirm ? 'bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800' : 'bg-lime-500 text-zinc-950 hover:bg-lime-400 shadow-lime-500/20'
+                onConfirm ? 'bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800' : palette.single
               }`}
             >
               {onConfirm ? cancelText : confirmText}
@@ -82,7 +104,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
           </div>
         </div>
         <div className="h-1 bg-zinc-100 dark:bg-white/10">
-          <div className={`h-full w-1/3 rounded-l-full ${accentClass} animate-pulse`} />
+          <div className={`h-full w-1/3 animate-pulse rounded-l-full ${palette.accent}`} />
         </div>
       </div>
     </div>

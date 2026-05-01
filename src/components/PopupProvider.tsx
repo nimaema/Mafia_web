@@ -33,8 +33,9 @@ export function PopupProvider({ children }: { children: ReactNode }) {
     setModal({ isOpen: true, title, message, type });
   };
 
-  const showConfirm = (title: string, message: string, onConfirm: () => void, type: 'warning' | 'error' = 'warning') => {
-    setModal({ isOpen: true, title, message, type, onConfirm });
+  const showConfirm = (title: string, message: string, onConfirm: () => void, type?: 'warning' | 'error') => {
+    const destructive = /حذف|لغو|مسدود|بن|پاک|delete|remove/i.test(`${title} ${message}`);
+    setModal({ isOpen: true, title, message, type: type || (destructive ? 'error' : 'warning'), onConfirm });
   };
 
   const showToast = (message: string, type: PopupType = 'success') => {

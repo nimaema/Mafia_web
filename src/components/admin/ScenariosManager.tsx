@@ -638,11 +638,11 @@ export function ScenariosManager({
 
       {selectedScenario && (
         <div
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 p-4 pb-28 backdrop-blur-sm sm:items-center sm:pb-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-4"
           onClick={() => setSelectedScenario(null)}
         >
           <section
-            className="ui-card max-h-[calc(100dvh-8rem)] w-full max-w-3xl overflow-hidden sm:max-h-[88vh]"
+            className="ui-card motion-pop max-h-[calc(100dvh-1.5rem)] w-full max-w-3xl overflow-hidden sm:max-h-[88vh]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
@@ -658,7 +658,7 @@ export function ScenariosManager({
               </button>
             </div>
 
-            <div className="custom-scrollbar max-h-[62vh] overflow-y-auto p-5">
+            <div className="custom-scrollbar max-h-[calc(100dvh-15rem)] overflow-y-auto p-5 sm:max-h-[62vh]">
               <div className="grid gap-3 sm:grid-cols-4">
                 {[
                   ["کل بازیکن", scenarioTotalPlayers(selectedScenario), "groups", "text-lime-500"],
