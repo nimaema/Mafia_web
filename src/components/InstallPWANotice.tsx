@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { usePwaInstallState } from "@/hooks/usePwaInstallState";
 
-const PWA_NOTICE_KEY = "pwa-install-fullscreen-dismissed-at";
-const PWA_NOTICE_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const PWA_LOGIN_PROMPT_KEY = "pwa-install-login-prompt-dismissed";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -35,20 +35,24 @@ const afterInstallTips = [
   "اگر دوباره وارد صفحه ورود شدید، مطمئن شوید آدرس دامنه همان دامنه اصلی سایت است و Secret سرور بعد از بیلد تغییر نکرده است.",
 ];
 
-function recentlyDismissed() {
+function dismissedForLogin(promptKey: string) {
   if (typeof window === "undefined") return true;
-  const seenAt = Number(localStorage.getItem(PWA_NOTICE_KEY) || 0);
-  return Number.isFinite(seenAt) && Date.now() - seenAt < PWA_NOTICE_COOLDOWN_MS;
+  return sessionStorage.getItem(promptKey) === "1";
 }
 
-function markDismissed() {
-  localStorage.setItem(PWA_NOTICE_KEY, String(Date.now()));
+function markDismissed(promptKey: string) {
+  sessionStorage.setItem(promptKey, "1");
 }
 
 export function InstallPWANotice() {
   const pwa = usePwaInstallState();
+  const { data: session, status } = useSession();
   const [visible, setVisible] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const promptKey =
+    session?.user?.id && session.expires
+      ? `${PWA_LOGIN_PROMPT_KEY}:${session.user.id}:${session.expires}`
+      : "";
 
   useEffect(() => {
     const handlePrompt = (event: Event) => {
@@ -61,17 +65,17 @@ export function InstallPWANotice() {
   }, []);
 
   useEffect(() => {
-    if (!pwa.ready || !pwa.isMobileBrowser || recentlyDismissed()) {
+    if (!pwa.ready || !pwa.isMobileBrowser || status !== "authenticated" || !promptKey || dismissedForLogin(promptKey)) {
       setVisible(false);
       return;
     }
 
     const timer = window.setTimeout(() => setVisible(true), 650);
     return () => window.clearTimeout(timer);
-  }, [pwa.ready, pwa.isMobileBrowser]);
+  }, [promptKey, pwa.ready, pwa.isMobileBrowser, status]);
 
   const close = () => {
-    markDismissed();
+    if (promptKey) markDismissed(promptKey);
     setVisible(false);
   };
 
@@ -86,9 +90,9 @@ export function InstallPWANotice() {
   if (!visible || !pwa.isMobileBrowser) return null;
 
   return (
-    <div className="fixed inset-0 z-[260] bg-zinc-950/85 text-right backdrop-blur-xl" dir="rtl">
-      <section className="flex h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-2xl shadow-black/50 dark:bg-zinc-950 sm:m-auto sm:mt-4 sm:h-[calc(100dvh-2rem)] sm:max-w-md sm:rounded-xl sm:border sm:border-white/15">
-        <header className="shrink-0 border-b border-white/10 bg-zinc-950 px-4 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] text-white">
+    <div className="fixed inset-0 z-[260] flex items-end justify-center bg-zinc-950/85 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] text-right backdrop-blur-xl sm:items-center sm:p-4" dir="rtl">
+      <section className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/15 bg-white shadow-2xl shadow-black/50 dark:bg-zinc-950 sm:max-h-[calc(100dvh-2rem)]">
+        <header className="shrink-0 border-b border-white/10 bg-zinc-950 px-4 pb-4 pt-4 text-white">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-lime-500 text-zinc-950 shadow-lg shadow-lime-500/25">
