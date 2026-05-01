@@ -49,6 +49,19 @@ function alignmentAccentClass(alignment: Alignment) {
   return "from-amber-400 to-orange-500";
 }
 
+function normalizeSearchText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[أإآ]/g, "ا")
+    .replace(/[ۀة]/g, "ه")
+    .replace(/\u200c/g, " ")
+    .replace(/[\u064b-\u065f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function scenarioTotalPlayers(scenario: ScenarioRecord) {
   return scenario.roles.reduce((sum, role) => sum + role.count, 0);
 }
@@ -104,27 +117,41 @@ export function ScenariosManager({
   );
 
   const filteredScenarios = useMemo(() => {
-    const query = scenarioSearch.trim().toLowerCase();
+    const query = normalizeSearchText(scenarioSearch);
     if (!query) return scenarios;
 
-    return scenarios.filter((scenario) =>
-      [
-        scenario.name,
-        scenario.description || "",
-        ...scenario.roles.map((scenarioRole) => scenarioRole.role.name),
-      ].some((value) => value.toLowerCase().includes(query))
-    );
+    return scenarios.filter((scenario) => normalizeSearchText(scenario.name).includes(query));
   }, [scenarioSearch, scenarios]);
 
-  const filteredRoles = useMemo(() => {
-    const query = roleSearch.trim().toLowerCase();
-    if (!query) return initialRoles;
+  const roleCountMap = useMemo(
+    () => new Map(formData.roles.map((role) => [role.roleId, role.count])),
+    [formData.roles]
+  );
 
-    return initialRoles.filter((role) =>
-      [role.name, role.description || "", alignmentLabel(role.alignment)]
-        .some((value) => value.toLowerCase().includes(query))
-    );
-  }, [initialRoles, roleSearch]);
+  const selectedRoleDetails = useMemo(
+    () =>
+      formData.roles
+        .map((item) => {
+          const role = initialRoles.find((roleItem) => roleItem.id === item.roleId);
+          return role ? { ...role, count: item.count } : null;
+        })
+        .filter(Boolean) as Array<RoleRecord & { count: number }>,
+    [formData.roles, initialRoles]
+  );
+
+  const filteredRoles = useMemo(() => {
+    const query = normalizeSearchText(roleSearch);
+    const visibleRoles = query
+      ? initialRoles.filter((role) => normalizeSearchText(role.name).includes(query))
+      : initialRoles;
+
+    return [...visibleRoles].sort((left, right) => {
+      const leftCount = roleCountMap.get(left.id) || 0;
+      const rightCount = roleCountMap.get(right.id) || 0;
+      if (leftCount !== rightCount) return rightCount - leftCount;
+      return left.name.localeCompare(right.name, "fa");
+    });
+  }, [initialRoles, roleCountMap, roleSearch]);
 
   const totalPlayers = formData.roles.reduce((sum, role) => sum + role.count, 0);
 
@@ -275,17 +302,35 @@ export function ScenariosManager({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={handleBackup} disabled={backupBusy} className="ui-button-secondary min-h-11 px-4">
-              <span className="material-symbols-outlined text-lg">backup</span>
-              بکاپ سرور
-            </button>
-            <button onClick={handleRestore} disabled={backupBusy} className="ui-button-secondary min-h-11 px-4">
-              <span className="material-symbols-outlined text-lg">settings_backup_restore</span>
-              بازیابی فایل
-            </button>
             <button onClick={() => openForm()} className="ui-button-primary min-h-11 px-5">
               <span className="material-symbols-outlined text-xl">add_circle</span>
               سناریو جدید
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="ui-card overflow-hidden">
+        <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300">
+              <span className="material-symbols-outlined text-xl">cloud_done</span>
+            </div>
+            <div>
+              <p className="text-sm font-black text-zinc-950 dark:text-white">پشتیبان کتابخانه سناریو</p>
+              <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                بکاپ، همین وضعیت نقش‌ها و سناریوها را روی فایل سرور ذخیره می‌کند؛ بازیابی همان فایل را دوباره روی دیتابیس اعمال می‌کند.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+            <button onClick={handleBackup} disabled={backupBusy} className="ui-button-secondary min-h-10 px-3 text-xs">
+              <span className="material-symbols-outlined text-base">backup</span>
+              ذخیره بکاپ
+            </button>
+            <button onClick={handleRestore} disabled={backupBusy} className="ui-button-secondary min-h-10 px-3 text-xs">
+              <span className="material-symbols-outlined text-base">settings_backup_restore</span>
+              بازیابی
             </button>
           </div>
         </div>
@@ -332,7 +377,7 @@ export function ScenariosManager({
           <input
             value={scenarioSearch}
             onChange={(event) => setScenarioSearch(event.target.value)}
-            placeholder="جستجوی سناریو یا نقش"
+            placeholder="جستجوی نام سناریو"
             className="w-full border-0 bg-transparent p-0 text-sm outline-none focus:ring-0"
           />
         </label>
@@ -521,12 +566,58 @@ export function ScenariosManager({
                   </span>
                 </div>
 
+                <div className="mb-3 rounded-lg border border-lime-500/20 bg-lime-500/10 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-black text-zinc-950 dark:text-white">انتخاب‌شده‌ها در بالای لیست</p>
+                      <p className="mt-1 text-[10px] font-bold text-lime-700 dark:text-lime-300">{totalPlayers} بازیکن در ترکیب فعلی</p>
+                    </div>
+                    {selectedRoleDetails.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData((previous) => ({ ...previous, roles: [] }))}
+                        className="text-xs font-black text-red-600 transition-colors hover:text-red-500 dark:text-red-400"
+                      >
+                        پاک کردن
+                      </button>
+                    )}
+                  </div>
+
+                  {selectedRoleDetails.length === 0 ? (
+                    <div className="mt-3 rounded-lg border border-dashed border-lime-500/25 bg-white/70 p-3 text-xs font-bold leading-5 text-zinc-500 dark:bg-zinc-950/40 dark:text-zinc-400">
+                      هنوز نقشی انتخاب نشده است. با دکمه + نقش‌ها به این نوار اضافه می‌شوند.
+                    </div>
+                  ) : (
+                    <div className="custom-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
+                      {selectedRoleDetails.map((role) => (
+                        <div key={`selected-${role.id}`} className="flex min-w-44 items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/70">
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{role.name}</p>
+                            <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[9px] font-black ${alignmentClass(role.alignment)}`}>
+                              {alignmentLabel(role.alignment)}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-white/10 dark:bg-white/[0.03]">
+                            <button type="button" onClick={() => updateRoleCount(role.id, -1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
+                              <span className="material-symbols-outlined text-base">remove</span>
+                            </button>
+                            <span className="w-5 text-center text-xs font-black text-zinc-950 dark:text-white">{role.count}</span>
+                            <button type="button" onClick={() => updateRoleCount(role.id, 1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
+                              <span className="material-symbols-outlined text-base">add</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <label className="mb-3 flex min-h-11 items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 dark:border-white/10 dark:bg-white/[0.03]">
                   <span className="material-symbols-outlined text-zinc-400">search</span>
                   <input
                     value={roleSearch}
                     onChange={(event) => setRoleSearch(event.target.value)}
-                    placeholder="جستجوی نقش"
+                    placeholder="جستجوی نام نقش"
                     className="w-full border-0 bg-transparent p-0 text-sm outline-none focus:ring-0"
                   />
                 </label>

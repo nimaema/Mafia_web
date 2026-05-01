@@ -52,6 +52,19 @@ function alignmentLabel(alignment?: string) {
   return "مستقل";
 }
 
+function normalizeSearchText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[أإآ]/g, "ا")
+    .replace(/[ۀة]/g, "ه")
+    .replace(/\u200c/g, " ")
+    .replace(/[\u064b-\u065f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function scenarioCounts(scenario: any) {
   return (scenario?.roles || []).reduce(
     (counts: Record<string, number>, item: any) => {
@@ -289,13 +302,10 @@ export default function GameLobbyPage() {
   );
 
   const filteredCustomRoles = useMemo(() => {
-    const query = customRoleSearch.trim().toLowerCase();
+    const query = normalizeSearchText(customRoleSearch);
     const roleCountMap = new Map(customRoles.map((role) => [role.roleId, role.count]));
     const visibleRoles = query
-      ? roles.filter((role) =>
-          [role.name, role.description || "", alignmentLabel(role.alignment)]
-            .some((value) => value.toLowerCase().includes(query))
-        )
+      ? roles.filter((role) => normalizeSearchText(role.name).includes(query))
       : roles;
 
     return [...visibleRoles].sort((left, right) => {
@@ -758,10 +768,15 @@ export default function GameLobbyPage() {
             </div>
 
             <div className="custom-scrollbar flex-1 overflow-y-auto p-4 sm:p-5">
-              <div className="grid gap-4 lg:grid-cols-[270px_minmax(0,1fr)]">
-                <aside className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03] lg:sticky lg:top-0 lg:h-fit">
+              <div className="space-y-4">
+                <aside className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-black text-zinc-950 dark:text-white">انتخاب‌شده‌ها</p>
+                    <div>
+                      <p className="text-sm font-black text-zinc-950 dark:text-white">نقش‌های انتخاب‌شده</p>
+                      <p className="mt-1 text-[10px] font-bold text-lime-700 dark:text-lime-300">
+                        نقش‌های انتخاب‌شده همیشه بالای لیست می‌مانند.
+                      </p>
+                    </div>
                     {selectedCustomRoles.length > 0 && (
                       <button
                         type="button"
@@ -774,13 +789,13 @@ export default function GameLobbyPage() {
                   </div>
 
                   {selectedCustomRoles.length === 0 ? (
-                    <div className="mt-3 rounded-lg border border-dashed border-zinc-200 bg-white p-4 text-sm font-bold leading-6 text-zinc-500 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-400">
+                    <div className="mt-3 rounded-lg border border-dashed border-lime-500/25 bg-white/70 p-4 text-sm font-bold leading-6 text-zinc-500 dark:bg-zinc-950/40 dark:text-zinc-400">
                       نقش‌ها را از لیست اضافه کنید.
                     </div>
                   ) : (
-                    <div className="custom-scrollbar mt-3 flex max-h-44 gap-2 overflow-x-auto pb-1 lg:max-h-[48vh] lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0">
+                    <div className="custom-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
                       {selectedCustomRoles.map((role) => (
-                        <div key={`selected-${role.id}`} className="flex min-w-44 items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/60 lg:min-w-0">
+                        <div key={`selected-${role.id}`} className="flex min-w-44 items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/60">
                           <div className="min-w-0">
                             <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{role.name}</p>
                             <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[9px] font-black ${alignmentClass(role.alignment)}`}>
@@ -808,7 +823,7 @@ export default function GameLobbyPage() {
                     <input
                       value={customRoleSearch}
                       onChange={(event) => setCustomRoleSearch(event.target.value)}
-                      placeholder="جستجوی سریع نقش"
+                      placeholder="جستجوی نام نقش"
                       className="w-full border-0 bg-transparent p-0 text-sm outline-none focus:ring-0"
                     />
                   </label>

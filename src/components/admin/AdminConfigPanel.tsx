@@ -113,6 +113,19 @@ function alignmentAccentClass(alignment: Alignment) {
   return "from-amber-400 to-orange-500";
 }
 
+function normalizeSearchText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[أإآ]/g, "ا")
+    .replace(/[ۀة]/g, "ه")
+    .replace(/\u200c/g, " ")
+    .replace(/[\u064b-\u065f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
   if (!Array.isArray(value)) return [];
 
@@ -587,25 +600,40 @@ export default function AdminDashboard() {
   );
 
   const visibleScenarios = useMemo(() => {
-    const query = scenarioSearch.trim().toLowerCase();
+    const query = normalizeSearchText(scenarioSearch);
     if (!query) return scenarios;
-    return scenarios.filter((scenario) =>
-      [
-        scenario.name,
-        scenario.description || "",
-        ...scenario.roles.map((scenarioRole) => scenarioRole.role.name),
-      ].some((value) => value.toLowerCase().includes(query))
-    );
+    return scenarios.filter((scenario) => normalizeSearchText(scenario.name).includes(query));
   }, [scenarioSearch, scenarios]);
 
+  const selectedScenarioRoleMap = useMemo(
+    () => new Map(selectedRoles.map((role) => [role.roleId, role.count])),
+    [selectedRoles]
+  );
+
+  const selectedScenarioRoleDetails = useMemo(
+    () =>
+      selectedRoles
+        .map((item) => {
+          const role = roles.find((roleItem) => roleItem.id === item.roleId);
+          return role ? { ...role, count: item.count } : null;
+        })
+        .filter(Boolean) as Array<MafiaRoleRecord & { count: number }>,
+    [roles, selectedRoles]
+  );
+
   const scenarioRoleOptions = useMemo(() => {
-    const query = scenarioRoleSearch.trim().toLowerCase();
-    if (!query) return roles;
-    return roles.filter((role) =>
-      [role.name, role.description || "", alignmentLabel(role.alignment)]
-        .some((value) => value.toLowerCase().includes(query))
-    );
-  }, [roles, scenarioRoleSearch]);
+    const query = normalizeSearchText(scenarioRoleSearch);
+    const visibleRoleOptions = query
+      ? roles.filter((role) => normalizeSearchText(role.name).includes(query))
+      : roles;
+
+    return [...visibleRoleOptions].sort((left, right) => {
+      const leftCount = selectedScenarioRoleMap.get(left.id) || 0;
+      const rightCount = selectedScenarioRoleMap.get(right.id) || 0;
+      if (leftCount !== rightCount) return rightCount - leftCount;
+      return left.name.localeCompare(right.name, "fa");
+    });
+  }, [roles, scenarioRoleSearch, selectedScenarioRoleMap]);
 
   return (
     <div className="flex min-h-[80vh] flex-col gap-5" dir="rtl">
@@ -1115,50 +1143,65 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="flex flex-wrap justify-end gap-2">
-                  {editingScenarioId ? (
+                  {editingScenarioId && (
                     <button onClick={resetScenarioForm} className="ui-button-secondary min-h-9 px-3 text-xs">
                       لغو
                     </button>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleScenarioBackup}
-                        disabled={scenarioBackupBusy}
-                        className="ui-button-secondary min-h-9 px-3 text-xs"
-                      >
-                        <span className="material-symbols-outlined text-base">backup</span>
-                        بکاپ
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleScenarioRestore}
-                        disabled={scenarioBackupBusy}
-                        className="ui-button-secondary min-h-9 px-3 text-xs"
-                      >
-                        <span className="material-symbols-outlined text-base">settings_backup_restore</span>
-                        بازیابی
-                      </button>
-                      {!installedStandardScenarios && (
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            const result = await installStandardScenarios();
-                            if (result?.success) {
-                              showToast("سناریوهای پیش‌فرض نصب شدند", "success");
-                              await refreshData();
-                            }
-                          }}
-                          className="ui-button-secondary min-h-9 px-3 text-xs"
-                        >
-                          <span className="material-symbols-outlined text-base">auto_awesome</span>
-                          قالب‌ها
-                        </button>
-                      )}
-                    </>
                   )}
                 </div>
               </div>
+
+              {!editingScenarioId && (
+                <div className="mt-4 rounded-lg border border-lime-500/20 bg-lime-500/10 p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-lime-500/20 bg-white text-lime-700 dark:bg-zinc-950 dark:text-lime-300">
+                      <span className="material-symbols-outlined text-lg">cloud_done</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-black text-zinc-950 dark:text-white">پشتیبان سناریوها</p>
+                      <p className="mt-1 text-[10px] leading-5 text-zinc-600 dark:text-zinc-300">
+                        برای انتقال به سرور، وضعیت فعلی را بکاپ بگیرید یا فایل بکاپ را به دیتابیس برگردانید.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={handleScenarioBackup}
+                      disabled={scenarioBackupBusy}
+                      className="ui-button-secondary min-h-9 px-3 text-xs"
+                    >
+                      <span className="material-symbols-outlined text-base">backup</span>
+                      ذخیره بکاپ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleScenarioRestore}
+                      disabled={scenarioBackupBusy}
+                      className="ui-button-secondary min-h-9 px-3 text-xs"
+                    >
+                      <span className="material-symbols-outlined text-base">settings_backup_restore</span>
+                      بازیابی
+                    </button>
+                    {!installedStandardScenarios && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const result = await installStandardScenarios();
+                          if (result?.success) {
+                            showToast("سناریوهای پیش‌فرض نصب شدند", "success");
+                            await refreshData();
+                          }
+                        }}
+                        className="ui-button-secondary col-span-2 min-h-9 px-3 text-xs"
+                      >
+                        <span className="material-symbols-outlined text-base">auto_awesome</span>
+                        نصب سناریوهای پیش‌فرض
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <form onSubmit={handleAddScenario} noValidate className="mt-5 flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
@@ -1188,12 +1231,63 @@ export default function AdminDashboard() {
                     </span>
                   </div>
 
+                  <div className="mb-3 rounded-lg border border-lime-500/20 bg-lime-500/10 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-black text-zinc-950 dark:text-white">نقش‌های انتخاب‌شده</p>
+                        <p className="mt-1 text-[10px] font-bold text-lime-700 dark:text-lime-300">
+                          بالای لیست نگه داشته می‌شوند تا ترکیب گم نشود.
+                        </p>
+                      </div>
+                      {selectedScenarioRoleDetails.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRoles([])}
+                          className="text-xs font-black text-red-600 transition-colors hover:text-red-500 dark:text-red-400"
+                        >
+                          پاک کردن
+                        </button>
+                      )}
+                    </div>
+
+                    {selectedScenarioRoleDetails.length === 0 ? (
+                      <div className="mt-3 rounded-lg border border-dashed border-lime-500/25 bg-white/70 p-3 text-xs font-bold leading-5 text-zinc-500 dark:bg-zinc-950/40 dark:text-zinc-400">
+                        هنوز نقشی انتخاب نشده است. نقش‌های اضافه‌شده همین‌جا نمایش داده می‌شوند.
+                      </div>
+                    ) : (
+                      <div className="custom-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
+                        {selectedScenarioRoleDetails.map((role) => (
+                          <div key={`selected-${role.id}`} className="flex min-w-44 items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/70">
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{role.name}</p>
+                              <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[9px] font-black ${alignmentClass(role.alignment)}`}>
+                                {alignmentLabel(role.alignment)}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-white/10 dark:bg-white/[0.03]">
+                              <button type="button" onClick={() => updateRoleCount(role.id, -1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
+                                <span className="material-symbols-outlined text-base">remove</span>
+                              </button>
+                              <span className="w-5 text-center text-xs font-black text-zinc-950 dark:text-white">{role.count}</span>
+                              <button type="button" onClick={() => updateRoleCount(role.id, 1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
+                                <span className="material-symbols-outlined text-base">add</span>
+                              </button>
+                              <button type="button" onClick={() => toggleRoleInScenario(role.id)} className="flex size-7 items-center justify-center rounded-md text-red-500 hover:bg-red-500/10">
+                                <span className="material-symbols-outlined text-base">close</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   <label className="mb-3 flex min-h-10 items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 dark:border-white/10 dark:bg-white/[0.03]">
                     <span className="material-symbols-outlined text-base text-zinc-400">search</span>
                     <input
                       value={scenarioRoleSearch}
                       onChange={(event) => setScenarioRoleSearch(event.target.value)}
-                      placeholder="جستجوی نقش برای سناریو"
+                      placeholder="جستجوی نام نقش برای سناریو"
                       className="w-full border-0 bg-transparent p-0 text-xs outline-none focus:ring-0"
                     />
                   </label>
@@ -1283,7 +1377,7 @@ export default function AdminDashboard() {
                     <input
                       value={scenarioSearch}
                       onChange={(event) => setScenarioSearch(event.target.value)}
-                      placeholder="جستجوی سناریو یا نقش‌های داخل آن"
+                      placeholder="جستجوی نام سناریو"
                       className="w-full border-0 bg-transparent p-0 text-sm outline-none focus:ring-0"
                     />
                   </label>
@@ -1295,7 +1389,7 @@ export default function AdminDashboard() {
                       </div>
                       <div>
                         <p className="font-black text-zinc-950 dark:text-white">سناریویی با این جستجو پیدا نشد</p>
-                        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">نام سناریو یا یکی از نقش‌ها را جستجو کنید.</p>
+                        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">فقط نام سناریو جستجو می‌شود؛ عبارت را دقیق‌تر وارد کنید.</p>
                       </div>
                     </div>
                   ) : (
