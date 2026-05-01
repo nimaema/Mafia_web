@@ -226,7 +226,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         href={item.href}
         aria-current={active ? "page" : undefined}
         className={cx(
-          "group relative grid min-h-[4.35rem] grid-cols-[3rem_minmax(0,1fr)_1.25rem] items-center gap-3 overflow-hidden rounded-2xl border px-3 text-right transition-all",
+          "motion-nav-item group relative grid min-h-[4.35rem] grid-cols-[3rem_minmax(0,1fr)_1.25rem] items-center gap-3 overflow-hidden rounded-2xl border px-3 text-right transition-all",
           active
             ? "border-zinc-200 bg-white text-zinc-950 shadow-lg shadow-zinc-950/10 dark:border-white/10 dark:bg-white/[0.09] dark:text-white dark:shadow-black/20"
             : "border-transparent text-zinc-600 hover:border-zinc-200 hover:bg-white/80 hover:text-zinc-950 hover:shadow-sm dark:text-zinc-400 dark:hover:border-white/10 dark:hover:bg-white/[0.06] dark:hover:text-white"
@@ -262,7 +262,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         href={item.href}
         aria-current={active ? "page" : undefined}
         className={cx(
-          "group relative flex min-w-[4.9rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center transition-all",
+          "motion-nav-item group relative flex min-w-[4.9rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center transition-all",
           active
             ? "bg-zinc-950 text-white shadow-md shadow-zinc-950/10 dark:bg-white dark:text-zinc-950"
             : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
@@ -279,8 +279,8 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
 
   return (
     <>
-      <aside className="sticky top-0 z-20 hidden h-screen w-[21rem] shrink-0 flex-col border-l border-zinc-200 bg-zinc-100/90 p-3 shadow-2xl shadow-zinc-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/95 dark:shadow-black/30 md:flex">
-        <div className="overflow-hidden rounded-[1.25rem] border border-zinc-800 bg-zinc-950 text-white shadow-2xl shadow-zinc-950/20 dark:border-white/10">
+      <aside className="motion-page sticky top-0 z-20 hidden h-screen w-[21rem] shrink-0 flex-col border-l border-zinc-200 bg-zinc-100/90 p-3 shadow-2xl shadow-zinc-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/95 dark:shadow-black/30 md:flex">
+        <div className="motion-pop overflow-hidden rounded-[1.25rem] border border-zinc-800 bg-zinc-950 text-white shadow-2xl shadow-zinc-950/20 dark:border-white/10">
           <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
           <div className="p-3">
             <div className="flex items-center justify-between gap-3">
@@ -330,7 +330,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
           </div>
         </div>
 
-        <nav className="custom-scrollbar mt-3 flex flex-1 flex-col gap-3 overflow-y-auto rounded-[1.25rem] border border-zinc-200 bg-white/75 p-2.5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.035]">
+        <nav className="custom-scrollbar motion-list mt-3 flex flex-1 flex-col gap-3 overflow-y-auto rounded-[1.25rem] border border-zinc-200 bg-white/75 p-2.5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.035]">
           {sections.map((section) => (
             <section key={section.title} className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-2 dark:border-white/10 dark:bg-zinc-950/45">
               <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-zinc-200 bg-white/70 px-2.5 py-2 dark:border-white/10 dark:bg-white/[0.035]">
@@ -353,7 +353,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
           ))}
         </nav>
 
-        <div className="mt-3 rounded-[1.25rem] border border-zinc-200 bg-white/75 p-2 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.035]">
+        <div className="motion-reveal mt-3 rounded-[1.25rem] border border-zinc-200 bg-white/75 p-2 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.035]">
           <ThemeToggle />
           <form action={logoutAction} className="mt-1.5 w-full">
             <button
@@ -368,7 +368,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         </div>
       </aside>
 
-      <nav className="fixed bottom-3 left-3 right-3 z-50 overflow-hidden rounded-[1.4rem] border border-zinc-200/80 bg-white/[0.96] shadow-2xl shadow-zinc-950/15 backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/[0.96] md:hidden">
+      <nav className="motion-pop fixed bottom-3 left-3 right-3 z-50 overflow-hidden rounded-[1.4rem] border border-zinc-200/80 bg-white/[0.96] shadow-2xl shadow-zinc-950/15 backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/[0.96] md:hidden">
         <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-zinc-200/70 px-3 py-2 dark:border-white/10">
           <span className="truncate text-xs font-black text-zinc-950 dark:text-white">{currentLabel}</span>

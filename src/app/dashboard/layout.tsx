@@ -34,7 +34,7 @@ export default async function DashboardLayout({
       />
 
       <main className="relative z-10 w-full flex-1 overflow-x-hidden p-4 md:p-8">
-        <div className="mx-auto max-w-7xl">
+        <div className="motion-reveal mx-auto max-w-7xl">
           {children}
         </div>
       </main>
