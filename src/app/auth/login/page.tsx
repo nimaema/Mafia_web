@@ -1,16 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { loginUser } from "@/actions/auth";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { usePopup } from "@/components/PopupProvider";
 
+function authErrorMessage(error?: string | null) {
+  if (!error) return null;
+  const normalized = error.toLowerCase();
+  if (normalized.includes("credential") || normalized.includes("signin")) {
+    return "ایمیل یا رمز عبور اشتباه است";
+  }
+  if (normalized.includes("accessdenied") || normalized.includes("denied")) {
+    return "دسترسی شما برای ورود تایید نشد.";
+  }
+  if (normalized.includes("callback")) {
+    return "ورود با سرویس انتخاب‌شده کامل نشد. دوباره تلاش کنید.";
+  }
+  if (normalized.includes("configuration")) {
+    return "تنظیمات ورود روی سرور کامل نیست.";
+  }
+  if (normalized.includes("verification")) {
+    return "لینک ورود یا تایید معتبر نیست یا منقضی شده است.";
+  }
+  return "ورود انجام نشد. دوباره تلاش کنید.";
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { showAlert } = usePopup();
+  const [authQueryError, setAuthQueryError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAuthQueryError(authErrorMessage(new URLSearchParams(window.location.search).get("error")));
+  }, []);
 
   const [error, setError] = useActionState<string | null, FormData>(
     async (_previousState, formData) => {
@@ -50,11 +76,11 @@ export default function LoginPage() {
       activeTab="login"
     >
       <form action={setError} noValidate className="flex flex-col gap-5">
-        {error && (
+        {(error || authQueryError) && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
             <div className="flex items-center gap-2 font-medium">
               <span className="material-symbols-outlined text-lg">error</span>
-              <span>{error}</span>
+              <span>{error || authQueryError}</span>
             </div>
           </div>
         )}

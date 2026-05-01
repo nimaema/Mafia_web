@@ -39,7 +39,7 @@ function backupFileName(kind: DatabaseBackupRecord["kind"]) {
 function assertDatabaseUrl() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    throw new Error("DATABASE_URL برای بکاپ دیتابیس تنظیم نشده است.");
+    throw new Error("متغیر DATABASE_URL برای بکاپ دیتابیس تنظیم نشده است.");
   }
   return databaseUrl;
 }

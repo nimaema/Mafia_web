@@ -6,7 +6,7 @@ export async function POST(req: Request) {
   const session = await auth();
   
   if (!session?.user) {
-    return new Response('Unauthorized', { status: 401 });
+    return new Response('دسترسی غیرمجاز است', { status: 401 });
   }
 
   const body = await req.formData();

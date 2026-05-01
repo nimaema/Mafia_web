@@ -10,7 +10,7 @@ export async function GET() {
     });
 
     if (existingAdmin) {
-      return NextResponse.json({ message: "Admin already exists" }, { status: 200 });
+      return NextResponse.json({ message: "حساب مدیر از قبل وجود دارد" }, { status: 200 });
     }
 
     const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || "admin123";
@@ -26,11 +26,12 @@ export async function GET() {
     });
 
     return NextResponse.json({ 
-      message: "Admin user created successfully", 
+      message: "حساب مدیر با موفقیت ساخته شد",
       email: adminEmail, 
       password: adminPassword 
     }, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[SETUP_ADMIN]", error);
+    return NextResponse.json({ error: "راه‌اندازی حساب مدیر انجام نشد." }, { status: 500 });
   }
 }

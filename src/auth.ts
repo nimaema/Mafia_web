@@ -23,10 +23,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.AUTH_GOOGLE_SECRET || "",
     }),
     CredentialsProvider({
-      name: "Credentials",
+      name: "ورود با ایمیل",
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        email: { label: "ایمیل", type: "email" },
+        password: { label: "رمز عبور", type: "password" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null

@@ -7,6 +7,8 @@ import { sendVerificationEmail } from "@/lib/email";
 import { randomBytes } from "crypto";
 import { headers } from "next/headers";
 
+const INVALID_LOGIN_MESSAGE = "ایمیل یا رمز عبور اشتباه است";
+
 async function getBaseUrl() {
   const h = await headers();
   const proto = h.get("x-forwarded-proto") || "http";
@@ -42,7 +44,7 @@ export async function registerUser(formData: FormData) {
   });
 
   if (existingUser) {
-    return { error: "Email already exists" };
+    return { error: "این ایمیل قبلاً ثبت شده است." };
   }
 
   const password_hash = await saltAndHashPassword(password);
@@ -129,7 +131,10 @@ export async function loginUser(formData: FormData) {
 
     return { success: true, role: user?.role };
   } catch (error) {
-    return { error: "Invalid credentials" };
+    if (error instanceof Error && error.message.includes("مسدود")) {
+      return { error: "حساب کاربری شما مسدود شده است" };
+    }
+    return { error: INVALID_LOGIN_MESSAGE };
   }
 }
 

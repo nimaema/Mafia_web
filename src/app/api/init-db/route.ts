@@ -44,8 +44,9 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({ success: true, message: "Database initialized successfully" });
+    return NextResponse.json({ success: true, message: "دیتابیس با موفقیت راه‌اندازی شد" });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error("[INIT_DB]", error);
+    return NextResponse.json({ success: false, error: "راه‌اندازی دیتابیس انجام نشد." }, { status: 500 });
   }
 }
