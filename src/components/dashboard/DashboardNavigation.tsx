@@ -121,6 +121,17 @@ function formatPanelDate() {
       month: "short",
       year: "numeric",
     }).format(today),
+    shamsiCompact: new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(today),
+    miladiCompact: new Intl.DateTimeFormat("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(today),
     mobile: new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
       day: "numeric",
       month: "short",
@@ -201,8 +212,13 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
     return false;
   };
 
+  const itemToneByKey = new Map<string, NavTone>(
+    sections.flatMap((section) => section.items.map((item) => [item.key, section.tone] as const))
+  );
+
   const renderDesktopLink = (item: NavItem) => {
     const active = isActive(item);
+    const tone = itemToneByKey.get(item.key) ?? item.tone;
 
     return (
       <Link
@@ -216,8 +232,8 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
             : "border-transparent text-zinc-600 hover:border-zinc-200 hover:bg-white/80 hover:text-zinc-950 hover:shadow-sm dark:text-zinc-400 dark:hover:border-white/10 dark:hover:bg-white/[0.06] dark:hover:text-white"
         )}
       >
-        {active && <span className={cx("absolute inset-y-3 right-0 w-1 rounded-l-full", toneBar(item.tone))} />}
-        <span className={cx("material-symbols-outlined grid size-12 place-items-center rounded-2xl text-[1.45rem] leading-none transition-all", toneIcon(item.tone, active))}>
+        {active && <span className={cx("absolute inset-y-3 right-0 w-1 rounded-l-full", toneBar(tone))} />}
+        <span className={cx("material-symbols-outlined grid size-12 place-items-center rounded-2xl text-[1.45rem] leading-none transition-all", toneIcon(tone, active))}>
           {item.icon}
         </span>
         <span className="min-w-0">
@@ -227,7 +243,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         <span
           className={cx(
             "material-symbols-outlined text-lg transition-all",
-            active ? toneText(item.tone) : "text-zinc-300 group-hover:translate-x-0.5 group-hover:text-zinc-500 dark:text-zinc-600 dark:group-hover:text-zinc-300"
+            active ? toneText(tone) : "text-zinc-300 group-hover:translate-x-0.5 group-hover:text-zinc-500 dark:text-zinc-600 dark:group-hover:text-zinc-300"
           )}
         >
           chevron_left
@@ -238,6 +254,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
 
   const renderMobileLink = (item: NavItem) => {
     const active = isActive(item);
+    const tone = itemToneByKey.get(item.key) ?? item.tone;
 
     return (
       <Link
@@ -251,8 +268,8 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
             : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
         )}
       >
-        {active && <span className={cx("absolute top-1 h-1 w-6 rounded-full", toneBar(item.tone))} />}
-        <span className={cx("material-symbols-outlined grid size-8 place-items-center rounded-xl text-xl leading-none transition-all", toneIcon(item.tone, active))}>
+        {active && <span className={cx("absolute top-1 h-1 w-6 rounded-full", toneBar(tone))} />}
+        <span className={cx("material-symbols-outlined grid size-8 place-items-center rounded-xl text-xl leading-none transition-all", toneIcon(tone, active))}>
           {item.icon}
         </span>
         <span className="w-full truncate text-[10px] font-black leading-4">{item.label}</span>
@@ -262,13 +279,13 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
 
   return (
     <>
-      <aside className="sticky top-0 z-20 hidden h-screen w-[21rem] shrink-0 flex-col border-l border-zinc-200 bg-zinc-100/90 p-4 shadow-2xl shadow-zinc-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/95 dark:shadow-black/30 md:flex">
-        <div className="overflow-hidden rounded-[1.4rem] border border-zinc-800 bg-zinc-950 text-white shadow-2xl shadow-zinc-950/20 dark:border-white/10">
+      <aside className="sticky top-0 z-20 hidden h-screen w-[21rem] shrink-0 flex-col border-l border-zinc-200 bg-zinc-100/90 p-3 shadow-2xl shadow-zinc-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/95 dark:shadow-black/30 md:flex">
+        <div className="overflow-hidden rounded-[1.25rem] border border-zinc-800 bg-zinc-950 text-white shadow-2xl shadow-zinc-950/20 dark:border-white/10">
           <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
-          <div className="p-4">
+          <div className="p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white text-xl font-black text-zinc-950 shadow-lg shadow-black/20">
+                <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white text-lg font-black text-zinc-950 shadow-lg shadow-black/20">
                   {user.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={user.image} alt="" className="size-full object-cover" />
@@ -277,49 +294,58 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-base font-black">{user.name || "بازیکن مافیا"}</p>
-                  <p className="mt-1 truncate text-xs font-bold text-zinc-400">در حال مشاهده: {currentLabel}</p>
+                  <p className="truncate text-sm font-black">{user.name || "بازیکن مافیا"}</p>
+                  <p className="mt-0.5 truncate text-[11px] font-bold text-zinc-400">در حال مشاهده: {currentLabel}</p>
                 </div>
               </div>
-              <span className={cx("material-symbols-outlined grid size-10 shrink-0 place-items-center rounded-xl border text-xl leading-none", roleTone(user.role))}>
+              <span className={cx("material-symbols-outlined grid size-9 shrink-0 place-items-center rounded-xl border text-lg leading-none", roleTone(user.role))}>
                 {roleIcon(user.role)}
               </span>
             </div>
 
-            <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-2xl border border-white/10 bg-white/10 p-3">
-              <div className="min-w-0">
-                <p className="text-[11px] font-bold text-zinc-400">سطح دسترسی</p>
-                <p className="mt-1 truncate text-sm font-black text-white">{roleLabel(user.role)}</p>
+            <div className="mt-3 grid grid-cols-[0.9fr_1.1fr] gap-2">
+              <div className="min-w-0 rounded-xl border border-white/10 bg-white/10 px-2.5 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-zinc-400">دسترسی</p>
+                    <p className="mt-0.5 truncate text-xs font-black text-white">{roleLabel(user.role)}</p>
+                  </div>
+                  <span className="flex shrink-0 items-center gap-1 rounded-full border border-lime-300/20 bg-lime-300/10 px-2 py-1 text-[10px] font-black text-lime-200">
+                    <span className="size-1.5 rounded-full bg-lime-400" />
+                    فعال
+                  </span>
+                </div>
               </div>
-              <span className="flex items-center gap-1.5 rounded-xl border border-lime-300/20 bg-lime-300/10 px-3 text-[11px] font-black text-lime-200">
-                <span className="size-2 rounded-full bg-lime-400" />
-                فعال
-              </span>
-            </div>
-
-            <div className="mt-3 grid grid-cols-[2.75rem_minmax(0,1fr)] gap-3 rounded-2xl border border-white/10 bg-white/[0.07] p-3">
-              <span className="material-symbols-outlined grid size-11 place-items-center rounded-xl bg-white/10 text-xl leading-none text-lime-200">
-                calendar_month
-              </span>
-              <div className="min-w-0">
-                <p className="text-[10px] font-black text-zinc-400">تاریخ امروز</p>
-                <p className="mt-1 truncate text-sm font-black text-white">{panelDate.shamsi}</p>
-                <p className="mt-0.5 truncate text-[11px] font-bold text-zinc-400" dir="ltr">{panelDate.miladi}</p>
+              <div className="grid min-w-0 grid-cols-[2rem_minmax(0,1fr)] gap-2 rounded-xl border border-white/10 bg-white/[0.07] px-2.5 py-2">
+                <span className="material-symbols-outlined grid size-8 place-items-center rounded-lg bg-white/10 text-base leading-none text-lime-200">
+                  calendar_month
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black text-zinc-400">امروز</p>
+                  <p className="mt-0.5 truncate text-xs font-black text-white">{panelDate.shamsiCompact}</p>
+                  <p className="truncate text-[10px] font-bold text-zinc-400" dir="ltr">{panelDate.miladiCompact}</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <nav className="custom-scrollbar mt-4 flex flex-1 flex-col gap-4 overflow-y-auto rounded-[1.4rem] border border-zinc-200 bg-white/75 p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.035]">
+        <nav className="custom-scrollbar mt-3 flex flex-1 flex-col gap-3 overflow-y-auto rounded-[1.25rem] border border-zinc-200 bg-white/75 p-2.5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.035]">
           {sections.map((section) => (
-            <section key={section.title} className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-2.5 dark:border-white/10 dark:bg-zinc-950/45">
-              <div className="mb-2 flex items-center gap-3 px-1">
-                <span className={cx("material-symbols-outlined grid size-10 place-items-center rounded-xl text-xl leading-none", toneIcon(section.tone, false))}>
-                  {section.icon}
+            <section key={section.title} className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-2 dark:border-white/10 dark:bg-zinc-950/45">
+              <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-zinc-200 bg-white/70 px-2.5 py-2 dark:border-white/10 dark:bg-white/[0.035]">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className={cx("h-7 w-1 rounded-full", toneBar(section.tone))} />
+                  <span className={cx("material-symbols-outlined grid size-7 place-items-center text-base leading-none", toneText(section.tone))}>
+                    {section.icon}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[11px] font-black text-zinc-950 dark:text-white">{section.title}</span>
+                    <span className="mt-0.5 block truncate text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{section.subtitle}</span>
+                  </span>
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-black text-zinc-950 dark:text-white">{section.title}</span>
-                  <span className="mt-0.5 block truncate text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{section.subtitle}</span>
+                <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-1 text-[9px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950/70 dark:text-zinc-400">
+                  {section.items.length} مورد
                 </span>
               </div>
               <div className="grid gap-1.5">{section.items.map(renderDesktopLink)}</div>
@@ -327,16 +353,16 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
           ))}
         </nav>
 
-        <div className="mt-4 rounded-[1.4rem] border border-zinc-200 bg-white/75 p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.035]">
+        <div className="mt-3 rounded-[1.25rem] border border-zinc-200 bg-white/75 p-2 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.035]">
           <ThemeToggle />
-          <form action={logoutAction} className="mt-2 w-full">
+          <form action={logoutAction} className="mt-1.5 w-full">
             <button
               type="submit"
-              className="group grid w-full grid-cols-[2.25rem_minmax(0,1fr)_1.5rem] items-center gap-3 rounded-2xl border border-red-500/15 bg-white/80 px-3 py-2.5 text-xs font-black text-red-600 shadow-sm shadow-zinc-950/5 transition-all hover:border-red-500/30 hover:bg-red-500 hover:text-white dark:bg-white/[0.04] dark:text-red-300 dark:hover:bg-red-500"
+              className="group grid w-full grid-cols-[2rem_minmax(0,1fr)_1.25rem] items-center gap-2.5 rounded-xl border border-red-500/15 bg-white/80 px-2.5 py-2 text-xs font-black text-red-600 shadow-sm shadow-zinc-950/5 transition-all hover:border-red-500/30 hover:bg-red-500 hover:text-white dark:bg-white/[0.04] dark:text-red-300 dark:hover:bg-red-500"
             >
-              <span className="material-symbols-outlined grid size-9 place-items-center rounded-xl bg-red-500/10 text-lg leading-none transition-all group-hover:bg-white/15">logout</span>
+              <span className="material-symbols-outlined grid size-8 place-items-center rounded-lg bg-red-500/10 text-base leading-none transition-all group-hover:bg-white/15">logout</span>
               <span className="min-w-0 truncate text-right">خروج از سیستم</span>
-              <span className="material-symbols-outlined grid size-6 place-items-center text-base leading-none opacity-50">chevron_left</span>
+              <span className="material-symbols-outlined grid size-5 place-items-center text-sm leading-none opacity-50">chevron_left</span>
             </button>
           </form>
         </div>

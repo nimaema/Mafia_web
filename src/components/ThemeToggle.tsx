@@ -38,10 +38,10 @@ export function ThemeToggle({ compact = false, nav = false }: ThemeToggleProps) 
       <button
         type="button"
         disabled
-        className={compact ? "ui-button-secondary min-h-10 px-3 text-xs opacity-70" : "flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white/80 px-3 py-2.5 text-xs font-black text-zinc-500 opacity-70 dark:border-white/10 dark:bg-white/[0.04]"}
+        className={compact ? "ui-button-secondary min-h-10 px-3 text-xs opacity-70" : "flex w-full items-center gap-2.5 rounded-xl border border-zinc-200 bg-white/80 px-2.5 py-2 text-xs font-black text-zinc-500 opacity-70 dark:border-white/10 dark:bg-white/[0.04]"}
         title="تنظیم تم"
       >
-        <span className="material-symbols-outlined grid size-9 place-items-center rounded-xl bg-zinc-100 text-lg leading-none dark:bg-white/[0.06]">contrast</span>
+        <span className="material-symbols-outlined grid size-8 place-items-center rounded-lg bg-zinc-100 text-base leading-none dark:bg-white/[0.06]">contrast</span>
         <span className={compact ? "hidden sm:inline" : "truncate"}>تم</span>
       </button>
     );
@@ -83,12 +83,12 @@ export function ThemeToggle({ compact = false, nav = false }: ThemeToggleProps) 
       className={
         compact
           ? "group inline-flex min-h-9 items-center gap-2 rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-black text-zinc-700 shadow-sm shadow-zinc-950/5 transition-all hover:border-lime-500/30 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200"
-          : "group grid w-full grid-cols-[2.25rem_minmax(0,1fr)_3.2rem] items-center gap-3 rounded-2xl border border-zinc-200 bg-white/80 px-3 py-2.5 text-xs font-black text-zinc-700 shadow-sm shadow-zinc-950/5 transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.07]"
+          : "group grid w-full grid-cols-[2rem_minmax(0,1fr)_2.75rem] items-center gap-2.5 rounded-xl border border-zinc-200 bg-white/80 px-2.5 py-2 text-xs font-black text-zinc-700 shadow-sm shadow-zinc-950/5 transition-all hover:border-lime-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.07]"
       }
       aria-label={isDark ? "تغییر به تم روشن" : "تغییر به تم تاریک"}
       title={isDark ? "تغییر به تم روشن" : "تغییر به تم تاریک"}
     >
-      <span className={`material-symbols-outlined grid size-9 place-items-center rounded-xl text-lg leading-none ${
+      <span className={`material-symbols-outlined grid size-8 place-items-center rounded-lg text-base leading-none ${
         isDark ? "bg-lime-500/10 text-lime-300" : "bg-amber-500/10 text-amber-600"
       }`}>
         {isDark ? "dark_mode" : "light_mode"}
@@ -96,18 +96,18 @@ export function ThemeToggle({ compact = false, nav = false }: ThemeToggleProps) 
       <span className={compact ? "hidden sm:inline" : "min-w-0 truncate text-right"}>
         {isDark ? "تاریک فعال" : "روشن فعال"}
       </span>
-      <span className={`relative flex h-7 w-12 shrink-0 items-center rounded-full border p-1 transition-all ${
+      <span className={`relative flex h-6 w-10 shrink-0 items-center rounded-full border p-0.5 transition-all ${
         isDark
           ? "border-lime-400/30 bg-zinc-950 shadow-inner shadow-black/50"
           : "border-amber-300/50 bg-amber-100 shadow-inner shadow-amber-300/30"
       }`}>
-        <span className={`absolute right-2 grid place-items-center text-[14px] leading-none transition-opacity ${isDark ? "text-lime-300 opacity-100" : "opacity-0"}`}>
-          <span className="material-symbols-outlined text-[15px]">dark_mode</span>
+        <span className={`absolute right-1.5 grid place-items-center text-[13px] leading-none transition-opacity ${isDark ? "text-lime-300 opacity-100" : "opacity-0"}`}>
+          <span className="material-symbols-outlined text-[13px]">dark_mode</span>
         </span>
-        <span className={`absolute left-2 grid place-items-center text-[14px] leading-none transition-opacity ${isDark ? "opacity-0" : "text-amber-600 opacity-100"}`}>
-          <span className="material-symbols-outlined text-[15px]">light_mode</span>
+        <span className={`absolute left-1.5 grid place-items-center text-[13px] leading-none transition-opacity ${isDark ? "opacity-0" : "text-amber-600 opacity-100"}`}>
+          <span className="material-symbols-outlined text-[13px]">light_mode</span>
         </span>
-        <span className={`relative z-10 size-5 rounded-full bg-white shadow-sm shadow-zinc-950/20 transition-transform ${isDark ? "-translate-x-5" : "translate-x-0"}`} />
+        <span className={`relative z-10 size-5 rounded-full bg-white shadow-sm shadow-zinc-950/20 transition-transform ${isDark ? "-translate-x-4" : "translate-x-0"}`} />
       </span>
     </button>
   );
