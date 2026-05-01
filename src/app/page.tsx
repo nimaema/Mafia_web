@@ -1,131 +1,102 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { LobbyPreviewCard } from "@/components/game/LobbyPreviewCard";
 
-const samplePlayers = [
-  { id: "1", name: "پارسا" },
-  { id: "2", name: "رها" },
-  { id: "3", name: "امیر" },
-  { id: "4", name: "آرزو" },
-  { id: "5", name: "مانی" },
-  { id: "6", name: "شایان" },
-  { id: "7", name: "هستی" },
-  { id: "8", name: "النا" },
-];
-
-const sampleRoles = [
-  { id: "role-1", name: "شهروند ساده", count: 4, alignment: "CITIZEN" as const },
-  { id: "role-2", name: "کارآگاه", count: 1, alignment: "CITIZEN" as const },
-  { id: "role-3", name: "دکتر", count: 1, alignment: "CITIZEN" as const },
-  { id: "role-4", name: "رئیس مافیا", count: 1, alignment: "MAFIA" as const },
-  { id: "role-5", name: "سایلنسر", count: 1, alignment: "MAFIA" as const },
-  { id: "role-6", name: "جوکر", count: 1, alignment: "NEUTRAL" as const },
-];
-
-const landingSignals = [
-  { icon: "hub", title: "لابی منظم", text: "کد ورود، ظرفیت و بازیکنان در یک قاب روشن." },
-  { icon: "account_tree", title: "سناریوی هماهنگ", text: "ترکیب نقش‌ها همان‌طور که در بازی استفاده می‌شود." },
-  { icon: "verified_user", title: "ورود با حساب", text: "همه بازیکنان قبل از بازی ثبت‌نام می‌کنند." },
+const desktopFeatures = [
+  { icon: "groups", title: "لابی و ورود", text: "ساخت بازی، ورود با کد و کنترل دسترسی بازیکنان." },
+  { icon: "account_tree", title: "سناریو و نقش", text: "تعریف سناریو، نقش‌ها و توانایی‌های شب برای هر بازی." },
+  { icon: "edit_note", title: "گزارش گرداننده", text: "ثبت اتفاقات روز و شب و انتشار گزارش برای بازیکنان." },
 ];
 
 export default function Home() {
   return (
-    <div className="app-page min-h-screen overflow-hidden pb-20 md:pb-0" dir="rtl">
-      <header className="app-container sticky top-0 z-30 flex items-center justify-between border-b border-zinc-200/80 bg-white/92 py-3 backdrop-blur dark:border-white/10 dark:bg-zinc-950/92 sm:py-5 md:static md:border-0 md:bg-transparent md:backdrop-blur-0">
-        <div className="flex items-center gap-3">
-          <div className="ui-icon-accent">
-            <span className="material-symbols-outlined text-xl">theater_comedy</span>
-          </div>
-          <div>
-            <p className="text-base font-black text-zinc-950 dark:text-white sm:text-lg">مافیا بورد</p>
-            <p className="hidden sm:block ui-kicker">کنترل روم بازی</p>
-          </div>
-        </div>
+    <div className="app-page min-h-screen overflow-x-hidden" dir="rtl">
+      <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-zinc-950 px-6 py-10 text-white md:hidden">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:34px_34px]" />
+        <div className="pointer-events-none absolute inset-x-8 top-20 h-44 rounded-full bg-lime-500/10 blur-3xl" />
 
-        <div className="flex items-center gap-2">
-          <ThemeToggle compact />
-          <Link href="/auth/login" className="ui-button-primary hidden sm:flex">
-            <span className="material-symbols-outlined text-lg">login</span>
-            ورود و شروع
+        <main className="relative z-10 flex w-full max-w-xs flex-col items-center text-center">
+          <div className="flex size-24 items-center justify-center rounded-[2rem] bg-lime-500 text-zinc-950 shadow-2xl shadow-lime-500/25">
+            <span className="material-symbols-outlined text-5xl">theater_comedy</span>
+          </div>
+          <h1 className="mt-5 text-4xl font-black leading-tight">مافیا بورد</h1>
+          <p className="mt-3 whitespace-nowrap text-sm font-bold text-zinc-300">کنترل سریع و امن بازی‌های مافیا</p>
+          <Link href="/auth/login" className="mt-8 flex min-h-14 w-full items-center justify-center gap-2 rounded-lg bg-lime-500 px-5 text-base font-black text-zinc-950 shadow-xl shadow-lime-500/20 transition-all active:scale-[0.98]">
+            <span className="material-symbols-outlined text-xl">login</span>
+            ورود و شروع بازی
           </Link>
-        </div>
-      </header>
+        </main>
+      </div>
 
-      <main>
-        <section className="relative bg-white/70 dark:bg-zinc-950 md:border-y md:border-zinc-200 md:dark:border-white/10">
-          <div className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(135deg,rgba(132,204,22,0.10),transparent_34%),linear-gradient(225deg,rgba(14,165,233,0.10),transparent_30%)] dark:bg-[linear-gradient(135deg,rgba(132,204,22,0.13),transparent_34%),linear-gradient(225deg,rgba(14,165,233,0.10),transparent_32%)] md:block" />
-          <div className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(rgba(24,24,27,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(24,24,27,0.045)_1px,transparent_1px)] bg-[size:44px_44px] dark:bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] md:block" />
-
-          <div className="app-container relative min-h-[calc(100svh-132px)] py-3 sm:py-10 md:min-h-0 lg:py-12">
-            <div className="hidden max-w-3xl md:block">
-              <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-zinc-200 bg-white/80 px-3 py-2 text-sm font-black text-zinc-700 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/80 dark:text-zinc-200">
-                <span className="material-symbols-outlined text-base text-lime-600 dark:text-lime-400">bolt</span>
-                کنترل روم بازی‌های مافیا
-              </div>
-
-              <h1 className="mt-4 text-4xl font-black leading-tight text-zinc-950 dark:text-white sm:text-6xl lg:text-7xl">
-                مافیا بورد
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-600 dark:text-zinc-300 sm:mt-4 sm:text-lg sm:leading-8">
-                یک نمای مرتب برای ساخت لابی، انتخاب سناریو و اجرای بازی؛ بدون شلوغی اضافه و با همان زبان بصری که داخل پنل‌ها می‌بینید.
-              </p>
-
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <Link href="/auth/login" className="ui-button-primary min-h-12 px-5 text-base">
-                  <span className="material-symbols-outlined text-xl">login</span>
-                  ورود و شروع
-                </Link>
-                <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white/70 px-3 py-2 text-xs font-bold text-zinc-500 backdrop-blur dark:border-white/10 dark:bg-zinc-900/70 dark:text-zinc-400">
-                  <span className="size-2 rounded-full bg-lime-500" />
-                  ثبت‌نام برای همه بازیکنان
-                </div>
-              </div>
+      <div className="hidden md:block" dir="rtl">
+        <header className="app-container flex items-center justify-between py-5">
+          <div className="flex items-center gap-3">
+            <div className="ui-icon-accent">
+              <span className="material-symbols-outlined text-xl">theater_comedy</span>
             </div>
-
-            <div className="relative max-w-5xl md:mt-8">
-              <div className="pointer-events-none absolute -inset-x-1 bottom-4 top-5 rounded-lg border border-zinc-200/80 bg-zinc-100/60 shadow-xl shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-900/40 dark:shadow-black/30 sm:-inset-x-4 sm:bottom-8 sm:top-10" />
-              <div className="relative">
-                <LobbyPreviewCard
-                  title="شب معارفه"
-                  subtitle="یک پیش‌نمایش جمع‌وجور از همان لابی واقعی."
-                  scenarioName="کلاسیک ۹ نفره"
-                  code="402981"
-                  statusLabel="در انتظار شروع"
-                  playerCount={samplePlayers.length}
-                  capacity={9}
-                  moderatorName="گرداننده حرفه‌ای"
-                  players={samplePlayers}
-                  roleBreakdown={sampleRoles}
-                  compact
-                  mobileMinimal
-                />
-              </div>
+            <div>
+              <p className="text-lg font-black text-zinc-950 dark:text-white">مافیا بورد</p>
+              <p className="ui-kicker">کنترل روم بازی</p>
             </div>
           </div>
-        </section>
 
-        <section className="app-container hidden gap-3 py-5 sm:grid sm:grid-cols-3 sm:py-6">
-          {landingSignals.map((item) => (
-            <div key={item.title} className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-900/70 dark:shadow-black/20">
-              <div className="flex items-start gap-3">
-                <div className="ui-icon">
-                  <span className="material-symbols-outlined text-lg">{item.icon}</span>
+          <div className="flex items-center gap-2">
+            <ThemeToggle compact />
+            <Link href="/auth/login" className="ui-button-primary">
+              <span className="material-symbols-outlined text-lg">login</span>
+              ورود و شروع
+            </Link>
+          </div>
+        </header>
+
+        <main>
+          <section className="relative border-y border-zinc-200 bg-white/70 dark:border-white/10 dark:bg-zinc-950">
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(132,204,22,0.10),transparent_34%),linear-gradient(225deg,rgba(14,165,233,0.10),transparent_30%)] dark:bg-[linear-gradient(135deg,rgba(132,204,22,0.13),transparent_34%),linear-gradient(225deg,rgba(14,165,233,0.10),transparent_32%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(24,24,27,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(24,24,27,0.045)_1px,transparent_1px)] bg-[size:44px_44px] dark:bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)]" />
+
+            <div className="app-container relative grid gap-8 py-12 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center">
+              <div>
+                <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-zinc-200 bg-white/80 px-3 py-2 text-sm font-black text-zinc-700 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/80 dark:text-zinc-200">
+                  <span className="material-symbols-outlined text-base text-lime-600 dark:text-lime-400">bolt</span>
+                  اپ مدیریت بازی‌های مافیا
                 </div>
-                <div>
-                  <h2 className="font-black text-zinc-950 dark:text-white">{item.title}</h2>
-                  <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">{item.text}</p>
+
+                <h1 className="mt-5 text-6xl font-black leading-tight text-zinc-950 dark:text-white lg:text-7xl">
+                  مافیا بورد
+                </h1>
+                <p className="mt-4 max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
+                  ساخت بازی، انتخاب سناریو، کنترل نقش‌ها و گزارش نهایی در یک تجربه منظم برای بازیکن و گرداننده.
+                </p>
+
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <Link href="/auth/login" className="ui-button-primary min-h-12 px-5 text-base">
+                    <span className="material-symbols-outlined text-xl">login</span>
+                    ورود و شروع
+                  </Link>
+                  <Link href="/join" className="ui-button-secondary min-h-12 px-5 text-base">
+                    <span className="material-symbols-outlined text-xl">vpn_key</span>
+                    ورود با کد
+                  </Link>
                 </div>
               </div>
-            </div>
-          ))}
-        </section>
-      </main>
 
-      <div className="fixed inset-x-3 bottom-3 z-40 rounded-xl border border-zinc-200 bg-white/94 p-2 shadow-2xl shadow-zinc-950/20 backdrop-blur dark:border-white/10 dark:bg-zinc-950/94 md:hidden">
-        <Link href="/auth/login" className="ui-button-primary min-h-12 w-full">
-          <span className="material-symbols-outlined text-xl">login</span>
-          ورود و شروع بازی
-        </Link>
+              <aside className="grid gap-3">
+                {desktopFeatures.map((item) => (
+                  <div key={item.title} className="rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/75">
+                    <div className="flex items-start gap-3">
+                      <div className="ui-icon-accent">
+                        <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                      </div>
+                      <div>
+                        <h2 className="font-black text-zinc-950 dark:text-white">{item.title}</h2>
+                        <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">{item.text}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </aside>
+            </div>
+          </section>
+        </main>
       </div>
     </div>
   );
