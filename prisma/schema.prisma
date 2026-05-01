@@ -41,6 +41,7 @@ model User {
   password_hash String?
   role          Role      @default(USER)
   isBanned      Boolean   @default(false)
+  lastActiveAt  DateTime?
 
   accounts            Account[]
   sessions            Session[]

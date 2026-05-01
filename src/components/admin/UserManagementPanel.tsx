@@ -14,6 +14,7 @@ type UserRecord = {
   role: Role;
   isBanned: boolean;
   emailVerified: Date | null;
+  lastActiveAt: Date | string | null;
   password_hash: string | null;
   accounts: { provider: string }[];
   gamePlayers: {
@@ -30,9 +31,9 @@ type UserRecord = {
   };
 };
 
-type StatusFilter = "ALL" | "ACTIVE" | "BANNED" | "ONLINE" | "PASSWORD" | "GOOGLE" | "VERIFIED" | "UNVERIFIED";
+type StatusFilter = "ALL" | "ACTIVE" | "BANNED" | "ONLINE" | "RECENT" | "PASSWORD" | "GOOGLE" | "VERIFIED" | "UNVERIFIED";
 type RoleFilter = "ALL" | Role;
-type SortMode = "ROLE" | "EMAIL" | "PLAYED" | "HOSTED";
+type SortMode = "ROLE" | "EMAIL" | "LAST_ACTIVE" | "PLAYED" | "HOSTED";
 type EmailComposerMode = "write" | "preview";
 type EmailPreviewBlock =
   | { type: "heading"; text: string }
@@ -62,6 +63,62 @@ function roleAccentClass(role: Role) {
   if (role === "ADMIN") return "from-purple-500 to-fuchsia-500";
   if (role === "MODERATOR") return "from-sky-500 to-cyan-400";
   return "from-lime-500 to-emerald-400";
+}
+
+function parseDate(value?: Date | string | null) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatDateTime(value?: Date | string | null) {
+  const date = parseDate(value);
+  if (!date) return "ثبت نشده";
+
+  return new Intl.DateTimeFormat("fa-IR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function getActivityStatus(value?: Date | string | null) {
+  const date = parseDate(value);
+  if (!date) {
+    return {
+      label: "ثبت نشده",
+      detail: "فعالیتی ثبت نشده",
+      recent: false,
+      className: "border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400",
+    };
+  }
+
+  const diff = Math.max(0, Date.now() - date.getTime());
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const recent = diff <= 15 * minute;
+
+  const label =
+    diff < minute
+      ? "همین الان"
+      : diff < hour
+        ? `${Math.floor(diff / minute)} دقیقه پیش`
+        : diff < day
+          ? `${Math.floor(diff / hour)} ساعت پیش`
+          : diff < 7 * day
+            ? `${Math.floor(diff / day)} روز پیش`
+            : formatDateTime(date);
+
+  return {
+    label,
+    detail: formatDateTime(date),
+    recent,
+    className: recent
+      ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+      : diff < day
+        ? "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+        : "border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400",
+  };
 }
 
 function getUserPresence(user: UserRecord) {
@@ -206,12 +263,14 @@ export function UserManagementPanel() {
       const hasPassword = Boolean(user.password_hash);
       const hasGoogle = user.accounts.some((account) => account.provider === "google");
       const presence = getUserPresence(user);
+      const activity = getActivityStatus(user.lastActiveAt);
 
       const matchesStatus =
         statusFilter === "ALL" ||
         (statusFilter === "ACTIVE" && !user.isBanned) ||
         (statusFilter === "BANNED" && user.isBanned) ||
         (statusFilter === "ONLINE" && presence.online) ||
+        (statusFilter === "RECENT" && activity.recent) ||
         (statusFilter === "PASSWORD" && hasPassword) ||
         (statusFilter === "GOOGLE" && hasGoogle) ||
         (statusFilter === "VERIFIED" && Boolean(user.emailVerified)) ||
@@ -222,6 +281,9 @@ export function UserManagementPanel() {
       .sort((left, right) => {
         if (sortMode === "EMAIL") {
           return (left.email || "").localeCompare(right.email || "", "fa");
+        }
+        if (sortMode === "LAST_ACTIVE") {
+          return (parseDate(right.lastActiveAt)?.getTime() || 0) - (parseDate(left.lastActiveAt)?.getTime() || 0);
         }
         if (sortMode === "PLAYED") {
           return right._count.gameHistories - left._count.gameHistories;
@@ -248,10 +310,12 @@ export function UserManagementPanel() {
     moderators: users.filter((user) => user.role === "MODERATOR").length,
     banned: users.filter((user) => user.isBanned).length,
     onlineUsers: users.filter((user) => getUserPresence(user).online).length,
+    recentUsers: users.filter((user) => getActivityStatus(user.lastActiveAt).recent).length,
     googleUsers: users.filter((user) => user.accounts.some((account) => account.provider === "google")).length,
   };
   const selectedUser = filteredUsers.find((user) => user.id === selectedUserId) || filteredUsers[0] || null;
   const selectedPresence = selectedUser ? getUserPresence(selectedUser) : null;
+  const selectedActivity = selectedUser ? getActivityStatus(selectedUser.lastActiveAt) : null;
 
   const handleRoleChange = async (userId: string, nextRole: Role) => {
     if (userId === currentUserId && nextRole !== "ADMIN") {
@@ -451,7 +515,7 @@ export function UserManagementPanel() {
               ["کل کاربران", counts.total, "group", "text-lime-500"],
               ["مدیر و گرداننده", counts.admins + counts.moderators, "admin_panel_settings", "text-sky-500"],
               ["حساب فعال", counts.total - counts.banned, "verified", "text-emerald-500"],
-              ["حضور فعال", counts.onlineUsers, "sensors", "text-amber-500"],
+              ["فعال ۱۵ دقیقه اخیر", counts.recentUsers, "bolt", "text-amber-500"],
             ].map(([label, value, icon, color]) => (
               <div key={label} className="ui-muted p-4">
                 <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
@@ -487,6 +551,7 @@ export function UserManagementPanel() {
             <option value="ACTIVE">فعال</option>
             <option value="BANNED">مسدود</option>
             <option value="ONLINE">در لابی/بازی</option>
+            <option value="RECENT">فعال ۱۵ دقیقه اخیر</option>
             <option value="PASSWORD">رمزدار</option>
             <option value="GOOGLE">گوگل</option>
             <option value="VERIFIED">ایمیل تایید شده</option>
@@ -496,6 +561,7 @@ export function UserManagementPanel() {
           <select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
             <option value="ROLE">مرتب‌سازی: نقش</option>
             <option value="EMAIL">مرتب‌سازی: ایمیل</option>
+            <option value="LAST_ACTIVE">مرتب‌سازی: آخرین فعالیت</option>
             <option value="PLAYED">مرتب‌سازی: بیشترین بازی</option>
             <option value="HOSTED">مرتب‌سازی: بیشترین لابی</option>
           </select>
@@ -513,7 +579,7 @@ export function UserManagementPanel() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-[10px] font-black">
-              <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-lime-700 dark:text-lime-300">{counts.onlineUsers} آنلاین</span>
+              <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-lime-700 dark:text-lime-300">{counts.recentUsers} فعال اخیر</span>
               <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-sky-700 dark:text-sky-300">{counts.admins + counts.moderators} مدیر/گرداننده</span>
               <span className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">برای جزئیات انتخاب کنید</span>
             </div>
@@ -556,6 +622,7 @@ export function UserManagementPanel() {
                   const hasPassword = Boolean(user.password_hash);
                   const isSelected = selectedUser?.id === user.id;
                   const presence = getUserPresence(user);
+                  const activity = getActivityStatus(user.lastActiveAt);
 
                   return (
                     <button
@@ -598,6 +665,10 @@ export function UserManagementPanel() {
                             <span className={user.emailVerified ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-lime-700 dark:text-lime-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-amber-700 dark:text-amber-300"}>
                               {user.emailVerified ? "تایید" : "نیاز به تایید"}
                             </span>
+                            <span className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 ${activity.className}`}>
+                              <span className="material-symbols-outlined text-[13px]">schedule</span>
+                              {activity.label}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -608,6 +679,10 @@ export function UserManagementPanel() {
                           <span className="truncate">{presence.label}</span>
                         </div>
                         <p className="mt-2 truncate text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{presence.detail}</p>
+                        <div className={`mt-2 inline-flex max-w-full items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black ${activity.className}`}>
+                          <span className="material-symbols-outlined text-sm">schedule</span>
+                          <span className="truncate">آخرین فعالیت: {activity.label}</span>
+                        </div>
                         <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-black">
                           <span className="rounded-lg border border-zinc-200 bg-white px-2 py-0.5 text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
                             {[hasPassword ? "رمز" : null, hasGoogle ? "گوگل" : null].filter(Boolean).join(" + ") || "نامشخص"}
@@ -674,6 +749,17 @@ export function UserManagementPanel() {
                   <div className="ui-muted p-3">
                     <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">لابی‌ها</p>
                     <p className="mt-2 text-lg font-black text-zinc-950 dark:text-white">{selectedUser._count.gamesHosted}</p>
+                  </div>
+                </div>
+
+                <div className={`rounded-lg border p-4 ${selectedActivity?.className || ""}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-black">آخرین استفاده از اپ</p>
+                      <p className="mt-2 text-xl font-black">{selectedActivity?.label || "ثبت نشده"}</p>
+                      <p className="mt-1 text-[10px] font-bold opacity-80">{selectedActivity?.detail || "فعالیتی ثبت نشده"}</p>
+                    </div>
+                    <span className="material-symbols-outlined text-2xl">schedule</span>
                   </div>
                 </div>
 

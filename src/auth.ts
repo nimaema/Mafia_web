@@ -74,12 +74,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (googleImage && googleImage !== dbUser.image) {
             await prisma.user.update({
               where: { id: dbUser.id },
-              data: { image: googleImage },
+              data: { image: googleImage, lastActiveAt: new Date() },
             });
             user.image = googleImage;
+          } else {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { lastActiveAt: new Date() },
+            });
           }
         } else if (account?.provider === "credentials" && dbUser && !dbUser.emailVerified) {
           return "/auth/verify-email";
+        } else if (dbUser) {
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { lastActiveAt: new Date() },
+          });
         }
       }
       return true;
@@ -144,7 +154,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user.email) {
         await prisma.user.update({
           where: { id: user.id },
-          data: { emailVerified: new Date() },
+          data: { emailVerified: new Date(), lastActiveAt: new Date() },
         });
       }
     },
