@@ -57,7 +57,7 @@ export function PopupProvider({ children }: { children: ReactNode }) {
         type={modal.type}
         onConfirm={modal.onConfirm}
       />
-      <div className="fixed bottom-24 md:bottom-8 right-0 left-0 flex flex-col items-center gap-2 z-[300] pointer-events-none">
+      <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8.85rem)] md:bottom-8 right-0 left-0 flex flex-col items-center gap-2 z-[300] pointer-events-none">
         {toasts.map(toast => (
           <div key={toast.id} className="pointer-events-auto">
             <Toast 

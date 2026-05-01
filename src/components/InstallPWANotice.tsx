@@ -81,7 +81,7 @@ export function InstallPWANotice() {
 
   if (!expanded) {
     return (
-      <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+5.8rem)] z-[260] flex justify-center md:hidden" dir="rtl">
+      <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+8.85rem)] z-[260] flex justify-center md:hidden" dir="rtl">
         <button
           type="button"
           onClick={() => setExpanded(true)}

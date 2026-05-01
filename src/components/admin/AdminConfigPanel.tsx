@@ -745,9 +745,23 @@ export default function AdminDashboard() {
 
       <main className="ui-card relative min-h-[520px] overflow-hidden">
         {loading ? (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white/90 backdrop-blur-sm dark:bg-zinc-900/90">
-            <div className="size-10 animate-spin rounded-full border-4 border-zinc-200 border-t-lime-500 dark:border-zinc-800"></div>
-            <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">در حال بارگذاری اطلاعات...</p>
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/92 p-6 backdrop-blur-xl dark:bg-zinc-900/92">
+            <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-5 text-center shadow-2xl shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950">
+              <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-lime-500 text-zinc-950 shadow-lg shadow-lime-500/20">
+                <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
+              </div>
+              <p className="mt-4 text-base font-black text-zinc-950 dark:text-white">در حال همگام‌سازی مرکز پیکربندی</p>
+              <p className="mt-2 text-xs font-bold leading-6 text-zinc-500 dark:text-zinc-400">
+                نقش‌ها، سناریوها و توانایی‌های بازی برای نمایش دقیق آماده می‌شوند.
+              </p>
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {["نقش‌ها", "سناریوها", "توانایی‌ها"].map((item) => (
+                  <span key={item} className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         ) : errorMessage ? (
           <div className="flex min-h-[520px] flex-col items-center justify-center gap-5 p-6 text-center">

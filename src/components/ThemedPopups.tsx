@@ -132,7 +132,7 @@ export const Toast = ({ message, type, onClose }: ToastProps) => {
   }, [onClose]);
 
   return (
-    <div className="fixed bottom-24 md:bottom-8 right-4 left-4 md:left-auto md:w-96 z-[300] animate-in slide-in-from-bottom-10 duration-300">
+    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8.85rem)] md:bottom-8 right-4 left-4 md:left-auto md:w-96 z-[300] animate-in slide-in-from-bottom-10 duration-300">
       <div className={`relative flex items-center gap-4 overflow-hidden rounded-lg border p-4 shadow-2xl backdrop-blur-xl ${palette.shell}`}>
         <span className={`material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-lg font-black shadow-sm ${palette.iconBox}`}>
           {palette.icon}

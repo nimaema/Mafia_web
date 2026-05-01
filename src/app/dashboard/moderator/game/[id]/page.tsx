@@ -1102,9 +1102,17 @@ export default function ModeratorGamePage() {
   if (loading) {
     return (
       <div className="flex min-h-[560px] items-center justify-center" dir="rtl">
-        <div className="ui-card flex w-full max-w-xl flex-col items-center gap-4 p-10 text-center">
-          <div className="size-10 animate-spin rounded-full border-4 border-zinc-200 border-t-lime-500 dark:border-zinc-800" />
-          <p className="font-bold text-zinc-500 dark:text-zinc-400">در حال آماده‌سازی اتاق گرداننده...</p>
+        <div className="ui-card w-full max-w-xl overflow-hidden text-center">
+          <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
+          <div className="p-8 sm:p-10">
+            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-amber-300 text-amber-950 shadow-lg shadow-amber-500/20">
+              <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
+            </div>
+            <p className="mt-5 text-lg font-black text-zinc-950 dark:text-white">در حال آماده‌سازی اتاق گرداننده</p>
+            <p className="mt-2 text-sm font-bold leading-6 text-zinc-500 dark:text-zinc-400">
+              نقش‌ها، تایمرها و دفترچه گزارش بازی برای اجرای دقیق هماهنگ می‌شوند.
+            </p>
+          </div>
         </div>
       </div>
     );

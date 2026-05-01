@@ -419,9 +419,14 @@ export function DatabaseBackupPanel() {
           </div>
 
           {databaseBackupsLoading && databaseBackups.length === 0 ? (
-            <div className="flex min-h-72 flex-col items-center justify-center gap-3 p-8 text-center">
-              <div className="size-10 animate-spin rounded-full border-4 border-zinc-200 border-t-lime-500 dark:border-zinc-800" />
-              <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">در حال خواندن بکاپ‌ها...</p>
+            <div className="flex min-h-72 flex-col items-center justify-center p-8 text-center">
+              <div className="grid size-14 place-items-center rounded-2xl bg-lime-500 text-zinc-950 shadow-lg shadow-lime-500/20">
+                <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
+              </div>
+              <p className="mt-4 text-base font-black text-zinc-950 dark:text-white">در حال خواندن آرشیو بکاپ‌ها</p>
+              <p className="mt-2 max-w-md text-xs font-bold leading-6 text-zinc-500 dark:text-zinc-400">
+                فایل‌های روزانه و بازیابی‌های نقش و سناریو در حال مرتب‌سازی هستند.
+              </p>
             </div>
           ) : databaseBackups.length === 0 ? (
             <div className="flex min-h-72 flex-col items-center justify-center gap-4 p-8 text-center">

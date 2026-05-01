@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 type DashboardUser = {
@@ -105,12 +106,39 @@ function activeLabel(pathname: string, adminTab: string | null) {
   return "پنل";
 }
 
+function formatPanelDate() {
+  const today = new Date();
+  return {
+    shamsi: new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(today),
+    miladi: new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(today),
+    mobile: new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+      day: "numeric",
+      month: "short",
+    }).format(today),
+    mobileMiladi: new Intl.DateTimeFormat("en-US", {
+      day: "numeric",
+      month: "short",
+    }).format(today),
+  };
+}
+
 export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }: DashboardNavigationProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const adminTab = searchParams.get("tab");
   const scenarioHref = isAdmin ? "/dashboard/admin?tab=scenarios" : "/dashboard/moderator/scenarios";
   const currentLabel = activeLabel(pathname, adminTab);
+  const panelDate = useMemo(formatPanelDate, []);
 
   const sections: NavSection[] = [
     {
@@ -189,7 +217,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         )}
       >
         {active && <span className={cx("absolute inset-y-3 right-0 w-1 rounded-l-full", toneBar(item.tone))} />}
-        <span className={cx("material-symbols-outlined flex size-12 items-center justify-center rounded-2xl text-[1.45rem] transition-all", toneIcon(item.tone, active))}>
+        <span className={cx("material-symbols-outlined grid size-12 place-items-center rounded-2xl text-[1.45rem] leading-none transition-all", toneIcon(item.tone, active))}>
           {item.icon}
         </span>
         <span className="min-w-0">
@@ -224,7 +252,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         )}
       >
         {active && <span className={cx("absolute top-1 h-1 w-6 rounded-full", toneBar(item.tone))} />}
-        <span className={cx("material-symbols-outlined flex size-8 items-center justify-center rounded-xl text-xl transition-all", toneIcon(item.tone, active))}>
+        <span className={cx("material-symbols-outlined grid size-8 place-items-center rounded-xl text-xl leading-none transition-all", toneIcon(item.tone, active))}>
           {item.icon}
         </span>
         <span className="w-full truncate text-[10px] font-black leading-4">{item.label}</span>
@@ -253,7 +281,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
                   <p className="mt-1 truncate text-xs font-bold text-zinc-400">در حال مشاهده: {currentLabel}</p>
                 </div>
               </div>
-              <span className={cx("material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-xl border text-xl", roleTone(user.role))}>
+              <span className={cx("material-symbols-outlined grid size-10 shrink-0 place-items-center rounded-xl border text-xl leading-none", roleTone(user.role))}>
                 {roleIcon(user.role)}
               </span>
             </div>
@@ -268,6 +296,17 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
                 فعال
               </span>
             </div>
+
+            <div className="mt-3 grid grid-cols-[2.75rem_minmax(0,1fr)] gap-3 rounded-2xl border border-white/10 bg-white/[0.07] p-3">
+              <span className="material-symbols-outlined grid size-11 place-items-center rounded-xl bg-white/10 text-xl leading-none text-lime-200">
+                calendar_month
+              </span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-black text-zinc-400">تاریخ امروز</p>
+                <p className="mt-1 truncate text-sm font-black text-white">{panelDate.shamsi}</p>
+                <p className="mt-0.5 truncate text-[11px] font-bold text-zinc-400" dir="ltr">{panelDate.miladi}</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -275,7 +314,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
           {sections.map((section) => (
             <section key={section.title} className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-2.5 dark:border-white/10 dark:bg-zinc-950/45">
               <div className="mb-2 flex items-center gap-3 px-1">
-                <span className={cx("material-symbols-outlined flex size-10 items-center justify-center rounded-xl text-xl", toneIcon(section.tone, false))}>
+                <span className={cx("material-symbols-outlined grid size-10 place-items-center rounded-xl text-xl leading-none", toneIcon(section.tone, false))}>
                   {section.icon}
                 </span>
                 <span className="min-w-0 flex-1">
@@ -293,11 +332,11 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
           <form action={logoutAction} className="mt-2 w-full">
             <button
               type="submit"
-              className="group flex w-full items-center gap-3 rounded-2xl border border-red-500/15 bg-red-500/10 px-3 py-3 text-sm font-black text-red-600 transition-all hover:bg-red-500 hover:text-white dark:text-red-300"
+              className="group grid w-full grid-cols-[2.25rem_minmax(0,1fr)_1.5rem] items-center gap-3 rounded-2xl border border-red-500/15 bg-white/80 px-3 py-2.5 text-xs font-black text-red-600 shadow-sm shadow-zinc-950/5 transition-all hover:border-red-500/30 hover:bg-red-500 hover:text-white dark:bg-white/[0.04] dark:text-red-300 dark:hover:bg-red-500"
             >
-              <span className="material-symbols-outlined flex size-10 items-center justify-center rounded-xl bg-red-500/10 text-xl transition-all group-hover:bg-white/15">logout</span>
-              <span className="min-w-0 flex-1 truncate text-right">خروج از سیستم</span>
-              <span className="material-symbols-outlined text-lg opacity-50">chevron_left</span>
+              <span className="material-symbols-outlined grid size-9 place-items-center rounded-xl bg-red-500/10 text-lg leading-none transition-all group-hover:bg-white/15">logout</span>
+              <span className="min-w-0 truncate text-right">خروج از سیستم</span>
+              <span className="material-symbols-outlined grid size-6 place-items-center text-base leading-none opacity-50">chevron_left</span>
             </button>
           </form>
         </div>
@@ -305,6 +344,17 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
 
       <nav className="fixed bottom-3 left-3 right-3 z-50 overflow-hidden rounded-[1.4rem] border border-zinc-200/80 bg-white/[0.96] shadow-2xl shadow-zinc-950/15 backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/[0.96] md:hidden">
         <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-zinc-200/70 px-3 py-2 dark:border-white/10">
+          <span className="truncate text-xs font-black text-zinc-950 dark:text-white">{currentLabel}</span>
+          <span className="flex shrink-0 items-center gap-1.5">
+            <span className="rounded-full border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">
+              {panelDate.mobile}
+            </span>
+            <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-[10px] font-black text-sky-700 dark:text-sky-300" dir="ltr">
+              {panelDate.mobileMiladi}
+            </span>
+          </span>
+        </div>
         <div className="custom-scrollbar flex h-[5.55rem] items-stretch gap-1 overflow-x-auto px-2 py-2">
           {allItems.map(renderMobileLink)}
           <ThemeToggle nav />
@@ -313,7 +363,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
               type="submit"
               className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-red-500 transition-all hover:bg-red-500/10 hover:text-red-600 dark:text-red-300"
             >
-              <span className="material-symbols-outlined flex size-8 items-center justify-center rounded-xl bg-red-500/10 text-xl">logout</span>
+              <span className="material-symbols-outlined grid size-8 place-items-center rounded-xl bg-red-500/10 text-xl leading-none">logout</span>
               <span className="w-full truncate text-[10px] font-black leading-4">خروج</span>
             </button>
           </form>

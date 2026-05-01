@@ -130,7 +130,24 @@ export default function UserGamePage() {
     return [...groups.entries()].sort(([left], [right]) => left - right);
   }, [publicNightEvents]);
 
-  if (loading) return <div className="p-12 text-center animate-pulse text-zinc-500">در حال دریافت نقش شما...</div>;
+  if (loading) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center p-4" dir="rtl">
+        <div className="ui-card w-full max-w-lg overflow-hidden text-center">
+          <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
+          <div className="p-8">
+            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-lime-500 text-zinc-950 shadow-lg shadow-lime-500/20">
+              <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
+            </div>
+            <p className="mt-5 text-lg font-black text-zinc-950 dark:text-white">در حال آماده‌سازی کارت نقش</p>
+            <p className="mt-2 text-sm font-bold leading-6 text-zinc-500 dark:text-zinc-400">
+              نقش، سناریو و گزارش‌های عمومی بازی در حال دریافت هستند.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!myPlayerInfo) {
     return (
