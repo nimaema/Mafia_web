@@ -12,21 +12,9 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 const installBenefits = [
-  {
-    icon: "fullscreen",
-    title: "صفحه تمام‌قد",
-    text: "نوار مرورگر حذف می‌شود و پنجره‌های لابی، انتخاب بازیکن و گزارش زیر ناوبری گیر نمی‌کنند.",
-  },
-  {
-    icon: "timer",
-    title: "تایمر قابل اتکا",
-    text: "تایمر گرداننده و هشدار پایان زمان در حالت نصب‌شده پایدارتر و مناسب اجرای واقعی بازی است.",
-  },
-  {
-    icon: "edit_note",
-    title: "گزارش پیشرفته بازی",
-    text: "ثبت اتفاقات روز و شب، انتخاب هدف‌ها و کنترل‌های حساس روی موبایل فقط در حالت PWA باز می‌شود.",
-  },
+  { icon: "fullscreen", title: "تمام‌صفحه" },
+  { icon: "timer", title: "تایمر بهتر" },
+  { icon: "edit_note", title: "گزارش کامل" },
 ];
 
 const afterInstallTips = [
@@ -92,14 +80,17 @@ export function InstallPWANotice() {
   return (
     <div className="fixed inset-0 z-[260] flex items-end justify-center bg-zinc-950/85 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] text-right backdrop-blur-xl sm:items-center sm:p-4" dir="rtl">
       <section className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/15 bg-white shadow-2xl shadow-black/50 dark:bg-zinc-950 sm:max-h-[calc(100dvh-2rem)]">
-        <header className="shrink-0 border-b border-white/10 bg-zinc-950 px-4 pb-4 pt-4 text-white">
+        <header className="shrink-0 border-b border-white/10 bg-zinc-950 px-4 pb-3 pt-4 text-white">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-lime-500 text-zinc-950 shadow-lg shadow-lime-500/25">
-                <span className="material-symbols-outlined text-3xl">{pwa.guide.icon}</span>
+              <span className="relative flex size-12 shrink-0 items-center justify-center rounded-xl bg-lime-500 text-zinc-950 shadow-lg shadow-lime-500/25">
+                <span className="material-symbols-outlined text-3xl">{pwa.guide.platformIcon}</span>
+                <span className="absolute -bottom-1 -left-1 flex size-5 items-center justify-center rounded-md border border-zinc-950 bg-white text-zinc-950">
+                  <span className="material-symbols-outlined text-sm">{pwa.guide.icon}</span>
+                </span>
               </span>
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">PWA MODE</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-lime-300">{pwa.guide.platformLabel} PWA</p>
                 <h2 className="mt-1 text-2xl font-black leading-8">نصب مافیا بورد</h2>
               </div>
             </div>
@@ -113,73 +104,71 @@ export function InstallPWANotice() {
             </button>
           </div>
 
-          <p className="mt-4 text-sm font-bold leading-7 text-zinc-200">
-            برای موبایل، مافیا بورد مثل یک اپ واقعی طراحی شده است. نصب PWA باعث می‌شود بازی تمام‌صفحه باز شود و کنترل‌های حساس مثل تایمر، گزارش شب و ابزارهای پیشرفته لابی بدون مزاحمت نوار مرورگر کار کنند.
+          <p className="mt-3 text-xs font-bold leading-6 text-zinc-300">
+            برای فعال شدن تایمر، گزارش بازی و تجربه تمام‌صفحه روی موبایل، برنامه را نصب کنید.
           </p>
 
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {["تمام‌صفحه", "تایمر بهتر", "گزارش پیشرفته"].map((item) => (
-              <span key={item} className="min-w-max rounded-lg border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-black text-lime-200">
-                {item}
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {installBenefits.map((item) => (
+              <span key={item.title} className="flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-2 text-[10px] font-black text-lime-200">
+                <span className="material-symbols-outlined text-sm">{item.icon}</span>
+                {item.title}
               </span>
             ))}
           </div>
         </header>
 
-        <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-4">
-          <section className="grid gap-2">
-            {installBenefits.map((benefit) => (
-              <article key={benefit.title} className="flex gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                <span className="material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-xl text-white dark:bg-white dark:text-zinc-950">
-                  {benefit.icon}
-                </span>
-                <div>
-                  <p className="text-sm font-black text-zinc-950 dark:text-white">{benefit.title}</p>
-                  <p className="mt-1 text-xs font-bold leading-6 text-zinc-600 dark:text-zinc-300">{benefit.text}</p>
-                </div>
-              </article>
-            ))}
-          </section>
-
-          <section className="mt-4 overflow-hidden rounded-xl border border-lime-500/25 bg-lime-500/10">
+        <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-3 py-3">
+          <section className="overflow-hidden rounded-xl border border-lime-500/25 bg-lime-500/10">
             <div className="flex items-center justify-between gap-3 border-b border-lime-500/20 bg-white/75 p-3 dark:bg-zinc-950/55">
-              <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="material-symbols-outlined flex size-9 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-xl text-zinc-950">
+                  {pwa.guide.platformIcon}
+                </span>
+                <div className="min-w-0">
                 <p className="text-[10px] font-black text-lime-700 dark:text-lime-300">راهنمای دقیق نصب</p>
                 <h3 className="mt-1 text-base font-black text-zinc-950 dark:text-white">{pwa.guide.label}</h3>
+                </div>
               </div>
-              <span className="rounded-lg bg-lime-500 px-2.5 py-1 text-[10px] font-black text-zinc-950">مرورگر شما</span>
+              <span className="material-symbols-outlined flex size-9 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-lg text-white dark:bg-white dark:text-zinc-950">
+                {pwa.guide.icon}
+              </span>
             </div>
 
             <ol className="grid gap-2 p-3">
               {pwa.guide.steps.map((step, index) => (
-                <li key={step} className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 rounded-lg border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70">
-                  <span className="flex size-9 items-center justify-center rounded-lg bg-lime-500 text-sm font-black text-zinc-950">
-                    {index + 1}
+                <li key={step} className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 rounded-lg border border-zinc-200 bg-white p-2.5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70">
+                  <span className="relative flex size-10 items-center justify-center rounded-lg bg-lime-500 text-zinc-950">
+                    <span className="material-symbols-outlined text-xl">{pwa.guide.stepIcons[index] || "touch_app"}</span>
+                    <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-zinc-950 text-[9px] font-black text-white dark:bg-white dark:text-zinc-950">
+                      {index + 1}
+                    </span>
                   </span>
-                  <span className="pt-1 text-sm font-bold leading-7 text-zinc-700 dark:text-zinc-200">{step}</span>
+                  <span className="pt-1 text-sm font-bold leading-6 text-zinc-700 dark:text-zinc-200">{step}</span>
                 </li>
               ))}
             </ol>
           </section>
 
-          <section className="mt-4 rounded-lg border border-sky-500/20 bg-sky-500/10 p-3">
-            <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined flex size-9 shrink-0 items-center justify-center rounded-lg bg-sky-500 text-xl text-white">tips_and_updates</span>
-              <div>
-                <p className="text-sm font-black text-zinc-950 dark:text-white">بعد از نصب چک کنید</p>
-                <ul className="mt-2 grid gap-2">
-                  {afterInstallTips.map((tip) => (
-                    <li key={tip} className="flex gap-2 text-xs font-bold leading-6 text-sky-800 dark:text-sky-200">
-                      <span className="material-symbols-outlined mt-0.5 text-sm">check_circle</span>
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </section>
+          <details className="group mt-3 overflow-hidden rounded-lg border border-sky-500/20 bg-sky-500/10">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 text-sm font-black text-zinc-950 dark:text-white">
+              <span className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-lg text-sky-600 dark:text-sky-300">tips_and_updates</span>
+                بعد از نصب
+              </span>
+              <span className="material-symbols-outlined text-lg text-zinc-400 transition-transform group-open:rotate-180">keyboard_arrow_down</span>
+            </summary>
+            <ul className="grid gap-2 border-t border-sky-500/15 p-3">
+              {afterInstallTips.map((tip) => (
+                <li key={tip} className="flex gap-2 text-xs font-bold leading-5 text-sky-800 dark:text-sky-200">
+                  <span className="material-symbols-outlined mt-0.5 text-sm">check_circle</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
 
-          <p className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-xs font-bold leading-6 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+          <p className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-2.5 text-xs font-bold leading-5 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
             {pwa.guide.note}
           </p>
         </div>
