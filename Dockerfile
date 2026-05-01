@@ -48,6 +48,7 @@ COPY --from=builder /app/prisma ./prisma
 # Copy entrypoint script
 COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
+RUN mkdir -p ./data && chown -R nextjs:nodejs ./data
 
 USER nextjs
 

@@ -9,6 +9,8 @@ import {
   updateScenario,
   deleteScenario,
   installStandardScenarios,
+  exportScenarioBackup,
+  restoreScenarioBackup,
   getMafiaRolesSafe,
   getScenariosSafe,
 } from "@/actions/admin";
@@ -16,6 +18,7 @@ import { Alignment } from "@prisma/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { usePopup } from "@/components/PopupProvider";
+import { ScenarioRoleComposition } from "@/components/ScenarioRoleComposition";
 
 type AdminTab = "roles" | "scenarios";
 type RoleAlignmentFilter = "ALL" | Alignment;
@@ -64,6 +67,7 @@ const STANDARD_SCENARIO_NAMES = [
   "کلاسیک ۱۳ نفره",
   "نماینده ۱۰ نفره",
   "نماینده ۱۲ نفره",
+  "نماینده ۱۳ نفره",
   "فراماسون ۱۲ نفره",
   "فراماسون ۱۳ نفره",
   "فراماسون ۱۵ نفره",
@@ -71,6 +75,9 @@ const STANDARD_SCENARIO_NAMES = [
   "تکاور ۱۲ نفره",
   "تکاور ۱۳ نفره",
   "تکاور ۱۵ نفره",
+  "کاپو ۱۰ نفره",
+  "کاپو ۱۲ نفره",
+  "کاپو ۱۳ نفره",
 ];
 
 function normalizeEffectType(value: unknown): AbilityEffectType {
@@ -213,6 +220,7 @@ export default function AdminDashboard() {
   const [roleAlignmentFilter, setRoleAlignmentFilter] = useState<RoleAlignmentFilter>("ALL");
   const [scenarioSearch, setScenarioSearch] = useState("");
   const [scenarioRoleSearch, setScenarioRoleSearch] = useState("");
+  const [scenarioBackupBusy, setScenarioBackupBusy] = useState(false);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -406,6 +414,22 @@ export default function AdminDashboard() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleDuplicateScenario = (scenario: ScenarioRecord) => {
+    setEditingScenarioId(null);
+    setNewScenName(`${scenario.name} کپی`);
+    setNewScenDesc(scenario.description || "");
+    setSelectedRoles(
+      scenario.roles.map((role) => ({
+        roleId: role.roleId,
+        count: role.count,
+      }))
+    );
+    setSelectedScenario(null);
+    setScenarioRoleSearch("");
+    switchTab("scenarios");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleDeleteScenario = async (scenarioId: string) => {
     showConfirm(
       "حذف سناریو",
@@ -422,6 +446,38 @@ export default function AdminDashboard() {
         }
       },
       "error"
+    );
+  };
+
+  const handleScenarioBackup = async () => {
+    setScenarioBackupBusy(true);
+    try {
+      const result = await exportScenarioBackup();
+      showToast(`${result.scenarios} سناریو در فایل سرور ذخیره شد`, "success");
+    } catch (error: any) {
+      showAlert("بکاپ سناریو", error.message || "بکاپ سناریو انجام نشد.", "error");
+    } finally {
+      setScenarioBackupBusy(false);
+    }
+  };
+
+  const handleScenarioRestore = () => {
+    showConfirm(
+      "بازیابی سناریوها",
+      "سناریوهای داخل فایل بکاپ روی دیتابیس اعمال می‌شوند. سناریوهای موجود حذف نمی‌شوند، اما موارد هم‌نام بروزرسانی می‌شوند.",
+      async () => {
+        setScenarioBackupBusy(true);
+        try {
+          const result = await restoreScenarioBackup();
+          showToast(`${result.scenarios} سناریو از فایل بکاپ اعمال شد`, "success");
+          await refreshData();
+        } catch (error: any) {
+          showAlert("بازیابی سناریو", error.message || "بازیابی از فایل انجام نشد.", "error");
+        } finally {
+          setScenarioBackupBusy(false);
+        }
+      },
+      "warning"
     );
   };
 
@@ -1058,25 +1114,50 @@ export default function AdminDashboard() {
                   </p>
                 </div>
 
-                {editingScenarioId ? (
-                  <button onClick={resetScenarioForm} className="ui-button-secondary min-h-9 px-3 text-xs">
-                    لغو
-                  </button>
-                ) : !installedStandardScenarios ? (
-                  <button
-                    onClick={async () => {
-                      const result = await installStandardScenarios();
-                      if (result?.success) {
-                        showToast("سناریوهای پیش‌فرض نصب شدند", "success");
-                        await refreshData();
-                      }
-                    }}
-                    className="ui-button-secondary min-h-9 px-3 text-xs"
-                  >
-                    <span className="material-symbols-outlined text-base">auto_awesome</span>
-                    بارگذاری قالب‌ها
-                  </button>
-                ) : null}
+                <div className="flex flex-wrap justify-end gap-2">
+                  {editingScenarioId ? (
+                    <button onClick={resetScenarioForm} className="ui-button-secondary min-h-9 px-3 text-xs">
+                      لغو
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleScenarioBackup}
+                        disabled={scenarioBackupBusy}
+                        className="ui-button-secondary min-h-9 px-3 text-xs"
+                      >
+                        <span className="material-symbols-outlined text-base">backup</span>
+                        بکاپ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleScenarioRestore}
+                        disabled={scenarioBackupBusy}
+                        className="ui-button-secondary min-h-9 px-3 text-xs"
+                      >
+                        <span className="material-symbols-outlined text-base">settings_backup_restore</span>
+                        بازیابی
+                      </button>
+                      {!installedStandardScenarios && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const result = await installStandardScenarios();
+                            if (result?.success) {
+                              showToast("سناریوهای پیش‌فرض نصب شدند", "success");
+                              await refreshData();
+                            }
+                          }}
+                          className="ui-button-secondary min-h-9 px-3 text-xs"
+                        >
+                          <span className="material-symbols-outlined text-base">auto_awesome</span>
+                          قالب‌ها
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
 
               <form onSubmit={handleAddScenario} noValidate className="mt-5 flex flex-col gap-4">
@@ -1272,6 +1353,16 @@ export default function AdminDashboard() {
                                 <button
                                   onClick={(event) => {
                                     event.stopPropagation();
+                                    handleDuplicateScenario(scenario);
+                                  }}
+                                  className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-lime-500/30 hover:bg-lime-500/10 hover:text-lime-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-lime-300"
+                                  title="کپی سناریو"
+                                >
+                                  <span className="material-symbols-outlined text-base">content_copy</span>
+                                </button>
+                                <button
+                                  onClick={(event) => {
+                                    event.stopPropagation();
                                     handleDeleteScenario(scenario.id);
                                   }}
                                   className="flex size-8 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
@@ -1375,25 +1466,8 @@ export default function AdminDashboard() {
                 ))}
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {selectedScenario.roles.map((scenarioRole) => (
-                  <div key={`${selectedScenario.id}-${scenarioRole.roleId}`} className="ui-muted flex items-center justify-between gap-3 p-3">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div className={`flex size-10 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(scenarioRole.role.alignment)}`}>
-                        <span className="material-symbols-outlined text-lg">{alignmentIcon(scenarioRole.role.alignment)}</span>
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{scenarioRole.role.name}</p>
-                        <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
-                          {alignmentLabel(scenarioRole.role.alignment)}
-                        </p>
-                      </div>
-                    </div>
-                    <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(scenarioRole.role.alignment)}`}>
-                      x{scenarioRole.count}
-                    </span>
-                  </div>
-                ))}
+              <div className="mt-5">
+                <ScenarioRoleComposition roles={selectedScenario.roles} />
               </div>
             </div>
 
@@ -1407,6 +1481,13 @@ export default function AdminDashboard() {
               >
                 <span className="material-symbols-outlined text-lg">edit_square</span>
                 ویرایش سناریو
+              </button>
+              <button
+                onClick={() => handleDuplicateScenario(selectedScenario)}
+                className="ui-button-secondary min-h-10 flex-1 px-4"
+              >
+                <span className="material-symbols-outlined text-lg">content_copy</span>
+                کپی برای نسخه جدید
               </button>
               <button
                 onClick={() => handleDeleteScenario(selectedScenario.id)}

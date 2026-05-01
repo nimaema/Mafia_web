@@ -31,6 +31,8 @@ services:
     # Port is not exposed to host to ensure strict zero-trust networking
     ports:
       - "3000:3000"
+    volumes:
+      - scenario_data:/app/data
 
   db:
     image: postgres:15-alpine
@@ -55,3 +57,4 @@ services:
 
 volumes:
   pgdata:
+  scenario_data:

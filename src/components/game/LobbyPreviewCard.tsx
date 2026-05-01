@@ -1,5 +1,9 @@
+"use client";
+
 import type { Alignment } from "@prisma/client";
 import type { ReactNode } from "react";
+import { MobilePwaFeatureLock } from "@/components/MobilePwaFeatureLock";
+import { ScenarioRoleComposition } from "@/components/ScenarioRoleComposition";
 
 type LobbyPlayer = {
   id: string;
@@ -45,13 +49,6 @@ function alignmentClass(alignment?: Alignment) {
     return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300";
   }
   return "border-zinc-200 bg-white text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400";
-}
-
-function alignmentLabel(alignment?: Alignment) {
-  if (alignment === "CITIZEN") return "شهروند";
-  if (alignment === "MAFIA") return "مافیا";
-  if (alignment === "NEUTRAL") return "مستقل";
-  return "نقش";
 }
 
 function getInitial(name: string) {
@@ -205,19 +202,27 @@ export function LobbyPreviewCard({
               ))}
             </div>
 
-            <div className="mt-3 space-y-2">
-              {previewRoles.map((role) => (
-                <div key={role.id || role.name} className="flex items-center justify-between gap-2">
-                  <span className="truncate text-xs font-bold text-zinc-700 dark:text-zinc-300">{role.name}</span>
-                  <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
-                    x{role.count}
-                  </span>
-                </div>
-              ))}
-              {roleBreakdown.length > previewRoles.length && (
-                <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">+{roleBreakdown.length - previewRoles.length} نقش دیگر</p>
-              )}
-            </div>
+            <MobilePwaFeatureLock
+              compact
+              icon="account_tree"
+              title="جزئیات سناریو در نسخه نصب‌شده"
+              description="روی موبایل، ترکیب کامل نقش‌ها و ابزارهای پیشرفته لابی داخل PWA فعال می‌شود."
+              className="mt-3"
+            >
+              <div className="mt-3 space-y-2">
+                {previewRoles.map((role) => (
+                  <div key={role.id || role.name} className="flex items-center justify-between gap-2">
+                    <span className="truncate text-xs font-bold text-zinc-700 dark:text-zinc-300">{role.name}</span>
+                    <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
+                      x{role.count}
+                    </span>
+                  </div>
+                ))}
+                {roleBreakdown.length > previewRoles.length && (
+                  <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">+{roleBreakdown.length - previewRoles.length} نقش دیگر</p>
+                )}
+              </div>
+            </MobilePwaFeatureLock>
           </aside>
         </div>
       </article>
@@ -416,41 +421,25 @@ export function LobbyPreviewCard({
 
           <div className="p-5">
             {roleBreakdown.length ? (
-              <details className="group overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]" open={compact}>
-                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-black text-zinc-950 dark:text-white">فهرست نقش‌ها</p>
-                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{roleBreakdown.length} نقش در این سناریو</p>
-                  </div>
-                  <span className="material-symbols-outlined text-zinc-400 transition-transform group-open:rotate-180">keyboard_arrow_down</span>
-                </summary>
+              <MobilePwaFeatureLock
+                icon="account_tree"
+                title="جزئیات سناریو فقط در PWA موبایل"
+                description="برای دیدن ترکیب کامل نقش‌ها و کنترل‌های پیشرفته لابی، برنامه را روی موبایل نصب کنید."
+              >
+                <details className="group overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]" open={compact}>
+                  <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-black text-zinc-950 dark:text-white">فهرست نقش‌ها</p>
+                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{roleBreakdown.length} نقش در این سناریو</p>
+                    </div>
+                    <span className="material-symbols-outlined text-zinc-400 transition-transform group-open:rotate-180">keyboard_arrow_down</span>
+                  </summary>
 
-                <div className="custom-scrollbar max-h-[360px] overflow-y-auto border-t border-zinc-200 p-3 dark:border-white/10">
-                  <div className={compact ? "flex flex-wrap gap-2" : "grid gap-2"}>
-                    {(compact ? roleBreakdown.slice(0, 5) : roleBreakdown).map((role) => (
-                      <div key={role.id || role.name} className="relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/60">
-                        <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${
-                          role.alignment === "CITIZEN" ? "bg-sky-500" : role.alignment === "MAFIA" ? "bg-red-500" : "bg-amber-500"
-                        }`} />
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0 pr-1">
-                            <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{role.name}</p>
-                            <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
-                          </div>
-                          <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
-                            x{role.count}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                    {compact && roleBreakdown.length > 5 && (
-                      <span className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
-                        +{roleBreakdown.length - 5} نقش دیگر
-                      </span>
-                    )}
+                  <div className="custom-scrollbar max-h-[420px] overflow-y-auto border-t border-zinc-200 p-3 dark:border-white/10">
+                    <ScenarioRoleComposition roles={roleBreakdown} compact />
                   </div>
-                </div>
-              </details>
+                </details>
+              </MobilePwaFeatureLock>
             ) : (
               <div className="flex min-h-52 flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
                 <span className="material-symbols-outlined text-3xl text-zinc-400">account_tree</span>

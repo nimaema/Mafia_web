@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'مافیا بورد - دستیار پیشرفته',
     short_name: 'مافیا بورد',
     description: 'دستیار دیجیتال برای مدیریت حرفه‌ای بازی مافیا',
-    start_url: '/',
+    start_url: '/dashboard',
     scope: '/',
     display: 'standalone',
     display_override: ['standalone', 'minimal-ui'],

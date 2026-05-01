@@ -1,6 +1,7 @@
 import { Vazirmatn } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { InstallPWANotice } from "@/components/InstallPWANotice";
 
 const vazirmatn = Vazirmatn({ 
   subsets: ["arabic", "latin"],
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body className={`${vazirmatn.variable} font-sans antialiased`}>
         <Providers>
           {children}
+          <InstallPWANotice />
         </Providers>
       </body>
     </html>

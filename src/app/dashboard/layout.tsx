@@ -1,6 +1,5 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
-import { InstallPWANotice } from "@/components/InstallPWANotice";
 import { DashboardNavigation } from "@/components/dashboard/DashboardNavigation";
 
 
@@ -39,8 +38,6 @@ export default async function DashboardLayout({
           {children}
         </div>
       </main>
-
-      <InstallPWANotice />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   setPlayerAliveStatus,
 } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
+import { MobilePwaFeatureLock } from "@/components/MobilePwaFeatureLock";
 
 type Alignment = "CITIZEN" | "MAFIA" | "NEUTRAL";
 type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
@@ -1243,6 +1244,11 @@ export default function ModeratorGamePage() {
             </div>
           </div>
 
+          <MobilePwaFeatureLock
+            icon="edit_note"
+            title="ثبت گزارش بازی در PWA موبایل فعال است"
+            description="روی گوشی داخل مرورگر، گزارش روز و شب قفل می‌شود تا انتخاب بازیکن، پنجره‌ها و ذخیره رکوردها پایدار و تمام‌صفحه باشند."
+          >
           <div className="ui-card overflow-hidden">
             <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -1848,10 +1854,20 @@ export default function ModeratorGamePage() {
               </section>
             </div>
           </div>
+          </MobilePwaFeatureLock>
         </section>
 
         <aside className="space-y-5 xl:sticky xl:top-5 xl:h-fit">
-          {game?.status !== "FINISHED" && <ModeratorTimerBoard />}
+          {game?.status !== "FINISHED" && (
+            <MobilePwaFeatureLock
+              compact
+              icon="timer"
+              title="تایمر گرداننده فقط در PWA موبایل"
+              description="برای زنگ پایدارتر، لرزش و صفحه بدون نوار مرورگر، تایمر روی موبایل در نسخه نصب‌شده فعال است."
+            >
+              <ModeratorTimerBoard />
+            </MobilePwaFeatureLock>
+          )}
 
           <section className="ui-card overflow-hidden">
             <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">

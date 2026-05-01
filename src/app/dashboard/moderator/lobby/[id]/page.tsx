@@ -8,6 +8,7 @@ import { getScenarios } from "@/actions/admin";
 import { getRoles } from "@/actions/role";
 import { usePopup } from "@/components/PopupProvider";
 import { LobbyPreviewCard } from "@/components/game/LobbyPreviewCard";
+import { MobilePwaFeatureLock } from "@/components/MobilePwaFeatureLock";
 
 type Player = {
   id: string;
@@ -550,19 +551,26 @@ export default function GameLobbyPage() {
                 </select>
               </label>
 
-              <button
-                onClick={() => {
-                  setCustomRoleSearch("");
-                  setSaveCustomScenario(false);
-                  setCustomScenarioName("");
-                  setShowCustomModal(true);
-                }}
-                disabled={settingScenario}
-                className="ui-button-secondary min-h-12 w-full"
+              <MobilePwaFeatureLock
+                compact
+                icon="dashboard_customize"
+                title="طراحی لحظه‌ای فقط در PWA موبایل"
+                description="روی گوشی، ساخت سناریوی سفارشی به فضای تمام‌صفحه و کنترل پایدار نیاز دارد."
               >
-                <span className="material-symbols-outlined text-xl">dashboard_customize</span>
-                طراحی سناریو در لحظه
-              </button>
+                <button
+                  onClick={() => {
+                    setCustomRoleSearch("");
+                    setSaveCustomScenario(false);
+                    setCustomScenarioName("");
+                    setShowCustomModal(true);
+                  }}
+                  disabled={settingScenario}
+                  className="ui-button-secondary min-h-12 w-full"
+                >
+                  <span className="material-symbols-outlined text-xl">dashboard_customize</span>
+                  طراحی سناریو در لحظه
+                </button>
+              </MobilePwaFeatureLock>
             </div>
 
             {players.length > 0 && recommendedScenarios.length > 0 && !game?.scenario && (
@@ -627,6 +635,11 @@ export default function GameLobbyPage() {
       </section>
 
       {scenarioAbilityRoles.length > 0 && (
+        <MobilePwaFeatureLock
+          icon="tune"
+          title="تنظیم توانایی‌های بازی در PWA فعال است"
+          description="روی موبایل داخل مرورگر، این بخش قفل می‌شود تا هنگام اجرای بازی کنترل‌ها زیر نوار مرورگر یا ناوبری نروند."
+        >
         <section className="ui-card overflow-hidden">
           <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -694,6 +707,7 @@ export default function GameLobbyPage() {
             })}
           </div>
         </section>
+        </MobilePwaFeatureLock>
       )}
 
       <LobbyPreviewCard

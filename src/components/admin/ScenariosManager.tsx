@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { Alignment } from "@prisma/client";
-import { createScenario, deleteScenario, updateScenario } from "@/actions/admin";
+import { createScenario, deleteScenario, exportScenarioBackup, restoreScenarioBackup, updateScenario } from "@/actions/admin";
 import { usePopup } from "@/components/PopupProvider";
+import { ScenarioRoleComposition } from "@/components/ScenarioRoleComposition";
 
 type RoleRecord = {
   id: string;
@@ -85,6 +86,7 @@ export function ScenariosManager({
   const [scenarioSearch, setScenarioSearch] = useState("");
   const [roleSearch, setRoleSearch] = useState("");
   const [showStats, setShowStats] = useState(false);
+  const [backupBusy, setBackupBusy] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -139,6 +141,18 @@ export function ScenariosManager({
       setFormData({ name: "", description: "", roles: [] });
     }
 
+    setRoleSearch("");
+    setShowForm(true);
+  };
+
+  const openDuplicateForm = (scenario: ScenarioRecord) => {
+    setEditingScenario(null);
+    setFormData({
+      name: `${scenario.name} کپی`,
+      description: scenario.description || "",
+      roles: scenario.roles.map((role) => ({ roleId: role.roleId, count: role.count })),
+    });
+    setSelectedScenario(null);
     setRoleSearch("");
     setShowForm(true);
   };
@@ -217,6 +231,38 @@ export function ScenariosManager({
     );
   };
 
+  const handleBackup = async () => {
+    setBackupBusy(true);
+    try {
+      const result = await exportScenarioBackup();
+      showToast(`${result.scenarios} سناریو در فایل سرور ذخیره شد`, "success");
+    } catch (error: any) {
+      showAlert("بکاپ سناریو", error.message || "بکاپ سناریو انجام نشد.", "error");
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const handleRestore = () => {
+    showConfirm(
+      "بازیابی سناریوها",
+      "سناریوهای داخل فایل بکاپ روی دیتابیس اعمال می‌شوند. سناریوهای موجود حذف نمی‌شوند، اما موارد هم‌نام بروزرسانی می‌شوند.",
+      async () => {
+        setBackupBusy(true);
+        try {
+          const result = await restoreScenarioBackup();
+          showToast(`${result.scenarios} سناریو از فایل بکاپ اعمال شد`, "success");
+          window.location.reload();
+        } catch (error: any) {
+          showAlert("بازیابی سناریو", error.message || "بازیابی از فایل انجام نشد.", "error");
+        } finally {
+          setBackupBusy(false);
+        }
+      },
+      "warning"
+    );
+  };
+
   return (
     <div className="space-y-5" dir="rtl">
       <section className="ui-card overflow-hidden">
@@ -228,10 +274,20 @@ export function ScenariosManager({
               سناریوها را به صورت خلاصه ببینید، با جستجو سریع پیدا کنید و جزئیات نقش‌ها را در پنجره جداگانه بررسی کنید.
             </p>
           </div>
-          <button onClick={() => openForm()} className="ui-button-primary min-h-11 px-5">
-            <span className="material-symbols-outlined text-xl">add_circle</span>
-            سناریو جدید
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={handleBackup} disabled={backupBusy} className="ui-button-secondary min-h-11 px-4">
+              <span className="material-symbols-outlined text-lg">backup</span>
+              بکاپ سرور
+            </button>
+            <button onClick={handleRestore} disabled={backupBusy} className="ui-button-secondary min-h-11 px-4">
+              <span className="material-symbols-outlined text-lg">settings_backup_restore</span>
+              بازیابی فایل
+            </button>
+            <button onClick={() => openForm()} className="ui-button-primary min-h-11 px-5">
+              <span className="material-symbols-outlined text-xl">add_circle</span>
+              سناریو جدید
+            </button>
+          </div>
         </div>
       </section>
 
@@ -343,6 +399,16 @@ export function ScenariosManager({
                       title="ویرایش سناریو"
                     >
                       <span className="material-symbols-outlined text-base">edit_square</span>
+                    </button>
+                    <button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openDuplicateForm(scenario);
+                      }}
+                      className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-lime-500/30 hover:bg-lime-500/10 hover:text-lime-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-lime-300"
+                      title="کپی سناریو"
+                    >
+                      <span className="material-symbols-outlined text-base">content_copy</span>
                     </button>
                     <button
                       onClick={(event) => {
@@ -569,20 +635,8 @@ export function ScenariosManager({
                 ))}
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {selectedScenario.roles.map((scenarioRole) => (
-                  <div key={`${selectedScenario.id}-${scenarioRole.roleId}`} className="ui-muted flex items-center justify-between gap-3 p-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{scenarioRole.role.name}</p>
-                      <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[10px] font-black ${alignmentClass(scenarioRole.role.alignment)}`}>
-                        {alignmentLabel(scenarioRole.role.alignment)}
-                      </p>
-                    </div>
-                    <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(scenarioRole.role.alignment)}`}>
-                      x{scenarioRole.count}
-                    </span>
-                  </div>
-                ))}
+              <div className="mt-5">
+                <ScenarioRoleComposition roles={selectedScenario.roles} />
               </div>
             </div>
 
@@ -596,6 +650,13 @@ export function ScenariosManager({
               >
                 <span className="material-symbols-outlined text-lg">edit_square</span>
                 ویرایش سناریو
+              </button>
+              <button
+                onClick={() => openDuplicateForm(selectedScenario)}
+                className="ui-button-secondary min-h-10 flex-1 px-4"
+              >
+                <span className="material-symbols-outlined text-lg">content_copy</span>
+                کپی برای نسخه جدید
               </button>
               <button onClick={() => handleDelete(selectedScenario.id)} className="ui-button-danger min-h-10 flex-1 px-4">
                 <span className="material-symbols-outlined text-lg">delete</span>

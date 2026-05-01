@@ -6,6 +6,14 @@ import { Role, Alignment, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { gameDisplayName, TEMP_SCENARIO_DESCRIPTION_PREFIX } from "@/lib/gameDisplay";
 import { sendAdminUserEmail } from "@/lib/email";
+import {
+  mergeRoleDefinitions,
+  STANDARD_ROLE_DEFINITIONS,
+  STANDARD_SCENARIO_DEFINITIONS,
+  type RoleDefinition,
+  type ScenarioBackupFile,
+  type ScenarioDefinition,
+} from "../../prisma/scenario-data";
 
 type SafeListResult<T> = {
   success: boolean;
@@ -32,6 +40,13 @@ type RoleNightAbilityInput = {
 };
 
 const READ_ERROR = "اطلاعات این بخش بارگذاری نشد. اتصال پایگاه داده یا سطح دسترسی کاربر را بررسی کنید.";
+
+const persistentScenarioWhere = {
+  NOT: [
+    { description: { startsWith: TEMP_SCENARIO_DESCRIPTION_PREFIX } },
+    { description: "سناریو ساخته شده در لحظه" },
+  ],
+};
 
 async function checkAdmin() {
   const session = await auth();
@@ -348,12 +363,7 @@ export async function deleteMafiaRole(id: string) {
 export async function getScenarios() {
   await checkModerator();
   return await prisma.scenario.findMany({
-    where: {
-      NOT: [
-        { description: { startsWith: TEMP_SCENARIO_DESCRIPTION_PREFIX } },
-        { description: "سناریو ساخته شده در لحظه" },
-      ],
-    },
+    where: persistentScenarioWhere,
     include: {
       roles: {
         include: {
@@ -434,164 +444,141 @@ export async function updateScenario(id: string, data: { name: string, descripti
   return scenario;
 }
 
-export async function installStandardScenarios() {
-  await checkModerator();
+async function syncScenarioDefinitions(roleDefinitions: RoleDefinition[], scenarioDefinitions: ScenarioDefinition[]) {
+  const nightAbilitiesData = (role: RoleDefinition) =>
+    role.nightAbilities === undefined
+      ? {}
+      : { nightAbilities: role.nightAbilities === null ? Prisma.JsonNull : role.nightAbilities as Prisma.InputJsonValue };
 
-  const allRoles = await prisma.mafiaRole.findMany();
-  const id = (name: string) => allRoles.find(r => r.name === name)?.id;
+  for (const role of roleDefinitions) {
+    await prisma.mafiaRole.upsert({
+      where: { name: role.name },
+      update: {
+        description: role.description,
+        alignment: role.alignment,
+        is_permanent: role.is_permanent ?? true,
+        ...nightAbilitiesData(role),
+      },
+      create: {
+        name: role.name,
+        description: role.description,
+        alignment: role.alignment,
+        is_permanent: role.is_permanent ?? true,
+        ...nightAbilitiesData(role),
+      },
+    });
+  }
 
-  const scenarios = [
-    {
-      name: "کلاسیک ۱۲ نفره",
-      description: "سناریو بازپرس و محقق - ۱۲ نفر",
-      roles: [
-        { name: "محقق", count: 1 }, { name: "بازپرس", count: 1 }, { name: "دکتر", count: 1 },
-        { name: "کارآگاه", count: 1 }, { name: "رویین‌تن", count: 1 }, { name: "تکتیرانداز", count: 1 },
-        { name: "شهروند ساده", count: 2 },
-        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "شیاد", count: 1 },
-        { name: "مافیا ساده", count: 1 },
-      ],
-    },
-    {
-      name: "کلاسیک ۱۳ نفره",
-      description: "سناریو بازپرس و محقق - ۱۳ نفر",
-      roles: [
-        { name: "محقق", count: 1 }, { name: "بازپرس", count: 1 }, { name: "دکتر", count: 1 },
-        { name: "کارآگاه", count: 1 }, { name: "رویین‌تن", count: 1 }, { name: "تکتیرانداز", count: 1 },
-        { name: "شهروند ساده", count: 3 },
-        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "شیاد", count: 1 },
-        { name: "مافیا ساده", count: 1 },
-      ],
-    },
-    {
-      name: "نماینده ۱۰ نفره",
-      description: "سناریو نماینده - ۱۰ نفر",
-      roles: [
-        { name: "دکتر", count: 1 }, { name: "راهنما", count: 1 }, { name: "مین‌گذار", count: 1 },
-        { name: "وکیل", count: 1 }, { name: "محافظ", count: 1 }, { name: "شهروند ساده", count: 2 },
-        { name: "دن مافیا", count: 1 }, { name: "یاغی", count: 1 }, { name: "هکر", count: 1 },
-      ],
-    },
-    {
-      name: "نماینده ۱۲ نفره",
-      description: "سناریو نماینده - ۱۲ نفر",
-      roles: [
-        { name: "دکتر", count: 1 }, { name: "راهنما", count: 1 }, { name: "مین‌گذار", count: 1 },
-        { name: "وکیل", count: 1 }, { name: "محافظ", count: 1 }, { name: "سرباز", count: 1 },
-        { name: "شهروند ساده", count: 2 },
-        { name: "دن مافیا", count: 1 }, { name: "یاغی", count: 1 }, { name: "هکر", count: 1 },
-        { name: "ناتو", count: 1 },
-      ],
-    },
-    {
-      name: "فراماسون ۱۲ نفره",
-      description: "سناریو فراماسون - ۱۲ نفر",
-      roles: [
-        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکتیرانداز", count: 1 },
-        { name: "فرمانده", count: 1 }, { name: "کشیش", count: 1 }, { name: "تفنگدار", count: 1 },
-        { name: "رویین‌تن", count: 1 },
-        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "سایلنسر", count: 1 },
-        { name: "مافیا ساده", count: 1 },
-        { name: "جوکر", count: 1 },
-      ],
-    },
-    {
-      name: "فراماسون ۱۳ نفره",
-      description: "سناریو فراماسون - ۱۳ نفر",
-      roles: [
-        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکتیرانداز", count: 1 },
-        { name: "فرمانده", count: 1 }, { name: "کشیش", count: 1 }, { name: "تفنگدار", count: 1 },
-        { name: "رویین‌تن", count: 1 }, { name: "کابوی", count: 1 },
-        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "سایلنسر", count: 1 },
-        { name: "مافیا ساده", count: 1 },
-        { name: "جوکر", count: 1 },
-      ],
-    },
-    {
-      name: "فراماسون ۱۵ نفره",
-      description: "سناریو فراماسون - ۱۵ نفر | نسخه کامل",
-      roles: [
-        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکتیرانداز", count: 1 },
-        { name: "فراماسون", count: 1 }, { name: "فرمانده", count: 1 }, { name: "کشیش", count: 1 },
-        { name: "تفنگدار", count: 1 }, { name: "رویین‌تن", count: 1 }, { name: "کابوی", count: 1 },
-        { name: "قاضی", count: 1 },
-        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "سایلنسر", count: 1 },
-        { name: "تروریست", count: 1 },
-        { name: "جوکر", count: 1 },
-      ],
-    },
-    {
-      name: "تکاور ۱۰ نفره",
-      description: "سناریو تکاور - ۱۰ نفر",
-      roles: [
-        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکاور", count: 1 },
-        { name: "نگهبان", count: 1 }, { name: "تفنگدار", count: 1 }, { name: "شهروند ساده", count: 2 },
-        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "افسونگر", count: 1 },
-      ],
-    },
-    {
-      name: "تکاور ۱۲ نفره",
-      description: "سناریو تکاور - ۱۲ نفر",
-      roles: [
-        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکاور", count: 1 },
-        { name: "نگهبان", count: 1 }, { name: "تفنگدار", count: 1 }, { name: "شهروند ساده", count: 3 },
-        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "افسونگر", count: 1 },
-        { name: "مافیا ساده", count: 1 },
-      ],
-    },
-    {
-      name: "تکاور ۱۳ نفره",
-      description: "سناریو تکاور - ۱۳ نفر",
-      roles: [
-        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکاور", count: 1 },
-        { name: "نگهبان", count: 1 }, { name: "تفنگدار", count: 1 }, { name: "شهروند ساده", count: 4 },
-        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "افسونگر", count: 1 },
-        { name: "مافیا ساده", count: 1 },
-      ],
-    },
-    {
-      name: "تکاور ۱۵ نفره",
-      description: "سناریو تکاور - ۱۵ نفر | نسخه کامل",
-      roles: [
-        { name: "کارآگاه", count: 1 }, { name: "دکتر", count: 1 }, { name: "تکاور", count: 1 },
-        { name: "نگهبان", count: 1 }, { name: "تفنگدار", count: 1 }, { name: "شهروند ساده", count: 5 },
-        { name: "رئیس مافیا", count: 1 }, { name: "ناتو", count: 1 }, { name: "افسونگر", count: 1 },
-        { name: "مافیا ساده", count: 2 },
-      ],
-    },
-  ];
+  const dbRoles = await prisma.mafiaRole.findMany();
+  const roleIdByName = new Map(dbRoles.map((role) => [role.name, role.id]));
 
-  for (const s of scenarios) {
-    const roleLinks = s.roles
-      .map(r => ({ roleId: id(r.name), count: r.count }))
-      .filter((r): r is { roleId: string; count: number } => r.roleId != null);
+  for (const scenario of scenarioDefinitions) {
+    const roleLinks = scenario.roles
+      .map((role) => ({ roleId: roleIdByName.get(role.name), count: role.count }))
+      .filter((role): role is { roleId: string; count: number } => Boolean(role.roleId));
 
     if (roleLinks.length === 0) continue;
 
-    const existing = await prisma.scenario.findUnique({ where: { name: s.name } });
-
+    const existing = await prisma.scenario.findUnique({ where: { name: scenario.name } });
     if (existing) {
       await prisma.scenarioRole.deleteMany({ where: { scenarioId: existing.id } });
       await prisma.scenario.update({
         where: { id: existing.id },
         data: {
-          description: s.description,
-          roles: { create: roleLinks.map(rl => ({ count: rl.count, role: { connect: { id: rl.roleId } } })) },
+          description: scenario.description,
+          roles: {
+            create: roleLinks.map((role) => ({
+              count: role.count,
+              role: { connect: { id: role.roleId } },
+            })),
+          },
         },
       });
     } else {
       await prisma.scenario.create({
         data: {
-          name: s.name,
-          description: s.description,
-          roles: { create: roleLinks.map(rl => ({ count: rl.count, role: { connect: { id: rl.roleId } } })) },
+          name: scenario.name,
+          description: scenario.description,
+          roles: {
+            create: roleLinks.map((role) => ({
+              count: role.count,
+              role: { connect: { id: role.roleId } },
+            })),
+          },
         },
       });
     }
   }
 
   revalidatePath("/dashboard/moderator/scenarios");
-  return { success: true };
+  revalidatePath("/dashboard/admin");
+  return { roles: roleDefinitions.length, scenarios: scenarioDefinitions.length };
+}
+
+export async function exportScenarioBackup() {
+  await checkModerator();
+  const { writeScenarioBackupFile } = await import("../../prisma/scenario-backup");
+
+  const [roles, scenarios] = await Promise.all([
+    prisma.mafiaRole.findMany({ orderBy: [{ alignment: "asc" }, { name: "asc" }] }),
+    prisma.scenario.findMany({
+      where: persistentScenarioWhere,
+      include: {
+        roles: {
+          include: { role: true },
+          orderBy: { role: { name: "asc" } },
+        },
+      },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
+  const backup: ScenarioBackupFile = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    roles: roles.map((role) => ({
+      name: role.name,
+      alignment: role.alignment,
+      description: role.description || "",
+      is_permanent: role.is_permanent,
+      nightAbilities: role.nightAbilities,
+    })),
+    scenarios: scenarios.map((scenario) => ({
+      name: scenario.name,
+      description: scenario.description || "",
+      roles: scenario.roles.map((scenarioRole) => ({
+        name: scenarioRole.role.name,
+        count: scenarioRole.count,
+      })),
+    })),
+  };
+
+  const filePath = await writeScenarioBackupFile(backup);
+  return { success: true, filePath, scenarios: backup.scenarios.length, roles: backup.roles.length };
+}
+
+export async function restoreScenarioBackup() {
+  await checkModerator();
+  const { readScenarioBackupFile, scenarioBackupPath } = await import("../../prisma/scenario-backup");
+
+  const backup = await readScenarioBackupFile();
+  if (!backup) {
+    throw new Error(`فایل بکاپ سناریو پیدا نشد یا قابل خواندن نیست: ${scenarioBackupPath()}`);
+  }
+
+  const result = await syncScenarioDefinitions(
+    mergeRoleDefinitions(STANDARD_ROLE_DEFINITIONS, backup.roles),
+    backup.scenarios
+  );
+
+  return { success: true, ...result, filePath: scenarioBackupPath() };
+}
+
+export async function installStandardScenarios() {
+  await checkModerator();
+
+  const result = await syncScenarioDefinitions(STANDARD_ROLE_DEFINITIONS, STANDARD_SCENARIO_DEFINITIONS);
+  return { success: true, ...result };
 }
 
 export async function deleteScenario(id: string) {
