@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const desktopFeatures = [
-  { icon: "groups", title: "لابی و ورود", text: "ساخت بازی، ورود با کد، کنترل ظرفیت و وضعیت بازیکنان در یک نمای زنده." },
+  { icon: "groups", title: "لابی و ورود", text: "ساخت بازی، کنترل ظرفیت و وضعیت بازیکنان در یک نمای زنده." },
   { icon: "account_tree", title: "سناریو و نقش", text: "تعریف سناریو، نقش‌ها، توانایی‌های شب و نسخه‌های مختلف برای هر جمع." },
   { icon: "edit_note", title: "گزارش گرداننده", text: "ثبت اتفاقات روز و شب، حذف‌ها، تغییر نقش و انتشار گزارش بعد از بازی." },
 ];
@@ -52,10 +52,6 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href="/join" className="ui-button-secondary">
-              <span className="material-symbols-outlined text-lg">vpn_key</span>
-              ورود با کد
-            </Link>
             <ThemeToggle compact />
             <Link href="/auth/login" className="ui-button-primary">
               <span className="material-symbols-outlined text-lg">login</span>
@@ -99,10 +95,6 @@ export default function Home() {
                   <Link href="/auth/login" className="ui-button-primary min-h-12 px-5 text-base">
                     <span className="material-symbols-outlined text-xl">login</span>
                     ورود و شروع
-                  </Link>
-                  <Link href="/join" className="ui-button-secondary min-h-12 px-5 text-base">
-                    <span className="material-symbols-outlined text-xl">vpn_key</span>
-                    ورود با کد
                   </Link>
                 </div>
               </div>
