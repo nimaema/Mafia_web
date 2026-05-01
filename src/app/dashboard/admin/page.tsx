@@ -13,6 +13,9 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
   if (params?.tab === "users") {
     redirect("/dashboard/admin/users");
   }
+  if (params?.tab === "backups") {
+    redirect("/dashboard/admin/backups");
+  }
 
   return <AdminConfigPanel />;
 }

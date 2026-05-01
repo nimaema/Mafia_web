@@ -97,6 +97,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
       items: [
         { key: "users", href: "/dashboard/admin/users", label: "کاربران", icon: "group", tone: "sky" },
         { key: "adminHistory", href: "/dashboard/admin/history", label: "تاریخچه کل", icon: "manage_history", tone: "sky" },
+        { key: "backups", href: "/dashboard/admin/backups", label: "بکاپ", icon: "database", tone: "sky" },
       ],
     });
   }
@@ -116,6 +117,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
     if (item.key === "roles") return pathname === "/dashboard/admin" && (!adminTab || adminTab === "roles");
     if (item.key === "users") return pathname === "/dashboard/admin/users";
     if (item.key === "adminHistory") return pathname === "/dashboard/admin/history";
+    if (item.key === "backups") return pathname === "/dashboard/admin/backups";
     return false;
   };
 

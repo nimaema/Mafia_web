@@ -16,29 +16,15 @@ import {
   getMafiaRolesSafe,
   getScenariosSafe,
 } from "@/actions/admin";
-import {
-  createDatabaseBackup,
-  deleteDatabaseBackup,
-  listDatabaseBackups,
-  restoreDatabaseBackup,
-  restoreDatabaseBackupDataOnly,
-} from "@/actions/dbBackups";
 import { Alignment } from "@prisma/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { usePopup } from "@/components/PopupProvider";
 import { ScenarioRoleComposition } from "@/components/ScenarioRoleComposition";
 
-type AdminTab = "roles" | "scenarios" | "backups";
+type AdminTab = "roles" | "scenarios";
 type RoleAlignmentFilter = "ALL" | Alignment;
 type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
-
-type DatabaseBackupRecord = {
-  fileName: string;
-  kind: "auto" | "manual" | "pre-restore";
-  createdAt: string;
-  sizeBytes: number;
-};
 
 type RoleNightAbilityChoice = {
   id: string;
@@ -220,31 +206,6 @@ function scenarioDominantAlignment(scenario: ScenarioRecord) {
   return "CITIZEN";
 }
 
-function formatBackupDate(value: string) {
-  return new Intl.DateTimeFormat("fa-IR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
-function formatBackupSize(bytes: number) {
-  if (bytes <= 0) return "0 KB";
-  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
-
-function backupKindLabel(kind: DatabaseBackupRecord["kind"]) {
-  if (kind === "auto") return "خودکار";
-  if (kind === "pre-restore") return "قبل از بازیابی";
-  return "دستی";
-}
-
-function backupKindClass(kind: DatabaseBackupRecord["kind"]) {
-  if (kind === "auto") return "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300";
-  if (kind === "pre-restore") return "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300";
-  return "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300";
-}
-
 export default function AdminDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -276,9 +237,6 @@ export default function AdminDashboard() {
   const [scenarioSearch, setScenarioSearch] = useState("");
   const [scenarioRoleSearch, setScenarioRoleSearch] = useState("");
   const [scenarioBackupBusy, setScenarioBackupBusy] = useState(false);
-  const [databaseBackups, setDatabaseBackups] = useState<DatabaseBackupRecord[]>([]);
-  const [databaseBackupsLoading, setDatabaseBackupsLoading] = useState(false);
-  const [databaseBackupBusy, setDatabaseBackupBusy] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -289,18 +247,12 @@ export default function AdminDashboard() {
       return;
     }
 
-    const nextTab: AdminTab = tab === "scenarios" ? "scenarios" : tab === "backups" && isAdmin ? "backups" : "roles";
+    const nextTab: AdminTab = tab === "scenarios" ? "scenarios" : "roles";
     setActiveTab((currentTab) => (currentTab === nextTab ? currentTab : nextTab));
   }, [searchParams, isAdmin, router, status]);
 
   useEffect(() => {
     if (status === "loading") return;
-    if (activeTab === "backups") {
-      setLoading(false);
-      setErrorMessage("");
-      refreshDatabaseBackups();
-      return;
-    }
     refreshData();
   }, [activeTab, status]);
 
@@ -333,22 +285,8 @@ export default function AdminDashboard() {
   };
 
   const switchTab = (tab: AdminTab) => {
-    if (tab === "backups" && !isAdmin) return;
     setActiveTab(tab);
     router.replace(`/dashboard/admin?tab=${tab}`, { scroll: false });
-  };
-
-  const refreshDatabaseBackups = async () => {
-    if (!isAdmin) return;
-    setDatabaseBackupsLoading(true);
-    try {
-      const backups = await listDatabaseBackups();
-      setDatabaseBackups(backups as DatabaseBackupRecord[]);
-    } catch (error: any) {
-      showAlert("بکاپ دیتابیس", error.message || "لیست بکاپ‌ها بارگذاری نشد.", "error");
-    } finally {
-      setDatabaseBackupsLoading(false);
-    }
   };
 
   const resetRoleForm = () => {
@@ -591,85 +529,6 @@ export default function AdminDashboard() {
     );
   };
 
-  const handleCreateDatabaseBackup = async () => {
-    setDatabaseBackupBusy("create");
-    try {
-      const result = await createDatabaseBackup();
-      showToast(`بکاپ دیتابیس ساخته شد: ${formatBackupSize(result.backup.sizeBytes)}`, "success");
-      await refreshDatabaseBackups();
-    } catch (error: any) {
-      showAlert("بکاپ دیتابیس", error.message || "ساخت بکاپ دیتابیس انجام نشد.", "error");
-    } finally {
-      setDatabaseBackupBusy(null);
-    }
-  };
-
-  const handleDeleteDatabaseBackup = (backup: DatabaseBackupRecord) => {
-    showConfirm(
-      "حذف فایل بکاپ",
-      `فایل ${backup.fileName} حذف شود؟ این کار دیتابیس فعلی را تغییر نمی‌دهد، فقط فایل بکاپ حذف می‌شود.`,
-      async () => {
-        setDatabaseBackupBusy(`delete:${backup.fileName}`);
-        try {
-          await deleteDatabaseBackup(backup.fileName);
-          showToast("فایل بکاپ حذف شد", "success");
-          await refreshDatabaseBackups();
-        } catch (error: any) {
-          showAlert("حذف بکاپ", error.message || "حذف فایل بکاپ انجام نشد.", "error");
-        } finally {
-          setDatabaseBackupBusy(null);
-        }
-      },
-      "error"
-    );
-  };
-
-  const handleRestoreDatabaseBackup = (backup: DatabaseBackupRecord) => {
-    showConfirm(
-      "بازیابی کامل دیتابیس",
-      `کل دیتابیس به وضعیت ${formatBackupDate(backup.createdAt)} برمی‌گردد. قبل از بازیابی، یک بکاپ ایمنی جدید ساخته می‌شود. ادامه می‌دهید؟`,
-      async () => {
-        setDatabaseBackupBusy(`full:${backup.fileName}`);
-        try {
-          const result = await restoreDatabaseBackup(backup.fileName);
-          showToast(`دیتابیس بازیابی شد. بکاپ ایمنی: ${result.safetyBackup.fileName}`, "success");
-          await refreshDatabaseBackups();
-          window.location.reload();
-        } catch (error: any) {
-          showAlert("بازیابی دیتابیس", error.message || "بازیابی دیتابیس انجام نشد.", "error");
-        } finally {
-          setDatabaseBackupBusy(null);
-        }
-      },
-      "warning"
-    );
-  };
-
-  const handleRestoreDatabaseBackupDataOnly = (backup: DatabaseBackupRecord) => {
-    showConfirm(
-      "بازیابی داده با ساختار فعلی",
-      `داده‌های ${formatBackupDate(backup.createdAt)} روی جداول فعلی اعمال می‌شود، اما ساختار فعلی دیتابیس و ستون‌های جدید حذف نمی‌شوند. قبل از بازیابی، یک بکاپ ایمنی جدید ساخته می‌شود. ادامه می‌دهید؟`,
-      async () => {
-        setDatabaseBackupBusy(`data:${backup.fileName}`);
-        try {
-          const result = await restoreDatabaseBackupDataOnly(backup.fileName);
-          showToast(`داده‌ها با ساختار فعلی بازیابی شدند. بکاپ ایمنی: ${result.safetyBackup.fileName}`, "success");
-          await refreshDatabaseBackups();
-          window.location.reload();
-        } catch (error: any) {
-          showAlert(
-            "بازیابی داده",
-            error.message || "بازیابی داده با ساختار فعلی انجام نشد. اگر ستون‌های قدیمی حذف شده باشند، از بازیابی کامل یا بکاپ جدیدتر استفاده کنید.",
-            "error"
-          );
-        } finally {
-          setDatabaseBackupBusy(null);
-        }
-      },
-      "warning"
-    );
-  };
-
   const toggleRoleInScenario = (roleId: string) => {
     setSelectedRoles((previous) => {
       const exists = previous.find((role) => role.roleId === roleId);
@@ -800,16 +659,6 @@ export default function AdminDashboard() {
     });
   }, [roles, scenarioRoleSearch, selectedScenarioRoleMap]);
 
-  const databaseBackupStats = useMemo(() => {
-    const totalSizeBytes = databaseBackups.reduce((sum, backup) => sum + backup.sizeBytes, 0);
-    return {
-      totalSizeBytes,
-      autoCount: databaseBackups.filter((backup) => backup.kind === "auto").length,
-      manualCount: databaseBackups.filter((backup) => backup.kind === "manual").length,
-      latest: databaseBackups[0],
-    };
-  }, [databaseBackups]);
-
   return (
     <div className="flex min-h-[80vh] flex-col gap-5" dir="rtl">
       <header className="ui-card overflow-hidden">
@@ -828,7 +677,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex flex-col gap-3 xl:items-end">
-            <div className={`grid gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-white/10 dark:bg-zinc-950 ${isAdmin ? "grid-cols-3" : "grid-cols-2"}`}>
+            <div className="grid grid-cols-2 gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-white/10 dark:bg-zinc-950">
               <button
                 onClick={() => switchTab("roles")}
                 className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${
@@ -851,19 +700,6 @@ export default function AdminDashboard() {
                 <span className="material-symbols-outlined text-lg">account_tree</span>
                 سناریوها
               </button>
-              {isAdmin && (
-                <button
-                  onClick={() => switchTab("backups")}
-                  className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${
-                    activeTab === "backups"
-                      ? "bg-lime-500 text-zinc-950 shadow-sm"
-                      : "text-zinc-500 hover:bg-white dark:hover:bg-white/[0.06]"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-lg">database</span>
-                  بکاپ
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -927,232 +763,6 @@ export default function AdminDashboard() {
               تلاش دوباره
             </button>
           </div>
-        ) : activeTab === "backups" ? (
-          <div className="min-h-[520px] bg-zinc-50/70 p-4 dark:bg-white/[0.02] sm:p-5">
-            <section className="overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-zinc-950/70">
-              <div className="grid lg:grid-cols-[minmax(0,1fr)_330px]">
-                <div className="relative p-5 sm:p-6">
-                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="ui-icon-accent size-12">
-                        <span className="material-symbols-outlined text-2xl">database</span>
-                      </div>
-                      <div>
-                        <p className="ui-kicker">مرکز بکاپ دیتابیس</p>
-                        <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">بازگشت امن بدون از دست دادن ساختار جدید</h2>
-                        <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                          بکاپ خودکار هر ۲۴ ساعت ساخته می‌شود و تا ۷ روز نگه داشته می‌شود. برای تغییرات اخیر دیتابیس، گزینه بازیابی داده ساختار فعلی را حفظ می‌کند؛ بازگشت کامل فقط برای rollback اضطراری است.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
-                      <button
-                        type="button"
-                        onClick={refreshDatabaseBackups}
-                        disabled={databaseBackupsLoading || Boolean(databaseBackupBusy)}
-                        className="ui-button-secondary min-h-10 px-3 text-xs"
-                      >
-                        <span className="material-symbols-outlined text-base">refresh</span>
-                        بروزرسانی
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCreateDatabaseBackup}
-                        disabled={Boolean(databaseBackupBusy)}
-                        className="ui-button-primary min-h-10 px-3 text-xs"
-                      >
-                        <span className={`material-symbols-outlined text-base ${databaseBackupBusy === "create" ? "animate-spin" : ""}`}>
-                          {databaseBackupBusy === "create" ? "progress_activity" : "backup"}
-                        </span>
-                        بکاپ فوری
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <aside className="border-t border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10 dark:bg-white/[0.04] lg:border-r lg:border-t-0">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-bold text-zinc-400">آخرین نقطه بازیابی</p>
-                      <p className="mt-1 text-lg font-black">
-                        {databaseBackupStats.latest ? formatBackupDate(databaseBackupStats.latest.createdAt) : "هنوز ساخته نشده"}
-                      </p>
-                    </div>
-                    <div className="flex size-12 items-center justify-center rounded-lg bg-lime-500 text-zinc-950">
-                      <span className="material-symbols-outlined text-2xl">restore_page</span>
-                    </div>
-                  </div>
-                  <div className="mt-5 grid grid-cols-2 gap-2">
-                    <div className="rounded-lg border border-white/10 bg-white/10 p-3">
-                      <p className="text-xl font-black">{databaseBackups.length}</p>
-                      <p className="mt-1 text-[10px] font-bold text-zinc-400">فایل بکاپ</p>
-                    </div>
-                    <div className="rounded-lg border border-white/10 bg-white/10 p-3">
-                      <p className="text-xl font-black">{formatBackupSize(databaseBackupStats.totalSizeBytes)}</p>
-                      <p className="mt-1 text-[10px] font-bold text-zinc-400">حجم کل</p>
-                    </div>
-                  </div>
-                </aside>
-              </div>
-            </section>
-
-            <section className="mt-4 grid gap-3 md:grid-cols-4">
-              {[
-                ["خودکار", `${databaseBackupStats.autoCount} فایل`, "event_repeat", "text-lime-500"],
-                ["دستی", `${databaseBackupStats.manualCount} فایل`, "touch_app", "text-sky-500"],
-                ["نگهداری", "۷ روز آخر", "calendar_clock", "text-amber-500"],
-                ["فرمت", "Postgres dump", "inventory_2", "text-zinc-500"],
-              ].map(([label, value, icon, color]) => (
-                <div key={label} className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/60">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-                    <span className="h-1.5 w-8 rounded-full bg-zinc-200 dark:bg-white/10" />
-                  </div>
-                  <p className="mt-3 text-base font-black text-zinc-950 dark:text-white">{value}</p>
-                  <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
-                </div>
-              ))}
-            </section>
-
-            <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-              <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-zinc-950/60">
-                <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.03]">
-                  <div>
-                    <p className="text-sm font-black text-zinc-950 dark:text-white">فایل‌های قابل بازیابی</p>
-                    <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
-                      هر ردیف زمان ساخت، نوع و حجم فایل را نشان می‌دهد.
-                    </p>
-                  </div>
-                  {databaseBackupsLoading && (
-                    <span className="material-symbols-outlined animate-spin text-zinc-400">progress_activity</span>
-                  )}
-                </div>
-
-                {databaseBackupsLoading && databaseBackups.length === 0 ? (
-                  <div className="flex min-h-72 flex-col items-center justify-center gap-3 p-8 text-center">
-                    <div className="size-10 animate-spin rounded-full border-4 border-zinc-200 border-t-lime-500 dark:border-zinc-800" />
-                    <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">در حال خواندن بکاپ‌ها...</p>
-                  </div>
-                ) : databaseBackups.length === 0 ? (
-                  <div className="flex min-h-72 flex-col items-center justify-center gap-4 p-8 text-center">
-                    <div className="ui-icon size-16">
-                      <span className="material-symbols-outlined text-3xl text-zinc-400">database_off</span>
-                    </div>
-                    <div>
-                      <p className="font-black text-zinc-950 dark:text-white">هنوز بکاپی ساخته نشده است</p>
-                      <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">بکاپ خودکار بعد از اجرای سرویس ساخته می‌شود؛ برای شروع فوری از دکمه بکاپ فوری استفاده کنید.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-zinc-200 dark:divide-white/10">
-                    {databaseBackups.map((backup) => (
-                      <article key={backup.fileName} className="grid gap-3 p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-white/[0.03] lg:grid-cols-[minmax(0,1fr)_150px_270px] lg:items-center">
-                        <div className="flex min-w-0 items-start gap-3">
-                          <div className="ui-icon mt-0.5">
-                            <span className="material-symbols-outlined text-lg">folder_data</span>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${backupKindClass(backup.kind)}`}>
-                                {backupKindLabel(backup.kind)}
-                              </span>
-                              <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
-                                {formatBackupSize(backup.sizeBytes)}
-                              </span>
-                            </div>
-                            <h3 className="mt-2 truncate text-sm font-black text-zinc-950 dark:text-white" dir="ltr">{backup.fileName}</h3>
-                            <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{formatBackupDate(backup.createdAt)}</p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-center dark:border-white/10 dark:bg-white/[0.03] lg:grid-cols-1">
-                          <div>
-                            <p className="text-base font-black text-zinc-950 dark:text-white">{formatBackupSize(backup.sizeBytes)}</p>
-                            <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">حجم فایل</p>
-                          </div>
-                          <div>
-                            <p className="text-base font-black text-zinc-950 dark:text-white">{backupKindLabel(backup.kind)}</p>
-                            <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">نوع بکاپ</p>
-                          </div>
-                        </div>
-
-                        <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
-                          <button
-                            type="button"
-                            onClick={() => handleRestoreDatabaseBackupDataOnly(backup)}
-                            disabled={Boolean(databaseBackupBusy)}
-                            className="ui-button-primary min-h-10 px-3 text-xs"
-                          >
-                            <span className={`material-symbols-outlined text-base ${databaseBackupBusy === `data:${backup.fileName}` ? "animate-spin" : ""}`}>
-                              {databaseBackupBusy === `data:${backup.fileName}` ? "progress_activity" : "database_upload"}
-                            </span>
-                            بازیابی داده
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleRestoreDatabaseBackup(backup)}
-                            disabled={Boolean(databaseBackupBusy)}
-                            className="ui-button-secondary min-h-10 px-3 text-xs text-amber-700 dark:text-amber-300"
-                          >
-                            <span className={`material-symbols-outlined text-base ${databaseBackupBusy === `full:${backup.fileName}` ? "animate-spin" : ""}`}>
-                              {databaseBackupBusy === `full:${backup.fileName}` ? "progress_activity" : "settings_backup_restore"}
-                            </span>
-                            بازگشت کامل
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteDatabaseBackup(backup)}
-                            disabled={Boolean(databaseBackupBusy)}
-                            className="ui-button-danger min-h-10 px-3 text-xs"
-                          >
-                            <span className={`material-symbols-outlined text-base ${databaseBackupBusy === `delete:${backup.fileName}` ? "animate-spin" : ""}`}>
-                              {databaseBackupBusy === `delete:${backup.fileName}` ? "progress_activity" : "delete"}
-                            </span>
-                            حذف فایل
-                          </button>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <aside className="h-fit rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/60 xl:sticky xl:top-5">
-                <div className="flex items-center gap-3">
-                  <div className="ui-icon">
-                    <span className="material-symbols-outlined text-lg text-lime-500">rule_settings</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-zinc-950 dark:text-white">نوع بازیابی را درست انتخاب کنید</p>
-                    <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">برای هر عملیات اول بکاپ ایمنی ساخته می‌شود.</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-3">
-                  <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-base text-lime-600 dark:text-lime-300">database_upload</span>
-                      <p className="text-xs font-black text-zinc-950 dark:text-white">بازیابی داده</p>
-                    </div>
-                    <p className="mt-2 text-xs leading-6 text-zinc-600 dark:text-zinc-300">
-                      برای وقتی که فیلد جدید به دیتابیس اضافه شده است. ساختار فعلی حفظ می‌شود و داده‌های بکاپ روی جدول‌های موجود برمی‌گردد.
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-base text-amber-600 dark:text-amber-300">settings_backup_restore</span>
-                      <p className="text-xs font-black text-zinc-950 dark:text-white">بازگشت کامل</p>
-                    </div>
-                    <p className="mt-2 text-xs leading-6 text-zinc-600 dark:text-zinc-300">
-                      کل دیتابیس، شامل ساختار و داده‌ها، به همان لحظه بکاپ برمی‌گردد. این گزینه برای rollback اضطراری مناسب است.
-                    </p>
-                  </div>
-                </div>
-              </aside>
-            </section>
-          </div>
         ) : activeTab === "roles" ? (
           <div className="grid min-h-[520px] gap-0 xl:grid-cols-[380px_minmax(0,1fr)]">
             <section className="border-b border-zinc-200 bg-zinc-50/70 p-5 dark:border-white/10 dark:bg-white/[0.03] xl:border-b-0 xl:border-l">
@@ -1172,39 +782,41 @@ export default function AdminDashboard() {
                 )}
               </div>
 
-              <div className="mt-4 rounded-lg border border-sky-500/20 bg-sky-500/10 p-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-sky-500/20 bg-white text-sky-700 dark:bg-zinc-950 dark:text-sky-300">
-                    <span className="material-symbols-outlined text-lg">cloud_done</span>
+              {isAdmin && (
+                <div className="mt-4 rounded-lg border border-sky-500/20 bg-sky-500/10 p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-sky-500/20 bg-white text-sky-700 dark:bg-zinc-950 dark:text-sky-300">
+                      <span className="material-symbols-outlined text-lg">cloud_done</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-black text-zinc-950 dark:text-white">پشتیبان نقش‌ها</p>
+                      <p className="mt-1 text-[10px] leading-5 text-zinc-600 dark:text-zinc-300">
+                        نقش‌ها، جبهه‌ها، توضیحات و توانایی‌های شب را جداگانه روی فایل سرور ذخیره یا بازیابی کنید.
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-black text-zinc-950 dark:text-white">پشتیبان نقش‌ها</p>
-                    <p className="mt-1 text-[10px] leading-5 text-zinc-600 dark:text-zinc-300">
-                      نقش‌ها، جبهه‌ها، توضیحات و توانایی‌های شب را جداگانه روی فایل سرور ذخیره یا بازیابی کنید.
-                    </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={handleRoleBackup}
+                      disabled={roleBackupBusy}
+                      className="ui-button-secondary min-h-9 px-3 text-xs"
+                    >
+                      <span className="material-symbols-outlined text-base">backup</span>
+                      ذخیره بکاپ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRoleRestore}
+                      disabled={roleBackupBusy}
+                      className="ui-button-secondary min-h-9 px-3 text-xs"
+                    >
+                      <span className="material-symbols-outlined text-base">settings_backup_restore</span>
+                      بازیابی
+                    </button>
                   </div>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={handleRoleBackup}
-                    disabled={roleBackupBusy}
-                    className="ui-button-secondary min-h-9 px-3 text-xs"
-                  >
-                    <span className="material-symbols-outlined text-base">backup</span>
-                    ذخیره بکاپ
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleRoleRestore}
-                    disabled={roleBackupBusy}
-                    className="ui-button-secondary min-h-9 px-3 text-xs"
-                  >
-                    <span className="material-symbols-outlined text-base">settings_backup_restore</span>
-                    بازیابی
-                  </button>
-                </div>
-              </div>
+              )}
 
               <form onSubmit={handleAddRole} noValidate className="mt-5 flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
@@ -1599,7 +1211,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {!editingScenarioId && (
+              {!editingScenarioId && isAdmin && (
                 <div className="mt-4 rounded-lg border border-lime-500/20 bg-lime-500/10 p-3">
                   <div className="flex items-start gap-3">
                     <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-lime-500/20 bg-white text-lime-700 dark:bg-zinc-950 dark:text-lime-300">

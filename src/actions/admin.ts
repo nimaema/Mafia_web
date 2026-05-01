@@ -361,7 +361,7 @@ export async function deleteMafiaRole(id: string) {
 }
 
 export async function exportRoleBackup() {
-  await checkModerator();
+  await checkAdmin();
   const { writeRoleBackupFile } = await import("../../prisma/scenario-backup");
 
   const roles = await prisma.mafiaRole.findMany({
@@ -385,7 +385,7 @@ export async function exportRoleBackup() {
 }
 
 export async function restoreRoleBackup() {
-  await checkModerator();
+  await checkAdmin();
   const { readRoleBackupFile, roleBackupPath } = await import("../../prisma/scenario-backup");
 
   const backup = await readRoleBackupFile();
@@ -558,7 +558,7 @@ async function syncScenarioDefinitions(roleDefinitions: RoleDefinition[], scenar
 }
 
 export async function exportScenarioBackup() {
-  await checkModerator();
+  await checkAdmin();
   const { writeScenarioBackupFile } = await import("../../prisma/scenario-backup");
 
   const [roles, scenarios] = await Promise.all([
@@ -600,7 +600,7 @@ export async function exportScenarioBackup() {
 }
 
 export async function restoreScenarioBackup() {
-  await checkModerator();
+  await checkAdmin();
   const { readScenarioBackupFile, scenarioBackupPath } = await import("../../prisma/scenario-backup");
 
   const backup = await readScenarioBackupFile();
