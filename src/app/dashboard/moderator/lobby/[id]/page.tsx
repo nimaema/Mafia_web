@@ -317,16 +317,6 @@ export default function GameLobbyPage() {
   }, [customRoleSearch, customRoles, roles]);
 
   const selectedCustomCount = customRoles.reduce((sum, item) => sum + item.count, 0);
-  const selectedCustomRoles = useMemo(
-    () =>
-      customRoles
-        .map((item) => {
-          const role = roles.find((roleItem) => roleItem.id === item.roleId);
-          return role ? { ...role, count: item.count } : null;
-        })
-        .filter(Boolean) as Array<any & { count: number }>,
-    [customRoles, roles]
-  );
   const customScenarioDelta = selectedCustomCount - players.length;
   const customScenarioStatus = selectedCustomCount === 0
     ? "هیچ نقشی انتخاب نشده"
@@ -769,54 +759,6 @@ export default function GameLobbyPage() {
 
             <div className="custom-scrollbar flex-1 overflow-y-auto p-4 sm:p-5">
               <div className="space-y-4">
-                <aside className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-black text-zinc-950 dark:text-white">نقش‌های انتخاب‌شده</p>
-                      <p className="mt-1 text-[10px] font-bold text-lime-700 dark:text-lime-300">
-                        نقش‌های انتخاب‌شده همیشه بالای لیست می‌مانند.
-                      </p>
-                    </div>
-                    {selectedCustomRoles.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setCustomRoles([])}
-                        className="text-xs font-black text-red-600 transition-colors hover:text-red-500 dark:text-red-400"
-                      >
-                        پاک کردن
-                      </button>
-                    )}
-                  </div>
-
-                  {selectedCustomRoles.length === 0 ? (
-                    <div className="mt-3 rounded-lg border border-dashed border-lime-500/25 bg-white/70 p-4 text-sm font-bold leading-6 text-zinc-500 dark:bg-zinc-950/40 dark:text-zinc-400">
-                      نقش‌ها را از لیست اضافه کنید.
-                    </div>
-                  ) : (
-                    <div className="custom-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
-                      {selectedCustomRoles.map((role) => (
-                        <div key={`selected-${role.id}`} className="flex min-w-44 items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/60">
-                          <div className="min-w-0">
-                            <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{role.name}</p>
-                            <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[9px] font-black ${alignmentClass(role.alignment)}`}>
-                              {alignmentLabel(role.alignment)}
-                            </p>
-                          </div>
-                          <div className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-white/10 dark:bg-white/[0.03]">
-                            <button type="button" onClick={() => handleCustomRoleChange(role.id, -1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
-                              <span className="material-symbols-outlined text-base">remove</span>
-                            </button>
-                            <span className="w-5 text-center text-xs font-black text-zinc-950 dark:text-white">{role.count}</span>
-                            <button type="button" onClick={() => handleCustomRoleChange(role.id, 1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
-                              <span className="material-symbols-outlined text-base">add</span>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </aside>
-
                 <section className="min-w-0">
                   <label className="sticky top-0 z-10 mb-4 flex min-h-12 items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950">
                     <span className="material-symbols-outlined text-zinc-400">search</span>
@@ -876,13 +818,24 @@ export default function GameLobbyPage() {
             </div>
 
             <div className="sticky bottom-0 grid gap-3 border-t border-zinc-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] dark:border-white/10 dark:bg-zinc-900/95 sm:grid-cols-[minmax(0,1fr)_220px] sm:p-5">
-              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+              <label className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-all ${
+                saveCustomScenario
+                  ? "border-lime-500/35 bg-lime-500/10 shadow-sm shadow-lime-500/10"
+                  : "border-zinc-200 bg-zinc-50 hover:border-lime-500/25 dark:border-white/10 dark:bg-white/[0.03]"
+              }`}>
                 <input
                   type="checkbox"
                   checked={saveCustomScenario}
                   onChange={(event) => setSaveCustomScenario(event.target.checked)}
-                  className="mt-1 size-4 accent-lime-500"
+                  className="sr-only"
                 />
+                <span className={`flex size-10 shrink-0 items-center justify-center rounded-lg border transition-all ${
+                  saveCustomScenario
+                    ? "border-lime-400 bg-gradient-to-br from-lime-300 to-lime-500 text-zinc-950 shadow-sm shadow-lime-500/30"
+                    : "border-zinc-300 bg-white text-zinc-300 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-700"
+                }`}>
+                  <span className="material-symbols-outlined text-lg">{saveCustomScenario ? "check" : "add"}</span>
+                </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-black text-zinc-950 dark:text-white">ذخیره در کتابخانه سناریوها</span>
                 </span>

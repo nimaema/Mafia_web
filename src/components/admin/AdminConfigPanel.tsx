@@ -645,17 +645,6 @@ export default function AdminDashboard() {
     [selectedRoles]
   );
 
-  const selectedScenarioRoleDetails = useMemo(
-    () =>
-      selectedRoles
-        .map((item) => {
-          const role = roles.find((roleItem) => roleItem.id === item.roleId);
-          return role ? { ...role, count: item.count } : null;
-        })
-        .filter(Boolean) as Array<MafiaRoleRecord & { count: number }>,
-    [roles, selectedRoles]
-  );
-
   const scenarioRoleOptions = useMemo(() => {
     const query = normalizeSearchText(scenarioRoleSearch);
     const visibleRoleOptions = query
@@ -1300,57 +1289,6 @@ export default function AdminDashboard() {
                     </span>
                   </div>
 
-                  <div className="mb-3 rounded-lg border border-lime-500/20 bg-lime-500/10 p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-black text-zinc-950 dark:text-white">نقش‌های انتخاب‌شده</p>
-                        <p className="mt-1 text-[10px] font-bold text-lime-700 dark:text-lime-300">
-                          بالای لیست نگه داشته می‌شوند تا ترکیب گم نشود.
-                        </p>
-                      </div>
-                      {selectedScenarioRoleDetails.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedRoles([])}
-                          className="text-xs font-black text-red-600 transition-colors hover:text-red-500 dark:text-red-400"
-                        >
-                          پاک کردن
-                        </button>
-                      )}
-                    </div>
-
-                    {selectedScenarioRoleDetails.length === 0 ? (
-                      <div className="mt-3 rounded-lg border border-dashed border-lime-500/25 bg-white/70 p-3 text-xs font-bold leading-5 text-zinc-500 dark:bg-zinc-950/40 dark:text-zinc-400">
-                        هنوز نقشی انتخاب نشده است. نقش‌های اضافه‌شده همین‌جا نمایش داده می‌شوند.
-                      </div>
-                    ) : (
-                      <div className="custom-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
-                        {selectedScenarioRoleDetails.map((role) => (
-                          <div key={`selected-${role.id}`} className="flex min-w-44 items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/70">
-                            <div className="min-w-0">
-                              <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{role.name}</p>
-                              <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[9px] font-black ${alignmentClass(role.alignment)}`}>
-                                {alignmentLabel(role.alignment)}
-                              </p>
-                            </div>
-                            <div className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-white/10 dark:bg-white/[0.03]">
-                              <button type="button" onClick={() => updateRoleCount(role.id, -1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
-                                <span className="material-symbols-outlined text-base">remove</span>
-                              </button>
-                              <span className="w-5 text-center text-xs font-black text-zinc-950 dark:text-white">{role.count}</span>
-                              <button type="button" onClick={() => updateRoleCount(role.id, 1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
-                                <span className="material-symbols-outlined text-base">add</span>
-                              </button>
-                              <button type="button" onClick={() => toggleRoleInScenario(role.id)} className="flex size-7 items-center justify-center rounded-md text-red-500 hover:bg-red-500/10">
-                                <span className="material-symbols-outlined text-base">close</span>
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
                   <label className="mb-3 flex min-h-10 items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 dark:border-white/10 dark:bg-white/[0.03]">
                     <span className="material-symbols-outlined text-base text-zinc-400">search</span>
                     <input
@@ -1381,7 +1319,7 @@ export default function AdminDashboard() {
                             key={role.id}
                             className={`rounded-lg border p-3 transition-colors ${
                               selected
-                                ? "border-lime-500/30 bg-lime-500/10"
+                                ? "border-lime-500/35 bg-lime-500/10 shadow-sm shadow-lime-500/10"
                                 : "border-zinc-200 bg-zinc-50 hover:bg-white dark:border-white/10 dark:bg-white/[0.02] dark:hover:bg-white/[0.04]"
                             }`}
                           >
@@ -1389,10 +1327,14 @@ export default function AdminDashboard() {
                               <button
                                 type="button"
                                 onClick={() => toggleRoleInScenario(role.id)}
-                                className="flex flex-1 items-center gap-3 text-right"
+                                className="group/role-option flex flex-1 items-center gap-3 text-right"
                               >
-                                <div className={`flex size-5 items-center justify-center rounded border ${selected ? "border-lime-500 bg-lime-500 text-zinc-950" : "border-zinc-300 dark:border-zinc-700"}`}>
-                                  {selected && <span className="material-symbols-outlined text-sm">check</span>}
+                                <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg border transition-all ${
+                                  selected
+                                    ? "border-lime-400 bg-gradient-to-br from-lime-300 to-lime-500 text-zinc-950 shadow-sm shadow-lime-500/30"
+                                    : "border-zinc-300 bg-white text-zinc-300 group-hover/role-option:border-lime-400 group-hover/role-option:text-lime-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-700"
+                                }`}>
+                                  <span className="material-symbols-outlined text-lg">{selected ? "check" : "add"}</span>
                                 </div>
                                 <div>
                                   <p className="text-sm font-black text-zinc-950 dark:text-white">{role.name}</p>

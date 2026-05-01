@@ -128,17 +128,6 @@ export function ScenariosManager({
     [formData.roles]
   );
 
-  const selectedRoleDetails = useMemo(
-    () =>
-      formData.roles
-        .map((item) => {
-          const role = initialRoles.find((roleItem) => roleItem.id === item.roleId);
-          return role ? { ...role, count: item.count } : null;
-        })
-        .filter(Boolean) as Array<RoleRecord & { count: number }>,
-    [formData.roles, initialRoles]
-  );
-
   const filteredRoles = useMemo(() => {
     const query = normalizeSearchText(roleSearch);
     const visibleRoles = query
@@ -564,52 +553,6 @@ export function ScenariosManager({
                   <span className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
                     {formData.roles.length} نقش انتخاب شده
                   </span>
-                </div>
-
-                <div className="mb-3 rounded-lg border border-lime-500/20 bg-lime-500/10 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-black text-zinc-950 dark:text-white">انتخاب‌شده‌ها در بالای لیست</p>
-                      <p className="mt-1 text-[10px] font-bold text-lime-700 dark:text-lime-300">{totalPlayers} بازیکن در ترکیب فعلی</p>
-                    </div>
-                    {selectedRoleDetails.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setFormData((previous) => ({ ...previous, roles: [] }))}
-                        className="text-xs font-black text-red-600 transition-colors hover:text-red-500 dark:text-red-400"
-                      >
-                        پاک کردن
-                      </button>
-                    )}
-                  </div>
-
-                  {selectedRoleDetails.length === 0 ? (
-                    <div className="mt-3 rounded-lg border border-dashed border-lime-500/25 bg-white/70 p-3 text-xs font-bold leading-5 text-zinc-500 dark:bg-zinc-950/40 dark:text-zinc-400">
-                      هنوز نقشی انتخاب نشده است. با دکمه + نقش‌ها به این نوار اضافه می‌شوند.
-                    </div>
-                  ) : (
-                    <div className="custom-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
-                      {selectedRoleDetails.map((role) => (
-                        <div key={`selected-${role.id}`} className="flex min-w-44 items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/70">
-                          <div className="min-w-0">
-                            <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{role.name}</p>
-                            <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[9px] font-black ${alignmentClass(role.alignment)}`}>
-                              {alignmentLabel(role.alignment)}
-                            </p>
-                          </div>
-                          <div className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-white/10 dark:bg-white/[0.03]">
-                            <button type="button" onClick={() => updateRoleCount(role.id, -1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
-                              <span className="material-symbols-outlined text-base">remove</span>
-                            </button>
-                            <span className="w-5 text-center text-xs font-black text-zinc-950 dark:text-white">{role.count}</span>
-                            <button type="button" onClick={() => updateRoleCount(role.id, 1)} className="flex size-7 items-center justify-center rounded-md hover:bg-white dark:hover:bg-white/10">
-                              <span className="material-symbols-outlined text-base">add</span>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 <label className="mb-3 flex min-h-11 items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 dark:border-white/10 dark:bg-white/[0.03]">
