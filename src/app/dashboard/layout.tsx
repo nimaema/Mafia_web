@@ -1,6 +1,7 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { DashboardNavigation } from "@/components/dashboard/DashboardNavigation";
+import { prisma } from "@/lib/prisma";
 
 
 export default async function DashboardLayout({
@@ -11,8 +12,15 @@ export default async function DashboardLayout({
   const session = await auth();
   if (!session) redirect("/auth/login");
 
-  const isAdmin = session.user?.role === "ADMIN";
-  const isModerator = session.user?.role === "MODERATOR" || isAdmin;
+  const dbUser = session.user?.id
+    ? await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { name: true, image: true, role: true },
+      })
+    : null;
+  const effectiveRole = dbUser?.role || session.user?.role;
+  const isAdmin = effectiveRole === "ADMIN";
+  const isModerator = effectiveRole === "MODERATOR" || isAdmin;
 
   // Simple server-side logout action
   const handleLogout = async () => {
@@ -27,9 +35,9 @@ export default async function DashboardLayout({
         isModerator={isModerator}
         logoutAction={handleLogout}
         user={{
-          name: session.user?.name,
-          image: session.user?.image,
-          role: session.user?.role,
+          name: dbUser?.name || session.user?.name,
+          image: dbUser?.image || session.user?.image,
+          role: effectiveRole,
         }}
       />
 

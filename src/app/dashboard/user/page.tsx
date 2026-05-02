@@ -165,6 +165,37 @@ function LobbyTile({ game, large = false }: { game: any; large?: boolean }) {
   );
 }
 
+function ActiveGameTile({ game }: { game: any }) {
+  return (
+    <Link
+      href={`/game/${game.id}`}
+      className="group relative overflow-hidden rounded-lg border border-lime-500/25 bg-zinc-950 p-4 text-white shadow-xl shadow-zinc-950/10 transition-all hover:-translate-y-0.5 hover:border-lime-400/60 hover:shadow-2xl hover:shadow-lime-500/10"
+    >
+      <span className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.26),transparent_18rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.16),transparent_16rem)]" />
+      <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-lime-400 text-zinc-950 shadow-sm shadow-lime-500/30">
+            <span className="material-symbols-outlined text-xl">sports_esports</span>
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[10px] font-black text-lime-300">بازی در جریان</p>
+              <span className="rounded-lg border border-lime-300/20 bg-lime-300/10 px-2 py-0.5 text-[10px] font-black text-lime-200">فعال برای شما</span>
+            </div>
+            <h3 className="mt-1 line-clamp-2 break-words text-lg font-black leading-7 text-white">{game.scenarioName || "بازی مافیا"}</h3>
+            <p className="mt-1 truncate text-xs font-bold text-zinc-300">گرداننده: {game.moderatorName || "نامشخص"}</p>
+          </div>
+        </div>
+      </div>
+      <span className="relative mt-5 inline-flex min-h-10 w-full items-center justify-center gap-1 rounded-lg bg-lime-400 px-3 text-xs font-black text-zinc-950 transition-colors group-hover:bg-lime-300">
+        ورود به بازی
+        <span className="material-symbols-outlined text-base transition-transform group-hover:-translate-x-1">arrow_back</span>
+      </span>
+    </Link>
+  );
+}
+
 function PresenceFaces({ presence }: { presence: PresenceSnapshot }) {
   const members = presence.members.slice(0, 4);
 
@@ -351,15 +382,16 @@ export default function UserDashboard() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.75fr)]">
         <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_56%,#f0fdf4_100%)] p-4 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.9)_0%,rgba(9,9,11,0.96)_58%,rgba(20,83,45,0.18)_100%)] sm:p-5">
           <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
-          <SectionIntro kicker="اتاق‌های زنده" title="لابی‌های فعال" />
+          <SectionIntro kicker="اتاق‌های زنده" title={data?.currentActiveGame ? "بازی فعال و لابی‌ها" : "لابی‌های فعال"} />
 
           <div className="mt-5">
             {activeGamesError ? (
               <EmptyState icon="cloud_off" title="لابی‌ها بارگذاری نشدند" text={activeGamesError} />
-            ) : activeGames.length === 0 ? (
+            ) : !data?.currentActiveGame && activeGames.length === 0 ? (
               <EmptyState icon="radar" title="لابی فعالی پیدا نشد" text="وقتی گرداننده‌ای لابی بسازد، همین‌جا ظاهر می‌شود." />
             ) : (
               <div className="grid gap-3 lg:grid-cols-2">
+                {data?.currentActiveGame && <ActiveGameTile game={data.currentActiveGame} />}
                 {activeGames.slice(0, 6).map((game) => (
                   <LobbyTile key={game.id} game={game} />
                 ))}

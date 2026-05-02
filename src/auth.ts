@@ -5,6 +5,14 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import { verifyPassword } from "./lib/password"
 import { prisma } from "./lib/prisma"
 
+function sessionSafeImage(image?: string | null) {
+  const value = image?.trim();
+  if (!value) return undefined;
+  // Large data URLs must never be stored in the JWT session cookie.
+  // They can still live in the database and be rendered by server-fetched UI.
+  return /^https?:\/\//i.test(value) ? value : undefined;
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
@@ -99,7 +107,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = (user as any).role
         token.name = user.name
         token.email = user.email
-        token.picture = user.image || token.picture
+        token.picture = sessionSafeImage(user.image) || undefined
       }
 
       if (token.sub) {
@@ -116,7 +124,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (dbUser) {
             token.name = dbUser.name
             token.email = dbUser.email
-            token.picture = dbUser.image || undefined
+            token.picture = sessionSafeImage(dbUser.image)
             token.role = dbUser.role
           }
         } catch (error) {
@@ -125,7 +133,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       } else if (trigger === "update" && session?.user) {
         token.name = session.user.name
         token.email = session.user.email
-        token.picture = session.user.image || token.picture
+        token.picture = sessionSafeImage(session.user.image)
         if (session.user.role) token.role = session.user.role
       }
       return token
@@ -143,8 +151,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user && token.email) {
         session.user.email = token.email as string
       }
-      if (session.user && token.picture) {
-        session.user.image = token.picture as string
+      if (session.user) {
+        session.user.image = typeof token.picture === "string" ? token.picture : null
       }
       return session
     }

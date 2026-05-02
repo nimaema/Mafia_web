@@ -44,6 +44,11 @@ type DayEliminationInput = {
 type ActiveRoleAbilityConfig = Record<string, string[]>;
 type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
 
+function realtimeSafeImage(image?: string | null) {
+  const value = image?.trim();
+  return value && /^https?:\/\//i.test(value) ? value : null;
+}
+
 async function checkModerator() {
   const session = await auth();
   if (!session?.user?.id) {
@@ -314,7 +319,7 @@ export async function joinGame(code: string, playerName: string, password?: stri
       player: {
         id: player.id,
         name: finalPlayerName,
-        image: dbUser?.image || null,
+        image: realtimeSafeImage(dbUser?.image),
         userId: session.user.id,
         isAlive: player.isAlive,
       }
