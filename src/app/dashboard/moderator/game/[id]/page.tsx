@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   deleteNightEvent,
@@ -461,6 +462,38 @@ function reportActorTargetLine(event: NightEventRecord) {
   return event.wasUsed === false ? `${actor} ← بدون هدف` : `${actor} ← ${target}`;
 }
 
+function reportEventVisual(event: NightEventRecord) {
+  const dayEvent = isDayEvent(event);
+  if (dayEvent) {
+    return {
+      icon: "wb_sunny",
+      label: "روز",
+      shell: "border-amber-500/20 bg-amber-500/10",
+      badge: "border-amber-500/25 bg-amber-500/15 text-amber-700 dark:text-amber-300",
+      iconBox: "bg-amber-500 text-zinc-950",
+      rail: "bg-amber-500",
+    };
+  }
+  if (event.wasUsed === false) {
+    return {
+      icon: "block",
+      label: "استفاده نشد",
+      shell: "border-zinc-300 bg-zinc-100/80 dark:border-white/10 dark:bg-white/[0.05]",
+      badge: "border-zinc-300 bg-zinc-100 text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300",
+      iconBox: "bg-zinc-500 text-white",
+      rail: "bg-zinc-400",
+    };
+  }
+  return {
+    icon: "dark_mode",
+    label: "شب",
+    shell: "border-lime-500/20 bg-lime-500/10",
+    badge: "border-lime-500/25 bg-lime-500/15 text-lime-700 dark:text-lime-300",
+    iconBox: "bg-lime-500 text-zinc-950",
+    rail: "bg-lime-500",
+  };
+}
+
 function ReportEventRow({
   event,
   busy,
@@ -470,60 +503,81 @@ function ReportEventRow({
   busy: boolean;
   onDelete: (event: NightEventRecord) => void;
 }) {
-  const dayEvent = isDayEvent(event);
-  const tone = dayEvent
-    ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-    : event.wasUsed === false
-      ? "border-zinc-300 bg-zinc-100 text-zinc-600 dark:border-white/10 dark:bg-white/[0.05] dark:text-zinc-300"
-      : "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300";
+  const visual = reportEventVisual(event);
+  const actor = event.actorPlayer?.name || event.abilitySource || alignmentLabel(event.actorAlignment);
+  const target = event.wasUsed === false ? "ثبت بدون هدف" : event.targetPlayer?.name || "نامشخص";
 
   return (
-    <article className="rounded-lg border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+    <article className={`group relative overflow-hidden rounded-xl border p-3 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-950/10 dark:shadow-black/20 ${visual.shell}`}>
+      <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${visual.rail}`} />
+      <div className="flex gap-3 pr-1">
+        <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl shadow-sm ${visual.iconBox}`}>
+          <span className="material-symbols-outlined text-2xl">{visual.icon}</span>
+        </span>
+
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-black ${tone}`}>
-              <span className="material-symbols-outlined text-sm">{dayEvent ? "wb_sunny" : "dark_mode"}</span>
-              {dayEvent ? "روز" : event.wasUsed === false ? "استفاده نشد" : "شب"}
+            <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black ${visual.badge}`}>
+              <span className="material-symbols-outlined text-sm">{visual.icon}</span>
+              {visual.label}
             </span>
-            <p className="text-sm font-black text-zinc-950 dark:text-white">{reportEventTitle(event)}</p>
+            <h4 className="min-w-0 flex-1 text-base font-black text-zinc-950 dark:text-white">{reportEventTitle(event)}</h4>
             {event.details?.effectType && event.details.effectType !== "NONE" && (
-              <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
+              <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-[10px] font-black text-sky-700 dark:text-sky-300">
                 {effectLabel(event.details.effectType)}
               </span>
             )}
           </div>
-          <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{reportActorTargetLine(event)}</p>
+
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className="rounded-lg border border-white/70 bg-white/75 p-2 dark:border-white/10 dark:bg-zinc-950/35">
+              <p className="text-[10px] font-black text-zinc-400">انجام‌دهنده</p>
+              <p className="mt-1 truncate text-sm font-black text-zinc-950 dark:text-white">{actor}</p>
+            </div>
+            <div className="rounded-lg border border-white/70 bg-white/75 p-2 dark:border-white/10 dark:bg-zinc-950/35">
+              <p className="text-[10px] font-black text-zinc-400">نتیجه / هدف</p>
+              <p className="mt-1 truncate text-sm font-black text-zinc-950 dark:text-white">{target}</p>
+            </div>
+          </div>
+
           {Array.isArray(event.details?.targetLabels) && event.details.targetLabels.length > 0 && (
-            <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-              گزینه‌ها: {event.details.targetLabels.map((target) => `${target.label}: ${target.playerName || "نامشخص"}`).join("، ")}
-            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {event.details.targetLabels.map((target, index) => (
+                <span
+                  key={`${event.id}-target-${index}`}
+                  className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-black text-zinc-600 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-300"
+                >
+                  {target.label}: {target.playerName || "نامشخص"}
+                </span>
+              ))}
+            </div>
           )}
           {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && event.details?.secondaryTargetName && (
-            <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+            <p className="mt-3 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-bold leading-5 text-zinc-600 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-300">
               {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
             </p>
           )}
           {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
-            <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+            <p className="mt-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-bold leading-5 text-zinc-600 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-300">
               هدف‌های اضافه: {event.details.extraTargets.map((target) => target.name).join("، ")}
             </p>
           )}
           {event.details?.convertedRoleName && (
-            <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+            <p className="mt-2 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-bold leading-5 text-red-700 dark:text-red-300">
               تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
             </p>
           )}
           {event.note && (
-            <p className="mt-2 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs leading-5 text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
+            <p className="mt-3 rounded-lg border border-zinc-200 bg-white/85 px-3 py-2 text-xs leading-6 text-zinc-600 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-300">
               {event.note}
             </p>
           )}
         </div>
+
         <button
           onClick={() => onDelete(event)}
           disabled={busy}
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+          className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 opacity-90 transition-all hover:bg-red-500 hover:text-white disabled:opacity-40 sm:opacity-0 sm:group-hover:opacity-100"
           aria-label="حذف رکورد"
         >
           <span className="material-symbols-outlined text-base">delete</span>
@@ -536,6 +590,7 @@ function ReportEventRow({
 export default function ModeratorGamePage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
   const { showAlert, showConfirm, showToast } = usePopup();
   const gameId = params.id as string;
   const [game, setGame] = useState<any>(null);
@@ -562,10 +617,15 @@ export default function ModeratorGamePage() {
   const [playerPicker, setPlayerPicker] = useState<PlayerPickerRequest | null>(null);
 
   const refreshGame = async (showLoader = false) => {
+    if (sessionStatus === "loading") return;
     if (showLoader) setLoading(true);
     const result = await getGameStatus(gameId);
     if (!result) {
-      router.push("/dashboard/moderator");
+      router.replace("/dashboard/moderator");
+      return;
+    }
+    if (result.moderatorId !== session?.user?.id) {
+      router.replace(result.status === "WAITING" ? `/lobby/${gameId}` : result.status === "IN_PROGRESS" ? `/game/${gameId}` : "/dashboard/user");
       return;
     }
     setGame(result);
@@ -578,8 +638,9 @@ export default function ModeratorGamePage() {
   };
 
   useEffect(() => {
+    if (sessionStatus === "loading") return;
     refreshGame(true);
-  }, [gameId]);
+  }, [gameId, session?.user?.id, sessionStatus]);
 
   const players: PlayerRecord[] = game?.players || [];
   const mafiaConversionRoles: { id: string; name: string }[] = game?.mafiaConversionRoles || [];
@@ -1370,18 +1431,29 @@ export default function ModeratorGamePage() {
                     </div>
                   </div>
                   ) : (
-                  <div className="rounded-lg border border-lime-500/20 bg-white p-3 dark:border-lime-500/20 dark:bg-zinc-950/50">
+                  <div className="rounded-xl border border-lime-500/20 bg-white p-4 shadow-sm shadow-lime-500/5 dark:border-lime-500/20 dark:bg-zinc-950/50">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-black text-zinc-950 dark:text-white">اتفاقات شب</p>
+                      <div>
+                        <p className="text-sm font-black text-zinc-950 dark:text-white">اتفاقات شب</p>
+                        <p className="mt-1 text-[10px] font-bold leading-5 text-zinc-500 dark:text-zinc-400">روی نام کوچک بازیکن زیر هر نقش بزنید تا پنجره ثبت اتفاق همان نقش باز شود.</p>
+                      </div>
                       <span className="rounded-md bg-lime-500/15 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">شب {nightNumber}</span>
                     </div>
                     {mafiaShotAction && (
-                      <div className="mt-3 grid grid-cols-2 gap-2">
+                      <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-black text-red-700 dark:text-red-300">تصمیم جبهه مافیا</p>
+                            <p className="mt-1 text-[10px] font-bold leading-5 text-red-700/80 dark:text-red-300/80">اگر یاکوزا، خریداری یا ناتو استفاده شده، «شات نداریم» را ثبت کنید.</p>
+                          </div>
+                          <span className="material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-500 text-xl text-white">target</span>
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-2">
                         <button
                           type="button"
                           onClick={() => openNightAction(mafiaShotAction, null, true)}
                           disabled={busy || game?.status === "FINISHED"}
-                          className="flex min-h-10 items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-2 text-xs font-black text-red-600 transition-all hover:bg-red-500/20 disabled:opacity-50 dark:text-red-300"
+                          className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-500 px-2 text-xs font-black text-white shadow-sm shadow-red-500/20 transition-all hover:bg-red-600 disabled:opacity-50"
                         >
                           <span className="material-symbols-outlined text-base">target</span>
                           شلیک مافیا
@@ -1390,29 +1462,36 @@ export default function ModeratorGamePage() {
                           type="button"
                           onClick={() => openNightAction(mafiaShotAction, null, false)}
                           disabled={busy || game?.status === "FINISHED"}
-                          className="flex min-h-10 items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-zinc-100 px-2 text-xs font-black text-zinc-600 transition-all hover:bg-zinc-200 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300"
+                          className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-white/75 px-2 text-xs font-black text-red-700 transition-all hover:bg-white disabled:opacity-50 dark:bg-zinc-950/40 dark:text-red-300"
                         >
                           <span className="material-symbols-outlined text-base">block</span>
                           شات نداریم
                         </button>
+                        </div>
                       </div>
                     )}
-                    <div className="mt-3 grid max-h-[360px] gap-2 overflow-y-auto pr-1">
+                    <div className="mt-4 grid max-h-[440px] gap-3 overflow-y-auto pr-1">
                       {roleActionOptions.length === 0 ? (
-                        <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-3 text-xs font-bold text-zinc-400 dark:border-white/10 dark:bg-white/[0.03]">
+                        <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-4 text-xs font-bold text-zinc-400 dark:border-white/10 dark:bg-white/[0.03]">
                           برای نقش‌های این بازی توانایی شب فعال نشده است.
                         </div>
                       ) : (
                         roleActionOptions.map((option) => (
-                          <div key={option.key} className={`rounded-lg border p-2 ${option.className}`}>
-                            <div className="flex items-start justify-between gap-2">
+                          <div key={option.key} className={`overflow-hidden rounded-xl border shadow-sm shadow-zinc-950/5 ${option.className}`}>
+                            <div className="flex items-start justify-between gap-3 border-b border-current/10 p-3">
                               <div className="min-w-0">
-                                <p className="truncate text-xs font-black">{option.sourceLabel}</p>
-                                <p className="mt-1 truncate text-[10px] font-bold opacity-80">{option.label} | {abilityCompactLabel(option)}</p>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="truncate text-sm font-black">{option.sourceLabel}</p>
+                                  <span className="rounded-md bg-white/60 px-2 py-0.5 text-[10px] font-black text-zinc-700 dark:bg-zinc-950/35 dark:text-white">
+                                    {option.candidates.length} بازیکن
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-xs font-black opacity-90">{option.label}</p>
+                                <p className="mt-1 text-[10px] font-bold leading-5 opacity-75">{abilityCompactLabel(option)}</p>
                               </div>
-                              <span className="material-symbols-outlined text-base">{option.effectType === "NONE" ? "auto_fix_high" : "hub"}</span>
+                              <span className="material-symbols-outlined flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/65 text-lg dark:bg-zinc-950/35">{option.effectType === "NONE" ? "auto_fix_high" : "hub"}</span>
                             </div>
-                            <div className="mt-2 flex flex-wrap gap-1.5">
+                            <div className="grid gap-2 p-3 sm:grid-cols-2">
                               {option.candidates.map((player) => {
                                 const image = playerImage(player);
                                 return (
@@ -1421,12 +1500,18 @@ export default function ModeratorGamePage() {
                                     type="button"
                                     onClick={() => openNightAction(option, player, true)}
                                     disabled={busy || game?.status === "FINISHED"}
-                                    className="flex min-h-8 items-center gap-1.5 rounded-lg bg-white/70 px-2 text-[10px] font-black text-zinc-800 transition-all hover:bg-white disabled:opacity-50 dark:bg-zinc-950/35 dark:text-white"
+                                    className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-white/70 bg-white/75 px-2.5 text-right text-[11px] font-black text-zinc-800 transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md hover:shadow-zinc-950/10 disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950/35 dark:text-white"
                                   >
-                                    <span className="flex size-6 items-center justify-center overflow-hidden rounded-md bg-zinc-950 text-[10px] text-white dark:bg-white dark:text-zinc-950">
-                                      {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
+                                    <span className="flex min-w-0 items-center gap-2">
+                                      <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-zinc-950 text-[10px] text-white dark:bg-white dark:text-zinc-950">
+                                        {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
+                                      </span>
+                                      <span className="min-w-0">
+                                        <span className="block truncate">{player.name}</span>
+                                        <span className="block truncate text-[9px] font-bold opacity-70">ثبت اتفاق</span>
+                                      </span>
                                     </span>
-                                    <span className="max-w-20 truncate">{player.name}</span>
+                                    <span className="material-symbols-outlined text-base opacity-70">open_in_new</span>
                                   </button>
                                 );
                               })}
@@ -1802,58 +1887,75 @@ export default function ModeratorGamePage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="grid gap-3 xl:grid-cols-2">
+                  <div className="space-y-4">
                     {reportRounds.map((round) => (
-                      <article key={round.round} className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]">
-                        <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-zinc-950/60">
-                          <div>
-                            <p className="text-sm font-black text-zinc-950 dark:text-white">دور {round.round}</p>
-                            <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
-                              {round.night.length} رکورد شب، {round.day.length} حذف روز
-                            </p>
+                      <article key={round.round} className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/65">
+                        <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/85 p-4 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-zinc-950 text-sm font-black text-white shadow-sm shadow-zinc-950/15 dark:bg-white dark:text-zinc-950">
+                              {round.round}
+                            </div>
+                            <div>
+                              <p className="text-base font-black text-zinc-950 dark:text-white">گزارش دور {round.round}</p>
+                              <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                                {round.day.length + round.night.length} رکورد ثبت‌شده برای این دور
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex gap-1">
-                            <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">شب {round.round}</span>
-                            <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300">روز {round.round}</span>
+                          <div className="flex flex-wrap gap-2">
+                            <span className="inline-flex items-center gap-1 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-[11px] font-black text-amber-700 dark:text-amber-300">
+                              <span className="material-symbols-outlined text-sm">wb_sunny</span>
+                              روز: {round.day.length}
+                            </span>
+                            <span className="inline-flex items-center gap-1 rounded-lg border border-lime-500/20 bg-lime-500/10 px-3 py-1.5 text-[11px] font-black text-lime-700 dark:text-lime-300">
+                              <span className="material-symbols-outlined text-sm">dark_mode</span>
+                              شب: {round.night.length}
+                            </span>
                           </div>
                         </div>
 
-                        <div className="grid gap-3 p-3">
-                          <div>
-                            <div className="mb-2 flex items-center gap-2 text-xs font-black text-zinc-500 dark:text-zinc-400">
-                              <span className="material-symbols-outlined text-base text-lime-500">dark_mode</span>
-                              اتفاقات شب
+                        <div className="grid gap-4 p-4 lg:grid-cols-2">
+                          <section className="rounded-xl border border-amber-500/15 bg-amber-500/[0.04] p-3 dark:bg-amber-500/[0.06]">
+                            <div className="mb-3 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 text-sm font-black text-amber-700 dark:text-amber-300">
+                                <span className="material-symbols-outlined text-lg">wb_sunny</span>
+                                روز {round.round}
+                              </div>
+                              <span className="rounded-md bg-amber-500/15 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300">{round.day.length} رکورد</span>
                             </div>
-                            <div className="space-y-2">
-                              {round.night.length > 0 ? (
-                                round.night.map((event) => (
-                                  <ReportEventRow key={event.id} event={event} busy={busy} onDelete={handleDeleteNightEvent} />
-                                ))
-                              ) : (
-                                <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-3 text-xs font-bold text-zinc-400 dark:border-white/10 dark:bg-zinc-950/40">
-                                  رکورد شب ندارد.
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="mb-2 flex items-center gap-2 text-xs font-black text-zinc-500 dark:text-zinc-400">
-                              <span className="material-symbols-outlined text-base text-amber-500">wb_sunny</span>
-                              حذف‌های روز
-                            </div>
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               {round.day.length > 0 ? (
                                 round.day.map((event) => (
                                   <ReportEventRow key={event.id} event={event} busy={busy} onDelete={handleDeleteNightEvent} />
                                 ))
                               ) : (
-                                <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-3 text-xs font-bold text-zinc-400 dark:border-white/10 dark:bg-zinc-950/40">
-                                  حذف روز ثبت نشده است.
+                                <div className="rounded-xl border border-dashed border-amber-500/20 bg-white/70 p-4 text-center text-xs font-bold text-amber-700/60 dark:bg-zinc-950/35 dark:text-amber-300/70">
+                                  حذف یا اتفاق روز ثبت نشده است.
                                 </div>
                               )}
                             </div>
-                          </div>
+                          </section>
+
+                          <section className="rounded-xl border border-lime-500/15 bg-lime-500/[0.04] p-3 dark:bg-lime-500/[0.06]">
+                            <div className="mb-3 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 text-sm font-black text-lime-700 dark:text-lime-300">
+                                <span className="material-symbols-outlined text-lg">dark_mode</span>
+                                شب {round.round}
+                              </div>
+                              <span className="rounded-md bg-lime-500/15 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">{round.night.length} رکورد</span>
+                            </div>
+                            <div className="space-y-3">
+                              {round.night.length > 0 ? (
+                                round.night.map((event) => (
+                                  <ReportEventRow key={event.id} event={event} busy={busy} onDelete={handleDeleteNightEvent} />
+                                ))
+                              ) : (
+                                <div className="rounded-xl border border-dashed border-lime-500/20 bg-white/70 p-4 text-center text-xs font-bold text-lime-700/60 dark:bg-zinc-950/35 dark:text-lime-300/70">
+                                  رکورد شب ندارد.
+                                </div>
+                              )}
+                            </div>
+                          </section>
                         </div>
                       </article>
                     ))}

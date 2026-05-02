@@ -85,8 +85,8 @@ async function checkModeratorForGame(gameId: string) {
   });
 
   if (!game) throw new Error("بازی یافت نشد");
-  if (user.role !== "ADMIN" && game.moderatorId !== session.user.id) {
-    throw new Error("فقط گرداننده همین بازی می‌تواند این عملیات را انجام دهد.");
+  if (game.moderatorId !== session.user.id) {
+    throw new Error("فقط سازنده همین بازی می‌تواند آن را مدیریت کند.");
   }
 
   return { userId: session.user.id, role: user.role, game };
@@ -427,11 +427,9 @@ export async function getModeratorGames(timestamp?: number) {
     throw new Error("شما دسترسی لازم برای این عملیات را ندارید.");
   }
 
-  const isAdmin = user.role === "ADMIN";
-  
   const games = await prisma.game.findMany({
     where: { 
-      ...(isAdmin ? {} : { moderatorId: session.user.id }),
+      moderatorId: session.user.id,
       status: { in: ["WAITING", "IN_PROGRESS"] }
     },
     include: {
@@ -508,12 +506,21 @@ export async function getGameStatus(gameId: string) {
         select: { role: true, isBanned: true },
       })
     : null;
-  const canSeePrivateNightEvents =
-    (!currentUser?.isBanned && currentUser?.role === "ADMIN") ||
-    (!currentUser?.isBanned && currentUser?.role === "MODERATOR" && session?.user?.id === game.moderatorId);
+  const canManageThisGame =
+    !currentUser?.isBanned &&
+    (currentUser?.role === "ADMIN" || currentUser?.role === "MODERATOR") &&
+    session?.user?.id === game.moderatorId;
+  const canSeePrivateNightEvents = canManageThisGame;
   const visibleNightEvents = canSeePrivateNightEvents || game.nightRecordsPublic
     ? game.nightEvents
     : game.nightEvents.filter((event) => event.isPublic);
+  const visiblePlayers = canSeePrivateNightEvents
+    ? game.players
+    : game.players.map((player) => ({
+        ...player,
+        roleId: null,
+        role: null,
+      }));
   const mafiaConversionRoles = canSeePrivateNightEvents
     ? await prisma.mafiaRole.findMany({
         where: { alignment: "MAFIA" },
@@ -523,9 +530,10 @@ export async function getGameStatus(gameId: string) {
     : [];
 
   // Don't send the password to the client, just if it's required
-  const { password, nightEvents, ...safeGame } = game;
+  const { password, nightEvents, players, ...safeGame } = game;
   return {
     ...withGameDisplayName(withScenarioDisplayName(safeGame)),
+    players: visiblePlayers,
     nightEvents: sanitizeNightEvents(visibleNightEvents),
     mafiaConversionRoles,
     hasPassword: !!password

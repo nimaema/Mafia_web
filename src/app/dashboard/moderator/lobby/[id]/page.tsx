@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { getPusherClient } from "@/lib/pusher-client";
 import { createCustomGameScenario, getGameStatus, setGameRoleAbilities, setGameScenario, startGame } from "@/actions/game";
 import { getScenarios } from "@/actions/admin";
@@ -163,6 +164,7 @@ function abilityLimitLabel(ability: RoleNightAbility) {
 export default function GameLobbyPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
   const { showAlert, showToast } = usePopup();
   const gameId = params.id as string;
   const [players, setPlayers] = useState<Player[]>([]);
@@ -180,24 +182,34 @@ export default function GameLobbyPage() {
   const [savingAbilities, setSavingAbilities] = useState(false);
 
   useEffect(() => {
+    if (sessionStatus === "loading") return;
     let mounted = true;
+    let pusher: ReturnType<typeof getPusherClient> | null = null;
 
-    Promise.all([getGameStatus(gameId), getScenarios(), getRoles()])
-      .then(([gameRes, scenariosRes, rolesRes]) => {
+    const loadLobby = async () => {
+      try {
+        const gameRes = await getGameStatus(gameId);
         if (!mounted) return;
 
         if (!gameRes) {
-          router.push("/dashboard/moderator");
+          router.replace("/dashboard/moderator");
+          return;
+        }
+        if (gameRes.moderatorId !== session?.user?.id) {
+          router.replace(gameRes.status === "IN_PROGRESS" ? `/game/${gameId}` : gameRes.status === "WAITING" ? `/lobby/${gameId}` : "/dashboard/user");
           return;
         }
         if (gameRes.status === "IN_PROGRESS") {
-          router.push(`/dashboard/moderator/game/${gameId}`);
+          router.replace(`/dashboard/moderator/game/${gameId}`);
           return;
         }
         if (gameRes.status === "FINISHED") {
-          router.push("/dashboard/moderator");
+          router.replace("/dashboard/moderator");
           return;
         }
+
+        const [scenariosRes, rolesRes] = await Promise.all([getScenarios(), getRoles()]);
+        if (!mounted) return;
 
         setGame(gameRes);
         setAbilityConfig(abilityConfigForGame(gameRes));
@@ -205,47 +217,49 @@ export default function GameLobbyPage() {
         setScenarios(scenariosRes);
         setRoles(rolesRes);
         setLoading(false);
-      })
-      .catch((error) => {
+
+        pusher = getPusherClient();
+        const channel = pusher.subscribe(`game-${gameId}`);
+
+        channel.bind("player-joined", (data: { player: Player }) => {
+          setPlayers((prev) => {
+            if (prev.find((player) => player.id === data.player.id)) return prev;
+            return [...prev, data.player];
+          });
+        });
+
+        channel.bind("player-left", (data: { playerId: string }) => {
+          setPlayers((prev) => prev.filter((player) => player.id !== data.playerId));
+        });
+
+        channel.bind("scenario-updated", (data: { scenario: any; activeRoleAbilities?: unknown }) => {
+          setGame((prev: any) => (prev ? { ...prev, scenario: data.scenario, activeRoleAbilities: data.activeRoleAbilities ?? prev.activeRoleAbilities } : prev));
+          if ("activeRoleAbilities" in data) {
+            setAbilityConfig(normalizeActiveRoleAbilityConfig(data.activeRoleAbilities));
+          } else if (data.scenario) {
+            setAbilityConfig(defaultAbilityConfigForScenario(data.scenario));
+          }
+        });
+
+        channel.bind("ability-config-updated", (data: { activeRoleAbilities?: unknown }) => {
+          setGame((prev: any) => (prev ? { ...prev, activeRoleAbilities: data.activeRoleAbilities ?? null } : prev));
+          setAbilityConfig(normalizeActiveRoleAbilityConfig(data.activeRoleAbilities));
+        });
+      } catch (error) {
         console.error(error);
         if (!mounted) return;
         showAlert("خطا", "لابی بارگذاری نشد. اتصال سرور یا دیتابیس را بررسی کنید.", "error");
         setLoading(false);
-      });
-
-    const pusher = getPusherClient();
-    const channel = pusher.subscribe(`game-${gameId}`);
-
-    channel.bind("player-joined", (data: { player: Player }) => {
-      setPlayers((prev) => {
-        if (prev.find((player) => player.id === data.player.id)) return prev;
-        return [...prev, data.player];
-      });
-    });
-
-    channel.bind("player-left", (data: { playerId: string }) => {
-      setPlayers((prev) => prev.filter((player) => player.id !== data.playerId));
-    });
-
-    channel.bind("scenario-updated", (data: { scenario: any; activeRoleAbilities?: unknown }) => {
-      setGame((prev: any) => (prev ? { ...prev, scenario: data.scenario, activeRoleAbilities: data.activeRoleAbilities ?? prev.activeRoleAbilities } : prev));
-      if ("activeRoleAbilities" in data) {
-        setAbilityConfig(normalizeActiveRoleAbilityConfig(data.activeRoleAbilities));
-      } else if (data.scenario) {
-        setAbilityConfig(defaultAbilityConfigForScenario(data.scenario));
       }
-    });
+    };
 
-    channel.bind("ability-config-updated", (data: { activeRoleAbilities?: unknown }) => {
-      setGame((prev: any) => (prev ? { ...prev, activeRoleAbilities: data.activeRoleAbilities ?? null } : prev));
-      setAbilityConfig(normalizeActiveRoleAbilityConfig(data.activeRoleAbilities));
-    });
+    loadLobby();
 
     return () => {
       mounted = false;
-      pusher.unsubscribe(`game-${gameId}`);
+      pusher?.unsubscribe(`game-${gameId}`);
     };
-  }, [gameId, router, showAlert]);
+  }, [gameId, router, session?.user?.id, sessionStatus, showAlert]);
 
   const requiredPlayers = useMemo(
     () => game?.scenario?.roles?.reduce((sum: number, item: any) => sum + item.count, 0) || 0,
