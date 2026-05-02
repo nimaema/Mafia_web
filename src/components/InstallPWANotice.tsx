@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { usePwaInstallState } from "@/hooks/usePwaInstallState";
 
+const PWA_LOGIN_PROMPT_KEY = "pwa-install-login-prompt-dismissed";
+
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
@@ -27,6 +29,10 @@ export function InstallPWANotice() {
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const promptKey =
+    session?.user?.id && session.expires
+      ? `${PWA_LOGIN_PROMPT_KEY}:${session.user.id}:${session.expires}`
+      : "";
 
   useEffect(() => {
     const handlePrompt = (event: Event) => {
@@ -39,16 +45,25 @@ export function InstallPWANotice() {
   }, []);
 
   useEffect(() => {
-    if (!pwa.ready || !pwa.isMobileBrowser || status !== "authenticated" || !session?.user?.id) {
+    if (
+      !pwa.ready ||
+      !pwa.isMobileBrowser ||
+      status !== "authenticated" ||
+      !session?.user?.id ||
+      !promptKey ||
+      sessionStorage.getItem(promptKey) === "1"
+    ) {
       setVisible(false);
       return;
     }
 
     const timer = window.setTimeout(() => setVisible(true), 500);
     return () => window.clearTimeout(timer);
-  }, [pwa.ready, pwa.isMobileBrowser, session?.user?.id, status]);
+  }, [promptKey, pwa.ready, pwa.isMobileBrowser, session?.user?.id, status]);
 
   const close = () => {
+    if (promptKey) sessionStorage.setItem(promptKey, "1");
+    setVisible(false);
     setExpanded(false);
   };
 
@@ -104,7 +119,7 @@ export function InstallPWANotice() {
               type="button"
               onClick={close}
               className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-white transition-all hover:bg-white hover:text-zinc-950"
-              aria-label="جمع کردن راهنمای نصب"
+              aria-label="بستن راهنمای نصب تا ورود بعدی"
             >
               <span className="material-symbols-outlined text-xl">close</span>
             </button>
@@ -189,7 +204,7 @@ export function InstallPWANotice() {
               </button>
             )}
             <button type="button" onClick={close} className="ui-button-secondary min-h-10 w-full">
-              جمع کردن راهنما
+              بستن تا ورود بعدی
             </button>
           </div>
         </footer>

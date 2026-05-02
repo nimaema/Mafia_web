@@ -587,7 +587,7 @@ export function UserManagementPanel() {
       </section>
 
       <main className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_430px]">
-        <section className="ui-card relative min-h-[520px] overflow-hidden">
+        <section className="ui-card relative overflow-hidden">
           <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="ui-kicker">لیست عملیاتی</p>
