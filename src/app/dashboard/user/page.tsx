@@ -13,6 +13,8 @@ import Link from "next/link";
 import { getUserStatsSafe } from "@/actions/dashboard";
 import { getWaitingGamesSafe } from "@/actions/game";
 import { getPusherClient } from "@/lib/pusher-client";
+import { usePresenceSnapshot } from "@/hooks/usePresenceSnapshot";
+import type { PresenceSnapshot } from "@/lib/presence";
 
 type DashboardData = {
   statsData: any[];
@@ -23,35 +25,7 @@ type DashboardData = {
   userImage?: string | null;
 };
 
-type PresenceSnapshot = {
-  count: number;
-  members: Array<{ id: string; name?: string | null; image?: string | null; role?: string | null }>;
-  updatedAt: number;
-};
-
 const ROLE_CHART_COLORS = ["#84cc16", "#0ea5e9", "#f59e0b", "#ef4444", "#a855f7", "#14b8a6", "#71717a"];
-
-function usePresenceSnapshot() {
-  const [presence, setPresence] = useState<PresenceSnapshot>({ count: 0, members: [], updatedAt: 0 });
-
-  useEffect(() => {
-    const readPresence = () => {
-      const snapshot = (window as Window & { __mafiaPresence?: PresenceSnapshot }).__mafiaPresence;
-      if (snapshot) setPresence(snapshot);
-    };
-
-    const handlePresence = (event: Event) => {
-      const detail = (event as CustomEvent<PresenceSnapshot>).detail;
-      if (detail) setPresence(detail);
-    };
-
-    readPresence();
-    window.addEventListener("mafia-presence-change", handlePresence);
-    return () => window.removeEventListener("mafia-presence-change", handlePresence);
-  }, []);
-
-  return presence;
-}
 
 function EmptyState({ icon, title, text }: { icon: string; title: string; text: string }) {
   return (
@@ -178,16 +152,6 @@ function LobbyTile({ game, large = false }: { game: any; large?: boolean }) {
   );
 }
 
-function StatPill({ icon, label, value }: { icon: string; label: string; value: React.ReactNode }) {
-  return (
-    <div className="rounded-lg border border-white/10 bg-white/10 p-3">
-      <span className="material-symbols-outlined text-lg text-lime-300">{icon}</span>
-      <p className="mt-2 text-xl font-black text-white">{value}</p>
-      <p className="mt-0.5 text-[10px] font-bold text-zinc-400">{label}</p>
-    </div>
-  );
-}
-
 function PresenceFaces({ presence }: { presence: PresenceSnapshot }) {
   const members = presence.members.slice(0, 4);
 
@@ -261,7 +225,6 @@ export default function UserDashboard() {
   const winRate = totalGames ? Math.round((wins / totalGames) * 100) : 0;
   const displayName = data?.userName || session?.user?.name || "بازیکن";
   const displayImage = data?.userImage || session?.user?.image;
-  const canManageLobbies = session?.user?.role === "ADMIN" || session?.user?.role === "MODERATOR";
   const mostPlayedRole = roleHistory.reduce((best: any | null, item: any) => {
     if (!best || item.count > best.count) return item;
     return best;
@@ -270,15 +233,15 @@ export default function UserDashboard() {
   const primaryLobby = activeGames[0];
 
   const welcomeText = useMemo(() => {
-    if (data?.currentActiveGame) return "بازی فعال داری؛ مستقیم وارد اتاق شو و نقش/گزارش بازی را دنبال کن.";
-    if (activeGames.length > 0) return `${activeGames.length} لابی برای ورود آماده است. مناسب‌ترین گزینه را از همین صفحه انتخاب کن.`;
-    return "فعلاً لابی باز نیست؛ صفحه را تازه‌سازی کن یا پروفایلت را برای بازی بعدی آماده نگه دار.";
+    if (data?.currentActiveGame) return "بازی فعال";
+    if (activeGames.length > 0) return `${activeGames.length} لابی آماده`;
+    return "آماده بازی بعدی";
   }, [activeGames.length, data?.currentActiveGame]);
 
   if (!mounted) {
     return (
       <div className="grid gap-4">
-        <div className="h-72 animate-pulse rounded-lg bg-zinc-200 dark:bg-white/10" />
+        <div className="h-32 animate-pulse rounded-lg bg-zinc-200 dark:bg-white/10" />
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="h-96 animate-pulse rounded-lg bg-zinc-200 dark:bg-white/10" />
           <div className="h-96 animate-pulse rounded-lg bg-zinc-200 dark:bg-white/10" />
@@ -289,75 +252,62 @@ export default function UserDashboard() {
 
   return (
     <div className="space-y-6 font-sans">
-      <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-950 text-white shadow-2xl shadow-zinc-950/15 dark:border-white/10">
+      <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-950 text-white shadow-xl shadow-zinc-950/10 dark:border-white/10">
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
-        <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_390px]">
-          <div className="p-5 sm:p-6">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex min-w-0 items-center gap-4">
-                <div className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/15 bg-white/10">
-                  {displayImage ? (
-                    <img src={displayImage} alt="Profile" className="size-full object-cover" />
-                  ) : (
-                    <span className="material-symbols-outlined text-5xl text-lime-300">person</span>
-                  )}
-                  <span className="absolute bottom-2 right-2 size-3.5 rounded-full border-2 border-zinc-950 bg-lime-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-lime-300">داشبورد بازیکن</p>
-                  <h1 className="mt-1 line-clamp-2 break-words text-3xl font-black leading-10">{displayName}</h1>
-                  <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-zinc-300">{welcomeText}</p>
-                </div>
-              </div>
-
-              <PresenceFaces presence={presence} />
+        <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/15 bg-white/10">
+              {displayImage ? (
+                <img src={displayImage} alt="Profile" className="size-full object-cover" />
+              ) : (
+                <span className="material-symbols-outlined text-4xl text-lime-300">person</span>
+              )}
+              <span className="absolute bottom-1.5 right-1.5 size-3 rounded-full border-2 border-zinc-950 bg-lime-400" />
             </div>
-
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <StatPill icon="sports_esports" label="بازی انجام‌شده" value={totalGames} />
-              <StatPill icon="emoji_events" label="برد" value={wins} />
-              <StatPill icon="trending_up" label="درصد برد" value={`${winRate}%`} />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-lime-300">داشبورد</p>
+                <span className="rounded-lg border border-white/10 bg-white/10 px-2 py-0.5 text-[10px] font-black text-zinc-200">{welcomeText}</span>
+              </div>
+              <h1 className="mt-1 truncate text-2xl font-black leading-8">{displayName}</h1>
             </div>
           </div>
 
-          <aside className="border-t border-white/10 bg-white/[0.06] p-5 xl:border-r xl:border-t-0">
-            {data?.currentActiveGame ? (
-              <Link
-                href={`/game/${data.currentActiveGame.id}`}
-                className="group flex h-full min-h-64 flex-col justify-between rounded-lg border border-lime-400/25 bg-lime-400/10 p-5 transition-all hover:bg-lime-400/15"
-              >
-                <span className="inline-flex size-12 items-center justify-center rounded-lg bg-lime-400 text-zinc-950">
-                  <span className="material-symbols-outlined text-2xl">play_arrow</span>
-                </span>
-                <div className="mt-8">
-                  <p className="text-xs font-black text-lime-300">ادامه بازی فعال</p>
-                  <h2 className="mt-2 line-clamp-2 text-3xl font-black leading-10">{data.currentActiveGame.scenarioName}</h2>
-                  <p className="mt-2 text-sm font-bold text-zinc-300">گرداننده: {data.currentActiveGame.moderatorName}</p>
-                </div>
-                <span className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-white px-4 text-sm font-black text-zinc-950">
-                  ورود به بازی
-                  <span className="material-symbols-outlined text-lg transition-transform group-hover:-translate-x-1">arrow_back</span>
-                </span>
-              </Link>
-            ) : primaryLobby ? (
-              <LobbyTile game={primaryLobby} large />
-            ) : (
-              <div className="flex h-full min-h-64 flex-col justify-between rounded-lg border border-white/10 bg-white/10 p-5">
-                <span className="inline-flex size-12 items-center justify-center rounded-lg bg-white/10 text-lime-300">
-                  <span className="material-symbols-outlined text-2xl">radar</span>
-                </span>
-                <div className="mt-8">
-                  <p className="text-xs font-black text-lime-300">اتاق آماده نیست</p>
-                  <h2 className="mt-2 text-2xl font-black leading-9">منتظر لابی بعدی</h2>
-                  <p className="mt-2 text-sm font-bold leading-6 text-zinc-300">وقتی لابی ساخته شود، کارت ورود همین‌جا ظاهر می‌شود.</p>
-                </div>
-                <button type="button" onClick={refreshData} className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-white px-4 text-sm font-black text-zinc-950">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+            <div className="flex flex-wrap gap-2 text-[10px] font-black text-zinc-200">
+              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
+                <span className="material-symbols-outlined text-base text-lime-300">sports_esports</span>
+                {totalGames} بازی
+              </span>
+              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
+                <span className="material-symbols-outlined text-base text-amber-300">emoji_events</span>
+                {wins} برد
+              </span>
+              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
+                <span className="material-symbols-outlined text-base text-sky-300">trending_up</span>
+                {winRate}% برد
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <PresenceFaces presence={presence} />
+              {data?.currentActiveGame ? (
+                <Link href={`/game/${data.currentActiveGame.id}`} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-lime-400 px-4 text-sm font-black text-zinc-950 transition-all hover:bg-lime-300">
+                  <span className="material-symbols-outlined text-lg">play_arrow</span>
+                  ادامه بازی
+                </Link>
+              ) : primaryLobby ? (
+                <Link href={`/lobby/${primaryLobby.id}`} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-white px-4 text-sm font-black text-zinc-950 transition-all hover:bg-lime-300">
+                  <span className="material-symbols-outlined text-lg">login</span>
+                  ورود سریع
+                </Link>
+              ) : (
+                <button type="button" onClick={refreshData} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-white px-4 text-sm font-black text-zinc-950 transition-all hover:bg-lime-300">
                   <span className="material-symbols-outlined text-lg">refresh</span>
                   تازه‌سازی
                 </button>
-              </div>
-            )}
-          </aside>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -383,7 +333,7 @@ export default function UserDashboard() {
               <EmptyState icon="radar" title="لابی فعالی پیدا نشد" text="وقتی گرداننده‌ای لابی بسازد، همین‌جا ظاهر می‌شود." />
             ) : (
               <div className="grid gap-3 lg:grid-cols-2">
-                {activeGames.slice(data?.currentActiveGame ? 0 : 1, data?.currentActiveGame ? 6 : 7).map((game) => (
+                {activeGames.slice(0, 6).map((game) => (
                   <LobbyTile key={game.id} game={game} />
                 ))}
               </div>
@@ -455,20 +405,18 @@ export default function UserDashboard() {
               <span className="material-symbols-outlined text-zinc-400 transition-transform group-hover:-translate-x-1">arrow_back</span>
             </Link>
 
-            {canManageLobbies && (
-              <Link href="/dashboard/moderator" className="group flex min-h-16 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-amber-500/30 dark:border-white/10 dark:bg-zinc-900/70">
-                <span className="flex items-center gap-3">
-                  <span className="ui-icon">
-                    <span className="material-symbols-outlined text-amber-500">sports_esports</span>
-                  </span>
-                  <span>
-                    <span className="block font-black text-zinc-950 dark:text-white">لابی‌سازی</span>
-                    <span className="mt-1 block text-xs font-bold text-zinc-500 dark:text-zinc-400">ساخت و مدیریت بازی</span>
-                  </span>
+            <button type="button" onClick={refreshData} className="group flex min-h-16 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-4 text-right shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 dark:border-white/10 dark:bg-zinc-900/70">
+              <span className="flex items-center gap-3">
+                <span className="ui-icon">
+                  <span className="material-symbols-outlined text-lime-500">refresh</span>
                 </span>
-                <span className="material-symbols-outlined text-zinc-400 transition-transform group-hover:-translate-x-1">arrow_back</span>
-              </Link>
-            )}
+                <span>
+                  <span className="block font-black text-zinc-950 dark:text-white">تازه‌سازی بازی‌ها</span>
+                  <span className="mt-1 block text-xs font-bold text-zinc-500 dark:text-zinc-400">بررسی دوباره لابی‌های باز</span>
+                </span>
+              </span>
+              <span className="material-symbols-outlined text-zinc-400 transition-transform group-hover:rotate-180">sync</span>
+            </button>
           </section>
         </aside>
       </div>

@@ -4,28 +4,9 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef } from "react";
 import { getPusherClient } from "@/lib/pusher-client";
+import { APP_PRESENCE_CHANNEL, type PresenceMember } from "@/lib/presence";
 
 const CLIENT_ACTIVITY_THROTTLE_MS = 60 * 1000;
-const APP_PRESENCE_CHANNEL = "presence-app";
-
-type PresenceMember = {
-  id: string;
-  name?: string | null;
-  image?: string | null;
-  role?: string | null;
-};
-
-type PresenceSnapshot = {
-  count: number;
-  members: PresenceMember[];
-  updatedAt: number;
-};
-
-declare global {
-  interface Window {
-    __mafiaPresence?: PresenceSnapshot;
-  }
-}
 
 function publishPresence(channel: any) {
   if (typeof window === "undefined") return;
