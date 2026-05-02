@@ -108,42 +108,55 @@ function LobbyTile({ game, large = false }: { game: any; large?: boolean }) {
   const joinedPlayers = playerCount(game);
   const seatsLeft = capacity ? Math.max(capacity - joinedPlayers, 0) : null;
   const progress = capacity ? Math.min(100, Math.round((joinedPlayers / capacity) * 100)) : 0;
+  const isFull = capacity ? joinedPlayers >= capacity : false;
 
   return (
     <Link
       href={`/lobby/${game.id}`}
-      className={`group relative grid overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/35 hover:shadow-xl hover:shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950/70 ${
-        large ? "min-h-64 p-5" : "p-4"
+      className={`group relative grid overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_48%,#f0fdf4_100%)] shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/35 hover:shadow-xl hover:shadow-zinc-950/10 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(9,9,11,0.95)_0%,rgba(24,24,27,0.95)_52%,rgba(20,83,45,0.22)_100%)] ${
+        large ? "min-h-64 p-5" : "min-h-48 p-4"
       }`}
     >
       <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+      <span className="absolute inset-y-0 right-0 w-1 bg-gradient-to-b from-lime-400 via-sky-400 to-transparent opacity-80" />
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-lime-500/25 bg-lime-500/10 text-lime-700 shadow-inner dark:text-lime-300">
             <span className="material-symbols-outlined text-xl">groups</span>
           </span>
           <div className="min-w-0">
-            <p className="text-[10px] font-black text-lime-600 dark:text-lime-400">لابی باز</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[10px] font-black text-lime-600 dark:text-lime-400">لابی باز</p>
+              <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${isFull ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300"}`}>
+                {isFull ? "تکمیل" : "قابل ورود"}
+              </span>
+            </div>
             <h3 className={`${large ? "text-2xl leading-9" : "text-base leading-7"} mt-1 line-clamp-2 break-words font-black text-zinc-950 dark:text-white`}>{game.name}</h3>
             <p className="mt-1 line-clamp-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{game.scenario?.name || "سناریو هنوز انتخاب نشده"}</p>
           </div>
         </div>
-        <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 font-mono text-[10px] font-black text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300">
+        <span className="rounded-lg border border-zinc-200 bg-white/80 px-2 py-1 font-mono text-[10px] font-black text-zinc-600 shadow-sm dark:border-white/10 dark:bg-white/[0.05] dark:text-zinc-300">
           #{game.code}
         </span>
       </div>
 
-      <div className="mt-5 self-end">
-        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-          <div className="flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400">
-            <span>{joinedPlayers}{capacity ? ` / ${capacity}` : ""} بازیکن</span>
-            <span>{seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "تکمیل" : `${seatsLeft} جای آزاد`}</span>
+      <div className="mt-5 self-end space-y-3">
+        <div>
+          <div className="flex items-center justify-between gap-3 text-xs font-black text-zinc-600 dark:text-zinc-300">
+            <span className="inline-flex items-center gap-1">
+              <span className="material-symbols-outlined text-base text-sky-500">person_check</span>
+              {joinedPlayers}{capacity ? ` از ${capacity}` : ""} نفر
+            </span>
+            <span className={isFull ? "text-amber-600 dark:text-amber-300" : "text-lime-700 dark:text-lime-300"}>
+              {seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "آماده شروع" : `${seatsLeft} جای خالی`}
+            </span>
           </div>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-            <div className="h-full rounded-full bg-gradient-to-l from-lime-400 to-sky-400 transition-[width]" style={{ width: `${progress}%` }} />
+          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-zinc-200/70 ring-1 ring-zinc-950/5 dark:bg-white/10 dark:ring-white/10">
+            <div className="h-full rounded-full bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400 transition-[width]" style={{ width: `${progress}%` }} />
           </div>
         </div>
-        <span className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-1 rounded-lg bg-zinc-950 px-3 text-xs font-black text-white transition-colors group-hover:bg-lime-500 group-hover:text-zinc-950 dark:bg-white dark:text-zinc-950">
+
+        <span className="inline-flex min-h-10 w-full items-center justify-center gap-1 rounded-lg bg-zinc-950 px-3 text-xs font-black text-white transition-colors group-hover:bg-lime-500 group-hover:text-zinc-950 dark:bg-white dark:text-zinc-950">
           ورود به لابی
           <span className="material-symbols-outlined text-base transition-transform group-hover:-translate-x-1">arrow_back</span>
         </span>
@@ -336,18 +349,9 @@ export default function UserDashboard() {
       )}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.75fr)]">
-        <section className="rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/70 sm:p-5">
-          <SectionIntro
-            kicker="live rooms"
-            title="بازی‌های قابل ورود"
-            text="به جای چند میانبر تکراری، این بخش فقط روی تصمیم اصلی تمرکز می‌کند: ورود به بازی یا انتخاب لابی مناسب."
-            action={
-              <button type="button" onClick={refreshData} className="ui-button-secondary min-h-10 px-3 text-xs">
-                <span className="material-symbols-outlined text-base">sync</span>
-                بروزرسانی
-              </button>
-            }
-          />
+        <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_56%,#f0fdf4_100%)] p-4 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.9)_0%,rgba(9,9,11,0.96)_58%,rgba(20,83,45,0.18)_100%)] sm:p-5">
+          <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+          <SectionIntro kicker="اتاق‌های زنده" title="لابی‌های فعال" />
 
           <div className="mt-5">
             {activeGamesError ? (
@@ -365,22 +369,52 @@ export default function UserDashboard() {
         </section>
 
         <aside className="grid gap-4">
-          <section className="rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/70 sm:p-5">
-            <SectionIntro kicker="player form" title="فرم بازیکن" />
-            <div className="mt-4 grid gap-3">
-              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400">نقش پرتکرار</p>
-                <p className="mt-2 truncate text-xl font-black text-zinc-950 dark:text-white">{mostPlayedRole?.role || "ثبت نشده"}</p>
+          <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/70 sm:p-5">
+            <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-sky-400 via-lime-400 to-amber-400" />
+            <SectionIntro kicker="فرم بازی" title="نمای عملکرد" />
+            <div className="mt-5 grid gap-3">
+              <div className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">نقش پرتکرار</p>
+                    <p className="mt-2 truncate text-xl font-black text-zinc-950 dark:text-white">{mostPlayedRole?.role || "ثبت نشده"}</p>
+                  </div>
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-300">
+                    <span className="material-symbols-outlined">psychology</span>
+                  </span>
+                </div>
               </div>
-              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400">آخرین نتیجه</p>
-                <p className="mt-2 line-clamp-1 text-sm font-black text-zinc-950 dark:text-white">{latestGame ? `${latestGame.scenarioName}، ${resultMeta(latestGame.result).label}` : "هنوز بازی کامل نشده"}</p>
+
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">آخرین نتیجه</p>
+                    {latestGame && (
+                      <span className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-black ${resultMeta(latestGame.result).className}`}>
+                        <span className="material-symbols-outlined text-sm">{resultMeta(latestGame.result).icon}</span>
+                        {resultMeta(latestGame.result).label}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2 line-clamp-1 text-sm font-black text-zinc-950 dark:text-white">{latestGame ? latestGame.scenarioName : "هنوز بازی کامل نشده"}</p>
+                </div>
+
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">درصد برد</p>
+                    <p className="text-lg font-black text-lime-600 dark:text-lime-300">{winRate}%</p>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
+                    <div className="h-full rounded-full bg-gradient-to-l from-lime-400 to-sky-400" style={{ width: `${winRate}%` }} />
+                  </div>
+                </div>
               </div>
             </div>
           </section>
 
-          <section className="rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/70 sm:p-5">
-            <SectionIntro kicker="role map" title="نقشه نقش‌ها" />
+          <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/70 sm:p-5">
+            <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-violet-400 via-sky-400 to-lime-400" />
+            <SectionIntro kicker="نقش‌ها" title="نقشه نقش‌ها" />
             {roleHistory.length === 0 ? (
               <div className="mt-4">
                 <EmptyState icon="troubleshoot" title="نقشی ثبت نشده" text="بعد از حضور در بازی، نقش‌های دریافتی اینجا دیده می‌شوند." />
@@ -414,28 +448,15 @@ export default function UserDashboard() {
             )}
           </section>
 
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-            <Link href="/dashboard/user/profile" className="group flex min-h-16 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-sky-500/30 dark:border-white/10 dark:bg-zinc-900/70">
-              <span className="flex items-center gap-3">
-                <span className="ui-icon">
-                  <span className="material-symbols-outlined text-sky-500">badge</span>
-                </span>
-                <span>
-                  <span className="block font-black text-zinc-950 dark:text-white">پروفایل</span>
-                  <span className="mt-1 block text-xs font-bold text-zinc-500 dark:text-zinc-400">نام و تصویر حساب</span>
-                </span>
-              </span>
-              <span className="material-symbols-outlined text-zinc-400 transition-transform group-hover:-translate-x-1">arrow_back</span>
-            </Link>
-          </section>
         </aside>
       </div>
 
-      <section className="rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/70 sm:p-5">
+      <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_54%,#eff6ff_100%)] p-4 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.9)_0%,rgba(9,9,11,0.96)_60%,rgba(12,74,110,0.18)_100%)] sm:p-5">
+        <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-sky-400 via-lime-400 to-amber-400" />
         <SectionIntro
-          kicker="recent results"
+          kicker="بازی‌های اخیر"
           title="آخرین بازی‌ها"
-          text="فقط این بخش تاریخچه را نشان می‌دهد؛ برای جزئیات کامل‌تر از همین‌جا وارد صفحه تاریخچه شو."
+          text="۱۰ بازی آخر با نقش، نتیجه و گرداننده در همینجا دیده می‌شود."
           action={<Link href="/dashboard/user/history" className="ui-button-secondary min-h-10 px-3 text-xs">تاریخچه کامل</Link>}
         />
 
@@ -450,14 +471,19 @@ export default function UserDashboard() {
                 <button
                   key={game.id}
                   onClick={() => setSelectedHistoryGame(game)}
-                  className="group grid w-full gap-3 rounded-lg border border-zinc-200 bg-white p-3 text-right shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-center"
+                  className="group relative grid w-full gap-3 overflow-hidden rounded-lg border border-zinc-200 bg-white/90 p-3 text-right shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/75 dark:hover:bg-zinc-950 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-center"
                 >
-                  <span className="hidden size-10 items-center justify-center rounded-lg bg-zinc-50 text-sm font-black text-zinc-500 dark:bg-white/[0.04] dark:text-zinc-400 sm:flex">
+                  <span className="absolute inset-y-0 right-0 w-1 bg-gradient-to-b from-lime-400 via-sky-400 to-transparent opacity-75" />
+                  <span className="hidden size-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-sm font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400 sm:flex">
                     {index + 1}
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate font-black text-zinc-950 dark:text-white">{game.scenarioName}</span>
-                    <span className="mt-1 block truncate text-xs font-bold text-zinc-500 dark:text-zinc-400">{game.roleName} | {game.moderatorName} | {game.date}</span>
+                    <span className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-black text-zinc-500 dark:text-zinc-400">
+                      <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 dark:border-white/10 dark:bg-white/[0.04]">{game.roleName}</span>
+                      <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 dark:border-white/10 dark:bg-white/[0.04]">{game.moderatorName}</span>
+                      <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 dark:border-white/10 dark:bg-white/[0.04]">{game.date}</span>
+                    </span>
                   </span>
                   <span className="flex items-center justify-between gap-3 sm:justify-end">
                     <span className={`inline-flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-black ${result.className}`}>
