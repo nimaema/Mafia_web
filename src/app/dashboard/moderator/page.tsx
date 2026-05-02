@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createGame, getModeratorGamesSafe, cancelGame } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
+import { getPusherClient } from "@/lib/pusher-client";
 
 function statusLabel(status: string) {
   if (status === "WAITING") return "در انتظار";
@@ -14,6 +15,18 @@ function statusLabel(status: string) {
 
 function scenarioCapacity(game: any) {
   return game.scenario?.roles?.reduce((sum: number, item: any) => sum + item.count, 0) || 0;
+}
+
+function statusIcon(status: string) {
+  if (status === "IN_PROGRESS") return "sports_esports";
+  if (status === "WAITING") return "groups";
+  return "inventory_2";
+}
+
+function statusTone(status: string) {
+  if (status === "IN_PROGRESS") return "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300";
+  if (status === "WAITING") return "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300";
+  return "border-zinc-500/20 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300";
 }
 
 export default function ModeratorDashboard() {
@@ -30,6 +43,17 @@ export default function ModeratorDashboard() {
 
   useEffect(() => {
     refreshGames();
+
+    const pusher = getPusherClient();
+    const channel = pusher.subscribe("lobby");
+    channel.bind("game-created", refreshGames);
+    channel.bind("lobby-updated", refreshGames);
+
+    return () => {
+      channel.unbind("game-created", refreshGames);
+      channel.unbind("lobby-updated", refreshGames);
+      pusher.unsubscribe("lobby");
+    };
   }, []);
 
   const refreshGames = async () => {
@@ -97,116 +121,168 @@ export default function ModeratorDashboard() {
   const inProgressGames = activeGames.filter((game) => game.status === "IN_PROGRESS").length;
   const protectedGames = activeGames.filter((game) => game.password).length;
   const totalPlayers = activeGames.reduce((sum, game) => sum + (game._count?.players || 0), 0);
+  const readyGames = activeGames.filter((game) => {
+    const capacity = scenarioCapacity(game);
+    return game.status === "WAITING" && capacity > 0 && (game._count?.players || 0) === capacity;
+  }).length;
+  const featuredGame = activeGames.find((game) => game.status === "IN_PROGRESS") || activeGames.find((game) => game.status === "WAITING") || activeGames[0];
+  const stats = [
+    { label: "لابی‌ها", value: activeGames.length, icon: "dashboard", tone: "text-lime-300" },
+    { label: "بازیکن‌ها", value: totalPlayers, icon: "group", tone: "text-sky-300" },
+    { label: "آماده شروع", value: readyGames, icon: "task_alt", tone: "text-amber-300" },
+    { label: "در جریان", value: inProgressGames, icon: "bolt", tone: "text-violet-300" },
+  ];
 
   return (
     <div className="flex flex-col gap-5 font-sans" dir="rtl">
-      <section className="ui-card overflow-hidden">
-        <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="ui-icon-accent size-12">
-              <span className="material-symbols-outlined text-2xl">sports_esports</span>
-            </div>
-            <div className="min-w-0">
-              <p className="ui-kicker">مرکز گردانندگی</p>
-              <h1 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">اتاق کنترل بازی‌ها</h1>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                لابی را بسازید، سناریو را داخل اتاق انتظار تنظیم کنید و بازی‌های فعال را بدون شلوغی مدیریت کنید.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 lg:items-end">
-            <div className="grid grid-cols-4 gap-2">
-            {[
-              ["لابی‌ها", activeGames.length, "dashboard"],
-              ["بازیکن‌ها", totalPlayers, "group"],
-              ["در انتظار", waitingGames, "hourglass_top"],
-              ["در جریان", inProgressGames, "bolt"],
-            ].map(([label, value, icon]) => (
-              <div key={label} className="ui-muted min-w-16 px-3 py-2 text-center">
-                <span className="material-symbols-outlined text-base text-lime-600 dark:text-lime-400">{icon}</span>
-                <p className="mt-1 text-lg font-black text-zinc-950 dark:text-white">{value}</p>
-                <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+      <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-950 text-white shadow-xl shadow-zinc-950/10 dark:border-white/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.28),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.18),transparent_20rem)]" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+        <div className="relative p-4 sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-lime-400 text-zinc-950 shadow-sm shadow-lime-500/30 sm:size-14">
+                <span className="material-symbols-outlined text-2xl sm:text-3xl">sports_esports</span>
               </div>
-            ))}
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-300">مرکز گردانندگی</p>
+                <h1 className="mt-1 line-clamp-2 break-words text-2xl font-black leading-8 sm:text-3xl sm:leading-10">اتاق کنترل بازی‌ها</h1>
+                <p className="mt-2 line-clamp-2 max-w-2xl text-xs font-bold leading-6 text-zinc-300 sm:text-sm">
+                  لابی‌ها، سناریوها و بازی‌های در جریان را از یک نمای زنده و مرتب کنترل کنید.
+                </p>
+              </div>
             </div>
-            <div className="flex w-full gap-2 lg:w-auto">
-              <button onClick={() => setShowCreateModal(true)} className="ui-button-primary min-h-10 flex-1 px-4 lg:flex-none">
+
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end">
+              <button onClick={() => setShowCreateModal(true)} className="ui-button-primary min-h-10 px-3 text-xs sm:px-4">
                 <span className="material-symbols-outlined text-lg">add_circle</span>
                 لابی جدید
               </button>
-              <button onClick={refreshGames} className="ui-button-secondary min-h-10 flex-1 px-4 lg:flex-none" disabled={isRefreshing}>
-                <span className={`material-symbols-outlined text-lg ${isRefreshing ? "animate-spin" : ""}`}>refresh</span>
-                بروزرسانی
+              <button onClick={refreshGames} className="ui-button-secondary min-h-10 border-white/10 bg-white/10 px-3 text-xs text-white hover:bg-white hover:text-zinc-950" disabled={isRefreshing}>
+                <span className={`material-symbols-outlined text-lg ${isRefreshing ? "animate-spin" : ""}`}>sync</span>
+                همگام‌سازی
               </button>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 xl:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="-mx-1 overflow-x-auto px-1 pb-1">
+              <div className="grid min-w-[560px] grid-cols-4 gap-2 sm:min-w-0">
+                {stats.map((item) => (
+                  <div key={item.label} className="rounded-lg border border-white/10 bg-white/10 p-3 backdrop-blur">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`material-symbols-outlined text-xl ${item.tone}`}>{item.icon}</span>
+                      <span className="text-xl font-black text-white">{item.value}</span>
+                    </div>
+                    <p className="mt-2 text-[10px] font-black text-zinc-300">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-white/10 p-3 backdrop-blur">
+              {featuredGame ? (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black text-lime-300">{featuredGame.status === "IN_PROGRESS" ? "بازی در جریان" : "لابی بعدی"}</p>
+                    <p className="mt-1 truncate text-sm font-black text-white">{featuredGame.name}</p>
+                    <p className="mt-1 truncate text-[10px] font-bold text-zinc-300">{featuredGame.scenario?.name || "سناریو انتخاب نشده"}</p>
+                  </div>
+                  <Link
+                    href={featuredGame.status === "WAITING" ? `/dashboard/moderator/lobby/${featuredGame.id}` : `/dashboard/moderator/game/${featuredGame.id}`}
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 rounded-lg bg-white px-3 text-xs font-black text-zinc-950 transition-colors hover:bg-lime-300"
+                  >
+                    ورود
+                    <span className="material-symbols-outlined text-base">arrow_back</span>
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-white">لابی فعالی نیست</p>
+                    <p className="mt-1 text-[10px] font-bold text-zinc-300">برای شروع، یک لابی تازه بسازید.</p>
+                  </div>
+                  <button onClick={() => setShowCreateModal(true)} className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-lime-400 px-3 text-xs font-black text-zinc-950">
+                    ساخت
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </section>
 
       {showCreateModal && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 p-3 pb-28 backdrop-blur-xl sm:items-center sm:p-4">
-          <div className="ui-card max-h-[calc(100dvh-8rem)] w-full max-w-3xl overflow-hidden sm:max-h-[92vh]">
-            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-              <div>
-                <p className="ui-kicker">راه‌اندازی لابی</p>
-                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">تنظیم بازی جدید</h2>
-                <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                  این مرحله فقط اتاق انتظار را می‌سازد. انتخاب سناریو و شروع بازی در صفحه بعد انجام می‌شود.
-                </p>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 p-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] backdrop-blur-xl sm:items-center sm:p-4">
+          <div className="relative flex max-h-[calc(100dvh-7.5rem)] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl shadow-black/30 dark:border-white/10 dark:bg-zinc-950 sm:max-h-[92vh]">
+            <div className="relative overflow-hidden border-b border-white/10 bg-zinc-950 p-4 text-white sm:p-5">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.3),transparent_22rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.16),transparent_18rem)]" />
+              <div className="relative flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-300">راه‌اندازی لابی</p>
+                  <h2 className="mt-1 text-2xl font-black text-white">تنظیم بازی جدید</h2>
+                  <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-zinc-300">
+                    ابتدا اتاق انتظار ساخته می‌شود؛ سناریو، توانایی‌ها و شروع بازی در مرحله بعد تنظیم می‌شوند.
+                  </p>
+                </div>
+                <button onClick={() => setShowCreateModal(false)} className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-white transition-colors hover:bg-white hover:text-zinc-950">
+                  <span className="material-symbols-outlined text-xl">close</span>
+                </button>
               </div>
-              <button onClick={() => setShowCreateModal(false)} className="ui-button-secondary size-10 p-0">
-                <span className="material-symbols-outlined text-xl">close</span>
-              </button>
             </div>
 
-            <div className="custom-scrollbar grid max-h-[calc(100dvh-20rem)] gap-5 overflow-y-auto p-5 sm:max-h-[72vh] lg:grid-cols-[minmax(0,1fr)_260px]">
+            <div className="custom-scrollbar grid flex-1 gap-4 overflow-y-auto p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_300px]">
               <div className="space-y-4">
-                <label className="flex flex-col gap-2">
-                  <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نام لابی</span>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    placeholder="مثلا: بازی جمعه شب"
-                  />
-                </label>
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نام لابی</span>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      placeholder="مثلا: بازی جمعه شب"
+                    />
+                  </label>
+                  <p className="mt-2 text-[10px] font-bold leading-5 text-zinc-500 dark:text-zinc-400">اگر خالی بماند، نام کوتاه خودکار ساخته می‌شود.</p>
+                </div>
 
-                <div className="rounded-lg border border-zinc-200 p-3 dark:border-white/10">
+                <div className="rounded-lg border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60">
                   <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">نوع ورود</p>
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setIsPrivate(false)}
-                      className={`rounded-lg border p-4 text-right transition-all ${
+                      className={`relative overflow-hidden rounded-lg border p-4 text-right transition-all ${
                         !isPrivate
-                          ? "border-lime-500/40 bg-lime-500/10 text-zinc-950 dark:text-white"
+                          ? "border-lime-500/40 bg-lime-500/10 text-zinc-950 shadow-sm shadow-lime-500/15 dark:text-white"
                           : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400"
                       }`}
                     >
+                      {!isPrivate && <span className="absolute inset-x-0 top-0 h-1 bg-lime-400" />}
                       <span className="material-symbols-outlined text-xl">lock_open</span>
                       <span className="mt-2 block text-sm font-black">باز</span>
-                      <span className="mt-1 block text-xs leading-5">بازیکن‌ها فقط با کد وارد می‌شوند.</span>
+                      <span className="mt-1 block text-xs leading-5">ورود با کد لابی</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsPrivate(true)}
-                      className={`rounded-lg border p-4 text-right transition-all ${
+                      className={`relative overflow-hidden rounded-lg border p-4 text-right transition-all ${
                         isPrivate
-                          ? "border-amber-500/40 bg-amber-500/10 text-zinc-950 dark:text-white"
+                          ? "border-amber-500/40 bg-amber-500/10 text-zinc-950 shadow-sm shadow-amber-500/15 dark:text-white"
                           : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400"
                       }`}
                     >
+                      {isPrivate && <span className="absolute inset-x-0 top-0 h-1 bg-amber-400" />}
                       <span className="material-symbols-outlined text-xl">lock</span>
                       <span className="mt-2 block text-sm font-black">خصوصی</span>
-                      <span className="mt-1 block text-xs leading-5">کد بازی همراه رمز لازم است.</span>
+                      <span className="mt-1 block text-xs leading-5">کد همراه رمز</span>
                     </button>
                   </div>
                 </div>
 
                 {isPrivate && (
-                  <label className="flex flex-col gap-2">
-                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">رمز ورود</span>
+                  <label className="flex flex-col gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4">
+                    <span className="text-xs font-black text-amber-700 dark:text-amber-300">رمز ورود</span>
                     <input
                       type="text"
                       value={password}
@@ -218,50 +294,57 @@ export default function ModeratorDashboard() {
                 )}
               </div>
 
-              <aside className="ui-muted h-fit p-4">
-                <p className="font-black text-zinc-950 dark:text-white">بعد از ساخت</p>
-                <div className="mt-4 space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+              <aside className="h-fit rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_60%,#f0fdf4_100%)] p-4 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.9)_0%,rgba(9,9,11,0.96)_60%,rgba(20,83,45,0.18)_100%)]">
+                <p className="font-black text-zinc-950 dark:text-white">جریان بعد از ساخت</p>
+                <div className="mt-4 grid gap-2">
                   {[
-                    ["tag", "کد ورود خودکار ساخته می‌شود."],
-                    ["account_tree", "سناریو را با توجه به تعداد بازیکنان انتخاب می‌کنید."],
-                    ["groups", "فهرست بازیکنان زنده بروزرسانی می‌شود."],
-                  ].map(([icon, text]) => (
-                    <div key={text} className="flex gap-2">
-                      <span className="material-symbols-outlined text-lg text-lime-600 dark:text-lime-400">{icon}</span>
-                      <span className="leading-6">{text}</span>
+                    { icon: "tag", text: "کد ورود خودکار ساخته می‌شود." },
+                    { icon: "account_tree", text: "سناریو را در صفحه لابی انتخاب می‌کنید." },
+                    { icon: "groups", text: "بازیکنان به صورت زنده دیده می‌شوند." },
+                  ].map((item) => (
+                    <div key={item.text} className="flex gap-2 rounded-lg border border-zinc-200 bg-white/80 p-3 text-sm text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300">
+                      <span className="material-symbols-outlined text-lg text-lime-600 dark:text-lime-400">{item.icon}</span>
+                      <span className="leading-6">{item.text}</span>
                     </div>
                   ))}
                 </div>
-                <button onClick={handleCreateGame} disabled={loading} className="ui-button-primary mt-5 min-h-12 w-full">
-                  <span className={`material-symbols-outlined text-xl ${loading ? "animate-spin" : ""}`}>
-                    {loading ? "refresh" : "bolt"}
-                  </span>
-                  ساخت و ورود به لابی
-                </button>
               </aside>
+            </div>
+
+            <div className="sticky bottom-0 border-t border-zinc-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] dark:border-white/10 dark:bg-zinc-950/95 sm:p-5">
+              <button onClick={handleCreateGame} disabled={loading} className="ui-button-primary min-h-12 w-full text-base">
+                <span className={`material-symbols-outlined text-xl ${loading ? "animate-spin" : ""}`}>
+                  {loading ? "progress_activity" : "bolt"}
+                </span>
+                ساخت و ورود به لابی
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      <section className="ui-card overflow-hidden">
-        <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="font-black text-zinc-950 dark:text-white">لابی‌های فعال</p>
-            <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">
-              {protectedGames > 0 ? `${protectedGames} لابی خصوصی` : "همه لابی‌ها باز هستند"}
-            </p>
+      <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_56%,#eff6ff_100%)] shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.9)_0%,rgba(9,9,11,0.96)_60%,rgba(12,74,110,0.18)_100%)]">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-sky-400 via-lime-400 to-amber-400" />
+        <div className="flex flex-col gap-3 border-b border-zinc-200/80 p-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="min-w-0">
+            <p className="ui-kicker">اتاق‌های فعال</p>
+            <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">لابی‌ها و بازی‌های شما</h2>
+            <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-black">
+              <span className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300">{waitingGames} در انتظار</span>
+              <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-sky-700 dark:text-sky-300">{inProgressGames} در جریان</span>
+              <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-amber-700 dark:text-amber-300">{protectedGames} خصوصی</span>
+            </div>
           </div>
-          <button onClick={() => setShowCreateModal(true)} className="ui-button-secondary min-h-10 px-3 text-xs">
+          <button onClick={() => setShowCreateModal(true)} className="ui-button-primary min-h-10 px-3 text-xs">
             <span className="material-symbols-outlined text-lg">add</span>
             ساخت لابی
           </button>
         </div>
 
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           {errorMessage ? (
-            <div className="flex min-h-[360px] flex-col items-center justify-center gap-5 text-center">
-              <div className="ui-icon size-16 text-red-500">
+            <div className="flex min-h-[360px] flex-col items-center justify-center gap-5 rounded-lg border border-dashed border-red-500/20 bg-red-500/5 p-8 text-center">
+              <div className="flex size-16 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-red-500">
                 <span className="material-symbols-outlined text-3xl">cloud_off</span>
               </div>
               <div>
@@ -274,8 +357,8 @@ export default function ModeratorDashboard() {
               </button>
             </div>
           ) : activeGames.length === 0 ? (
-            <div className="flex min-h-[360px] flex-col items-center justify-center gap-5 text-center">
-              <div className="ui-icon size-20">
+            <div className="flex min-h-[360px] flex-col items-center justify-center gap-5 rounded-lg border border-dashed border-zinc-200 bg-white/70 p-8 text-center dark:border-white/10 dark:bg-white/[0.03]">
+              <div className="flex size-20 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-zinc-950">
                 <span className="material-symbols-outlined text-4xl text-zinc-400">videogame_asset_off</span>
               </div>
               <div>
@@ -285,26 +368,27 @@ export default function ModeratorDashboard() {
               <button onClick={() => setShowCreateModal(true)} className="ui-button-primary">ایجاد اولین لابی</button>
             </div>
           ) : (
-            <div className="grid gap-4 xl:grid-cols-2">
+            <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
               {activeGames.map((game) => {
                 const capacity = scenarioCapacity(game);
                 const players = game._count?.players || 0;
                 const progress = capacity > 0 ? Math.min(100, Math.round((players / capacity) * 100)) : 0;
                 const isInProgress = game.status === "IN_PROGRESS";
-                const statusTone = isInProgress
-                  ? "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300"
-                  : "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300";
+                const isReady = game.status === "WAITING" && capacity > 0 && players === capacity;
+                const tone = statusTone(game.status);
+                const progressText = capacity ? (isReady ? "ظرفیت تکمیل" : `${Math.max(capacity - players, 0)} نفر تا تکمیل`) : "سناریو انتخاب نشده";
 
                 return (
-                  <article key={game.id} className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-4 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-xl hover:shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950">
-                    <div className={`absolute inset-x-0 top-0 h-1 ${isInProgress ? "bg-sky-500" : "bg-lime-500"}`} />
+                  <article key={game.id} className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-xl hover:shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950">
+                    <div className={`absolute inset-x-0 top-0 h-1 ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-lime-500"}`} />
+                    <div className={`absolute inset-y-0 right-0 w-1 ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-lime-500"}`} />
                     <div className="flex items-start justify-between gap-4 pt-1">
                       <div className="flex min-w-0 items-start gap-3">
-                        <div className={`flex size-12 shrink-0 items-center justify-center rounded-lg border ${statusTone}`}>
-                          <span className="material-symbols-outlined text-2xl">{isInProgress ? "sports_esports" : "groups"}</span>
+                        <div className={`flex size-12 shrink-0 items-center justify-center rounded-lg border ${tone}`}>
+                          <span className="material-symbols-outlined text-2xl">{statusIcon(game.status)}</span>
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">{isInProgress ? "بازی در جریان" : "اتاق انتظار"}</p>
+                          <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">{isInProgress ? "بازی در جریان" : isReady ? "آماده شروع" : "اتاق انتظار"}</p>
                           <h2 className="mt-1 line-clamp-2 break-words text-lg font-black leading-6 text-zinc-950 dark:text-white">{game.name}</h2>
                           <p className="mt-1 line-clamp-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{game.scenario?.name || "سناریو هنوز انتخاب نشده"}</p>
                         </div>
@@ -316,28 +400,25 @@ export default function ModeratorDashboard() {
 
                     <div className="mt-4 grid grid-cols-3 gap-2">
                       {[
-                        [statusLabel(game.status), isInProgress ? "play_circle" : "pending_actions", statusTone],
-                        [`${players}${capacity ? `/${capacity}` : ""}`, "group", "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300"],
-                        [game.password ? "خصوصی" : "باز", game.password ? "lock" : "lock_open", game.password ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300"],
-                      ].map(([label, icon, className]) => (
-                        <div key={label} className={`rounded-lg border px-2 py-2 text-center text-[10px] font-black ${className}`}>
-                          <span className="material-symbols-outlined block text-base">{icon}</span>
-                          <span className="mt-1 block truncate">{label}</span>
+                        { label: statusLabel(game.status), icon: statusIcon(game.status), className: tone },
+                        { label: `${players}${capacity ? `/${capacity}` : ""}`, icon: "group", className: "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300" },
+                        { label: game.password ? "خصوصی" : "باز", icon: game.password ? "lock" : "lock_open", className: game.password ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300" },
+                      ].map((item) => (
+                        <div key={item.label} className={`rounded-lg border px-2 py-2 text-center text-[10px] font-black ${item.className}`}>
+                          <span className="material-symbols-outlined block text-base">{item.icon}</span>
+                          <span className="mt-1 block truncate">{item.label}</span>
                         </div>
                       ))}
                     </div>
 
-                    <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                      <div className="mb-2 flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                    <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                      <div className="mb-2 flex items-center justify-between gap-2 text-xs font-bold text-zinc-500 dark:text-zinc-400">
                         <span>پیشرفت ظرفیت</span>
-                        <span>{capacity ? `${players} از ${capacity}` : "بعد از انتخاب سناریو"}</span>
+                        <span className={isReady ? "text-amber-700 dark:text-amber-300" : "text-zinc-500 dark:text-zinc-400"}>{progressText}</span>
                       </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
-                        <div className={`h-full rounded-full transition-[width] ${isInProgress ? "bg-sky-500" : "bg-lime-500"}`} style={{ width: `${progress}%` }} />
+                      <div className="h-2 overflow-hidden rounded-full bg-zinc-200 ring-1 ring-zinc-950/5 dark:bg-white/10 dark:ring-white/10">
+                        <div className={`h-full rounded-full transition-[width] ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-gradient-to-l from-lime-400 to-sky-400"}`} style={{ width: `${progress}%` }} />
                       </div>
-                      <p className="mt-2 truncate text-[10px] font-bold text-zinc-400 dark:text-zinc-500">
-                        گرداننده: {game.moderator?.name || "نامشخص"}
-                      </p>
                     </div>
 
                     <div className="mt-4 grid grid-cols-[44px_minmax(0,1fr)] gap-2">
