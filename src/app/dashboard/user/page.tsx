@@ -193,8 +193,11 @@ export default function UserDashboard() {
     const pusher = getPusherClient();
     const channel = pusher.subscribe("lobby");
     channel.bind("game-created", refreshActiveGames);
+    channel.bind("lobby-updated", refreshData);
 
     return () => {
+      channel.unbind("game-created", refreshActiveGames);
+      channel.unbind("lobby-updated", refreshData);
       pusher.unsubscribe("lobby");
     };
   }, []);
@@ -300,12 +303,7 @@ export default function UserDashboard() {
                   <span className="material-symbols-outlined text-lg">login</span>
                   ورود سریع
                 </Link>
-              ) : (
-                <button type="button" onClick={refreshData} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-white px-4 text-sm font-black text-zinc-950 transition-all hover:bg-lime-300">
-                  <span className="material-symbols-outlined text-lg">refresh</span>
-                  تازه‌سازی
-                </button>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
@@ -324,6 +322,12 @@ export default function UserDashboard() {
             kicker="live rooms"
             title="بازی‌های قابل ورود"
             text="به جای چند میانبر تکراری، این بخش فقط روی تصمیم اصلی تمرکز می‌کند: ورود به بازی یا انتخاب لابی مناسب."
+            action={
+              <button type="button" onClick={refreshData} className="ui-button-secondary min-h-10 px-3 text-xs">
+                <span className="material-symbols-outlined text-base">sync</span>
+                بروزرسانی
+              </button>
+            }
           />
 
           <div className="mt-5">
@@ -404,19 +408,6 @@ export default function UserDashboard() {
               </span>
               <span className="material-symbols-outlined text-zinc-400 transition-transform group-hover:-translate-x-1">arrow_back</span>
             </Link>
-
-            <button type="button" onClick={refreshData} className="group flex min-h-16 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-4 text-right shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 dark:border-white/10 dark:bg-zinc-900/70">
-              <span className="flex items-center gap-3">
-                <span className="ui-icon">
-                  <span className="material-symbols-outlined text-lime-500">refresh</span>
-                </span>
-                <span>
-                  <span className="block font-black text-zinc-950 dark:text-white">تازه‌سازی بازی‌ها</span>
-                  <span className="mt-1 block text-xs font-bold text-zinc-500 dark:text-zinc-400">بررسی دوباره لابی‌های باز</span>
-                </span>
-              </span>
-              <span className="material-symbols-outlined text-zinc-400 transition-transform group-hover:rotate-180">sync</span>
-            </button>
           </section>
         </aside>
       </div>

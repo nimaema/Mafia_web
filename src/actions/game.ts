@@ -183,6 +183,18 @@ function sanitizeNightEvents(events: any[]) {
   }));
 }
 
+async function broadcastLobbyUpdated(reason: string, gameId?: string) {
+  try {
+    await pusherServer.trigger("lobby", "lobby-updated", {
+      reason,
+      gameId,
+      at: Date.now(),
+    });
+  } catch (error) {
+    console.error("Failed to broadcast lobby update:", error);
+  }
+}
+
 async function expireStaleGames() {
   const cutoff = new Date(Date.now() - STALE_GAME_HOURS * 60 * 60 * 1000);
   const staleGames = await prisma.game.findMany({
@@ -233,6 +245,7 @@ async function expireStaleGames() {
         winningAlignment: "UNKNOWN",
         reason: "expired",
       });
+      await broadcastLobbyUpdated("game-expired", game.id);
     } catch (error) {
       console.error("Failed to broadcast expired game:", error);
     }
@@ -306,6 +319,7 @@ export async function joinGame(code: string, playerName: string, password?: stri
         isAlive: player.isAlive,
       }
     });
+    await broadcastLobbyUpdated("player-joined", game.id);
 
     return { success: true, gameId: game.id, playerId: player.id };
   } catch (error: any) {
@@ -642,6 +656,7 @@ export async function startGame(gameId: string) {
     });
 
     await pusherServer.trigger(`game-${gameId}`, 'game-started', {});
+    await broadcastLobbyUpdated("game-started", gameId);
     
     revalidatePath("/dashboard/user");
     revalidatePath("/dashboard/moderator");
@@ -711,6 +726,7 @@ export async function setGameScenario(gameId: string, scenarioId: string) {
       scenario: updatedGame?.scenario,
       activeRoleAbilities: updatedGame?.activeRoleAbilities || null,
     });
+    await broadcastLobbyUpdated("scenario-updated", gameId);
     
     revalidatePath(`/dashboard/moderator/lobby/${gameId}`);
     return { success: true };
@@ -1251,6 +1267,7 @@ export async function endGame(gameId: string, winningAlignment: WinningAlignment
     await pusherServer.trigger(`game-${gameId}`, 'game-ended', {
       winningAlignment: normalizedWinningAlignment || "UNKNOWN",
     });
+    await broadcastLobbyUpdated("game-ended", gameId);
     
     revalidatePath("/dashboard/moderator");
     revalidatePath("/dashboard/user");
@@ -1280,6 +1297,7 @@ export async function cancelGame(gameId: string) {
 
     // Notify clients that the game was cancelled
     await pusherServer.trigger(`game-${gameId}`, 'game-cancelled', {});
+    await broadcastLobbyUpdated("game-cancelled", gameId);
     
     revalidatePath("/dashboard/moderator");
     revalidatePath("/dashboard/user");
