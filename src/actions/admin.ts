@@ -278,10 +278,53 @@ export async function deleteUser(userId: string) {
   if (adminId === userId) {
     throw new Error("شما نمی‌توانید حساب کاربری خود را حذف کنید");
   }
-  await prisma.user.delete({
-    where: { id: userId }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
   });
+  if (!user) {
+    throw new Error("کاربر پیدا نشد یا قبلاً حذف شده است.");
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.scenario.updateMany({
+        where: { createdBy: userId },
+        data: { createdBy: null },
+      });
+
+      await tx.game.updateMany({
+        where: { moderatorId: userId },
+        data: { moderatorId: adminId },
+      });
+
+      await tx.gamePlayer.updateMany({
+        where: { userId },
+        data: { userId: null },
+      });
+
+      if (user.email) {
+        await tx.verificationToken.deleteMany({
+          where: { identifier: user.email },
+        });
+      }
+
+      await tx.user.delete({
+        where: { id: userId },
+      });
+    });
+  } catch (error: any) {
+    console.error("Delete user error:", error);
+    if (error?.code === "P2003") {
+      throw new Error("این کاربر به داده‌های بازی وصل است و حذف مستقیم انجام نشد. ارتباط‌ها را پاک‌سازی کردیم؛ دوباره تلاش کنید.");
+    }
+    throw new Error(error?.message || "حذف کاربر انجام نشد.");
+  }
+
   revalidatePath("/dashboard/admin/users");
+  revalidatePath("/dashboard/admin/history");
+  revalidatePath("/dashboard/moderator");
 }
 
 export async function verifyUserEmail(userId: string) {
