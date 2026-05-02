@@ -342,6 +342,17 @@ export default function GameLobbyPage() {
   const seatsRemaining = requiredPlayers ? requiredPlayers - players.length : 0;
   const activeScenarioCounts = scenarioCounts(game?.scenario);
   const capacityProgress = requiredPlayers ? Math.min(100, Math.round((players.length / requiredPlayers) * 100)) : 0;
+  const lobbyCapacity = Math.max(requiredPlayers || players.length || 6, players.length);
+  const lobbySlots = Array.from({ length: lobbyCapacity }, (_, index) => players[index] || null);
+  const nextLobbyAction = !game?.scenario
+    ? "سناریو را انتخاب کنید"
+    : players.length < requiredPlayers
+      ? `${requiredPlayers - players.length} بازیکن دیگر لازم است`
+      : players.length > requiredPlayers
+        ? "سناریوی بزرگ‌تر لازم است"
+        : missingAbilityRoleNames.length > 0
+          ? "توانایی نقش‌ها را نهایی کنید"
+          : "آماده شروع بازی";
   const startDisabledReason = !game?.scenario
     ? "برای شروع بازی ابتدا سناریو را انتخاب کنید."
     : players.length < requiredPlayers
@@ -535,6 +546,94 @@ export default function GameLobbyPage() {
                   <p className="mt-3 text-sm font-black text-zinc-950 dark:text-white">{step.label}</p>
                 </div>
               ))}
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
+              <section className="overflow-hidden rounded-lg border border-zinc-200 bg-white/90 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/65">
+                <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="ui-kicker">لیست زنده بازیکنان</p>
+                    <h2 className="mt-1 text-lg font-black text-zinc-950 dark:text-white">آمادگی لابی و ظرفیت</h2>
+                  </div>
+                  <span className={`rounded-lg border px-3 py-1 text-xs font-black ${
+                    !requiredPlayers
+                      ? "border-zinc-200 bg-white text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400"
+                      : seatsRemaining === 0
+                        ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+                        : seatsRemaining > 0
+                          ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                          : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300"
+                  }`}>
+                    {nextLobbyAction}
+                  </span>
+                </div>
+
+                <div className="p-4">
+                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                    {lobbySlots.map((player, index) => {
+                      const image = player?.image || null;
+                      return (
+                        <div
+                          key={player?.id || `slot-${index}`}
+                          className={`flex min-h-14 items-center gap-3 rounded-lg border p-2.5 transition-all ${
+                            player
+                              ? "border-lime-500/20 bg-lime-500/10 shadow-sm shadow-lime-500/5"
+                              : "border-dashed border-zinc-200 bg-zinc-50/70 dark:border-white/10 dark:bg-white/[0.03]"
+                          }`}
+                        >
+                          <span className={`flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg text-sm font-black ${
+                            player ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-white text-zinc-300 dark:bg-zinc-950 dark:text-zinc-600"
+                          }`}>
+                            {player ? image ? <img src={image} alt="" className="size-full object-cover" /> : player.name.slice(0, 1) : <span className="material-symbols-outlined text-xl">person_add</span>}
+                          </span>
+                          <span className="min-w-0">
+                            <span className={`block truncate text-sm font-black ${player ? "text-zinc-950 dark:text-white" : "text-zinc-400"}`}>
+                              {player?.name || `جای خالی ${index + 1}`}
+                            </span>
+                            <span className="mt-0.5 block truncate text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
+                              {player ? "وارد لابی شده" : requiredPlayers ? "در انتظار بازیکن" : "بعد از انتخاب سناریو فعال می‌شود"}
+                            </span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+
+              <aside className="rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/65">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="ui-kicker">کنترل سریع</p>
+                    <h2 className="mt-1 text-lg font-black text-zinc-950 dark:text-white">دعوت و شروع</h2>
+                  </div>
+                  <span className="material-symbols-outlined flex size-11 items-center justify-center rounded-lg bg-zinc-950 text-xl text-white dark:bg-white dark:text-zinc-950">admin_panel_settings</span>
+                </div>
+
+                <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                  <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400">کد ورود</p>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <span className="font-mono text-3xl font-black tracking-[0.25em] text-zinc-950 dark:text-white">{game?.code || "------"}</span>
+                    <button type="button" onClick={copyJoinLink} className="ui-button-secondary min-h-10 px-3 text-xs">
+                      <span className="material-symbols-outlined text-base">content_copy</span>
+                      لینک
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {[
+                    ["حاضر", players.length, "text-lime-600 dark:text-lime-300"],
+                    ["ظرفیت", requiredPlayers || "?", "text-sky-600 dark:text-sky-300"],
+                    ["مانده", requiredPlayers ? Math.max(0, seatsRemaining) : "?", "text-amber-600 dark:text-amber-300"],
+                  ].map(([label, value, color]) => (
+                    <div key={String(label)} className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-center dark:border-white/10 dark:bg-white/[0.03]">
+                      <p className={`text-lg font-black ${color}`}>{value}</p>
+                      <p className="mt-0.5 text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                    </div>
+                  ))}
+                </div>
+              </aside>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">

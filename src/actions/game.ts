@@ -36,9 +36,10 @@ type NightEventInput = {
 
 type DayEliminationInput = {
   dayNumber: number;
-  targetPlayerId: string;
+  targetPlayerId?: string | null;
   methodKey?: string | null;
   methodLabel?: string | null;
+  defensePlayerIds?: string[] | null;
   note?: string | null;
 };
 
@@ -1113,22 +1114,42 @@ export async function recordDayElimination(gameId: string, data: DayEliminationI
     }
 
     const dayNumber = Math.max(1, Math.min(99, Math.floor(Number(data.dayNumber) || 1)));
-    const targetPlayerId = data.targetPlayerId?.trim();
+    const targetPlayerId = data.targetPlayerId?.trim() || null;
     const methodKey = (data.methodKey || "custom").trim().slice(0, 40) || "custom";
     const methodLabel = (data.methodLabel || "حذف روز").trim().slice(0, 80) || "حذف روز";
+    const defensePlayerIds = Array.from(
+      new Set((data.defensePlayerIds || []).map((playerId) => playerId.trim()).filter(Boolean))
+    ).slice(0, 20);
     const note = data.note?.trim().slice(0, 500) || null;
 
-    if (!targetPlayerId) {
+    if (methodKey === "vote" && defensePlayerIds.length === 0 && !targetPlayerId) {
+      throw new Error("برای رای‌گیری، بازیکنان دفاع یا بازیکن حذف‌شده را انتخاب کنید.");
+    }
+
+    if (methodKey !== "vote" && !targetPlayerId) {
       throw new Error("بازیکن حذف‌شده را انتخاب کنید.");
     }
 
-    const targetPlayer = await prisma.gamePlayer.findUnique({
-      where: { id: targetPlayerId },
-      include: { role: true },
-    });
+    const [targetPlayer, defensePlayers] = await Promise.all([
+      targetPlayerId
+        ? prisma.gamePlayer.findUnique({
+            where: { id: targetPlayerId },
+            include: { role: true },
+          })
+        : null,
+      defensePlayerIds.length
+        ? prisma.gamePlayer.findMany({
+            where: { id: { in: defensePlayerIds } },
+            include: { role: true },
+          })
+        : [],
+    ]);
 
-    if (!targetPlayer || targetPlayer.gameId !== gameId) {
+    if (targetPlayerId && (!targetPlayer || targetPlayer.gameId !== gameId)) {
       throw new Error("بازیکن انتخاب‌شده در این بازی نیست.");
+    }
+    if (defensePlayers.length !== defensePlayerIds.length || defensePlayers.some((player) => player.gameId !== gameId)) {
+      throw new Error("یکی از بازیکنان دفاع در این بازی نیست.");
     }
 
     const details = {
@@ -1136,23 +1157,28 @@ export async function recordDayElimination(gameId: string, data: DayEliminationI
       methodKey,
       methodLabel,
       effectType: "NONE",
+      defensePlayers: defensePlayers
+        .sort((left, right) => defensePlayerIds.indexOf(left.id) - defensePlayerIds.indexOf(right.id))
+        .map((player) => ({ id: player.id, name: player.name, roleName: player.role?.name || null })),
     };
 
     const [updatedPlayer, dayEvent] = await prisma.$transaction(async (tx) => {
-      const updated = await tx.gamePlayer.update({
-        where: { id: targetPlayerId },
-        data: { isAlive: false, eliminatedAt: new Date() },
-        include: { role: true },
-      });
+      const updated = targetPlayerId
+        ? await tx.gamePlayer.update({
+            where: { id: targetPlayerId },
+            data: { isAlive: false, eliminatedAt: new Date() },
+            include: { role: true },
+          })
+        : null;
 
       const event = await tx.nightEvent.create({
         data: {
           gameId,
           nightNumber: dayNumber,
           abilityKey: `day:${methodKey}`,
-          abilityLabel: `حذف روز: ${methodLabel}`,
+          abilityLabel: targetPlayerId ? `حذف روز: ${methodLabel}` : `رای‌گیری روز: ${methodLabel}`,
           abilitySource: "روز",
-          targetPlayerId,
+          targetPlayerId: targetPlayerId || null,
           wasUsed: true,
           details: details as Prisma.InputJsonValue,
           note,
@@ -1166,14 +1192,16 @@ export async function recordDayElimination(gameId: string, data: DayEliminationI
       return [updated, event];
     });
 
-    await pusherServer.trigger(`game-${gameId}`, "player-status-updated", {
-      playerId: targetPlayerId,
-      isAlive: updatedPlayer.isAlive,
-      eliminatedAt: updatedPlayer.eliminatedAt,
-    });
+    if (updatedPlayer && targetPlayerId) {
+      await pusherServer.trigger(`game-${gameId}`, "player-status-updated", {
+        playerId: targetPlayerId,
+        isAlive: updatedPlayer.isAlive,
+        eliminatedAt: updatedPlayer.eliminatedAt,
+      });
+    }
     await pusherServer.trigger(`game-${gameId}`, "game-state-updated", {
-      reason: "DAY_ELIMINATION",
-      targetPlayerId,
+      reason: targetPlayerId ? "DAY_ELIMINATION" : "DAY_VOTE_DEFENSE",
+      targetPlayerId: targetPlayerId || null,
       methodKey,
     });
 
