@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Role, Alignment, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { gameDisplayName, TEMP_SCENARIO_DESCRIPTION_PREFIX } from "@/lib/gameDisplay";
+import { profileImageUrl } from "@/lib/profileImage";
 import { sendAdminUserEmail } from "@/lib/email";
 import {
   mergeRoleDefinitions,
@@ -228,6 +229,7 @@ export async function getAllUsers() {
 
   return users.map((user) => ({
     ...user,
+    image: profileImageUrl(user.id, user.image),
     gamePlayers: user.gamePlayers.map((record) => ({
       ...record,
       game: {

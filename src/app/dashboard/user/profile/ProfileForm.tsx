@@ -85,7 +85,7 @@ export default function ProfileForm({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [nameValue, setNameValue] = useState(user.name || "");
   const [nameWarning, setNameWarning] = useState("");
-  const [imageValue, setImageValue] = useState(user.image || "");
+  const [imageValue, setImageValue] = useState("");
   const [imagePreview, setImagePreview] = useState(user.image || "");
   const [removeProfileImage, setRemoveProfileImage] = useState(false);
   const [imageWarning, setImageWarning] = useState("");

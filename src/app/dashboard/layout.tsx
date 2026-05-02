@@ -2,6 +2,7 @@ import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { DashboardNavigation } from "@/components/dashboard/DashboardNavigation";
 import { prisma } from "@/lib/prisma";
+import { profileImageUrl } from "@/lib/profileImage";
 
 
 export default async function DashboardLayout({
@@ -21,6 +22,9 @@ export default async function DashboardLayout({
   const effectiveRole = dbUser?.role || session.user?.role;
   const isAdmin = effectiveRole === "ADMIN";
   const isModerator = effectiveRole === "MODERATOR" || isAdmin;
+  const navigationImage = dbUser
+    ? profileImageUrl(session.user.id, dbUser.image)
+    : session.user?.image;
 
   // Simple server-side logout action
   const handleLogout = async () => {
@@ -36,7 +40,7 @@ export default async function DashboardLayout({
         logoutAction={handleLogout}
         user={{
           name: dbUser?.name || session.user?.name,
-          image: dbUser?.image || session.user?.image,
+          image: navigationImage,
           role: effectiveRole,
         }}
       />

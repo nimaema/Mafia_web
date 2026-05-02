@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import ProfileForm from "./ProfileForm";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { profileImageUrl } from "@/lib/profileImage";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -28,7 +29,7 @@ export default async function ProfilePage() {
   const hasPassword = !!dbUser?.password_hash;
   const role = session.user.role;
   const roleText = role === "ADMIN" ? "مدیر سیستم" : role === "MODERATOR" ? "گرداننده" : "بازیکن";
-  const profileImage = dbUser?.image || session.user.image;
+  const profileImage = dbUser ? profileImageUrl(session.user.id, dbUser.image) : session.user.image;
   const userData = {
     name: dbUser?.name || session.user.name || "",
     email: dbUser?.email || session.user.email || "",

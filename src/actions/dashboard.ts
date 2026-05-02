@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { gameDisplayName, scenarioDisplayDescription, scenarioDisplayName } from "@/lib/gameDisplay";
+import { profileImageUrl } from "@/lib/profileImage";
 import { unstable_noStore as noStore } from "next/cache";
 
 async function isCurrentAdmin() {
@@ -155,7 +156,7 @@ export async function getUserStats() {
 
   return {
     userName: dbUser?.name,
-    userImage: dbUser?.image,
+    userImage: profileImageUrl(userId, dbUser?.image),
     currentActiveGame: activePlayerRecord?.game ? {
       id: activePlayerRecord.game.id,
       scenarioName: scenarioDisplayName(activePlayerRecord.game.scenario, "ناشناس"),

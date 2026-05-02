@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { pusherServer } from '@/lib/pusher';
 import { auth } from '@/auth';
+import { prisma } from '@/lib/prisma';
+import { profileImageUrl } from '@/lib/profileImage';
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -17,11 +19,16 @@ export async function POST(req: Request) {
     return new Response("درخواست احراز هویت معتبر نیست", { status: 400 });
   }
 
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { image: true },
+  });
+
   const authResponse = pusherServer.authorizeChannel(socketId, channel, {
     user_id: session.user.id,
     user_info: {
       name: session.user.name || "کاربر",
-      image: session.user.image || null,
+      image: profileImageUrl(session.user.id, dbUser?.image) || session.user.image || null,
       role: session.user.role || "USER",
     },
   });

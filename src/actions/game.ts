@@ -5,6 +5,7 @@ import { pusherServer } from "@/lib/pusher";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { TEMP_SCENARIO_DESCRIPTION_PREFIX, withGameDisplayName, withScenarioDisplayName } from "@/lib/gameDisplay";
+import { profileImageUrl } from "@/lib/profileImage";
 import { Alignment, Prisma } from "@prisma/client";
 
 import { unstable_noStore as noStore } from "next/cache";
@@ -44,9 +45,8 @@ type DayEliminationInput = {
 type ActiveRoleAbilityConfig = Record<string, string[]>;
 type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
 
-function realtimeSafeImage(image?: string | null) {
-  const value = image?.trim();
-  return value && /^https?:\/\//i.test(value) ? value : null;
+function realtimeSafeImage(userId?: string | null, image?: string | null) {
+  return profileImageUrl(userId, image);
 }
 
 async function checkModerator() {
@@ -319,7 +319,7 @@ export async function joinGame(code: string, playerName: string, password?: stri
       player: {
         id: player.id,
         name: finalPlayerName,
-        image: realtimeSafeImage(dbUser?.image),
+        image: realtimeSafeImage(session.user.id, dbUser?.image),
         userId: session.user.id,
         isAlive: player.isAlive,
       }
@@ -514,9 +514,18 @@ export async function getGameStatus(gameId: string) {
   const visibleNightEvents = canSeePrivateNightEvents || game.nightRecordsPublic
     ? game.nightEvents
     : game.nightEvents.filter((event) => event.isPublic);
+  const playersWithSafeImages = game.players.map((player) => ({
+    ...player,
+    user: player.user
+      ? {
+          ...player.user,
+          image: profileImageUrl(player.userId, player.user.image),
+        }
+      : player.user,
+  }));
   const visiblePlayers = canSeePrivateNightEvents
-    ? game.players
-    : game.players.map((player) => ({
+    ? playersWithSafeImages
+    : playersWithSafeImages.map((player) => ({
         ...player,
         roleId: null,
         role: null,
@@ -591,7 +600,7 @@ export async function getPlayerGameView(gameId: string) {
       id: player.id,
       name: player.name,
       userId: player.userId,
-      image: player.user?.image || null,
+      image: profileImageUrl(player.userId, player.user?.image),
       isAlive: player.isAlive,
       eliminatedAt: player.eliminatedAt,
     })),
@@ -600,7 +609,7 @@ export async function getPlayerGameView(gameId: string) {
           id: currentPlayer.id,
           name: currentPlayer.name,
           userId: currentPlayer.userId,
-          image: currentPlayer.user?.image || null,
+          image: profileImageUrl(currentPlayer.userId, currentPlayer.user?.image),
           isAlive: currentPlayer.isAlive,
           eliminatedAt: currentPlayer.eliminatedAt,
           role: currentPlayer.role,
