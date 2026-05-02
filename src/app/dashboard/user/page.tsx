@@ -257,54 +257,73 @@ export default function UserDashboard() {
     <div className="space-y-6 font-sans">
       <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-950 text-white shadow-xl shadow-zinc-950/10 dark:border-white/10">
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
-        <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/15 bg-white/10">
-              {displayImage ? (
-                <img src={displayImage} alt="Profile" className="size-full object-cover" />
-              ) : (
-                <span className="material-symbols-outlined text-4xl text-lime-300">person</span>
-              )}
-              <span className="absolute bottom-1.5 right-1.5 size-3 rounded-full border-2 border-zinc-950 bg-lime-400" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-lime-300">داشبورد</p>
-                <span className="rounded-lg border border-white/10 bg-white/10 px-2 py-0.5 text-[10px] font-black text-zinc-200">{welcomeText}</span>
+        <div className="p-3 sm:p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/15 bg-white/10 sm:size-14">
+                {displayImage ? (
+                  <img src={displayImage} alt="Profile" className="size-full object-cover" />
+                ) : (
+                  <span className="material-symbols-outlined text-3xl text-lime-300 sm:text-4xl">person</span>
+                )}
+                <span className="absolute bottom-1.5 right-1.5 size-3 rounded-full border-2 border-zinc-950 bg-lime-400" />
               </div>
-              <h1 className="mt-1 truncate text-2xl font-black leading-8">{displayName}</h1>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-lime-300 sm:tracking-[0.18em]">داشبورد</p>
+                  <span className="max-w-32 truncate rounded-lg border border-white/10 bg-white/10 px-2 py-0.5 text-[10px] font-black text-zinc-200 sm:max-w-none">{welcomeText}</span>
+                </div>
+                <h1 className="mt-1 truncate text-xl font-black leading-7 sm:text-2xl sm:leading-8">{displayName}</h1>
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-            <div className="flex flex-wrap gap-2 text-[10px] font-black text-zinc-200">
-              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
-                <span className="material-symbols-outlined text-base text-lime-300">sports_esports</span>
-                {totalGames} بازی
-              </span>
-              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
-                <span className="material-symbols-outlined text-base text-amber-300">emoji_events</span>
-                {wins} برد
-              </span>
-              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
-                <span className="material-symbols-outlined text-base text-sky-300">trending_up</span>
-                {winRate}% برد
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <PresenceFaces presence={presence} />
+            <div className="flex shrink-0 items-center gap-2">
+              <div className="hidden flex-wrap gap-2 text-[10px] font-black text-zinc-200 lg:flex">
+                <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
+                  <span className="material-symbols-outlined text-base text-lime-300">sports_esports</span>
+                  {totalGames} بازی
+                </span>
+                <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
+                  <span className="material-symbols-outlined text-base text-amber-300">emoji_events</span>
+                  {wins} برد
+                </span>
+                <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
+                  <span className="material-symbols-outlined text-base text-sky-300">trending_up</span>
+                  {winRate}% برد
+                </span>
+              </div>
+              <div className="hidden lg:block">
+                <PresenceFaces presence={presence} />
+              </div>
               {data?.currentActiveGame ? (
-                <Link href={`/game/${data.currentActiveGame.id}`} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-lime-400 px-4 text-sm font-black text-zinc-950 transition-all hover:bg-lime-300">
+                <Link href={`/game/${data.currentActiveGame.id}`} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-lime-400 px-3 text-xs font-black text-zinc-950 transition-all hover:bg-lime-300 sm:px-4 sm:text-sm">
                   <span className="material-symbols-outlined text-lg">play_arrow</span>
-                  ادامه بازی
+                  <span className="hidden sm:inline">ادامه</span>
+                  <span className="sr-only">ادامه بازی</span>
                 </Link>
               ) : primaryLobby ? (
-                <Link href={`/lobby/${primaryLobby.id}`} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-white px-4 text-sm font-black text-zinc-950 transition-all hover:bg-lime-300">
+                <Link href={`/lobby/${primaryLobby.id}`} className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-white px-3 text-xs font-black text-zinc-950 transition-all hover:bg-lime-300 sm:px-4 sm:text-sm">
                   <span className="material-symbols-outlined text-lg">login</span>
-                  ورود سریع
+                  <span className="hidden sm:inline">ورود</span>
+                  <span className="sr-only">ورود سریع</span>
                 </Link>
               ) : null}
             </div>
+          </div>
+
+          <div className="mt-3 hidden flex-wrap gap-2 text-[10px] font-black text-zinc-200 sm:flex lg:hidden">
+            <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
+              <span className="material-symbols-outlined text-base text-lime-300">sports_esports</span>
+              {totalGames} بازی
+            </span>
+            <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
+              <span className="material-symbols-outlined text-base text-amber-300">emoji_events</span>
+              {wins} برد
+            </span>
+            <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3">
+              <span className="material-symbols-outlined text-base text-sky-300">trending_up</span>
+              {winRate}% برد
+            </span>
           </div>
         </div>
       </section>
