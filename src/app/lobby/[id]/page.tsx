@@ -144,6 +144,7 @@ export default function UserLobbyPage() {
       }, 0) || 0,
     [game]
   );
+  const lobbyIsFull = capacity > 0 && players.length >= capacity && !joined;
 
   const playerItems = useMemo(
     () =>
@@ -192,14 +193,14 @@ export default function UserLobbyPage() {
   }
 
   return (
-    <div className="app-page min-h-screen py-8" dir="rtl">
+    <div className="app-page min-h-screen py-4 pb-[calc(env(safe-area-inset-bottom)+6rem)] sm:py-8 sm:pb-8" dir="rtl">
       <div className="app-container space-y-5">
         <LobbyPreviewCard
           title={game?.name || "لابی بازی مافیا"}
-          subtitle="بازیکنان حاضر، ظرفیت، سناریو و کد ورود در همین نما در دسترس هستند."
+          subtitle="وضعیت ورود، بازیکنان حاضر و شروع بازی به صورت زنده هماهنگ می‌شود."
           scenarioName={game?.scenario?.name || "سناریوی تعیین نشده"}
           code={game?.code || "------"}
-          statusLabel="در انتظار شروع"
+          statusLabel={lobbyIsFull ? "ظرفیت کامل" : joined ? "عضو لابی" : "آماده ورود"}
           playerCount={players.length}
           capacity={capacity}
           moderatorName={game?.moderator?.name || "گرداننده"}
@@ -208,10 +209,23 @@ export default function UserLobbyPage() {
           roleBreakdown={roleBreakdown}
           actionArea={
             !joined ? (
-              <div className="flex flex-col gap-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-black">
+                  {[
+                    { icon: "login", label: "ورود", className: "bg-lime-500 text-zinc-950" },
+                    { icon: "groups", label: "انتظار", className: "bg-white text-zinc-600 dark:bg-white/10 dark:text-zinc-300" },
+                    { icon: "play_arrow", label: "شروع", className: "bg-white text-zinc-600 dark:bg-white/10 dark:text-zinc-300" },
+                  ].map((step) => (
+                    <div key={step.label} className={`rounded-lg border border-zinc-200 px-2 py-2 dark:border-white/10 ${step.className}`}>
+                      <span className="material-symbols-outlined block text-lg">{step.icon}</span>
+                      <span className="mt-1 block">{step.label}</span>
+                    </div>
+                  ))}
+                </div>
+
                 {game?.hasPassword && (
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">رمز ورود به لابی</label>
+                    <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">رمز ورود به لابی</label>
                     <input
                       type="password"
                       value={joinPassword}
@@ -221,18 +235,31 @@ export default function UserLobbyPage() {
                   </div>
                 )}
 
-                <button onClick={handleJoin} disabled={loading} className="ui-button-primary min-h-12 w-full sm:w-auto">
+                {lobbyIsFull && (
+                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm font-bold leading-6 text-amber-700 dark:text-amber-300">
+                    ظرفیت این سناریو تکمیل شده و ورود بازیکن جدید ممکن نیست.
+                  </div>
+                )}
+
+                <button onClick={handleJoin} disabled={loading || lobbyIsFull} className="ui-button-primary min-h-12 w-full text-base disabled:opacity-50">
                   <span className="material-symbols-outlined text-xl">login</span>
                   پیوستن به بازی
                 </button>
               </div>
             ) : (
-              <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-4 text-lime-700 dark:text-lime-300">
-                <div className="flex items-center gap-2 font-black">
-                  <span className="material-symbols-outlined">check_circle</span>
-                  شما در لابی هستید
+              <div className="space-y-3">
+                <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-4 text-lime-700 dark:text-lime-300">
+                  <div className="flex items-center gap-2 font-black">
+                    <span className="material-symbols-outlined">check_circle</span>
+                    شما در لابی هستید
+                  </div>
+                  <p className="mt-2 text-sm font-bold leading-6">با شروع بازی توسط گرداننده، صفحه نقش به صورت خودکار باز می‌شود.</p>
                 </div>
-                <p className="mt-2 text-sm leading-6">منتظر شروع بازی توسط گرداننده بمانید. با شروع بازی، خودکار وارد صفحه نقش می‌شوید.</p>
+                <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-black">
+                  <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-2 text-lime-700 dark:text-lime-300">ورود انجام شد</span>
+                  <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-2 text-sky-700 dark:text-sky-300">انتظار شروع</span>
+                  <span className="rounded-lg border border-zinc-200 bg-white px-2 py-2 text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">صفحه نقش</span>
+                </div>
               </div>
             )
           }

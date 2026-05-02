@@ -327,6 +327,7 @@ export default function GameLobbyPage() {
         : `${Math.abs(customScenarioDelta)} نقش کمتر از بازیکنان`;
   const seatsRemaining = requiredPlayers ? requiredPlayers - players.length : 0;
   const activeScenarioCounts = scenarioCounts(game?.scenario);
+  const capacityProgress = requiredPlayers ? Math.min(100, Math.round((players.length / requiredPlayers) * 100)) : 0;
   const startDisabledReason = !game?.scenario
     ? "برای شروع بازی ابتدا سناریو را انتخاب کنید."
     : players.length < requiredPlayers
@@ -474,115 +475,147 @@ export default function GameLobbyPage() {
 
   return (
     <div className="flex flex-col gap-5" dir="rtl">
-      <section className="ui-card overflow-hidden">
-        <div className="flex flex-col gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="ui-kicker">مدیریت لابی</p>
-            <h1 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">{game?.name || "لابی بازی مافیا"}</h1>
-            <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-              سناریو، لینک ورود و شروع بازی همین بالا در دسترس است.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button onClick={copyJoinLink} className="ui-button-secondary min-h-10 px-3 text-xs">
-              <span className="material-symbols-outlined text-base">content_copy</span>
-              کپی لینک
-            </button>
-            <button onClick={() => router.push("/dashboard/moderator")} className="ui-button-secondary min-h-10 px-3 text-xs">
-              <span className="material-symbols-outlined text-base">arrow_forward</span>
-              بازگشت
-            </button>
-          </div>
-        </div>
-
-        <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
-            {game?.scenario ? (
-              <div className="relative overflow-hidden rounded-lg border border-lime-500/20 bg-white p-4 shadow-sm shadow-zinc-950/5 dark:bg-zinc-950/70">
-                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 to-sky-400" />
-                <div className="flex items-start justify-between gap-3 pt-1">
-                  <div className="min-w-0">
-                    <p className="text-xs font-black text-lime-700 dark:text-lime-300">سناریوی فعال</p>
-                    <p className="mt-1 line-clamp-2 break-words text-xl font-black leading-7 text-zinc-950 dark:text-white">{game.scenario.name}</p>
-                    <p className="mt-1 text-sm font-bold text-lime-700 dark:text-lime-300">{players.length} / {requiredPlayers} بازیکن</p>
-                  </div>
-                  <span className="rounded-lg bg-lime-500 px-2.5 py-1 text-[10px] font-black text-zinc-950">فعال</span>
-                </div>
-                <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                  <div className="flex h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
-                    {[
-                      ["bg-sky-500", activeScenarioCounts.CITIZEN],
-                      ["bg-red-500", activeScenarioCounts.MAFIA],
-                      ["bg-amber-500", activeScenarioCounts.NEUTRAL],
-                    ].map(([className, value]) => (
-                      Number(value) > 0 && (
-                        <span key={String(className)} className={String(className)} style={{ width: `${activeScenarioCounts.total ? Math.max(6, (Number(value) / activeScenarioCounts.total) * 100) : 0}%` }} />
-                      )
-                    ))}
-                  </div>
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    {[
-                      ["شهروند", activeScenarioCounts.CITIZEN, "text-sky-600 dark:text-sky-300"],
-                      ["مافیا", activeScenarioCounts.MAFIA, "text-red-600 dark:text-red-300"],
-                      ["مستقل", activeScenarioCounts.NEUTRAL, "text-amber-600 dark:text-amber-300"],
-                    ].map(([label, value, color]) => (
-                      <div key={String(label)} className="rounded-lg bg-white px-2 py-1.5 text-center dark:bg-zinc-950/60">
-                        <p className={`text-sm font-black ${color}`}>{value}</p>
-                        <p className="mt-0.5 text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <button onClick={() => handleSelectScenario("")} className="ui-button-secondary mt-4 min-h-10 px-4 text-xs" disabled={settingScenario}>
-                  <span className="material-symbols-outlined text-lg">swap_horiz</span>
-                  تغییر سناریو
-                </button>
+      <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_54%,#f0fdf4_100%)] shadow-xl shadow-zinc-950/10 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.94)_0%,rgba(9,9,11,0.98)_58%,rgba(20,83,45,0.22)_100%)] dark:shadow-black/30">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+        <header className="relative overflow-hidden border-b border-zinc-200 bg-zinc-950 p-4 text-white dark:border-white/10 sm:p-5">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.28),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.2),transparent_18rem)]" />
+          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-300">مدیریت لابی</p>
+              <h1 className="mt-1 line-clamp-2 break-words text-2xl font-black leading-8 sm:text-3xl sm:leading-10">{game?.name || "لابی بازی مافیا"}</h1>
+              <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black">
+                <span className="rounded-lg border border-white/10 bg-white/10 px-2.5 py-1 text-zinc-200">{players.length} بازیکن حاضر</span>
+                <span className="rounded-lg border border-white/10 bg-white/10 px-2.5 py-1 text-zinc-200">{requiredPlayers || "بدون"} ظرفیت سناریو</span>
+                <span className="rounded-lg border border-lime-300/20 bg-lime-300/10 px-2.5 py-1 text-lime-200">کد #{game?.code || "------"}</span>
               </div>
-            ) : (
-              <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-                <span className="material-symbols-outlined text-4xl text-zinc-400">account_tree</span>
-                <p className="mt-3 text-lg font-black text-zinc-950 dark:text-white">سناریو انتخاب نشده</p>
-                <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">یک سناریوی آماده انتخاب کنید یا ترکیب مخصوص همین لابی را بچینید.</p>
-              </div>
-            )}
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              <button onClick={copyJoinLink} className="ui-button-secondary min-h-10 border-white/10 bg-white/10 px-3 text-xs text-white hover:bg-white hover:text-zinc-950">
+                <span className="material-symbols-outlined text-base">content_copy</span>
+                کپی لینک
+              </button>
+              <button onClick={() => router.push("/dashboard/moderator")} className="ui-button-secondary min-h-10 border-white/10 bg-white/10 px-3 text-xs text-white hover:bg-white hover:text-zinc-950">
+                <span className="material-symbols-outlined text-base">arrow_forward</span>
+                بازگشت
+              </button>
+            </div>
+          </div>
+        </header>
 
-            <div className="space-y-3">
-              <label className="flex flex-col gap-2">
-                <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">انتخاب از کتابخانه</span>
-                <select onChange={(event) => handleSelectScenario(event.target.value)} value="" disabled={settingScenario}>
-                  <option value="">انتخاب سناریو...</option>
-                  {scenarios.map((scenario) => (
-                    <option key={scenario.id} value={scenario.id}>
-                      {scenario.name} ({scenario.roles.reduce((sum: number, item: any) => sum + item.count, 0)} نفره)
-                    </option>
-                  ))}
-                </select>
-              </label>
+        <div className="grid gap-5 p-4 sm:p-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="space-y-4">
+            <div className="grid gap-2 sm:grid-cols-4">
+              {[
+                { icon: "groups", label: "بازیکنان", value: players.length > 0 ? "فعال" : "در انتظار", done: players.length > 0 },
+                { icon: "account_tree", label: "سناریو", value: game?.scenario ? "انتخاب شد" : "لازم است", done: Boolean(game?.scenario) },
+                { icon: "tune", label: "توانایی‌ها", value: missingAbilityRoleNames.length ? "نیاز به انتخاب" : "هماهنگ", done: missingAbilityRoleNames.length === 0 },
+                { icon: "play_arrow", label: "شروع", value: startDisabledReason ? "قفل" : "آماده", done: !startDisabledReason },
+              ].map((step) => (
+                <div key={step.label} className={`rounded-lg border p-3 shadow-sm shadow-zinc-950/5 ${step.done ? "border-lime-500/25 bg-lime-500/10" : "border-zinc-200 bg-white/80 dark:border-white/10 dark:bg-white/[0.03]"}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`material-symbols-outlined text-xl ${step.done ? "text-lime-600 dark:text-lime-300" : "text-zinc-400"}`}>{step.icon}</span>
+                    <span className={step.done ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
+                      {step.value}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm font-black text-zinc-950 dark:text-white">{step.label}</p>
+                </div>
+              ))}
+            </div>
 
-              <MobilePwaFeatureLock
-                compact
-                icon="dashboard_customize"
-                title="طراحی لحظه‌ای فقط در PWA موبایل"
-                description="روی گوشی، ساخت سناریوی سفارشی به فضای تمام‌صفحه و کنترل پایدار نیاز دارد."
-              >
-                <button
-                  onClick={() => {
-                    setCustomRoleSearch("");
-                    setSaveCustomScenario(false);
-                    setCustomScenarioName("");
-                    setShowCustomModal(true);
-                  }}
-                  disabled={settingScenario}
-                  className="ui-button-secondary min-h-12 w-full"
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+              {game?.scenario ? (
+                <div className="relative overflow-hidden rounded-lg border border-lime-500/20 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 dark:bg-zinc-950/70">
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+                  <div className="flex items-start justify-between gap-3 pt-1">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black text-lime-700 dark:text-lime-300">سناریوی فعال</p>
+                      <p className="mt-1 line-clamp-2 break-words text-xl font-black leading-7 text-zinc-950 dark:text-white">{game.scenario.name}</p>
+                      <p className="mt-1 text-sm font-bold text-lime-700 dark:text-lime-300">{players.length} / {requiredPlayers} بازیکن</p>
+                    </div>
+                    <button onClick={() => handleSelectScenario("")} className="ui-button-secondary min-h-9 shrink-0 px-3 text-xs" disabled={settingScenario}>
+                      تغییر
+                    </button>
+                  </div>
+                  <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                    <div className="flex h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
+                      {[
+                        ["bg-sky-500", activeScenarioCounts.CITIZEN],
+                        ["bg-red-500", activeScenarioCounts.MAFIA],
+                        ["bg-amber-500", activeScenarioCounts.NEUTRAL],
+                      ].map(([className, value]) => (
+                        Number(value) > 0 && (
+                          <span key={String(className)} className={String(className)} style={{ width: `${activeScenarioCounts.total ? Math.max(6, (Number(value) / activeScenarioCounts.total) * 100) : 0}%` }} />
+                        )
+                      ))}
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      {[
+                        ["شهروند", activeScenarioCounts.CITIZEN, "text-sky-600 dark:text-sky-300"],
+                        ["مافیا", activeScenarioCounts.MAFIA, "text-red-600 dark:text-red-300"],
+                        ["مستقل", activeScenarioCounts.NEUTRAL, "text-amber-600 dark:text-amber-300"],
+                      ].map(([label, value, color]) => (
+                        <div key={String(label)} className="rounded-lg bg-white px-2 py-1.5 text-center dark:bg-zinc-950/60">
+                          <p className={`text-sm font-black ${color}`}>{value}</p>
+                          <p className="mt-0.5 text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-zinc-200 bg-white/70 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+                  <span className="material-symbols-outlined text-4xl text-zinc-400">account_tree</span>
+                  <p className="mt-3 text-lg font-black text-zinc-950 dark:text-white">سناریو انتخاب نشده</p>
+                  <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">یک سناریوی آماده انتخاب کنید یا ترکیب مخصوص همین لابی را بچینید.</p>
+                </div>
+              )}
+
+              <div className="rounded-lg border border-zinc-200 bg-white/85 p-4 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">انتخاب سناریو</p>
+                    <p className="mt-1 text-sm font-bold text-zinc-950 dark:text-white">کتابخانه یا طراحی لحظه‌ای</p>
+                  </div>
+                  <span className="material-symbols-outlined text-zinc-400">rule_settings</span>
+                </div>
+                <label className="mt-4 flex flex-col gap-2">
+                  <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">انتخاب از کتابخانه</span>
+                  <select onChange={(event) => handleSelectScenario(event.target.value)} value="" disabled={settingScenario}>
+                    <option value="">انتخاب سناریو...</option>
+                    {scenarios.map((scenario) => (
+                      <option key={scenario.id} value={scenario.id}>
+                        {scenario.name} ({scenario.roles.reduce((sum: number, item: any) => sum + item.count, 0)} نفره)
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <MobilePwaFeatureLock
+                  compact
+                  icon="dashboard_customize"
+                  title="طراحی سناریوی لحظه‌ای"
+                  description="ساخت سناریوی سفارشی در همین لابی فعال است."
                 >
-                  <span className="material-symbols-outlined text-xl">dashboard_customize</span>
-                  طراحی سناریو در لحظه
-                </button>
-              </MobilePwaFeatureLock>
+                  <button
+                    onClick={() => {
+                      setCustomRoleSearch("");
+                      setSaveCustomScenario(false);
+                      setCustomScenarioName("");
+                      setShowCustomModal(true);
+                    }}
+                    disabled={settingScenario}
+                    className="ui-button-secondary mt-3 min-h-12 w-full"
+                  >
+                    <span className="material-symbols-outlined text-xl">dashboard_customize</span>
+                    طراحی سناریو در لحظه
+                  </button>
+                </MobilePwaFeatureLock>
+              </div>
             </div>
 
             {players.length > 0 && recommendedScenarios.length > 0 && !game?.scenario && (
-              <div className="lg:col-span-2">
+              <div>
                 <p className="mb-2 text-xs font-black text-zinc-500 dark:text-zinc-400">پیشنهاد مناسب تعداد فعلی</p>
                 <div className="grid gap-2 sm:grid-cols-3">
                   {recommendedScenarios.slice(0, 3).map((scenario) => {
@@ -592,7 +625,7 @@ export default function GameLobbyPage() {
                         key={scenario.id}
                         onClick={() => handleSelectScenario(scenario.id)}
                         disabled={settingScenario}
-                        className="group relative overflow-hidden rounded-lg border border-lime-500/25 bg-white p-3 text-right shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/40 hover:shadow-lg hover:shadow-zinc-950/10 disabled:opacity-50 dark:bg-zinc-950/70"
+                        className="group relative overflow-hidden rounded-lg border border-lime-500/25 bg-white/90 p-3 text-right shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/40 hover:shadow-lg hover:shadow-zinc-950/10 disabled:opacity-50 dark:bg-zinc-950/70"
                       >
                         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 to-sky-400" />
                         <p className="mt-1 line-clamp-2 break-words font-black leading-6 text-zinc-950 dark:text-white">{scenario.name}</p>
@@ -620,7 +653,16 @@ export default function GameLobbyPage() {
             )}
           </div>
 
-          <aside className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+          <aside className="h-fit space-y-3 rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 xl:sticky xl:top-5">
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+              <div className="flex items-center justify-between gap-3 text-xs font-black text-zinc-500 dark:text-zinc-400">
+                <span>آمادگی شروع</span>
+                <span className="text-zinc-950 dark:text-white">{capacityProgress}%</span>
+              </div>
+              <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
+                <div className="h-full rounded-full bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" style={{ width: `${capacityProgress}%` }} />
+              </div>
+            </div>
             <button
               onClick={handleStartGame}
               disabled={Boolean(startDisabledReason) || loading}
@@ -645,8 +687,8 @@ export default function GameLobbyPage() {
       {scenarioAbilityRoles.length > 0 && (
         <MobilePwaFeatureLock
           icon="tune"
-          title="تنظیم توانایی‌های بازی در PWA فعال است"
-          description="روی موبایل داخل مرورگر، این بخش قفل می‌شود تا هنگام اجرای بازی کنترل‌ها زیر نوار مرورگر یا ناوبری نروند."
+          title="تنظیم توانایی‌های بازی"
+          description="این بخش برای موبایل و دسکتاپ در دسترس است و کنترل‌ها زیر نوار ناوبری نمی‌روند."
         >
         <section className="ui-card overflow-hidden">
           <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
