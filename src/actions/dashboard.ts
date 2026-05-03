@@ -3,8 +3,9 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { gameDisplayName, scenarioDisplayDescription, scenarioDisplayName } from "@/lib/gameDisplay";
+import { serializeNightEventsForHistory, serializePlayersForHistory, snapshotDataForPlayer } from "@/lib/gameHistorySnapshot";
 import { profileImageUrl } from "@/lib/profileImage";
-import { unstable_noStore as noStore } from "next/cache";
+import { revalidatePath, unstable_noStore as noStore } from "next/cache";
 
 async function isCurrentAdmin() {
   const session = await auth();
@@ -18,39 +19,34 @@ async function isCurrentAdmin() {
 }
 
 function formatHistoryRecord(rg: any) {
+  const liveGame = rg.game || null;
+  const snapshotPlayers = Array.isArray(rg.playersSnapshot) ? rg.playersSnapshot : [];
+  const snapshotNightEvents = Array.isArray(rg.nightEventsSnapshot) ? rg.nightEventsSnapshot : [];
+  const livePlayers = liveGame?.players || [];
+  const liveNightEvents = liveGame?.nightEvents || [];
+  const hasLiveGame = Boolean(liveGame);
+  const nightRecordsPublic = hasLiveGame ? Boolean(liveGame.nightRecordsPublic) : Boolean(rg.nightRecordsPublicSnapshot);
+
   return {
-    id: rg.gameId,
-    gameName: gameDisplayName(rg.game, "بازی مافیا"),
-    gameCode: rg.game.code,
-    roleName: rg.role.name,
-    roleAlignment: rg.role.alignment,
+    id: rg.gameId || rg.id,
+    gameName: hasLiveGame ? gameDisplayName(liveGame, "بازی مافیا") : rg.gameName || "بازی مافیا",
+    gameCode: hasLiveGame ? liveGame.code : rg.gameCode,
+    roleName: rg.role?.name || rg.roleName || "نقش نامشخص",
+    roleAlignment: rg.role?.alignment || rg.roleAlignment || "NEUTRAL",
     result: rg.result || "PENDING",
     date: rg.createdAt.toLocaleDateString("fa-IR"),
-    scenarioName: scenarioDisplayName(rg.game.scenario),
-    scenarioDescription: scenarioDisplayDescription(rg.game.scenario),
-    moderatorName: rg.game.moderator?.name || "ناشناس",
-    playerCount: rg.game.players.length,
-    players: rg.game.players.map((p: any) => ({
-      name: p.name,
-      roleName: p.role?.name || "بدون نقش",
-      alignment: p.role?.alignment || "NEUTRAL",
-      isAlive: p.isAlive,
-    })),
-    nightRecordsPublic: Boolean(rg.game.nightRecordsPublic),
-    nightEvents: rg.game.nightRecordsPublic
-      ? rg.game.nightEvents.map((event: any) => ({
-          id: event.id,
-          nightNumber: event.nightNumber,
-          abilityLabel: event.abilityLabel,
-          abilityChoiceLabel: event.abilityChoiceLabel,
-          abilitySource: event.abilitySource,
-          actorName: event.actorPlayer?.name || null,
-          targetName: event.targetPlayer?.name || null,
-          actorAlignment: event.actorAlignment,
-          wasUsed: event.wasUsed,
-          details: event.details,
-          note: event.note,
-        }))
+    scenarioName: hasLiveGame ? scenarioDisplayName(liveGame.scenario) : rg.scenarioName || "سناریو حذف‌شده",
+    scenarioDescription: hasLiveGame ? scenarioDisplayDescription(liveGame.scenario) : rg.scenarioDescription || "",
+    moderatorName: hasLiveGame ? liveGame.moderator?.name || "ناشناس" : rg.moderatorName || "ناشناس",
+    playerCount: hasLiveGame ? livePlayers.length : rg.playerCount || snapshotPlayers.length,
+    players: hasLiveGame
+      ? serializePlayersForHistory(livePlayers)
+      : snapshotPlayers,
+    nightRecordsPublic,
+    nightEvents: nightRecordsPublic
+      ? hasLiveGame
+        ? serializeNightEventsForHistory(liveNightEvents)
+        : snapshotNightEvents
       : [],
   };
 }
@@ -287,14 +283,48 @@ export async function deleteGameHistory(gameId: string) {
   }
 
   try {
-    await prisma.gameHistory.deleteMany({
-      where: { gameId }
+    const game = await prisma.game.findUnique({
+      where: { id: gameId },
+      include: {
+        scenario: { include: { roles: true } },
+        moderator: true,
+        players: { include: { role: true } },
+        nightEvents: {
+          include: {
+            actorPlayer: true,
+            targetPlayer: true,
+          },
+          orderBy: [{ nightNumber: "asc" }, { createdAt: "asc" }],
+        },
+      },
     });
-    
-    // Also delete the game to completely remove it
-    await prisma.game.delete({
-      where: { id: gameId }
+
+    if (!game) {
+      return { success: true };
+    }
+
+    const playerByUserId = new Map(game.players.filter((player) => player.userId).map((player) => [player.userId as string, player]));
+    const histories = await prisma.gameHistory.findMany({
+      where: { gameId },
+      select: { id: true, userId: true },
     });
+
+    await prisma.$transaction(async (tx) => {
+      for (const history of histories) {
+        await tx.gameHistory.update({
+          where: { id: history.id },
+          data: snapshotDataForPlayer(game, playerByUserId.get(history.userId) || null),
+        });
+      }
+
+      await tx.game.delete({
+        where: { id: gameId },
+      });
+    });
+
+    revalidatePath("/dashboard/admin/history");
+    revalidatePath("/dashboard/user/history");
+    revalidatePath("/dashboard/user");
 
     return { success: true };
   } catch (error: any) {

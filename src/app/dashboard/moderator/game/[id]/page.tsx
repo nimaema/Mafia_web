@@ -12,6 +12,8 @@ import {
   recordDayElimination,
   recordNightEvent,
   setPlayerAliveStatus,
+  updateDayEventRecord,
+  updateNightEventRecord,
 } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
 import { MobilePwaFeatureLock } from "@/components/MobilePwaFeatureLock";
@@ -500,10 +502,12 @@ function ReportEventRow({
   event,
   busy,
   onDelete,
+  onEdit,
 }: {
   event: NightEventRecord;
   busy: boolean;
   onDelete: (event: NightEventRecord) => void;
+  onEdit: (event: NightEventRecord) => void;
 }) {
   const visual = reportEventVisual(event);
   const actor = event.actorPlayer?.name || event.abilitySource || alignmentLabel(event.actorAlignment);
@@ -588,14 +592,26 @@ function ReportEventRow({
           )}
         </div>
 
-        <button
-          onClick={() => onDelete(event)}
-          disabled={busy}
-          className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 opacity-90 transition-all hover:bg-red-500 hover:text-white disabled:opacity-40 sm:opacity-0 sm:group-hover:opacity-100"
-          aria-label="حذف رکورد"
-        >
-          <span className="material-symbols-outlined text-base">delete</span>
-        </button>
+        <div className="flex shrink-0 flex-col gap-2 opacity-90 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+          <button
+            type="button"
+            onClick={() => onEdit(event)}
+            disabled={busy}
+            className="flex size-9 items-center justify-center rounded-lg border border-sky-500/15 bg-sky-500/10 text-sky-600 transition-all hover:bg-sky-500 hover:text-white disabled:opacity-40 dark:text-sky-300"
+            aria-label="ویرایش رکورد"
+          >
+            <span className="material-symbols-outlined text-base">edit</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(event)}
+            disabled={busy}
+            className="flex size-9 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white disabled:opacity-40"
+            aria-label="حذف رکورد"
+          >
+            <span className="material-symbols-outlined text-base">delete</span>
+          </button>
+        </div>
       </div>
     </article>
   );
@@ -629,6 +645,7 @@ export default function ModeratorGamePage() {
   const [dayNote, setDayNote] = useState("");
   const [reportMode, setReportMode] = useState<"NIGHT" | "DAY">("DAY");
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [playerPicker, setPlayerPicker] = useState<PlayerPickerRequest | null>(null);
   const [shotResolution, setShotResolution] = useState<{ player: PlayerRecord; nextRound: number } | null>(null);
 
@@ -855,6 +872,7 @@ export default function ModeratorGamePage() {
   };
 
   const openNightAction = (option: NightActionOption, actor?: PlayerRecord | null, wasUsed = true) => {
+    setEditingEventId(null);
     setReportMode("NIGHT");
     setSelectedActionKey(option.key);
     setSelectedChoiceKey(option.choices[0]?.id || "");
@@ -866,6 +884,7 @@ export default function ModeratorGamePage() {
   };
 
   const openDayRecord = (methodKey = dayMethodKey, targetId = "") => {
+    setEditingEventId(null);
     setReportMode("DAY");
     setDayMethodKey(methodKey);
     if (methodKey !== "vote") setDayDefensePlayerIds([]);
@@ -913,6 +932,46 @@ export default function ModeratorGamePage() {
   };
 
   const playerById = (playerId?: string) => players.find((player) => player.id === playerId);
+
+  const openEditReportEvent = (event: NightEventRecord) => {
+    setEditingEventId(event.id);
+    setPlayerPicker(null);
+    setReportModalOpen(true);
+
+    if (isDayEvent(event)) {
+      const storedMethodKey = event.details?.methodKey || event.abilityKey.replace(/^day:/, "") || "custom";
+      const knownMethod = DAY_ELIMINATION_METHODS.some((method) => method.key === storedMethodKey);
+      setReportMode("DAY");
+      setDayNumber(event.nightNumber);
+      setDayMethodKey(knownMethod ? storedMethodKey : "custom");
+      setCustomDayMethod(knownMethod ? "" : event.details?.methodLabel || reportEventTitle(event));
+      setDayTargetPlayerId(event.targetPlayer?.id || "");
+      setDayDefensePlayerIds(event.details?.defensePlayers?.map((player) => player.id).filter(Boolean) || []);
+      setDayNote(event.note || "");
+      return;
+    }
+
+    const action = actionOptions.find((option) => option.key === event.abilityKey);
+    if (!action) {
+      showAlert("ویرایش گزارش", "این توانایی در تنظیمات فعلی سناریو پیدا نشد. می‌توانید رکورد را حذف و دوباره ثبت کنید.", "warning");
+      setEditingEventId(null);
+      setReportModalOpen(false);
+      return;
+    }
+
+    setReportMode("NIGHT");
+    setNightNumber(event.nightNumber);
+    setSelectedActionKey(event.abilityKey);
+    setSelectedChoiceKey(event.abilityChoiceKey || action.choices[0]?.id || "");
+    setActorPlayerId(event.actorPlayer?.id || "");
+    setTargetPlayerId(event.targetPlayer?.id || "");
+    setSecondaryTargetPlayerId(event.details?.secondaryTargetPlayerId || "");
+    setExtraTargetPlayerIds(event.details?.extraTargets?.map((target) => target.id).filter(Boolean) || []);
+    setConvertedRoleId(event.details?.convertedRoleId || "");
+    setReportEffectType(event.details?.effectType || "NONE");
+    setEventWasUsed(event.wasUsed !== false);
+    setNightNote(event.note || "");
+  };
 
   const advanceToNextDay = (nextRound: number) => {
     setReportMode("DAY");
@@ -1083,8 +1142,9 @@ export default function ModeratorGamePage() {
       showAlert("نقش تبدیل", "برای خریداری یا یاکوزا، نقش مافیایی مقصد را انتخاب کنید.", "warning");
       return;
     }
+    const comparableNightEvents = editingEventId ? nightEvents.filter((event) => event.id !== editingEventId) : nightEvents;
     if (eventWasUsed && selectedAction.usesPerGame && actorPlayerId) {
-      const usedByActor = nightEvents.filter(
+      const usedByActor = comparableNightEvents.filter(
         (event) => event.wasUsed !== false && event.abilityKey === selectedAction.key && event.actorPlayer?.id === actorPlayerId
       ).length;
       if (usedByActor >= selectedAction.usesPerGame) {
@@ -1093,7 +1153,7 @@ export default function ModeratorGamePage() {
       }
     }
     if (eventWasUsed && selectedAction.usesPerNight && actorPlayerId) {
-      const usedThisNight = nightEvents.filter(
+      const usedThisNight = comparableNightEvents.filter(
         (event) =>
           event.wasUsed !== false &&
           event.nightNumber === nightNumber &&
@@ -1106,7 +1166,7 @@ export default function ModeratorGamePage() {
       }
     }
     if (eventWasUsed && !usesTargetSlotChoices && selectedChoice?.usesPerGame && actorPlayerId) {
-      const usedChoice = nightEvents.filter(
+      const usedChoice = comparableNightEvents.filter(
         (event) =>
           event.wasUsed !== false &&
           event.abilityKey === selectedAction.key &&
@@ -1119,7 +1179,7 @@ export default function ModeratorGamePage() {
       }
     }
     if (eventWasUsed && selectedAction.selfTargetLimit !== null && actorPlayerId && selectedTargets.includes(actorPlayerId)) {
-      const selfUses = nightEvents.filter(
+      const selfUses = comparableNightEvents.filter(
         (event) =>
           event.wasUsed !== false &&
           event.abilityKey === selectedAction.key &&
@@ -1143,7 +1203,7 @@ export default function ModeratorGamePage() {
     }
 
     setBusy(true);
-    const result = await recordNightEvent(gameId, {
+    const payload = {
       nightNumber,
       abilityKey: selectedAction.key,
       abilityLabel: selectedAction.label,
@@ -1163,15 +1223,19 @@ export default function ModeratorGamePage() {
       actorAlignment: selectedAction.actorAlignment || null,
       wasUsed: eventWasUsed,
       note: nightNote,
-    });
+    };
+    const result = editingEventId
+      ? await updateNightEventRecord(gameId, editingEventId, payload)
+      : await recordNightEvent(gameId, payload);
 
     if (result.success) {
-      showToast("رکورد شب ثبت شد", "success");
+      showToast(editingEventId ? "رکورد شب ویرایش شد" : "رکورد شب ثبت شد", "success");
       setTargetPlayerId("");
       setSecondaryTargetPlayerId("");
       setExtraTargetPlayerIds([]);
       setNightNote("");
       setEventWasUsed(true);
+      setEditingEventId(null);
       setReportModalOpen(false);
       setPlayerPicker(null);
       await refreshGame();
@@ -1200,21 +1264,25 @@ export default function ModeratorGamePage() {
     }
 
     setBusy(true);
-    const result = await recordDayElimination(gameId, {
+    const payload = {
       dayNumber,
       targetPlayerId: dayTargetPlayerId || null,
       methodKey: dayMethodKey,
       methodLabel,
       defensePlayerIds: isVoteRecord ? dayDefensePlayerIds : [],
       note: dayNote,
-    });
+    };
+    const result = editingEventId
+      ? await updateDayEventRecord(gameId, editingEventId, payload)
+      : await recordDayElimination(gameId, payload);
 
     if (result.success) {
-      showToast(dayTargetPlayerId ? "حذف روز در گزارش ثبت شد" : "دفاع‌های رای‌گیری ثبت شد", "success");
+      showToast(editingEventId ? "رکورد روز ویرایش شد" : dayTargetPlayerId ? "حذف روز در گزارش ثبت شد" : "دفاع‌های رای‌گیری ثبت شد", "success");
       setDayTargetPlayerId("");
       setDayDefensePlayerIds([]);
       setCustomDayMethod("");
       setDayNote("");
+      setEditingEventId(null);
       setReportModalOpen(false);
       setPlayerPicker(null);
       setReportMode("NIGHT");
@@ -1470,7 +1538,7 @@ export default function ModeratorGamePage() {
                   <button
                     type="button"
                     onClick={finishCurrentPhase}
-                    disabled={busy || game?.status === "FINISHED"}
+                    disabled={busy}
                     className="mt-3 min-h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-xs font-black text-zinc-700 transition-all hover:bg-zinc-50 disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950/60 dark:text-zinc-200 dark:hover:bg-white/10"
                   >
                     پایان {activePhaseLabel} و شروع {nextPhaseLabel}
@@ -1529,7 +1597,7 @@ export default function ModeratorGamePage() {
                           key={method.key}
                           type="button"
                           onClick={() => openDayRecord(method.key)}
-                          disabled={busy || game?.status === "FINISHED"}
+                          disabled={busy}
                           className="flex min-h-9 items-center justify-center gap-1 rounded-lg border border-amber-500/15 bg-amber-500/10 px-2 text-[10px] font-black text-amber-700 transition-all hover:bg-amber-500/20 disabled:opacity-50 dark:text-amber-300"
                         >
                           <span className="material-symbols-outlined text-sm">{method.icon}</span>
@@ -1545,7 +1613,7 @@ export default function ModeratorGamePage() {
                             key={`day-${player.id}`}
                             type="button"
                             onClick={() => openDayRecord(dayMethodKey, player.id)}
-                            disabled={busy || game?.status === "FINISHED"}
+                            disabled={busy}
                             className="flex min-h-12 items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-right transition-all hover:border-amber-500/40 hover:bg-amber-500/10 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03]"
                           >
                             <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-xs font-black text-white dark:bg-white dark:text-zinc-950">
@@ -1582,7 +1650,7 @@ export default function ModeratorGamePage() {
                         <button
                           type="button"
                           onClick={() => openNightAction(mafiaShotAction, null, true)}
-                          disabled={busy || game?.status === "FINISHED"}
+                          disabled={busy}
                           className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-500 px-2 text-xs font-black text-white shadow-sm shadow-red-500/20 transition-all hover:bg-red-600 disabled:opacity-50"
                         >
                           <span className="material-symbols-outlined text-base">target</span>
@@ -1591,7 +1659,7 @@ export default function ModeratorGamePage() {
                         <button
                           type="button"
                           onClick={() => openNightAction(mafiaShotAction, null, false)}
-                          disabled={busy || game?.status === "FINISHED"}
+                          disabled={busy}
                           className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-white/75 px-2 text-xs font-black text-red-700 transition-all hover:bg-white disabled:opacity-50 dark:bg-zinc-950/40 dark:text-red-300"
                         >
                           <span className="material-symbols-outlined text-base">block</span>
@@ -1629,7 +1697,7 @@ export default function ModeratorGamePage() {
                                     key={`${option.key}-${player.id}`}
                                     type="button"
                                     onClick={() => openNightAction(option, player, true)}
-                                    disabled={busy || game?.status === "FINISHED"}
+                                    disabled={busy}
                                     className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-white/70 bg-white/75 px-2.5 text-right text-[11px] font-black text-zinc-800 transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md hover:shadow-zinc-950/10 disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950/35 dark:text-white"
                                   >
                                     <span className="flex min-w-0 items-center gap-2">
@@ -1659,6 +1727,7 @@ export default function ModeratorGamePage() {
                     className="fixed inset-0 z-[120] flex items-end justify-center bg-zinc-950/60 p-3 pb-24 backdrop-blur-sm sm:items-center sm:pb-3"
                     onClick={() => {
                       setReportModalOpen(false);
+                      setEditingEventId(null);
                       setPlayerPicker(null);
                     }}
                   >
@@ -1670,13 +1739,16 @@ export default function ModeratorGamePage() {
                         <div className="min-w-0">
                           <p className="ui-kicker">{reportMode === "NIGHT" ? `شب ${nightNumber}` : `روز ${dayNumber}`}</p>
                           <h3 className="mt-1 truncate text-lg font-black text-zinc-950 dark:text-white">
-                            {reportMode === "NIGHT" ? "جزئیات اتفاق شب" : "جزئیات اتفاق روز"}
+                            {editingEventId
+                              ? reportMode === "NIGHT" ? "ویرایش اتفاق شب" : "ویرایش اتفاق روز"
+                              : reportMode === "NIGHT" ? "جزئیات اتفاق شب" : "جزئیات اتفاق روز"}
                           </h3>
                         </div>
                         <button
                           type="button"
                           onClick={() => {
                             setReportModalOpen(false);
+                            setEditingEventId(null);
                             setPlayerPicker(null);
                           }}
                           className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition-all hover:bg-zinc-100 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
@@ -1866,11 +1938,11 @@ export default function ModeratorGamePage() {
 
                   <button
                     onClick={handleRecordNightEvent}
-                    disabled={busy || game?.status === "FINISHED"}
+                    disabled={busy}
                     className="ui-button-primary min-h-11 w-full"
                   >
                     <span className="material-symbols-outlined text-xl">add_notes</span>
-                    ثبت در شب {nightNumber}
+                    {editingEventId ? `ذخیره ویرایش شب ${nightNumber}` : `ثبت در شب ${nightNumber}`}
                   </button>
                     </>
                   ) : (
@@ -1928,7 +2000,7 @@ export default function ModeratorGamePage() {
                           <button
                             type="button"
                             onClick={() => openPlayerPicker({ slot: "defense", title: "بازیکنان دفاع", options: alivePlayers, multi: true })}
-                            disabled={game?.status === "FINISHED"}
+                            disabled={busy}
                             className="ui-button-secondary min-h-9 shrink-0 px-3 text-xs"
                           >
                             <span className="material-symbols-outlined text-base">groups</span>
@@ -1963,7 +2035,7 @@ export default function ModeratorGamePage() {
                         value: dayTargetPlayerId,
                         slot: "day",
                         options: alivePlayers,
-                        disabled: game?.status === "FINISHED",
+                        disabled: busy,
                         required: dayMethodKey !== "vote",
                       })}
                     </div>
@@ -1980,11 +2052,13 @@ export default function ModeratorGamePage() {
 
                     <button
                       onClick={handleRecordDayElimination}
-                      disabled={busy || game?.status === "FINISHED"}
+                      disabled={busy}
                       className="mt-3 flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 text-sm font-black text-zinc-950 transition-all hover:bg-amber-400 disabled:opacity-50"
                     >
                       <span className="material-symbols-outlined text-lg">{dayTargetPlayerId ? "person_remove" : "how_to_vote"}</span>
-                      {dayTargetPlayerId ? `ثبت حذف روز ${dayNumber}` : `ثبت دفاع روز ${dayNumber}`}
+                      {editingEventId
+                        ? `ذخیره ویرایش روز ${dayNumber}`
+                        : dayTargetPlayerId ? `ثبت حذف روز ${dayNumber}` : `ثبت دفاع روز ${dayNumber}`}
                     </button>
                   </div>
                   )}
@@ -2150,7 +2224,7 @@ export default function ModeratorGamePage() {
 
                         <div className="space-y-3 p-4">
                           {phase.events.map((event) => (
-                            <ReportEventRow key={event.id} event={event} busy={busy} onDelete={handleDeleteNightEvent} />
+                            <ReportEventRow key={event.id} event={event} busy={busy} onDelete={handleDeleteNightEvent} onEdit={openEditReportEvent} />
                           ))}
                         </div>
                       </article>

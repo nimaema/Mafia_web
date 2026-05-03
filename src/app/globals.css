@@ -52,6 +52,9 @@
 
   .dark {
     color-scheme: dark;
+    --color-zinc-950: #18181b;
+    --color-zinc-900: #202124;
+    --color-black: #18181b;
   }
 
   * {

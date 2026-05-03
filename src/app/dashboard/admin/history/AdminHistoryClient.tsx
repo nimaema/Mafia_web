@@ -243,10 +243,10 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
   };
 
   const removeGame = (gameId: string) => {
-    showConfirm("حذف کامل از تاریخچه", "این بازی از تاریخچه همه کاربران حذف می‌شود. ادامه می‌دهید؟", async () => {
+    showConfirm("حذف بازی اصلی", "بازی، لابی و گزارش زنده حذف می‌شود؛ اما خلاصه نتیجه در تاریخچه بازیکنان باقی می‌ماند. ادامه می‌دهید؟", async () => {
       const result = await deleteGameHistory(gameId);
       if (result.success) {
-        showToast("بازی از همه تاریخچه‌ها حذف شد", "success");
+        showToast("بازی حذف شد و خلاصه تاریخچه بازیکنان حفظ شد", "success");
         setData(await getAdminGameHistoryPage(data.page, data.pageSize));
       } else {
         showAlert("خطا", result.error || "حذف انجام نشد", "error");
@@ -333,7 +333,7 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
               )}
               <button onClick={() => removeGame(game.id)} className="ui-button-danger min-h-11 w-full">
                 <span className="material-symbols-outlined text-lg">delete_forever</span>
-                حذف از همه تاریخچه‌ها
+                حذف بازی و نگه‌داشتن خلاصه کاربران
               </button>
             </div>
           </article>

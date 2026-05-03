@@ -156,15 +156,28 @@ model Game {
 }
 
 model GameHistory {
-  id        String      @id @default(cuid())
-  gameId    String
-  game      Game        @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roleId    String
-  role      MafiaRole   @relation(fields: [roleId], references: [id])
-  result    GameResult?
-  createdAt DateTime    @default(now())
+  id                         String      @id @default(cuid())
+  gameId                     String?
+  game                       Game?       @relation(fields: [gameId], references: [id], onDelete: SetNull)
+  userId                     String
+  user                       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId                     String
+  role                       MafiaRole   @relation(fields: [roleId], references: [id])
+  roleName                   String?
+  roleAlignment              Alignment?
+  result                     GameResult?
+  gameName                   String?
+  gameCode                   String?
+  scenarioName               String?
+  scenarioDescription        String?
+  moderatorName              String?
+  playerCount                Int?
+  playersSnapshot            Json?
+  nightRecordsPublicSnapshot Boolean     @default(false)
+  nightEventsSnapshot        Json?
+  winningAlignment           Alignment?
+  endedAt                    DateTime?
+  createdAt                  DateTime    @default(now())
 
   @@unique([gameId, userId])
 }
