@@ -33,7 +33,8 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="app-page min-h-screen pb-28 md:pb-0 md:flex md:items-start" dir="rtl">
+    <div className="min-h-screen pb-20 md:pb-0 md:flex md:items-start bg-[#0e0e0e] text-[#e5e2e1] font-sans selection:bg-[#98000b] selection:text-white" dir="rtl">
+      
       <DashboardNavigation
         isAdmin={isAdmin}
         isModerator={isModerator}
@@ -45,8 +46,8 @@ export default async function DashboardLayout({
         }}
       />
 
-      <main className="relative z-10 w-full flex-1 overflow-x-hidden p-4 md:p-8">
-        <div className="motion-page mx-auto max-w-7xl">
+      <main className="relative z-10 w-full flex-1 overflow-x-hidden p-4 md:p-10">
+        <div className="mx-auto max-w-7xl">
           {children}
         </div>
       </main>
