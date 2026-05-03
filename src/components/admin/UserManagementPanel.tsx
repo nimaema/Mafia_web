@@ -270,31 +270,31 @@ export function UserManagementPanel() {
 
     return users
       .filter((user) => {
-      const matchesSearch =
-        !query ||
-        user.name?.toLowerCase().includes(query) ||
-        user.email?.toLowerCase().includes(query);
+        const matchesSearch =
+          !query ||
+          user.name?.toLowerCase().includes(query) ||
+          user.email?.toLowerCase().includes(query);
 
-      const matchesRole = roleFilter === "ALL" || user.role === roleFilter;
+        const matchesRole = roleFilter === "ALL" || user.role === roleFilter;
 
-      const hasPassword = Boolean(user.password_hash);
-      const hasGoogle = user.accounts.some((account) => account.provider === "google");
-      const presence = getUserPresence(user, onlineUserIds);
-      const activity = getActivityStatus(user.lastActiveAt);
+        const hasPassword = Boolean(user.password_hash);
+        const hasGoogle = user.accounts.some((account) => account.provider === "google");
+        const presence = getUserPresence(user, onlineUserIds);
+        const activity = getActivityStatus(user.lastActiveAt);
 
-      const matchesStatus =
-        statusFilter === "ALL" ||
-        (statusFilter === "ACTIVE" && !user.isBanned) ||
-        (statusFilter === "BANNED" && user.isBanned) ||
-        (statusFilter === "ONLINE" && presence.online) ||
-        (statusFilter === "RECENT" && activity.recent) ||
-        (statusFilter === "PASSWORD" && hasPassword) ||
-        (statusFilter === "GOOGLE" && hasGoogle) ||
-        (statusFilter === "VERIFIED" && Boolean(user.emailVerified)) ||
-        (statusFilter === "UNVERIFIED" && !user.emailVerified);
+        const matchesStatus =
+          statusFilter === "ALL" ||
+          (statusFilter === "ACTIVE" && !user.isBanned) ||
+          (statusFilter === "BANNED" && user.isBanned) ||
+          (statusFilter === "ONLINE" && presence.online) ||
+          (statusFilter === "RECENT" && activity.recent) ||
+          (statusFilter === "PASSWORD" && hasPassword) ||
+          (statusFilter === "GOOGLE" && hasGoogle) ||
+          (statusFilter === "VERIFIED" && Boolean(user.emailVerified)) ||
+          (statusFilter === "UNVERIFIED" && !user.emailVerified);
 
-      return matchesSearch && matchesRole && matchesStatus;
-    })
+        return matchesSearch && matchesRole && matchesStatus;
+      })
       .sort((left, right) => {
         if (sortMode === "EMAIL") {
           return (left.email || "").localeCompare(right.email || "", "fa");
@@ -665,11 +665,10 @@ export function UserManagementPanel() {
                     <button
                       key={user.id}
                       onClick={() => setSelectedUserId(user.id)}
-                      className={`group relative grid w-full gap-3 px-4 py-3 text-right transition-all lg:grid-cols-[minmax(220px,1.3fr)_132px_156px_88px] lg:items-center ${
-                        isSelected
+                      className={`group relative grid w-full gap-3 px-4 py-3 text-right transition-all lg:grid-cols-[minmax(220px,1.3fr)_132px_156px_88px] lg:items-center ${isSelected
                           ? "bg-lime-500/10 shadow-[inset_0_0_0_1px_rgba(132,204,22,0.18)]"
                           : "bg-white hover:bg-zinc-50 dark:bg-transparent dark:hover:bg-white/[0.04]"
-                      }`}
+                        }`}
                     >
                       <span className={`absolute inset-y-3 right-0 w-1 rounded-l-full bg-gradient-to-b ${roleAccentClass(user.role)}`} />
                       <div className="flex min-w-0 items-center gap-3 pr-1">
@@ -925,11 +924,10 @@ export function UserManagementPanel() {
                       key={item.mode}
                       type="button"
                       onClick={() => setEmailComposerMode(item.mode)}
-                      className={`flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-black transition-all ${
-                        emailComposerMode === item.mode
+                      className={`flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-black transition-all ${emailComposerMode === item.mode
                           ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
                           : "text-zinc-500 hover:bg-white dark:text-zinc-400 dark:hover:bg-white/[0.06]"
-                      }`}
+                        }`}
                     >
                       <span className="material-symbols-outlined text-base">{item.icon}</span>
                       {item.label}

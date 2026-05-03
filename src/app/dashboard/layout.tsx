@@ -33,7 +33,7 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0 md:flex md:items-start bg-[#0e0e0e] text-[#e5e2e1] font-sans selection:bg-[#98000b] selection:text-white" dir="rtl">
+    <div className="min-h-screen pb-20 md:pb-0 md:flex md:items-start bg-zinc-50 dark:bg-[#0e0e0e] text-zinc-950 dark:text-[#e5e2e1] font-sans selection:bg-[#ffb4ab] dark:selection:bg-[#98000b] selection:text-zinc-950 dark:selection:text-white transition-colors duration-300" dir="rtl">
       
       <DashboardNavigation
         isAdmin={isAdmin}

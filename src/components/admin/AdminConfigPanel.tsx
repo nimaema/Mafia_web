@@ -146,17 +146,17 @@ function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
         effectType: normalizeEffectType(record.effectType),
         choices: Array.isArray(record.choices)
           ? record.choices
-              .map((choice, choiceIndex) => {
-                const choiceLabel = String(choice.label || "").trim();
-                if (!choiceLabel) return null;
-                return {
-                  id: String(choice.id || `choice-${choiceIndex + 1}`),
-                  label: choiceLabel,
-                  usesPerGame: typeof choice.usesPerGame === "number" ? choice.usesPerGame : null,
-                  effectType: normalizeEffectType(choice.effectType),
-                };
-              })
-              .filter(Boolean) as RoleNightAbilityChoice[]
+            .map((choice, choiceIndex) => {
+              const choiceLabel = String(choice.label || "").trim();
+              if (!choiceLabel) return null;
+              return {
+                id: String(choice.id || `choice-${choiceIndex + 1}`),
+                label: choiceLabel,
+                usesPerGame: typeof choice.usesPerGame === "number" ? choice.usesPerGame : null,
+                effectType: normalizeEffectType(choice.effectType),
+              };
+            })
+            .filter(Boolean) as RoleNightAbilityChoice[]
           : [],
       };
     })
@@ -578,11 +578,11 @@ export default function AdminDashboard() {
       previous.map((ability) =>
         ability.id === abilityId
           ? {
-              ...ability,
-              choices: ability.choices.map((choice) =>
-                choice.id === choiceId ? { ...choice, ...patch } : choice
-              ),
-            }
+            ...ability,
+            choices: ability.choices.map((choice) =>
+              choice.id === choiceId ? { ...choice, ...patch } : choice
+            ),
+          }
           : ability
       )
     );
@@ -680,22 +680,20 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-2 gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-white/10 dark:bg-zinc-950">
               <button
                 onClick={() => switchTab("roles")}
-                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${
-                  activeTab === "roles"
+                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${activeTab === "roles"
                     ? "bg-lime-500 text-zinc-950 shadow-sm"
                     : "text-zinc-500 hover:bg-white dark:hover:bg-white/[0.06]"
-                }`}
+                  }`}
               >
                 <span className="material-symbols-outlined text-lg">theater_comedy</span>
                 نقش‌ها
               </button>
               <button
                 onClick={() => switchTab("scenarios")}
-                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${
-                  activeTab === "scenarios"
+                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${activeTab === "scenarios"
                     ? "bg-lime-500 text-zinc-950 shadow-sm"
                     : "text-zinc-500 hover:bg-white dark:hover:bg-white/[0.06]"
-                }`}
+                  }`}
               >
                 <span className="material-symbols-outlined text-lg">account_tree</span>
                 سناریوها
@@ -1016,11 +1014,10 @@ export default function AdminDashboard() {
                                 ))}
                               </div>
 
-                              <p className={`mt-3 rounded-lg border px-3 py-2 text-[10px] font-bold leading-5 ${
-                                ability.choices.filter((choice) => choice.label.trim()).length >= requiredChoiceCount(ability)
+                              <p className={`mt-3 rounded-lg border px-3 py-2 text-[10px] font-bold leading-5 ${ability.choices.filter((choice) => choice.label.trim()).length >= requiredChoiceCount(ability)
                                   ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"
                                   : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                              }`}>
+                                }`}>
                                 نام {requiredChoiceCount(ability)} گزینه لازم است.
                               </p>
                             </div>
@@ -1079,11 +1076,10 @@ export default function AdminDashboard() {
                           key={value}
                           type="button"
                           onClick={() => setRoleAlignmentFilter(value as RoleAlignmentFilter)}
-                          className={`flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-black transition-all ${
-                            roleAlignmentFilter === value
+                          className={`flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-black transition-all ${roleAlignmentFilter === value
                               ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
                               : "text-zinc-500 hover:bg-white dark:text-zinc-400 dark:hover:bg-white/[0.06]"
-                          }`}
+                            }`}
                         >
                           <span>{label}</span>
                           <span className="rounded-md bg-white/60 px-1.5 py-0.5 text-[10px] text-current dark:bg-zinc-900/40">{count}</span>
@@ -1131,67 +1127,67 @@ export default function AdminDashboard() {
                               const abilities = normalizeRoleAbilities(role.nightAbilities);
 
                               return (
-                              <article
-                                key={role.id}
-                                className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
-                              >
-                                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(role.alignment)}`} />
-                                <div className="flex items-start justify-between gap-3 pt-1">
-                                  <div className="flex min-w-0 items-start gap-3">
-                                    <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(role.alignment)}`}>
-                                      <span className="material-symbols-outlined text-xl">{alignmentIcon(role.alignment)}</span>
+                                <article
+                                  key={role.id}
+                                  className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                                >
+                                  <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(role.alignment)}`} />
+                                  <div className="flex items-start justify-between gap-3 pt-1">
+                                    <div className="flex min-w-0 items-start gap-3">
+                                      <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(role.alignment)}`}>
+                                        <span className="material-symbols-outlined text-xl">{alignmentIcon(role.alignment)}</span>
+                                      </div>
+                                      <div className="min-w-0">
+                                        <h3 className="truncate text-base font-black text-zinc-950 dark:text-white">{role.name}</h3>
+                                        <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
+                                      </div>
                                     </div>
-                                    <div className="min-w-0">
-                                      <h3 className="truncate text-base font-black text-zinc-950 dark:text-white">{role.name}</h3>
-                                      <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{alignmentLabel(role.alignment)}</p>
-                                    </div>
-                                  </div>
 
-                                  <div className="flex shrink-0 gap-1">
-                                    <button
-                                      onClick={() => handleEditRole(role)}
-                                      className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-sky-300"
-                                      title="ویرایش نقش"
-                                    >
-                                      <span className="material-symbols-outlined text-base">edit_square</span>
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteRole(role.id)}
-                                      className="flex size-8 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
-                                      title="حذف نقش"
-                                    >
-                                      <span className="material-symbols-outlined text-base">delete</span>
-                                    </button>
-                                  </div>
-                                </div>
-
-                                <p className="mt-3 line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-zinc-600 dark:text-zinc-300">
-                                  {role.description || "برای این نقش هنوز توضیحی ثبت نشده است."}
-                                </p>
-
-                                <div className="mt-3 flex flex-wrap gap-1.5 border-t border-zinc-200 pt-3 dark:border-white/10">
-                                  {abilities.length ? (
-                                    abilities.slice(0, 3).map((ability) => (
-                                      <span
-                                        key={`${role.id}-${ability.id}`}
-                                        className="inline-flex items-center gap-1 rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300"
+                                    <div className="flex shrink-0 gap-1">
+                                      <button
+                                        onClick={() => handleEditRole(role)}
+                                        className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-sky-300"
+                                        title="ویرایش نقش"
                                       >
-                                        <span className="material-symbols-outlined text-[13px]">dark_mode</span>
-                                        {ability.label}، {abilityUsageLabel(ability)}
+                                        <span className="material-symbols-outlined text-base">edit_square</span>
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteRole(role.id)}
+                                        className="flex size-8 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                                        title="حذف نقش"
+                                      >
+                                        <span className="material-symbols-outlined text-base">delete</span>
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  <p className="mt-3 line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+                                    {role.description || "برای این نقش هنوز توضیحی ثبت نشده است."}
+                                  </p>
+
+                                  <div className="mt-3 flex flex-wrap gap-1.5 border-t border-zinc-200 pt-3 dark:border-white/10">
+                                    {abilities.length ? (
+                                      abilities.slice(0, 3).map((ability) => (
+                                        <span
+                                          key={`${role.id}-${ability.id}`}
+                                          className="inline-flex items-center gap-1 rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300"
+                                        >
+                                          <span className="material-symbols-outlined text-[13px]">dark_mode</span>
+                                          {ability.label}، {abilityUsageLabel(ability)}
+                                        </span>
+                                      ))
+                                    ) : (
+                                      <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                                        بدون اکشن شب
                                       </span>
-                                    ))
-                                  ) : (
-                                    <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
-                                      بدون اکشن شب
-                                    </span>
-                                  )}
-                                  {abilities.length > 3 && (
-                                    <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
-                                      +{abilities.length - 3}
-                                    </span>
-                                  )}
-                                </div>
-                              </article>
+                                    )}
+                                    {abilities.length > 3 && (
+                                      <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                                        +{abilities.length - 3}
+                                      </span>
+                                    )}
+                                  </div>
+                                </article>
                               );
                             })}
                           </div>
@@ -1333,11 +1329,10 @@ export default function AdminDashboard() {
                         return (
                           <div
                             key={role.id}
-                            className={`rounded-lg border p-3 transition-colors ${
-                              selected
+                            className={`rounded-lg border p-3 transition-colors ${selected
                                 ? "border-lime-500/35 bg-lime-500/10 shadow-sm shadow-lime-500/10"
                                 : "border-zinc-200 bg-zinc-50 hover:bg-white dark:border-white/10 dark:bg-white/[0.02] dark:hover:bg-white/[0.04]"
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center justify-between gap-3">
                               <button
@@ -1345,11 +1340,10 @@ export default function AdminDashboard() {
                                 onClick={() => toggleRoleInScenario(role.id)}
                                 className="group/role-option flex flex-1 items-center gap-3 text-right"
                               >
-                                <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg border transition-all ${
-                                  selected
+                                <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg border transition-all ${selected
                                     ? "border-lime-400 bg-gradient-to-br from-lime-300 to-lime-500 text-zinc-950 shadow-sm shadow-lime-500/30"
                                     : "border-zinc-300 bg-white text-zinc-300 group-hover/role-option:border-lime-400 group-hover/role-option:text-lime-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-700"
-                                }`}>
+                                  }`}>
                                   <span className="material-symbols-outlined text-lg">{selected ? "check" : "add"}</span>
                                 </div>
                                 <div>

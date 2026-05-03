@@ -37,68 +37,71 @@ export default async function ProfilePage() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
-      <section className="ui-card overflow-hidden">
-        <div className="relative border-b border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.24),transparent_34rem)]" />
-          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-white/10 text-3xl font-black shadow-2xl shadow-black/20">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 font-sans">
+      <section className="relative border border-zinc-200 bg-zinc-900 text-white shadow-2xl dark:border-white/10 dark:bg-black">
+        <div className="absolute inset-x-0 top-0 h-1 bg-red-600" />
+        <div className="p-6">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 items-center gap-6">
+              <div className="relative flex size-24 shrink-0 items-center justify-center border border-white/20 bg-white/5 p-1">
                 {profileImage ? (
-                  <img src={profileImage} alt="" className="size-full object-cover" />
+                  <img src={profileImage} alt="" className="size-full object-cover filter grayscale" />
                 ) : (
-                  <span className="material-symbols-outlined text-5xl text-white/60">person</span>
+                  <span className="material-symbols-outlined text-5xl text-red-600">person</span>
                 )}
+                <span className="absolute -bottom-1 -right-1 size-4 border-2 border-black bg-red-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-black text-lime-300">پروفایل بازیکن</p>
-                <h1 className="mt-1 truncate text-3xl font-black text-white">{userData.name || "بازیکن مافیا"}</h1>
-                <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black">
-                  <span className="rounded-lg border border-white/10 bg-white/10 px-2.5 py-1 text-white">{roleText}</span>
-                  <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-lime-200">
-                    {dbUser?.emailVerified ? "ایمیل تایید شده" : "در انتظار تایید ایمیل"}
+                <p className="text-[10px] font-black uppercase tracking-widest text-red-500">پروفایل کاربری</p>
+                <h1 className="mt-2 truncate text-3xl font-black uppercase tracking-tight text-white">{userData.name || "بازیکن مافیا"}</h1>
+                <div className="mt-4 flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-widest">
+                  <span className="border border-white/10 bg-white/5 px-2.5 py-1 text-zinc-300">{roleText}</span>
+                  <span className={`border px-2.5 py-1 ${dbUser?.emailVerified ? "border-green-500/30 bg-green-500/10 text-green-400" : "border-red-500/30 bg-red-500/10 text-red-400"}`}>
+                    {dbUser?.emailVerified ? "تایید شده" : "در انتظار تایید"}
                   </span>
-                  <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-sky-200">
-                    {googleAccount ? "متصل به گوگل" : "ورود با ایمیل"}
+                  <span className="border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-sky-400">
+                    {googleAccount ? "GOOGLE AUTH" : "EMAIL AUTH"}
                   </span>
                 </div>
               </div>
             </div>
 
-            <Link href="/dashboard/user" className="ui-button-secondary min-h-11 border-white/10 bg-white/10 px-4 text-white hover:bg-white hover:text-zinc-950 dark:border-white/10 dark:bg-white/10">
-              <span className="material-symbols-outlined text-xl">arrow_forward</span>
+            <Link href="/dashboard/user" className="group relative flex h-12 items-center justify-center gap-2 bg-white px-6 text-[10px] font-black uppercase tracking-widest text-black transition-all hover:bg-zinc-200">
+              <span className="material-symbols-outlined text-xl transition-transform group-hover:translate-x-1">arrow_forward</span>
               بازگشت به داشبورد
             </Link>
           </div>
         </div>
+      </section>
 
-        <div className="grid gap-5 p-5 lg:grid-cols-[300px_minmax(0,1fr)]">
-          <aside className="space-y-3">
-            {[
-              ["badge", "سطح دسترسی", roleText, "text-lime-600 dark:text-lime-300"],
-              ["alternate_email", "وضعیت ایمیل", dbUser?.emailVerified ? "تایید شده" : "نیاز به تایید", dbUser?.emailVerified ? "text-lime-600 dark:text-lime-300" : "text-amber-600 dark:text-amber-300"],
-              ["vpn_key", "ورود با رمز", hasPassword ? "فعال" : "تنظیم نشده", hasPassword ? "text-sky-600 dark:text-sky-300" : "text-zinc-500 dark:text-zinc-400"],
-              ["hub", "حساب گوگل", googleAccount ? "متصل" : "متصل نیست", googleAccount ? "text-lime-600 dark:text-lime-300" : "text-zinc-500 dark:text-zinc-400"],
-            ].map(([icon, label, value, color]) => (
-              <div key={label} className="ui-muted flex items-center gap-3 p-3">
-                <span className={`material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-lg bg-white text-xl shadow-sm shadow-zinc-950/5 dark:bg-zinc-950 ${color}`}>
+      <div className="grid gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
+        <aside className="space-y-4">
+          {[
+            ["badge", "سطح دسترسی", roleText, "text-red-500"],
+            ["alternate_email", "وضعیت ایمیل", dbUser?.emailVerified ? "تایید شده" : "نیاز به تایید", dbUser?.emailVerified ? "text-green-500" : "text-red-500"],
+            ["vpn_key", "ورود با رمز", hasPassword ? "فعال" : "تنظیم نشده", hasPassword ? "text-sky-500" : "text-zinc-500"],
+            ["hub", "حساب گوگل", googleAccount ? "متصل" : "متصل نیست", googleAccount ? "text-green-500" : "text-zinc-500"],
+          ].map(([icon, label, value, color]) => (
+            <div key={label} className="relative border border-zinc-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#0e0e0e]">
+              <div className="flex items-center gap-4">
+                <span className={`material-symbols-outlined flex size-10 shrink-0 items-center justify-center bg-zinc-900 text-white dark:bg-white dark:text-black text-xl ${color}`}>
                   {icon}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
-                  <p className="mt-1 truncate text-sm font-black text-zinc-950 dark:text-white">{value}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{label}</p>
+                  <p className="mt-1 truncate text-sm font-black uppercase tracking-tight text-zinc-900 dark:text-white">{value}</p>
                 </div>
               </div>
-            ))}
-          </aside>
+            </div>
+          ))}
+        </aside>
 
-          <ProfileForm
-            user={userData}
-            hasGoogleProvider={!!googleAccount}
-            hasPassword={hasPassword}
-          />
-        </div>
-      </section>
+        <ProfileForm
+          user={userData}
+          hasGoogleProvider={!!googleAccount}
+          hasPassword={hasPassword}
+        />
+      </div>
     </div>
   );
 }

@@ -252,11 +252,10 @@ export default function ModeratorDashboard() {
                     <button
                       type="button"
                       onClick={() => setIsPrivate(false)}
-                      className={`relative overflow-hidden rounded-lg border p-4 text-right transition-all ${
-                        !isPrivate
+                      className={`relative overflow-hidden rounded-lg border p-4 text-right transition-all ${!isPrivate
                           ? "border-lime-500/40 bg-lime-500/10 text-zinc-950 shadow-sm shadow-lime-500/15 dark:text-white"
                           : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400"
-                      }`}
+                        }`}
                     >
                       {!isPrivate && <span className="absolute inset-x-0 top-0 h-1 bg-lime-400" />}
                       <span className="material-symbols-outlined text-xl">lock_open</span>
@@ -266,11 +265,10 @@ export default function ModeratorDashboard() {
                     <button
                       type="button"
                       onClick={() => setIsPrivate(true)}
-                      className={`relative overflow-hidden rounded-lg border p-4 text-right transition-all ${
-                        isPrivate
+                      className={`relative overflow-hidden rounded-lg border p-4 text-right transition-all ${isPrivate
                           ? "border-amber-500/40 bg-amber-500/10 text-zinc-950 shadow-sm shadow-amber-500/15 dark:text-white"
                           : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400"
-                      }`}
+                        }`}
                     >
                       {isPrivate && <span className="absolute inset-x-0 top-0 h-1 bg-amber-400" />}
                       <span className="material-symbols-outlined text-xl">lock</span>

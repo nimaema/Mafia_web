@@ -1,197 +1,124 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 
-const desktopFeatures = [
-  { icon: "groups", title: "لابی و ورود", text: "ساخت بازی، کنترل ظرفیت و وضعیت بازیکنان در یک نمای زنده." },
-  { icon: "account_tree", title: "سناریو و نقش", text: "تعریف سناریو، نقش‌ها، توانایی‌های شب و نسخه‌های مختلف برای هر جمع." },
-  { icon: "edit_note", title: "گزارش گرداننده", text: "ثبت اتفاقات روز و شب، حذف‌ها، تغییر نقش و انتشار گزارش بعد از بازی." },
-];
+export default async function HomePage() {
+  const session = await auth();
 
-const desktopStats = [
-  { label: "مدیریت نقش", value: "دقیق", icon: "theater_comedy", tone: "text-lime-600 dark:text-lime-300" },
-  { label: "گزارش بازی", value: "مرحله‌ای", icon: "edit_calendar", tone: "text-sky-600 dark:text-sky-300" },
-  { label: "کنترل اجرا", value: "زنده", icon: "sensors", tone: "text-amber-600 dark:text-amber-300" },
-];
+  if (session) {
+    redirect("/dashboard/user");
+  }
 
-const desktopWorkflow = [
-  { step: "۱", title: "لابی بسازید", text: "کد ورود، رمز اختیاری و ظرفیت بازی را آماده کنید." },
-  { step: "۲", title: "سناریو را بچینید", text: "از کتابخانه انتخاب کنید یا سناریوی سفارشی بسازید." },
-  { step: "۳", title: "بازی را اجرا کنید", text: "نقش‌ها، تایمر و گزارش روز و شب کنار گرداننده می‌مانند." },
-];
+  const features = [
+    { icon: "theater_comedy", title: "نقش‌های تصادفی", text: "تخصیص کاملاً تصادفی و مخفی نقش‌ها به بازیکنان بر اساس سناریو." },
+    { icon: "account_tree", title: "مدیریت سناریوها", text: "پشتیبانی از سناریوهای متنوع با ترکیب‌های مختلف از جبهه‌ها." },
+    { icon: "gavel", title: "پنل گردانندگی", text: "کنترل کامل بازی با امکان ثبت گزارش و پیگیری رویدادهای هر شب و روز." },
+    { icon: "history", title: "تاریخچه بازی‌ها", text: "ثبت نتایج، تیم‌های برنده و نقش هر بازیکن در تاریخچه سیستم." },
+    { icon: "sports_esports", title: "لابی زنده", text: "امکان پیوستن به لابی‌ها با کد اختصاصی و تشکیل بازی سریع." },
+    { icon: "public", title: "گزارش عمومی", text: "انتشار خودکار گزارش کامل بازی پس از اتمام برای همه بازیکنان." },
+  ];
 
-export default function Home() {
   return (
-    <div className="app-page min-h-screen overflow-x-hidden" dir="rtl">
-      <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-zinc-950 px-6 py-10 text-white md:hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:34px_34px]" />
-        <div className="pointer-events-none absolute inset-x-8 top-20 h-44 rounded-full bg-lime-500/10 blur-3xl" />
-
-        <main className="motion-reveal relative z-10 flex w-full max-w-xs flex-col items-center text-center">
-          <div className="motion-pop flex size-24 items-center justify-center rounded-[2rem] bg-lime-500 text-zinc-950 shadow-2xl shadow-lime-500/25">
-            <span className="material-symbols-outlined text-5xl">theater_comedy</span>
-          </div>
-          <h1 className="mt-5 text-4xl font-black leading-tight">مافیا بورد</h1>
-          <p className="mt-3 whitespace-nowrap text-sm font-bold text-zinc-300">کنترل سریع و امن بازی‌های مافیا</p>
-          <Link href="/auth/login" className="motion-surface mt-8 flex min-h-14 w-full items-center justify-center gap-2 rounded-lg bg-lime-500 px-5 text-base font-black text-zinc-950 shadow-xl shadow-lime-500/20 transition-all active:scale-[0.98]">
-            <span className="material-symbols-outlined text-xl">login</span>
-            ورود و شروع بازی
-          </Link>
-        </main>
+    <div className="min-h-screen bg-zinc-50 dark:bg-[#0e0e0e] text-zinc-900 dark:text-[#e5e2e1] font-sans selection:bg-[#ffb4ab] dark:selection:bg-[#98000b] selection:text-zinc-950 dark:selection:text-white transition-colors duration-300" dir="rtl">
+      
+      {/* Background ambient lighting */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-red-500/10 dark:bg-[#98000b]/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[150px] opacity-70 animate-pulse-slow" />
+        <div className="absolute top-[40%] -right-[10%] w-[40%] h-[60%] bg-red-400/5 dark:bg-[#ffb4ab]/10 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[120px] opacity-50" />
       </div>
 
-      <div className="hidden md:block" dir="rtl">
-        <header className="app-container motion-reveal flex items-center justify-between py-5">
-          <div className="flex items-center gap-3">
-            <div className="ui-icon-accent">
-              <span className="material-symbols-outlined text-xl">theater_comedy</span>
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* Header */}
+        <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-[#0e0e0e]/80 backdrop-blur-2xl border-b border-zinc-200 dark:border-white/5 transition-colors duration-300">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-zinc-100 dark:bg-[#131313] border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0 transition-colors duration-300">
+                <span className="material-symbols-outlined text-red-600 dark:text-[#ffb4ab]">casino</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-black tracking-wider text-zinc-950 dark:text-white transition-colors duration-300">MAFIA<span className="text-red-600 dark:text-[#ffb4ab]">COMPANION</span></h1>
+                <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">System V.1</p>
+              </div>
             </div>
-            <div>
-              <p className="text-lg font-black text-zinc-950 dark:text-white">مافیا بورد</p>
-              <p className="ui-kicker">کنترل روم بازی</p>
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <Link href="/auth/login" className="hidden md:flex items-center gap-2 h-10 px-6 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 border border-zinc-200 dark:border-white/10 hover:border-red-400 dark:hover:border-[#ffb4ab]/50 text-zinc-900 dark:text-white font-bold text-sm tracking-wide transition-all duration-300">
+                <span className="material-symbols-outlined text-lg">login</span>
+                <span>ورود به سیستم</span>
+              </Link>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <ThemeToggle compact />
-            <Link href="/auth/login" className="ui-button-primary">
-              <span className="material-symbols-outlined text-lg">login</span>
-              ورود و شروع
-            </Link>
-          </div>
+          {/* Progress bar accent */}
+          <div className="absolute bottom-0 left-0 h-[1px] w-full bg-gradient-to-r from-transparent via-red-500 dark:via-[#98000b] to-transparent opacity-50" />
         </header>
 
-        <main>
-          <section className="relative border-y border-zinc-200 bg-white/70 dark:border-white/10 dark:bg-zinc-950">
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(132,204,22,0.10),transparent_34%),linear-gradient(225deg,rgba(14,165,233,0.10),transparent_30%)] dark:bg-[linear-gradient(135deg,rgba(132,204,22,0.13),transparent_34%),linear-gradient(225deg,rgba(14,165,233,0.10),transparent_32%)]" />
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(24,24,27,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(24,24,27,0.045)_1px,transparent_1px)] bg-[size:44px_44px] dark:bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)]" />
+        {/* Hero Section */}
+        <main className="flex-1 flex flex-col items-center justify-center pt-32 pb-20 px-4 md:px-8 text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#131313] border border-zinc-200 dark:border-white/10 rounded-full mb-8 transition-colors duration-300">
+            <span className="w-2 h-2 rounded-full bg-red-600 dark:bg-[#ffb4ab] animate-pulse" />
+            <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 tracking-widest uppercase">Live Platform</span>
+          </div>
 
-            <div className="app-container relative grid min-h-[calc(100vh-5.25rem)] gap-10 py-12 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-center">
-              <div className="motion-reveal">
-                <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-zinc-200 bg-white/80 px-3 py-2 text-sm font-black text-zinc-700 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/80 dark:text-zinc-200">
-                  <span className="material-symbols-outlined text-base text-lime-600 dark:text-lime-400">bolt</span>
-                  اپ مدیریت بازی‌های مافیا
-                </div>
+          <h2 className="text-5xl md:text-8xl font-black text-zinc-950 dark:text-white tracking-tight mb-6 leading-tight transition-colors duration-300">
+            دستیار هوشمند <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-br from-red-600 dark:from-[#ffb4ab] to-red-900 dark:to-[#98000b]">بازی مافیا</span>
+          </h2>
+          
+          <p className="max-w-2xl text-lg md:text-xl text-zinc-600 dark:text-zinc-400 mb-12 leading-relaxed transition-colors duration-300">
+            سیستم یکپارچه مدیریت بازی، انتخاب سناریو، تخصیص نقش‌ها و ثبت گزارشات برای یک تجربه حرفه‌ای از بازی مافیا.
+          </p>
 
-                <h1 className="mt-5 text-6xl font-black leading-tight text-zinc-950 dark:text-white lg:text-7xl">
-                  مافیا بورد
-                </h1>
-                <p className="mt-4 max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
-                  ساخت بازی، انتخاب سناریو، کنترل نقش‌ها و گزارش نهایی در یک تجربه منظم برای بازیکن و گرداننده.
-                </p>
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+            <Link 
+              href="/auth/register" 
+              className="group relative flex items-center justify-center gap-3 w-full sm:w-auto h-14 px-8 bg-red-700 dark:bg-[#98000b] text-white font-black text-lg tracking-wide overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)] dark:hover:shadow-[0_0_30px_rgba(152,0,11,0.4)]"
+            >
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+              <span className="material-symbols-outlined relative z-10 text-2xl group-hover:scale-110 transition-transform">rocket_launch</span>
+              <span className="relative z-10">شروع بازی</span>
+            </Link>
+            <Link 
+              href="/auth/login" 
+              className="flex items-center justify-center gap-3 w-full sm:w-auto h-14 px-8 bg-white dark:bg-[#131313] border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/30 text-zinc-900 dark:text-white font-bold text-base tracking-wide transition-all duration-300"
+            >
+              <span className="material-symbols-outlined text-xl">login</span>
+              <span>ورود به حساب</span>
+            </Link>
+          </div>
+        </main>
 
-                <div className="motion-list mt-7 grid max-w-2xl gap-3 sm:grid-cols-3">
-                  {desktopStats.map((item) => (
-                    <div key={item.label} className="motion-surface rounded-lg border border-zinc-200 bg-white/80 p-3 shadow-sm shadow-zinc-950/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/65">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className={`material-symbols-outlined text-xl ${item.tone}`}>{item.icon}</span>
-                        <span className="text-lg font-black text-zinc-950 dark:text-white">{item.value}</span>
-                      </div>
-                      <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{item.label}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 flex flex-wrap items-center gap-3">
-                  <Link href="/auth/login" className="ui-button-primary min-h-12 px-5 text-base">
-                    <span className="material-symbols-outlined text-xl">login</span>
-                    ورود و شروع
-                  </Link>
-                </div>
-              </div>
-
-              <aside className="ui-card ui-card-interactive motion-reveal overflow-hidden bg-white/95 backdrop-blur dark:bg-zinc-900/85">
-                <div className="border-b border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">LIVE ROOM</p>
-                      <h2 className="mt-2 text-2xl font-black">اتاق کنترل بازی</h2>
-                      <p className="mt-2 text-sm leading-6 text-zinc-300">نمایی از چیزی که گرداننده و بازیکنان در جریان بازی می‌بینند.</p>
-                    </div>
-                    <span className="material-symbols-outlined flex size-12 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-3xl text-zinc-950 shadow-sm shadow-lime-500/20">dashboard</span>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 p-5">
-                  <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-black text-lime-700 dark:text-lime-300">سناریوی فعال</p>
-                        <p className="mt-1 text-xl font-black text-zinc-950 dark:text-white">کاپو ۱۲ نفره</p>
-                      </div>
-                      <span className="rounded-lg bg-lime-500 px-3 py-1 text-xs font-black text-zinc-950">در حال تکمیل</span>
-                    </div>
-                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
-                      <div className="h-full w-3/4 rounded-full bg-lime-500" />
-                    </div>
-                    <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                      {[
-                        ["شهروند", "۷", "text-sky-600 dark:text-sky-300"],
-                        ["مافیا", "۴", "text-red-600 dark:text-red-300"],
-                        ["مستقل", "۱", "text-amber-600 dark:text-amber-300"],
-                      ].map(([label, value, color]) => (
-                        <div key={label} className="rounded-lg border border-zinc-200 bg-white p-2 dark:border-white/10 dark:bg-zinc-950/60">
-                          <p className={`text-lg font-black ${color}`}>{value}</p>
-                          <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="motion-list grid gap-2">
-                    {[
-                      ["timer", "تایمر گرداننده", "نوبت اصلی و چالش"],
-                      ["person_search", "انتخاب بازیکن", "برای ثبت اتفاقات"],
-                      ["public", "گزارش عمومی", "بعد از پایان بازی"],
-                    ].map(([icon, title, text]) => (
-                      <div key={title} className="motion-surface flex items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/55">
-                        <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined flex size-9 items-center justify-center rounded-lg bg-zinc-950 text-lg text-white dark:bg-white dark:text-zinc-950">{icon}</span>
-                          <div>
-                            <p className="text-sm font-black text-zinc-950 dark:text-white">{title}</p>
-                            <p className="mt-0.5 text-xs font-bold text-zinc-500 dark:text-zinc-400">{text}</p>
-                          </div>
-                        </div>
-                        <span className="material-symbols-outlined text-lg text-lime-500">check_circle</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </aside>
+        {/* Features Grid */}
+        <section className="py-24 px-4 md:px-8 border-t border-zinc-200 dark:border-white/5 bg-zinc-100/50 dark:bg-[#0a0a0a]/50 relative z-10 transition-colors duration-300">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-16 text-center">
+              <h3 className="text-3xl md:text-5xl font-black text-zinc-950 dark:text-white mb-4 transition-colors duration-300">امکانات سیستم</h3>
+              <div className="h-1 w-24 bg-red-600 dark:bg-[#98000b] mx-auto" />
             </div>
-          </section>
 
-          <section className="app-container grid gap-5 py-10 lg:grid-cols-[minmax(0,1fr)_420px]">
-            <div className="motion-list grid gap-3 sm:grid-cols-3">
-              {desktopFeatures.map((item) => (
-                <div key={item.title} className="ui-card ui-card-interactive p-4">
-                  <div className="ui-icon-accent">
-                    <span className="material-symbols-outlined text-xl">{item.icon}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {features.map((feature, idx) => (
+                <div key={idx} className="group relative bg-white dark:bg-[#131313] border border-zinc-200 dark:border-white/5 p-8 hover:border-red-300 dark:hover:border-[#ffb4ab]/30 transition-all duration-500 shadow-sm hover:shadow-md dark:shadow-none">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 dark:from-[#98000b] to-red-400 dark:to-[#ffb4ab] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+                  
+                  <div className="w-14 h-14 bg-zinc-50 dark:bg-[#0e0e0e] border border-zinc-200 dark:border-white/10 flex items-center justify-center mb-6 group-hover:border-red-300 dark:group-hover:border-[#ffb4ab]/50 group-hover:shadow-[0_0_15px_rgba(220,38,38,0.1)] dark:group-hover:shadow-[0_0_15px_rgba(255,180,171,0.2)] transition-all duration-300">
+                    <span className="material-symbols-outlined text-2xl text-zinc-400 group-hover:text-red-600 dark:group-hover:text-[#ffb4ab] transition-colors">{feature.icon}</span>
                   </div>
-                  <h2 className="mt-4 font-black text-zinc-950 dark:text-white">{item.title}</h2>
-                  <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">{item.text}</p>
+                  
+                  <h4 className="text-xl font-black text-zinc-950 dark:text-white mb-3 transition-colors duration-300">{feature.title}</h4>
+                  <p className="text-zinc-600 dark:text-zinc-500 leading-relaxed text-sm transition-colors duration-300">{feature.text}</p>
                 </div>
               ))}
             </div>
+          </div>
+        </section>
 
-            <aside className="ui-card ui-card-interactive motion-reveal overflow-hidden">
-              <div className="border-b border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                <p className="ui-kicker">روند استفاده</p>
-                <h2 className="mt-1 text-xl font-black text-zinc-950 dark:text-white">از ساخت لابی تا گزارش نهایی</h2>
-              </div>
-              <div className="motion-list grid gap-3 p-4">
-                {desktopWorkflow.map((item) => (
-                  <div key={item.step} className="motion-surface grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                    <span className="flex size-10 items-center justify-center rounded-lg bg-lime-500 text-sm font-black text-zinc-950">{item.step}</span>
-                    <div>
-                      <p className="font-black text-zinc-950 dark:text-white">{item.title}</p>
-                      <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">{item.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </aside>
-          </section>
-        </main>
+        {/* Footer */}
+        <footer className="py-8 text-center border-t border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-[#0e0e0e] relative z-10 transition-colors duration-300">
+          <p className="text-xs font-mono text-zinc-500 dark:text-zinc-600 tracking-widest uppercase">
+            © {new Date().getFullYear()} MAFIA COMPANION. ALL RIGHTS RESERVED.
+          </p>
+        </footer>
       </div>
     </div>
   );

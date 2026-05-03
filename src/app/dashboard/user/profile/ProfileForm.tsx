@@ -100,7 +100,7 @@ export default function ProfileForm({
     async (prevState: any, formData: FormData) => {
       const res = await updateProfile(formData);
       if (res.success) {
-        await update(); 
+        await update();
       }
       return res;
     },
@@ -152,254 +152,264 @@ export default function ProfileForm({
   };
 
   return (
-    <div className="grid gap-5">
-    <form action={action} noValidate className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.03]" onSubmit={(event) => {
-      const formData = new FormData(event.currentTarget);
-      if (!String(formData.get("name") || "").trim() || !String(formData.get("email") || "").trim()) {
-        event.preventDefault();
-        showAlert("فرم ناقص است", "نام و ایمیل را کامل وارد کنید.", "warning");
-      }
-      if (nameWarning) {
-        event.preventDefault();
-        showAlert("نام طولانی است", nameWarning, "warning");
-      }
-      if (imageWarning || imageProcessing) {
-        event.preventDefault();
-        showAlert("تصویر پروفایل", imageProcessing ? "کمی صبر کنید تا تصویر آماده شود." : imageWarning, "warning");
-      }
-    }}>
-      <input type="hidden" name="profileImage" value={imageValue} />
-      <input type="hidden" name="removeProfileImage" value={removeProfileImage ? "true" : "false"} />
-      <div className="mb-5 flex items-start gap-3">
-        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-xl text-zinc-950 shadow-sm shadow-lime-500/20">manage_accounts</span>
-        <div>
-          <h3 className="text-xl font-black text-zinc-950 dark:text-white">اطلاعات پروفایل</h3>
-          <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">نام نمایشی و ایمیل حساب را مدیریت کنید.</p>
-        </div>
-      </div>
+    <div className="grid gap-6">
+      <form action={action} noValidate className="border border-zinc-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-[#0e0e0e]" onSubmit={(event) => {
+        const formData = new FormData(event.currentTarget);
+        if (!String(formData.get("name") || "").trim() || !String(formData.get("email") || "").trim()) {
+          event.preventDefault();
+          showAlert("فرم ناقص است", "نام و ایمیل را کامل وارد کنید.", "warning");
+        }
+        if (nameWarning) {
+          event.preventDefault();
+          showAlert("نام طولانی است", nameWarning, "warning");
+        }
+        if (imageWarning || imageProcessing) {
+          event.preventDefault();
+          showAlert("تصویر پروفایل", imageProcessing ? "کمی صبر کنید تا تصویر آماده شود." : imageWarning, "warning");
+        }
+      }}>
+        <input type="hidden" name="profileImage" value={imageValue} />
+        <input type="hidden" name="removeProfileImage" value={removeProfileImage ? "true" : "false"} />
 
-      <div className="mb-5 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-zinc-950/50">
-        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white text-3xl font-black text-zinc-400 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950">
-              {imagePreview ? (
-                <img src={imagePreview} alt="" className="size-full object-cover" />
-              ) : (
-                getInitial(nameValue)
-              )}
-              <span className="absolute inset-x-0 bottom-0 bg-zinc-950/70 py-1 text-center text-[9px] font-black text-white">
-                پروفایل
-              </span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-black text-zinc-950 dark:text-white">تصویر بازیکن</p>
-              <p className="mt-1 max-w-lg text-xs leading-6 text-zinc-500 dark:text-zinc-400">
-                یک تصویر واضح انتخاب کنید تا در لابی و صفحه بازی کنار نام شما نمایش داده شود.
-              </p>
-              {imageValue.startsWith("data:image/") && (
-                <p className="mt-2 inline-flex rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">
-                  تصویر آماده ذخیره است
-                </p>
-              )}
-            </div>
+        <div className="mb-8 flex items-start gap-4">
+          <span className="material-symbols-outlined flex size-12 shrink-0 items-center justify-center bg-zinc-900 text-white dark:bg-white dark:text-black">manage_accounts</span>
+          <div>
+            <h3 className="text-xl font-black uppercase tracking-wider text-zinc-900 dark:text-white">اطلاعات پروفایل</h3>
+            <p className="mt-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">نام نمایشی و ایمیل حساب را مدیریت کنید.</p>
           </div>
+        </div>
 
-          <div className="grid gap-2 sm:w-44">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              className="hidden"
-              onChange={(event) => handleImageChange(event.target.files?.[0])}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={imageProcessing}
-              className="ui-button-primary min-h-10 px-3 text-xs"
-            >
-              <span className={`material-symbols-outlined text-base ${imageProcessing ? "animate-spin" : ""}`}>{imageProcessing ? "refresh" : "upload"}</span>
-              {imageProcessing ? "پردازش..." : "انتخاب تصویر"}
-            </button>
-            {(imagePreview || imageValue) && (
+        <div className="mb-6 border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-[#151515]">
+          <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-6">
+              <div className="relative flex size-28 shrink-0 items-center justify-center overflow-hidden border-2 border-zinc-200 bg-white text-4xl font-black text-zinc-300 dark:border-white/10 dark:bg-black dark:text-zinc-800">
+                {imagePreview ? (
+                  <img src={imagePreview} alt="" className="size-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500" />
+                ) : (
+                  getInitial(nameValue)
+                )}
+                <span className="absolute inset-x-0 bottom-0 bg-black/80 py-1 text-center text-[10px] font-black tracking-widest text-white uppercase">
+                  پروفایل
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-widest font-black text-zinc-900 dark:text-white">تصویر بازیکن</p>
+                <p className="mt-2 max-w-lg text-xs leading-relaxed font-medium text-zinc-500 dark:text-zinc-400">
+                  یک تصویر واضح انتخاب کنید تا در لابی و صفحه بازی کنار نام شما نمایش داده شود.
+                </p>
+                {imageValue.startsWith("data:image/") && (
+                  <p className="mt-3 inline-flex border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] uppercase tracking-widest font-black text-red-600 dark:text-red-400">
+                    تصویر آماده ذخیره است
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:w-48">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={(event) => handleImageChange(event.target.files?.[0])}
+              />
               <button
                 type="button"
-                onClick={() => {
-                  setImageValue("");
-                  setImagePreview("");
-                  setRemoveProfileImage(true);
-                  setImageWarning("");
-                }}
-                className="ui-button-secondary min-h-10 px-3 text-xs text-red-600 dark:text-red-300"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={imageProcessing}
+                className="group relative h-10 w-full bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] uppercase tracking-widest font-black overflow-hidden transition-all hover:bg-zinc-800 dark:hover:bg-zinc-200"
               >
-                <span className="material-symbols-outlined text-base">delete</span>
-                حذف تصویر
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  <span className={`material-symbols-outlined text-base ${imageProcessing ? "animate-spin" : ""}`}>{imageProcessing ? "refresh" : "upload"}</span>
+                  {imageProcessing ? "پردازش..." : "انتخاب تصویر"}
+                </span>
               </button>
-            )}
-          </div>
-        </div>
-        {imageWarning && (
-          <p className="border-t border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs font-bold text-amber-700 dark:text-amber-300">
-            {imageWarning}
-          </p>
-        )}
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-      <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">نام و نام خانوادگی</label>
-        <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">person</span>
-          <input 
-            type="text" 
-            name="name" 
-            value={nameValue}
-            onChange={(event) => {
-              setNameValue(event.target.value);
-              checkName(event.target.value);
-            }}
-            maxLength={60}
-            className="w-full pl-10 pr-4"
-          />
-        </div>
-        {nameWarning && (
-          <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-700 dark:text-amber-300">
-            {nameWarning}
-          </p>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">ایمیل</label>
-        <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">mail</span>
-          <input 
-            type="email" 
-            name="email" 
-            defaultValue={user.email} 
-            dir="ltr"
-            readOnly={hasGoogleProvider}
-            className={`w-full pl-10 pr-4 ${hasGoogleProvider ? 'opacity-60 cursor-not-allowed' : ''}`}
-          />
-        </div>
-      </div>
-      </div>
-
-      <button 
-        type="submit" 
-        disabled={isPending}
-        className="ui-button-primary mt-5 min-h-12 w-full"
-      >
-        {isPending ? (
-          <span className="material-symbols-outlined animate-spin">refresh</span>
-        ) : (
-          <span className="material-symbols-outlined">save</span>
-        )}
-        ذخیره تغییرات
-      </button>
-    </form>
-
-    <form action={pwdAction} noValidate className="rounded-lg border border-zinc-200 bg-zinc-50 p-5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/50" onSubmit={(event) => {
-      const formData = new FormData(event.currentTarget);
-      if (!String(formData.get("newPassword") || "") || !String(formData.get("confirmPassword") || "") || (hasPassword && !String(formData.get("currentPassword") || ""))) {
-        event.preventDefault();
-        showAlert("فرم ناقص است", "فیلدهای رمز عبور را کامل وارد کنید.", "warning");
-      }
-    }}>
-      <div className="mb-5 flex items-start gap-3">
-        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-sky-500 text-xl text-white shadow-sm shadow-sky-500/20">encrypted</span>
-        <div>
-          <h3 className="text-xl font-black text-zinc-950 dark:text-white">{hasPassword ? "تغییر رمز عبور" : "ایجاد رمز عبور"}</h3>
-          <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">برای ورود مستقیم با ایمیل، رمز حساب را امن نگه دارید.</p>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-      {hasPassword && (
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">رمز عبور فعلی</label>
-          <div className="relative group">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
-            <input 
-              type="password" 
-              name="currentPassword" 
-              dir="ltr"
-              className="w-full pl-10 pr-4"
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">رمز عبور جدید</label>
-        <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">key</span>
-          <input 
-            type="password" 
-            name="newPassword" 
-            dir="ltr"
-            className="w-full pl-10 pr-4"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">تکرار رمز عبور جدید</label>
-        <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">key</span>
-          <input 
-            type="password" 
-            name="confirmPassword" 
-            dir="ltr"
-            className="w-full pl-10 pr-4"
-          />
-        </div>
-      </div>
-      </div>
-
-      <button 
-        type="submit" 
-        disabled={isPwdPending}
-        className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-sky-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-sky-500/20 transition-colors hover:bg-sky-400 disabled:opacity-50"
-      >
-        {isPwdPending ? (
-          <span className="material-symbols-outlined animate-spin">refresh</span>
-        ) : (
-          <span className="material-symbols-outlined">password</span>
-        )}
-        {hasPassword ? "تغییر رمز" : "ایجاد رمز"}
-      </button>
-    </form>
-
-    <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.03]">
-      <div className="mb-5 flex items-start gap-3">
-        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-xl text-white shadow-sm shadow-zinc-950/20 dark:bg-white dark:text-zinc-950">linked_services</span>
-        <div>
-          <h3 className="text-xl font-black text-zinc-950 dark:text-white">اتصال حساب‌ها</h3>
-          <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">ورود سریع‌تر و تصویر پروفایل گوگل از اینجا مدیریت می‌شود.</p>
-        </div>
-      </div>
-      {hasGoogleProvider ? (
-        <div className="flex items-center justify-between rounded-lg border border-lime-500/20 bg-lime-500/10 p-4">
-          <div className="flex items-center gap-3">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-6 h-6" />
-            <div>
-              <span className="font-black text-zinc-950 dark:text-white">حساب گوگل</span>
-              <p className="mt-1 text-xs font-bold text-lime-700 dark:text-lime-300">تصویر و تایید ایمیل از گوگل دریافت می‌شود.</p>
+              {(imagePreview || imageValue) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageValue("");
+                    setImagePreview("");
+                    setRemoveProfileImage(true);
+                    setImageWarning("");
+                  }}
+                  className="group relative h-10 w-full border border-red-500/30 bg-transparent text-red-600 dark:text-red-400 text-[10px] uppercase tracking-widest font-black hover:bg-red-500/10 transition-colors"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="material-symbols-outlined text-base">delete</span>
+                    حذف تصویر
+                  </span>
+                </button>
+              )}
             </div>
           </div>
-          <span className="rounded-lg border border-lime-500/20 bg-white px-3 py-1 text-xs font-black text-lime-600 dark:bg-zinc-950 dark:text-lime-300">متصل</span>
+          {imageWarning && (
+            <p className="border-t border-red-500/30 bg-red-500/10 px-6 py-4 text-xs font-bold text-red-600 dark:text-red-400">
+              {imageWarning}
+            </p>
+          )}
         </div>
-      ) : (
-        <button 
-          onClick={() => signIn("google", { callbackUrl: "/dashboard/user/profile" })}
-          className="flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 font-black text-zinc-950 transition-colors hover:bg-white dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:hover:bg-white/[0.06]"
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] uppercase tracking-widest font-black text-zinc-500 dark:text-zinc-400">نام و نام خانوادگی</label>
+            <div className="relative group">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors">person</span>
+              <input
+                type="text"
+                name="name"
+                value={nameValue}
+                onChange={(event) => {
+                  setNameValue(event.target.value);
+                  checkName(event.target.value);
+                }}
+                maxLength={60}
+                className="w-full pl-12 pr-4 py-3 bg-zinc-100 dark:bg-[#151515] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none focus:border-red-500 transition-colors"
+              />
+            </div>
+            {nameWarning && (
+              <p className="border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-bold text-red-600 dark:text-red-400 mt-2">
+                {nameWarning}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] uppercase tracking-widest font-black text-zinc-500 dark:text-zinc-400">ایمیل</label>
+            <div className="relative group">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">mail</span>
+              <input
+                type="email"
+                name="email"
+                defaultValue={user.email}
+                dir="ltr"
+                readOnly={hasGoogleProvider}
+                className={`w-full pl-12 pr-4 py-3 bg-zinc-100 dark:bg-[#151515] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none focus:border-red-500 transition-colors ${hasGoogleProvider ? 'opacity-50 cursor-not-allowed' : ''}`}
+              />
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isPending}
+          className="group relative w-full h-12 bg-red-600 dark:bg-[#98000b] text-white font-black overflow-hidden mt-8 hover:shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all disabled:opacity-50"
         >
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-          اتصال به حساب گوگل
+          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+          <span className="relative z-10 flex items-center justify-center gap-2 uppercase tracking-widest text-[10px]">
+            {isPending ? (
+              <span className="material-symbols-outlined animate-spin text-base">refresh</span>
+            ) : (
+              <span className="material-symbols-outlined text-base">save</span>
+            )}
+            ذخیره تغییرات
+          </span>
         </button>
-      )}
-    </div>
+      </form>
+
+      <form action={pwdAction} noValidate className="border border-zinc-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-[#0e0e0e]" onSubmit={(event) => {
+        const formData = new FormData(event.currentTarget);
+        if (!String(formData.get("newPassword") || "") || !String(formData.get("confirmPassword") || "") || (hasPassword && !String(formData.get("currentPassword") || ""))) {
+          event.preventDefault();
+          showAlert("فرم ناقص است", "فیلدهای رمز عبور را کامل وارد کنید.", "warning");
+        }
+      }}>
+        <div className="mb-8 flex items-start gap-4">
+          <span className="material-symbols-outlined flex size-12 shrink-0 items-center justify-center bg-zinc-900 text-white dark:bg-white dark:text-black">encrypted</span>
+          <div>
+            <h3 className="text-xl font-black uppercase tracking-wider text-zinc-900 dark:text-white">{hasPassword ? "تغییر رمز عبور" : "ایجاد رمز عبور"}</h3>
+            <p className="mt-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">برای ورود مستقیم با ایمیل، رمز حساب را امن نگه دارید.</p>
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {hasPassword && (
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] uppercase tracking-widest font-black text-zinc-500 dark:text-zinc-400">رمز عبور فعلی</label>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors">lock</span>
+                <input
+                  type="password"
+                  name="currentPassword"
+                  dir="ltr"
+                  className="w-full pl-12 pr-4 py-3 bg-zinc-100 dark:bg-[#151515] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none focus:border-red-500 transition-colors"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] uppercase tracking-widest font-black text-zinc-500 dark:text-zinc-400">رمز عبور جدید</label>
+            <div className="relative group">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors">key</span>
+              <input
+                type="password"
+                name="newPassword"
+                dir="ltr"
+                className="w-full pl-12 pr-4 py-3 bg-zinc-100 dark:bg-[#151515] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none focus:border-red-500 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] uppercase tracking-widest font-black text-zinc-500 dark:text-zinc-400">تکرار رمز عبور جدید</label>
+            <div className="relative group">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors">key</span>
+              <input
+                type="password"
+                name="confirmPassword"
+                dir="ltr"
+                className="w-full pl-12 pr-4 py-3 bg-zinc-100 dark:bg-[#151515] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none focus:border-red-500 transition-colors"
+              />
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isPwdPending}
+          className="group relative w-full h-12 bg-zinc-900 dark:bg-white text-white dark:text-black font-black overflow-hidden mt-8 transition-all disabled:opacity-50 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+        >
+          <span className="relative z-10 flex items-center justify-center gap-2 uppercase tracking-widest text-[10px]">
+            {isPwdPending ? (
+              <span className="material-symbols-outlined animate-spin text-base">refresh</span>
+            ) : (
+              <span className="material-symbols-outlined text-base">password</span>
+            )}
+            {hasPassword ? "تغییر رمز" : "ایجاد رمز"}
+          </span>
+        </button>
+      </form>
+
+      <div className="border border-zinc-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-[#0e0e0e]">
+        <div className="mb-8 flex items-start gap-4">
+          <span className="material-symbols-outlined flex size-12 shrink-0 items-center justify-center bg-zinc-900 text-white dark:bg-white dark:text-black">linked_services</span>
+          <div>
+            <h3 className="text-xl font-black uppercase tracking-wider text-zinc-900 dark:text-white">اتصال حساب‌ها</h3>
+            <p className="mt-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">ورود سریع‌تر و تصویر پروفایل گوگل از اینجا مدیریت می‌شود.</p>
+          </div>
+        </div>
+        {hasGoogleProvider ? (
+          <div className="flex items-center justify-between border border-zinc-200 bg-zinc-50 p-5 dark:border-white/10 dark:bg-[#151515]">
+            <div className="flex items-center gap-4">
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-8 h-8 grayscale opacity-80" />
+              <div>
+                <span className="font-black text-[10px] uppercase tracking-widest text-zinc-900 dark:text-white">حساب گوگل</span>
+                <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">تصویر و تایید ایمیل از گوگل دریافت می‌شود.</p>
+              </div>
+            </div>
+            <span className="border border-green-500/30 bg-green-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-green-600 dark:text-green-400">متصل</span>
+          </div>
+        ) : (
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/dashboard/user/profile" })}
+            className="group relative flex h-14 w-full items-center justify-center gap-3 border border-zinc-200 bg-zinc-50 px-4 py-3 font-black text-zinc-900 transition-colors hover:bg-zinc-100 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:hover:bg-white/5"
+          >
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5 grayscale group-hover:grayscale-0 transition-all" />
+            <span className="text-[10px] uppercase tracking-widest">اتصال به حساب گوگل</span>
+          </button>
+        )}
+      </div>
 
     </div>
   );

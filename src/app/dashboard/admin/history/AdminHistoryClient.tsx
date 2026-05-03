@@ -171,60 +171,61 @@ function NightReportBlock({
           const dayCount = nightEvents.filter(isDayReportEvent).length;
           const nightCount = nightEvents.length - dayCount;
           return (
-          <div key={`${sample ? "sample" : "real"}-${nightNumber}`} className="rounded-lg border border-white/70 bg-white/80 p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-black text-zinc-950 dark:text-white">دور {nightNumber}</p>
-              <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{nightCount} شب، {dayCount} روز</span>
-            </div>
-            <div className="mt-2 space-y-2">
-              {nightEvents.map((event) => (
-                <div key={event.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-xs leading-6 text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={isDayReportEvent(event) ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
-                      {isDayReportEvent(event) ? "روز" : "شب"}
-                    </span>
-                    <p className="font-black text-zinc-950 dark:text-white">
-                      {isDayReportEvent(event) ? event.details?.methodLabel || event.abilityLabel.replace(/^حذف روز:\s*/, "") : `${event.abilityLabel}${event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}`}
-                    </p>
-                    <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
-                      {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
-                    </span>
-                    {event.details?.effectType && event.details.effectType !== "NONE" && (
-                      <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
-                        {effectLabel(event.details.effectType)}
+            <div key={`${sample ? "sample" : "real"}-${nightNumber}`} className="rounded-lg border border-white/70 bg-white/80 p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-black text-zinc-950 dark:text-white">دور {nightNumber}</p>
+                <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{nightCount} شب، {dayCount} روز</span>
+              </div>
+              <div className="mt-2 space-y-2">
+                {nightEvents.map((event) => (
+                  <div key={event.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-xs leading-6 text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={isDayReportEvent(event) ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
+                        {isDayReportEvent(event) ? "روز" : "شب"}
                       </span>
+                      <p className="font-black text-zinc-950 dark:text-white">
+                        {isDayReportEvent(event) ? event.details?.methodLabel || event.abilityLabel.replace(/^حذف روز:\s*/, "") : `${event.abilityLabel}${event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}`}
+                      </p>
+                      <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
+                        {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
+                      </span>
+                      {event.details?.effectType && event.details.effectType !== "NONE" && (
+                        <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
+                          {effectLabel(event.details.effectType)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1">
+                      {event.actorName || event.abilitySource || alignmentLabel(event.actorAlignment)}
+                      {event.wasUsed === false ? " ← بدون هدف" : ` ← ${event.targetName || "نامشخص"}`}
+                    </p>
+                    {Array.isArray(event.details?.targetLabels) && event.details.targetLabels.length > 0 && (
+                      <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                        گزینه‌ها: {event.details.targetLabels.map((target) => `${target.label}: ${target.playerName || "نامشخص"}`).join("، ")}
+                      </p>
                     )}
+                    {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && event.details?.secondaryTargetName && (
+                      <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                        {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
+                      </p>
+                    )}
+                    {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
+                      <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                        هدف‌های اضافه: {event.details.extraTargets.map((target) => target.name).join("، ")}
+                      </p>
+                    )}
+                    {event.details?.convertedRoleName && (
+                      <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                        تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
+                      </p>
+                    )}
+                    {event.note && <p className="mt-1 text-zinc-500 dark:text-zinc-400">{event.note}</p>}
                   </div>
-                  <p className="mt-1">
-                    {event.actorName || event.abilitySource || alignmentLabel(event.actorAlignment)}
-                    {event.wasUsed === false ? " ← بدون هدف" : ` ← ${event.targetName || "نامشخص"}`}
-                  </p>
-                  {Array.isArray(event.details?.targetLabels) && event.details.targetLabels.length > 0 && (
-                    <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-                      گزینه‌ها: {event.details.targetLabels.map((target) => `${target.label}: ${target.playerName || "نامشخص"}`).join("، ")}
-                    </p>
-                  )}
-                  {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && event.details?.secondaryTargetName && (
-                    <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-                      {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
-                    </p>
-                  )}
-                  {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
-                    <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-                      هدف‌های اضافه: {event.details.extraTargets.map((target) => target.name).join("، ")}
-                    </p>
-                  )}
-                  {event.details?.convertedRoleName && (
-                    <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-                      تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
-                    </p>
-                  )}
-                  {event.note && <p className="mt-1 text-zinc-500 dark:text-zinc-400">{event.note}</p>}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )})}
+          )
+        })}
       </div>
     </div>
   );

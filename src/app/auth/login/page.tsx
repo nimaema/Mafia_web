@@ -86,54 +86,57 @@ export default function LoginPage() {
         )}
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">ایمیل</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">mail</span>
+          <label className="text-[10px] uppercase tracking-widest font-black text-zinc-500 dark:text-zinc-400">ایمیل</label>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors">mail</span>
             <input
               name="email"
               type="email"
               dir="ltr"
               autoComplete="email"
               placeholder="name@example.com"
-              className="w-full pl-12"
+              className="w-full pl-12 pr-4 py-3 bg-zinc-100 dark:bg-[#0e0e0e] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none focus:border-red-500 dark:focus:border-[#ffb4ab] transition-colors"
             />
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">رمز عبور</label>
-            <Link href="/auth/forgot-password" className="text-xs font-bold text-lime-600 transition-colors hover:text-lime-500 dark:text-lime-400">
+            <label className="text-[10px] uppercase tracking-widest font-black text-zinc-500 dark:text-zinc-400">رمز عبور</label>
+            <Link href="/auth/forgot-password" className="text-xs font-bold text-red-600 dark:text-[#ffb4ab] hover:underline">
               فراموشی رمز؟
             </Link>
           </div>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors">lock</span>
             <input
               name="password"
               type="password"
               dir="ltr"
               autoComplete="current-password"
               placeholder="••••••••"
-              className="w-full pl-12"
+              className="w-full pl-12 pr-4 py-3 bg-zinc-100 dark:bg-[#0e0e0e] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:outline-none focus:border-red-500 dark:focus:border-[#ffb4ab] transition-colors"
             />
           </div>
         </div>
 
-        <button type="submit" className="ui-button-primary mt-2 min-h-12 w-full">
-          <span className="material-symbols-outlined text-xl">arrow_back</span>
-          ورود به حساب
+        <button type="submit" className="group relative w-full h-12 bg-red-600 dark:bg-[#98000b] text-white font-black overflow-hidden mt-4 hover:shadow-[0_0_20px_rgba(220,38,38,0.3)] dark:hover:shadow-[0_0_20px_rgba(152,0,11,0.4)] transition-all">
+          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+          <span className="relative z-10 flex items-center justify-center gap-2">
+            <span className="material-symbols-outlined text-lg">arrow_back</span>
+            ورود به حساب
+          </span>
         </button>
       </form>
 
       <div className="my-6 flex items-center gap-4">
         <div className="h-px flex-1 bg-zinc-200 dark:bg-white/10"></div>
-        <span className="text-xs font-bold text-zinc-400">یا</span>
+        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">یا</span>
         <div className="h-px flex-1 bg-zinc-200 dark:bg-white/10"></div>
       </div>
 
-      <button onClick={() => signIn("google")} type="button" className="ui-button-secondary min-h-12 w-full">
-        <svg className="size-5" viewBox="0 0 24 24" aria-hidden="true">
+      <button onClick={() => signIn("google")} type="button" className="group relative w-full h-12 bg-white dark:bg-[#131313] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white font-bold flex items-center justify-center gap-3 hover:bg-zinc-50 dark:hover:border-white/30 transition-all">
+        <svg className="size-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
