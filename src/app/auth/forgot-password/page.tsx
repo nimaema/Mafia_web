@@ -62,8 +62,8 @@ export default function ForgotPasswordPage() {
         <div 
           className="absolute inset-0 opacity-40 transition-transform duration-1000 ease-out"
           style={{
-            background: `radial-gradient(circle at ${mousePosition.x || window.innerWidth / 2}px ${mousePosition.y || window.innerHeight / 2}px, rgba(220, 38, 38, 0.12) 0%, transparent 40%),
-                         radial-gradient(circle at ${window.innerWidth - (mousePosition.x || window.innerWidth / 2)}px ${window.innerHeight - (mousePosition.y || window.innerHeight / 2)}px, rgba(163, 230, 53, 0.08) 0%, transparent 35%)`
+            background: `radial-gradient(circle at ${mousePosition.x || (typeof window !== 'undefined' ? window.innerWidth / 2 : 500)}px ${mousePosition.y || (typeof window !== 'undefined' ? window.innerHeight / 2 : 500)}px, rgba(220, 38, 38, 0.12) 0%, transparent 40%),
+                         radial-gradient(circle at ${(typeof window !== 'undefined' ? window.innerWidth : 1000) - (mousePosition.x || (typeof window !== 'undefined' ? window.innerWidth / 2 : 500))}px ${(typeof window !== 'undefined' ? window.innerHeight : 1000) - (mousePosition.y || (typeof window !== 'undefined' ? window.innerHeight / 2 : 500))}px, rgba(163, 230, 53, 0.08) 0%, transparent 35%)`
           }}
         />
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-900/20 rounded-full mix-blend-screen filter blur-[100px] animate-pulse-slow" />
