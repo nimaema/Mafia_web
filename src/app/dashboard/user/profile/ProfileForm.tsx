@@ -171,7 +171,7 @@ export default function ProfileForm({
       <input type="hidden" name="profileImage" value={imageValue} />
       <input type="hidden" name="removeProfileImage" value={removeProfileImage ? "true" : "false"} />
       <div className="mb-5 flex items-start gap-3">
-        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-xl text-zinc-950 shadow-sm shadow-lime-500/20">manage_accounts</span>
+        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-cyan-500 text-xl text-zinc-950 shadow-sm shadow-cyan-500/20">manage_accounts</span>
         <div>
           <h3 className="text-xl font-black text-zinc-950 dark:text-white">اطلاعات پروفایل</h3>
           <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">نام نمایشی و ایمیل حساب را مدیریت کنید.</p>
@@ -197,7 +197,7 @@ export default function ProfileForm({
                 یک تصویر واضح انتخاب کنید تا در لابی و صفحه بازی کنار نام شما نمایش داده شود.
               </p>
               {imageValue.startsWith("data:image/") && (
-                <p className="mt-2 inline-flex rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">
+                <p className="mt-2 inline-flex rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[10px] font-black text-cyan-700 dark:text-cyan-300">
                   تصویر آماده ذخیره است
                 </p>
               )}
@@ -380,15 +380,15 @@ export default function ProfileForm({
         </div>
       </div>
       {hasGoogleProvider ? (
-        <div className="flex items-center justify-between rounded-lg border border-lime-500/20 bg-lime-500/10 p-4">
+        <div className="flex items-center justify-between rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-4">
           <div className="flex items-center gap-3">
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-6 h-6" />
             <div>
               <span className="font-black text-zinc-950 dark:text-white">حساب گوگل</span>
-              <p className="mt-1 text-xs font-bold text-lime-700 dark:text-lime-300">تصویر و تایید ایمیل از گوگل دریافت می‌شود.</p>
+              <p className="mt-1 text-xs font-bold text-cyan-700 dark:text-cyan-300">تصویر و تایید ایمیل از گوگل دریافت می‌شود.</p>
             </div>
           </div>
-          <span className="rounded-lg border border-lime-500/20 bg-white px-3 py-1 text-xs font-black text-lime-600 dark:bg-zinc-950 dark:text-lime-300">متصل</span>
+          <span className="rounded-lg border border-cyan-500/20 bg-white px-3 py-1 text-xs font-black text-cyan-600 dark:bg-zinc-950 dark:text-cyan-300">متصل</span>
         </div>
       ) : (
         <button 

@@ -306,7 +306,7 @@ export function ScenariosManager({
       <section className="ui-card overflow-hidden">
         <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300">
               <span className="material-symbols-outlined text-xl">cloud_done</span>
             </div>
             <div>
@@ -350,7 +350,7 @@ export function ScenariosManager({
         {showStats && (
           <div className="grid gap-3 border-t border-zinc-200 p-4 dark:border-white/10 md:grid-cols-2 xl:grid-cols-4">
             {[
-              ["سناریوها", stats.scenarios, "account_tree", "text-lime-500"],
+              ["سناریوها", stats.scenarios, "account_tree", "text-cyan-500"],
               ["نقش‌های قابل استفاده", stats.roles, "theater_comedy", "text-sky-500"],
               ["نقش‌های شهروند", stats.citizenRoles, "verified_user", "text-sky-500"],
               ["نقش‌های مافیا", stats.mafiaRoles, "local_police", "text-red-500"],
@@ -411,7 +411,7 @@ export function ScenariosManager({
                     setSelectedScenario(scenario);
                   }
                 }}
-                className="group relative cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-lime-500/30 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                className="group relative cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
               >
                 <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(dominantAlignment)}`} />
                 <div className="flex items-start justify-between gap-3 pt-1">
@@ -426,7 +426,7 @@ export function ScenariosManager({
                   </div>
 
                   <div className="flex shrink-0 items-start gap-1">
-                    <span className="flex min-h-8 items-center rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 text-[10px] font-black text-lime-700 dark:text-lime-300">
+                    <span className="flex min-h-8 items-center rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 text-[10px] font-black text-cyan-700 dark:text-cyan-300">
                       {total} نفر
                     </span>
                     <button
@@ -444,7 +444,7 @@ export function ScenariosManager({
                         event.stopPropagation();
                         openDuplicateForm(scenario);
                       }}
-                      className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-lime-500/30 hover:bg-lime-500/10 hover:text-lime-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-lime-300"
+                      className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/10 hover:text-cyan-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-cyan-300"
                       title="کپی سناریو"
                     >
                       <span className="material-symbols-outlined text-base">content_copy</span>
@@ -496,7 +496,7 @@ export function ScenariosManager({
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-bold text-zinc-500 dark:text-zinc-400">برای دیدن نقش‌ها و ظرفیت دقیق وارد جزئیات شوید.</p>
                   </div>
-                  <div className="mr-auto flex items-center gap-1 text-[10px] font-black text-zinc-400 transition-colors group-hover:text-lime-600 dark:group-hover:text-lime-300">
+                  <div className="mr-auto flex items-center gap-1 text-[10px] font-black text-zinc-400 transition-colors group-hover:text-cyan-600 dark:group-hover:text-cyan-300">
                     جزئیات
                     <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>
                   </div>
@@ -661,7 +661,7 @@ export function ScenariosManager({
             <div className="custom-scrollbar max-h-[calc(100dvh-15rem)] overflow-y-auto p-5 sm:max-h-[62vh]">
               <div className="grid gap-3 sm:grid-cols-4">
                 {[
-                  ["کل بازیکن", scenarioTotalPlayers(selectedScenario), "groups", "text-lime-500"],
+                  ["کل بازیکن", scenarioTotalPlayers(selectedScenario), "groups", "text-cyan-500"],
                   ["شهروند", scenarioAlignmentCounts(selectedScenario).CITIZEN, "verified_user", "text-sky-500"],
                   ["مافیا", scenarioAlignmentCounts(selectedScenario).MAFIA, "local_police", "text-red-500"],
                   ["مستقل", scenarioAlignmentCounts(selectedScenario).NEUTRAL, "casino", "text-amber-500"],

@@ -83,16 +83,16 @@ export function InstallPWANotice() {
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="group flex min-h-32 w-11 flex-col items-center justify-center gap-2 rounded-l-2xl border border-r-0 border-lime-500/30 bg-zinc-950/95 py-3 text-white shadow-2xl shadow-zinc-950/25 backdrop-blur-xl transition-all active:scale-[0.98]"
+          className="group flex min-h-32 w-11 flex-col items-center justify-center gap-2 rounded-l-2xl border border-r-0 border-cyan-500/30 bg-zinc-950/95 py-3 text-white shadow-2xl shadow-zinc-950/25 backdrop-blur-xl transition-all active:scale-[0.98]"
           aria-label="باز کردن راهنمای نصب برنامه"
         >
-          <span className="flex size-8 items-center justify-center rounded-lg bg-lime-500 text-zinc-950 shadow-sm shadow-lime-500/25">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-cyan-500 text-zinc-950 shadow-sm shadow-cyan-500/25">
             <span className="material-symbols-outlined text-xl">{pwa.guide.icon}</span>
           </span>
           <span className="grid place-items-center text-[10px] font-black leading-4 [writing-mode:vertical-rl]">
             نصب اپ
           </span>
-          <span className="material-symbols-outlined text-base text-lime-300 transition-transform group-hover:-translate-x-0.5">chevron_left</span>
+          <span className="material-symbols-outlined text-base text-cyan-300 transition-transform group-hover:-translate-x-0.5">chevron_left</span>
         </button>
       </div>
     );
@@ -104,14 +104,14 @@ export function InstallPWANotice() {
         <header className="shrink-0 border-b border-white/10 bg-zinc-950 px-4 py-3 text-white">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="relative flex size-11 shrink-0 items-center justify-center rounded-xl bg-lime-500 text-zinc-950 shadow-lg shadow-lime-500/25">
+              <span className="relative flex size-11 shrink-0 items-center justify-center rounded-xl bg-cyan-500 text-zinc-950 shadow-lg shadow-cyan-500/25">
                 <span className="material-symbols-outlined text-2xl">{pwa.guide.platformIcon}</span>
                 <span className="absolute -bottom-1 -left-1 flex size-5 items-center justify-center rounded-md border border-zinc-950 bg-white text-zinc-950">
                   <span className="material-symbols-outlined text-sm">{pwa.guide.icon}</span>
                 </span>
               </span>
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-lime-300">{pwa.guide.platformLabel} PWA</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-300">{pwa.guide.platformLabel} PWA</p>
                 <h2 className="mt-0.5 text-xl font-black leading-7">نصب مافیا بورد</h2>
               </div>
             </div>
@@ -132,7 +132,7 @@ export function InstallPWANotice() {
           <div className="mt-2 grid grid-cols-3 gap-1.5">
             {installBenefits.map((item) => (
               <span key={item.title} className="rounded-lg border border-white/10 bg-white/10 p-2 text-center">
-                <span className="material-symbols-outlined text-base text-lime-300">{item.icon}</span>
+                <span className="material-symbols-outlined text-base text-cyan-300">{item.icon}</span>
                 <span className="mt-0.5 block text-[10px] font-black text-white">{item.title}</span>
                 <span className="mt-0.5 block truncate text-[9px] font-bold text-zinc-400">{item.text}</span>
               </span>
@@ -141,14 +141,14 @@ export function InstallPWANotice() {
         </header>
 
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-3 py-3">
-          <section className="overflow-hidden rounded-xl border border-lime-500/25 bg-lime-500/10">
-            <div className="flex items-center justify-between gap-3 border-b border-lime-500/20 bg-white/80 p-2.5 dark:bg-zinc-950/55">
+          <section className="overflow-hidden rounded-xl border border-cyan-500/25 bg-cyan-500/10">
+            <div className="flex items-center justify-between gap-3 border-b border-cyan-500/20 bg-white/80 p-2.5 dark:bg-zinc-950/55">
               <div className="flex min-w-0 items-center gap-2">
-                <span className="material-symbols-outlined flex size-8 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-lg text-zinc-950">
+                <span className="material-symbols-outlined flex size-8 shrink-0 items-center justify-center rounded-lg bg-cyan-500 text-lg text-zinc-950">
                   {pwa.guide.platformIcon}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black text-lime-700 dark:text-lime-300">راهنمای دقیق نصب</p>
+                  <p className="text-[10px] font-black text-cyan-700 dark:text-cyan-300">راهنمای دقیق نصب</p>
                   <h3 className="mt-0.5 truncate text-sm font-black text-zinc-950 dark:text-white">{pwa.guide.label}</h3>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export function InstallPWANotice() {
             <ol className="grid gap-1.5 p-2.5">
               {pwa.guide.steps.map((step, index) => (
                 <li key={step} className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-2 rounded-lg border border-zinc-200 bg-white p-2 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70">
-                  <span className="relative flex size-9 items-center justify-center rounded-lg bg-lime-500 text-zinc-950">
+                  <span className="relative flex size-9 items-center justify-center rounded-lg bg-cyan-500 text-zinc-950">
                     <span className="material-symbols-outlined text-lg">{pwa.guide.stepIcons[index] || "touch_app"}</span>
                     <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-zinc-950 text-[8px] font-black text-white dark:bg-white dark:text-zinc-950">
                       {index + 1}

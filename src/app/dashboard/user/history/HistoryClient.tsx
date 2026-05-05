@@ -67,7 +67,7 @@ function resultMeta(result: HistoryItem["result"]) {
     return {
       label: "پیروزی",
       icon: "emoji_events",
-      className: "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300",
+      className: "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300",
     };
   }
 
@@ -152,7 +152,7 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
               const extraPlayers = Math.max(0, game.players.length - previewPlayers.length);
 
               return (
-                <article key={game.id} className="ui-card overflow-hidden transition-all hover:border-lime-500/25 hover:shadow-lg hover:shadow-zinc-950/5 dark:hover:shadow-black/20">
+                <article key={game.id} className="ui-card overflow-hidden transition-all hover:border-cyan-500/25 hover:shadow-lg hover:shadow-zinc-950/5 dark:hover:shadow-black/20">
                   <div className="border-b border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -304,19 +304,19 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
               </div>
 
               {selectedGame.nightEvents && selectedGame.nightEvents.length > 0 && (
-                <div className="mt-5 rounded-lg border border-lime-500/20 bg-lime-500/10 p-4">
+                <div className="mt-5 rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-4">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-lime-600 dark:text-lime-300">dark_mode</span>
+                    <span className="material-symbols-outlined text-cyan-600 dark:text-cyan-300">dark_mode</span>
                     <p className="text-sm font-black text-zinc-950 dark:text-white">رکوردهای منتشرشده شب</p>
                   </div>
                   <div className="mt-3 space-y-2">
                     {selectedGame.nightEvents.map((event) => (
-                      <div key={event.id} className="rounded-lg border border-lime-500/20 bg-white p-3 text-xs leading-6 text-zinc-600 dark:bg-zinc-950 dark:text-zinc-300">
+                      <div key={event.id} className="rounded-lg border border-cyan-500/20 bg-white p-3 text-xs leading-6 text-zinc-600 dark:bg-zinc-950 dark:text-zinc-300">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="font-black text-zinc-950 dark:text-white">
                             شب {event.nightNumber}: {event.abilityLabel}{event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}
                           </p>
-                          <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
+                          <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-black text-cyan-700 dark:text-cyan-300"}>
                             {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
                           </span>
                           {event.details?.effectType && event.details.effectType !== "NONE" && (

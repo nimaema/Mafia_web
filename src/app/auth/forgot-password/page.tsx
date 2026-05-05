@@ -51,14 +51,14 @@ export default function ForgotPasswordPage() {
       title="بازیابی رمز عبور"
       subtitle="ایمیل حساب خود را وارد کنید تا لینک تنظیم رمز تازه برای شما آماده شود."
       footer={
-        <Link href="/auth/login" className="text-center text-sm font-bold text-lime-600 transition-colors hover:text-lime-500 dark:text-lime-400">
+        <Link href="/auth/login" className="text-center text-sm font-bold text-cyan-200 transition-colors hover:text-cyan-100">
           بازگشت به ورود
         </Link>
       }
     >
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         {error && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+          <div className="rounded-2xl border border-red-400/24 bg-red-400/10 px-4 py-3 text-sm text-red-200">
             <div className="flex items-center gap-2 font-medium">
               <span className="material-symbols-outlined text-lg">error</span>
               <span>{error}</span>
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
         )}
 
         {message && (
-          <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-4 py-3 text-sm text-lime-700 dark:text-lime-300">
+          <div className="rounded-2xl border border-cyan-300/24 bg-cyan-300/10 px-4 py-3 text-sm text-cyan-100">
             <div className="flex items-center gap-2 font-medium">
               <span className="material-symbols-outlined text-lg">mark_email_read</span>
               <span>{message}</span>
@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
         )}
 
         {previewUrl && (
-          <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 p-4 text-sm text-sky-700 dark:text-sky-300">
+          <div className="rounded-2xl border border-sky-300/24 bg-sky-300/10 p-4 text-sm text-sky-100">
             <p className="font-black">لینک تست محلی آماده است</p>
             <p className="mt-2 leading-6">
               چون سرویس ایمیل در این محیط در دسترس نیست، می‌توانید مستقیم از همین لینک روند بازیابی را تست کنید.
@@ -89,9 +89,9 @@ export default function ForgotPasswordPage() {
         )}
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">ایمیل</label>
+          <label className="text-xs font-bold text-white/58">ایمیل</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">mail</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/42">mail</span>
             <input
               value={email}
               onChange={(event) => setEmail(event.target.value)}

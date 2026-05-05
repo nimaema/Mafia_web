@@ -11,7 +11,7 @@ type DashboardUser = {
   role?: string | null;
 };
 
-type NavTone = "lime" | "sky" | "amber" | "zinc";
+type NavTone = "cyan" | "violet" | "amber" | "emerald" | "rose";
 
 type NavItem = {
   key: string;
@@ -20,14 +20,7 @@ type NavItem = {
   description: string;
   icon: string;
   tone: NavTone;
-};
-
-type NavSection = {
-  title: string;
-  subtitle: string;
-  icon: string;
-  tone: NavTone;
-  items: NavItem[];
+  group: "player" | "moderator" | "admin";
 };
 
 type DashboardNavigationProps = {
@@ -42,9 +35,15 @@ function cx(...classes: Array<string | false | null | undefined>) {
 }
 
 function roleLabel(role?: string | null) {
-  if (role === "ADMIN") return "مدیر سیستم";
+  if (role === "ADMIN") return "مدیر";
   if (role === "MODERATOR") return "گرداننده";
   return "بازیکن";
+}
+
+function roleTone(role?: string | null) {
+  if (role === "ADMIN") return "pm-chip pm-chip-primary";
+  if (role === "MODERATOR") return "pm-chip pm-chip-warning";
+  return "pm-chip pm-chip-success";
 }
 
 function userInitial(name?: string | null) {
@@ -52,44 +51,16 @@ function userInitial(name?: string | null) {
   return trimmed ? trimmed[0] : "م";
 }
 
-function toneIcon(tone: NavTone, active: boolean) {
-  if (active) {
-    if (tone === "sky") return "bg-sky-400 text-sky-950 shadow-sm shadow-sky-500/25";
-    if (tone === "amber") return "bg-amber-300 text-amber-950 shadow-sm shadow-amber-500/25";
-    if (tone === "lime") return "bg-lime-400 text-zinc-950 shadow-sm shadow-lime-500/25";
-    return "bg-zinc-900 text-white dark:bg-white dark:text-zinc-950";
-  }
-
-  if (tone === "sky") return "bg-sky-500/10 text-sky-600 group-hover:bg-sky-500 group-hover:text-white dark:text-sky-300";
-  if (tone === "amber") return "bg-amber-500/10 text-amber-700 group-hover:bg-amber-400 group-hover:text-amber-950 dark:text-amber-300";
-  if (tone === "lime") return "bg-lime-500/10 text-lime-700 group-hover:bg-lime-500 group-hover:text-zinc-950 dark:text-lime-300";
-  return "bg-zinc-100 text-zinc-500 group-hover:bg-zinc-950 group-hover:text-white dark:bg-white/[0.06] dark:text-zinc-300";
-}
-
-function toneText(tone: NavTone) {
-  if (tone === "sky") return "text-sky-600 dark:text-sky-300";
-  if (tone === "amber") return "text-amber-600 dark:text-amber-300";
-  if (tone === "lime") return "text-lime-700 dark:text-lime-300";
-  return "text-zinc-500 dark:text-zinc-400";
-}
-
-function toneBar(tone: NavTone) {
-  if (tone === "sky") return "bg-sky-400";
-  if (tone === "amber") return "bg-amber-300";
-  if (tone === "lime") return "bg-lime-400";
-  return "bg-zinc-400";
-}
-
 function activeLabel(pathname: string, adminTab: string | null) {
-  if (pathname === "/dashboard/user") return "داشبورد";
-  if (pathname.startsWith("/dashboard/user/history")) return "تاریخچه بازی‌ها";
+  if (pathname === "/dashboard/user") return "خانه";
+  if (pathname.startsWith("/dashboard/user/history")) return "تاریخچه";
   if (pathname.startsWith("/dashboard/user/profile")) return "پروفایل";
-  if (pathname === "/dashboard/moderator" || pathname.startsWith("/dashboard/moderator/lobby")) return "لابی بازی‌ها";
-  if (pathname.startsWith("/dashboard/moderator/game")) return "اتاق گرداننده";
+  if (pathname === "/dashboard/moderator" || pathname.startsWith("/dashboard/moderator/lobby")) return "لابی‌ها";
+  if (pathname.startsWith("/dashboard/moderator/game")) return "اتاق اجرا";
   if (pathname === "/dashboard/moderator/scenarios" || (pathname === "/dashboard/admin" && adminTab === "scenarios")) return "سناریوها";
   if (pathname === "/dashboard/admin" && (!adminTab || adminTab === "roles")) return "نقش‌ها";
   if (pathname === "/dashboard/admin/users") return "کاربران";
-  if (pathname === "/dashboard/admin/history") return "تاریخچه کل";
+  if (pathname === "/dashboard/admin/history") return "آرشیو";
   if (pathname === "/dashboard/admin/backups") return "بکاپ";
   return "پنل";
 }
@@ -98,37 +69,60 @@ function formatPanelDate() {
   const today = new Date();
   return {
     shamsi: new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).format(today),
-    miladi: new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }).format(today),
-    shamsiCompact: new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
       weekday: "short",
       day: "numeric",
       month: "short",
       year: "numeric",
     }).format(today),
-    miladiCompact: new Intl.DateTimeFormat("en-US", {
+    miladi: new Intl.DateTimeFormat("en-US", {
       day: "numeric",
       month: "short",
       year: "numeric",
     }).format(today),
-    mobile: new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
-      day: "numeric",
-      month: "short",
-    }).format(today),
-    mobileMiladi: new Intl.DateTimeFormat("en-US", {
-      day: "numeric",
-      month: "short",
-    }).format(today),
   };
+}
+
+function toneClasses(tone: NavTone, active: boolean) {
+  const map: Record<NavTone, { active: string; idle: string; rail: string }> = {
+    cyan: {
+      active: "border-cyan-300/45 bg-cyan-300/15 text-cyan-100 shadow-cyan-500/10",
+      idle: "text-cyan-100/72 hover:border-cyan-300/24 hover:bg-cyan-300/10 hover:text-cyan-50",
+      rail: "from-cyan-300 to-teal-300",
+    },
+    violet: {
+      active: "border-violet-300/45 bg-violet-300/15 text-violet-100 shadow-violet-500/10",
+      idle: "text-violet-100/72 hover:border-violet-300/24 hover:bg-violet-300/10 hover:text-violet-50",
+      rail: "from-violet-300 to-fuchsia-300",
+    },
+    amber: {
+      active: "border-amber-300/45 bg-amber-300/15 text-amber-100 shadow-amber-500/10",
+      idle: "text-amber-100/72 hover:border-amber-300/24 hover:bg-amber-300/10 hover:text-amber-50",
+      rail: "from-amber-300 to-orange-300",
+    },
+    emerald: {
+      active: "border-emerald-300/45 bg-emerald-300/15 text-emerald-100 shadow-emerald-500/10",
+      idle: "text-emerald-100/72 hover:border-emerald-300/24 hover:bg-emerald-300/10 hover:text-emerald-50",
+      rail: "from-emerald-300 to-teal-300",
+    },
+    rose: {
+      active: "border-rose-300/45 bg-rose-300/15 text-rose-100 shadow-rose-500/10",
+      idle: "text-rose-100/72 hover:border-rose-300/24 hover:bg-rose-300/10 hover:text-rose-50",
+      rail: "from-rose-300 to-pink-300",
+    },
+  };
+
+  return active ? map[tone].active : map[tone].idle;
+}
+
+function toneRail(tone: NavTone) {
+  const map: Record<NavTone, string> = {
+    cyan: "from-cyan-300 to-teal-300",
+    violet: "from-violet-300 to-fuchsia-300",
+    amber: "from-amber-300 to-orange-300",
+    emerald: "from-emerald-300 to-teal-300",
+    rose: "from-rose-300 to-pink-300",
+  };
+  return map[tone];
 }
 
 export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }: DashboardNavigationProps) {
@@ -139,49 +133,27 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
   const currentLabel = activeLabel(pathname, adminTab);
   const panelDate = useMemo(formatPanelDate, []);
 
-  const sections: NavSection[] = [
-    {
-      title: "فضای بازیکن",
-      subtitle: "داشبورد، سابقه و پروفایل",
-      icon: "person_pin_circle",
-      tone: "lime",
-      items: [
-        { key: "dashboard", href: "/dashboard/user", label: "داشبورد", description: "خلاصه وضعیت و بازی‌های فعال", icon: "dashboard", tone: "lime" },
-        { key: "history", href: "/dashboard/user/history", label: "تاریخچه بازی‌ها", description: "نتایج، نقش‌ها و گزارش‌ها", icon: "history", tone: "zinc" },
-        { key: "profile", href: "/dashboard/user/profile", label: "پروفایل", description: "نام، تصویر و تنظیمات حساب", icon: "person", tone: "zinc" },
-      ],
-    },
+  const items: NavItem[] = [
+    { key: "dashboard", href: "/dashboard/user", label: "خانه", description: "لابی‌های زنده و وضعیت بازی", icon: "space_dashboard", tone: "cyan", group: "player" },
+    { key: "history", href: "/dashboard/user/history", label: "تاریخچه", description: "نتایج، نقش‌ها و گزارش‌ها", icon: "history", tone: "violet", group: "player" },
+    { key: "profile", href: "/dashboard/user/profile", label: "پروفایل", description: "تصویر، نام و امنیت حساب", icon: "account_circle", tone: "emerald", group: "player" },
   ];
 
   if (isModerator) {
-    sections.push({
-      title: "گردانندگی",
-      subtitle: "لابی، سناریو و اتاق اجرا",
-      icon: "sports_esports",
-      tone: "amber",
-      items: [
-        { key: "moderator", href: "/dashboard/moderator", label: "لابی بازی‌ها", description: "ساخت، شروع و مدیریت لابی", icon: "sports_esports", tone: "lime" },
-        { key: "scenarios", href: scenarioHref, label: "سناریوها", description: "کتابخانه ترکیب‌های بازی", icon: "account_tree", tone: "amber" },
-        { key: "roles", href: "/dashboard/admin?tab=roles", label: "نقش‌ها", description: "توانایی‌ها و جبهه‌ها", icon: "theater_comedy", tone: "lime" },
-      ],
-    });
+    items.push(
+      { key: "moderator", href: "/dashboard/moderator", label: "لابی‌ها", description: "ساخت و مدیریت بازی", icon: "stadia_controller", tone: "amber", group: "moderator" },
+      { key: "scenarios", href: scenarioHref, label: "سناریوها", description: "ترکیب‌ها و راهنماها", icon: "account_tree", tone: "violet", group: "moderator" },
+      { key: "roles", href: "/dashboard/admin?tab=roles", label: "نقش‌ها", description: "توانایی‌ها و جبهه‌ها", icon: "theater_comedy", tone: "cyan", group: "moderator" },
+    );
   }
 
   if (isAdmin) {
-    sections.push({
-      title: "مدیریت کل",
-      subtitle: "کاربران، تاریخچه و بکاپ",
-      icon: "admin_panel_settings",
-      tone: "sky",
-      items: [
-        { key: "users", href: "/dashboard/admin/users", label: "کاربران", description: "نقش، وضعیت و کنترل حساب", icon: "group", tone: "sky" },
-        { key: "adminHistory", href: "/dashboard/admin/history", label: "تاریخچه کل", description: "همه بازی‌ها و گزارش‌ها", icon: "manage_history", tone: "sky" },
-        { key: "backups", href: "/dashboard/admin/backups", label: "بکاپ", description: "دیتابیس، نقش‌ها و سناریوها", icon: "database", tone: "amber" },
-      ],
-    });
+    items.push(
+      { key: "users", href: "/dashboard/admin/users", label: "کاربران", description: "کنترل حساب و دسترسی", icon: "group", tone: "cyan", group: "admin" },
+      { key: "adminHistory", href: "/dashboard/admin/history", label: "آرشیو کل", description: "همه بازی‌ها و گزارش‌ها", icon: "database_search", tone: "violet", group: "admin" },
+      { key: "backups", href: "/dashboard/admin/backups", label: "بکاپ", description: "نسخه‌ها و بازیابی امن", icon: "cloud_sync", tone: "amber", group: "admin" },
+    );
   }
-
-  const allItems = sections.flatMap((section) => section.items);
 
   const isActive = (item: NavItem) => {
     if (item.key === "dashboard") return pathname === "/dashboard/user";
@@ -200,13 +172,8 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
     return false;
   };
 
-  const itemToneByKey = new Map<string, NavTone>(
-    sections.flatMap((section) => section.items.map((item) => [item.key, section.tone] as const))
-  );
-
   const renderDesktopLink = (item: NavItem) => {
     const active = isActive(item);
-    const tone = itemToneByKey.get(item.key) ?? item.tone;
 
     return (
       <Link
@@ -214,26 +181,23 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         href={item.href}
         aria-current={active ? "page" : undefined}
         className={cx(
-          "motion-nav-item group relative grid min-h-[4.35rem] grid-cols-[3rem_minmax(0,1fr)_1.25rem] items-center gap-3 overflow-hidden rounded-2xl border px-3 text-right transition-all",
-          active
-            ? "border-zinc-200 bg-white text-zinc-950 shadow-lg shadow-zinc-950/10 dark:border-white/10 dark:bg-white/[0.09] dark:text-white dark:shadow-black/20"
-            : "border-transparent text-zinc-600 hover:border-zinc-200 hover:bg-white/80 hover:text-zinc-950 hover:shadow-sm dark:text-zinc-400 dark:hover:border-white/10 dark:hover:bg-white/[0.06] dark:hover:text-white"
+          "motion-nav-item group relative grid min-h-[3.65rem] grid-cols-[2.5rem_minmax(0,1fr)_1.2rem] items-center gap-3 overflow-hidden rounded-2xl border px-2.5 text-right shadow-sm transition-all",
+          toneClasses(item.tone, active),
+          active ? "shadow-lg" : "border-white/0 bg-white/[0.025]"
         )}
       >
-        {active && <span className={cx("absolute inset-y-3 right-0 w-1 rounded-l-full", toneBar(tone))} />}
-        <span className={cx("material-symbols-outlined grid size-12 place-items-center rounded-2xl text-[1.45rem] leading-none transition-all", toneIcon(tone, active))}>
+        <span className={cx("absolute inset-y-2 right-0 w-1 rounded-l-full bg-gradient-to-b opacity-0 transition-opacity", toneRail(item.tone), active && "opacity-100")} />
+        <span className={cx(
+          "material-symbols-outlined grid size-10 place-items-center rounded-xl border text-[1.28rem] leading-none",
+          active ? "border-white/14 bg-white/14 text-white" : "border-white/8 bg-white/[0.045] text-white/70 group-hover:text-white"
+        )}>
           {item.icon}
         </span>
         <span className="min-w-0">
           <span className="block truncate text-sm font-black">{item.label}</span>
-          <span className="mt-1 block truncate text-[11px] font-bold text-zinc-500 dark:text-zinc-400">{item.description}</span>
+          <span className="mt-0.5 block truncate text-[10px] font-bold text-white/42">{item.description}</span>
         </span>
-        <span
-          className={cx(
-            "material-symbols-outlined text-lg transition-all",
-            active ? toneText(tone) : "text-zinc-300 group-hover:translate-x-0.5 group-hover:text-zinc-500 dark:text-zinc-600 dark:group-hover:text-zinc-300"
-          )}
-        >
+        <span className="material-symbols-outlined text-lg text-white/28 transition-all group-hover:-translate-x-0.5 group-hover:text-white/70">
           chevron_left
         </span>
       </Link>
@@ -242,7 +206,6 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
 
   const renderMobileLink = (item: NavItem) => {
     const active = isActive(item);
-    const tone = itemToneByKey.get(item.key) ?? item.tone;
 
     return (
       <Link
@@ -250,14 +213,15 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         href={item.href}
         aria-current={active ? "page" : undefined}
         className={cx(
-          "motion-nav-item group relative flex min-w-[4.9rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center transition-all",
-          active
-            ? "bg-zinc-950 text-white shadow-md shadow-zinc-950/10 dark:bg-white dark:text-zinc-950"
-            : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
+          "motion-nav-item relative flex min-w-[4.35rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-1.5 text-center transition-all",
+          active ? "bg-white text-zinc-950 shadow-lg shadow-black/20" : "text-white/58 hover:bg-white/8 hover:text-white"
         )}
       >
-        {active && <span className={cx("absolute top-1 h-1 w-6 rounded-full", toneBar(tone))} />}
-        <span className={cx("material-symbols-outlined grid size-8 place-items-center rounded-xl text-xl leading-none transition-all", toneIcon(tone, active))}>
+        {active && <span className={cx("absolute top-1 h-1 w-6 rounded-full bg-gradient-to-l", toneRail(item.tone))} />}
+        <span className={cx(
+          "material-symbols-outlined grid size-8 place-items-center rounded-xl text-[1.2rem] leading-none",
+          active ? "bg-zinc-950 text-cyan-200" : "bg-white/[0.055] text-white/70"
+        )}>
           {item.icon}
         </span>
         <span className="w-full truncate text-[10px] font-black leading-4">{item.label}</span>
@@ -267,95 +231,82 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
 
   return (
     <>
-      <aside className="motion-page sticky top-0 z-20 hidden h-screen w-[21rem] shrink-0 flex-col border-l border-zinc-200 bg-zinc-100/90 p-3 shadow-2xl shadow-zinc-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/95 dark:shadow-black/30 md:flex">
-        <div className="motion-pop overflow-hidden rounded-[1.25rem] border border-zinc-800 bg-zinc-950 text-white shadow-2xl shadow-zinc-950/20 dark:border-white/10">
-          <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
-          <div className="p-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white text-base font-black text-zinc-950 shadow-lg shadow-black/20">
-                {user.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={user.image} alt="" className="size-full object-cover" />
-                ) : (
-                  <span>{userInitial(user.name)}</span>
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-black">{user.name || "بازیکن مافیا"}</p>
-                <p className="mt-0.5 truncate text-[11px] font-bold text-lime-200">{roleLabel(user.role)}</p>
+      <aside className="sticky top-0 z-30 hidden h-screen w-[18.5rem] shrink-0 border-l border-white/10 bg-[#12151a]/95 p-3 text-white shadow-2xl shadow-black/30 backdrop-blur-2xl md:flex md:flex-col">
+        <div className="pm-aurora relative overflow-hidden rounded-[1.35rem] border border-white/12 bg-white/[0.055] p-3 shadow-2xl shadow-black/25">
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/12 bg-white text-base font-black text-zinc-950 shadow-lg shadow-black/20">
+              {user.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.image} alt="" className="size-full object-cover" />
+              ) : (
+                <span>{userInitial(user.name)}</span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-black">{user.name || "بازیکن مافیا"}</p>
+              <div className="mt-1 flex items-center gap-2">
+                <span className={roleTone(user.role)}>{roleLabel(user.role)}</span>
+                <span className="pm-chip pm-chip-primary" dir="ltr">{panelDate.miladi}</span>
               </div>
             </div>
-
-            <div className="mt-2 grid min-w-0 grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-white/10 bg-white/[0.07] px-2.5 py-1.5">
-              <span className="material-symbols-outlined grid size-7 place-items-center rounded-lg bg-white/10 text-sm leading-none text-lime-200">
-                calendar_month
+          </div>
+          <div className="relative z-10 mt-3 rounded-2xl border border-white/10 bg-black/18 px-3 py-2">
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2 text-[11px] font-black text-white/78">
+                <span className="material-symbols-outlined text-base text-cyan-200">calendar_month</span>
+                امروز
               </span>
-              <p className="truncate text-[11px] font-black text-white">{panelDate.shamsiCompact}</p>
-              <p className="shrink-0 text-[10px] font-bold text-zinc-400" dir="ltr">{panelDate.miladiCompact}</p>
+              <span className="truncate text-[11px] font-black text-cyan-100">{panelDate.shamsi}</span>
             </div>
           </div>
         </div>
 
-        <nav className="custom-scrollbar motion-list mt-3 flex flex-1 flex-col gap-3 overflow-y-auto rounded-[1.25rem] border border-zinc-200 bg-white/75 p-2.5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.035]">
-          {sections.map((section) => (
-            <section key={section.title} className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-2 dark:border-white/10 dark:bg-zinc-950/45">
-              <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-zinc-200 bg-white/70 px-2.5 py-2 dark:border-white/10 dark:bg-white/[0.035]">
-                <span className="flex min-w-0 items-center gap-2">
-                  <span className={cx("h-7 w-1 rounded-full", toneBar(section.tone))} />
-                  <span className={cx("material-symbols-outlined grid size-7 place-items-center text-base leading-none", toneText(section.tone))}>
-                    {section.icon}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-[11px] font-black text-zinc-950 dark:text-white">{section.title}</span>
-                    <span className="mt-0.5 block truncate text-[9px] font-bold text-zinc-500 dark:text-zinc-400">{section.subtitle}</span>
-                  </span>
-                </span>
-                <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-1 text-[9px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950/70 dark:text-zinc-400">
-                  {section.items.length} مورد
-                </span>
-              </div>
-              <div className="grid gap-1.5">{section.items.map(renderDesktopLink)}</div>
-            </section>
-          ))}
+        <div className="mt-3 flex items-center justify-between gap-2 px-1">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200/80">COMMAND</p>
+            <p className="mt-1 text-lg font-black leading-6">{currentLabel}</p>
+          </div>
+          <span className="material-symbols-outlined grid size-10 place-items-center rounded-2xl border border-white/10 bg-white/[0.06] text-cyan-100">
+            route
+          </span>
+        </div>
+
+        <nav className="custom-scrollbar motion-list mt-3 flex flex-1 flex-col gap-1.5 overflow-y-auto rounded-[1.35rem] border border-white/10 bg-black/16 p-2">
+          {items.map(renderDesktopLink)}
         </nav>
 
-        <div className="motion-reveal mt-3 rounded-[1.25rem] border border-zinc-200 bg-white/75 p-2 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.035]">
+        <div className="mt-3 grid gap-2 rounded-[1.35rem] border border-white/10 bg-black/16 p-2">
           <ThemeToggle />
-          <form action={logoutAction} className="mt-1.5 w-full">
+          <form action={logoutAction}>
             <button
               type="submit"
-              className="group grid w-full grid-cols-[2rem_minmax(0,1fr)_1.25rem] items-center gap-2.5 rounded-xl border border-red-500/15 bg-white/80 px-2.5 py-2 text-xs font-black text-red-600 shadow-sm shadow-zinc-950/5 transition-all hover:border-red-500/30 hover:bg-red-500 hover:text-white dark:bg-white/[0.04] dark:text-red-300 dark:hover:bg-red-500"
+              className="motion-nav-item grid w-full grid-cols-[2.5rem_minmax(0,1fr)_1rem] items-center gap-2 rounded-2xl border border-rose-300/18 bg-rose-400/10 px-2.5 py-2 text-xs font-black text-rose-100 transition-all hover:bg-rose-500 hover:text-white"
             >
-              <span className="material-symbols-outlined grid size-8 place-items-center rounded-lg bg-red-500/10 text-base leading-none transition-all group-hover:bg-white/15">logout</span>
-              <span className="min-w-0 truncate text-right">خروج از سیستم</span>
-              <span className="material-symbols-outlined grid size-5 place-items-center text-sm leading-none opacity-50">chevron_left</span>
+              <span className="material-symbols-outlined grid size-9 place-items-center rounded-xl bg-white/10 text-lg leading-none">logout</span>
+              <span className="truncate text-right">خروج</span>
+              <span className="material-symbols-outlined text-sm opacity-60">chevron_left</span>
             </button>
           </form>
         </div>
       </aside>
 
-      <nav className="motion-pop fixed bottom-3 left-3 right-3 z-50 overflow-hidden rounded-[1.4rem] border border-zinc-200/80 bg-white/[0.96] shadow-2xl shadow-zinc-950/15 backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/[0.96] md:hidden">
-        <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-zinc-200/70 px-3 py-2 dark:border-white/10">
-          <span className="truncate text-xs font-black text-zinc-950 dark:text-white">{currentLabel}</span>
-          <span className="flex shrink-0 items-center gap-1.5">
-            <span className="rounded-full border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">
-              {panelDate.mobile}
-            </span>
-            <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-[10px] font-black text-sky-700 dark:text-sky-300" dir="ltr">
-              {panelDate.mobileMiladi}
-            </span>
-          </span>
+      <nav className="fixed bottom-3 left-3 right-3 z-50 overflow-hidden rounded-[1.45rem] border border-white/12 bg-[#12151a]/95 text-white shadow-2xl shadow-black/35 backdrop-blur-2xl md:hidden">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-white/10 px-3 py-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="material-symbols-outlined grid size-8 place-items-center rounded-xl bg-cyan-300 text-lg text-zinc-950">route</span>
+            <span className="truncate text-xs font-black">{currentLabel}</span>
+          </div>
+          <span className="pm-chip pm-chip-primary">{panelDate.shamsi}</span>
         </div>
-        <div className="custom-scrollbar flex h-[5.55rem] items-stretch gap-1 overflow-x-auto px-2 py-2">
-          {allItems.map(renderMobileLink)}
+        <div className="custom-scrollbar flex h-[5.2rem] items-stretch gap-1 overflow-x-auto px-2 py-2">
+          {items.map(renderMobileLink)}
           <ThemeToggle nav />
-          <form action={logoutAction} className="min-w-[4.9rem]">
+          <form action={logoutAction} className="min-w-[4.35rem]">
             <button
               type="submit"
-              className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-red-500 transition-all hover:bg-red-500/10 hover:text-red-600 dark:text-red-300"
+              className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-2xl px-2 py-1.5 text-rose-200 transition-all hover:bg-rose-500/12"
             >
-              <span className="material-symbols-outlined grid size-8 place-items-center rounded-xl bg-red-500/10 text-xl leading-none">logout</span>
+              <span className="material-symbols-outlined grid size-8 place-items-center rounded-xl bg-rose-400/12 text-[1.2rem] leading-none">logout</span>
               <span className="w-full truncate text-[10px] font-black leading-4">خروج</span>
             </button>
           </form>

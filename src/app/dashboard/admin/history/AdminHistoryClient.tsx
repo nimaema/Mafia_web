@@ -155,13 +155,13 @@ function NightReportBlock({
   if (!events.length) return null;
 
   return (
-    <div className={sample ? "rounded-lg border border-lime-500/20 bg-lime-500/10 p-4" : "rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]"}>
+    <div className={sample ? "rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-4" : "rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]"}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-lg text-lime-600 dark:text-lime-300">dark_mode</span>
+          <span className="material-symbols-outlined text-lg text-cyan-600 dark:text-cyan-300">dark_mode</span>
           <p className="text-sm font-black text-zinc-950 dark:text-white">{sample ? "نمونه گزارش نهایی برای ادمین" : "گزارش نهایی بازی"}</p>
         </div>
-        <span className={sample || isPublic ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
+        <span className={sample || isPublic ? "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[10px] font-black text-cyan-700 dark:text-cyan-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
           {sample ? "نمونه" : isPublic ? "منتشرشده" : "فقط ادمین"}
         </span>
       </div>
@@ -180,13 +180,13 @@ function NightReportBlock({
               {nightEvents.map((event) => (
                 <div key={event.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-xs leading-6 text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={isDayReportEvent(event) ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
+                    <span className={isDayReportEvent(event) ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-black text-cyan-700 dark:text-cyan-300"}>
                       {isDayReportEvent(event) ? "روز" : "شب"}
                     </span>
                     <p className="font-black text-zinc-950 dark:text-white">
                       {isDayReportEvent(event) ? event.details?.methodLabel || event.abilityLabel.replace(/^حذف روز:\s*/, "") : `${event.abilityLabel}${event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}`}
                     </p>
-                    <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
+                    <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-black text-cyan-700 dark:text-cyan-300"}>
                       {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
                     </span>
                     {event.details?.effectType && event.details.effectType !== "NONE" && (
@@ -325,7 +325,7 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
                 <button
                   onClick={() => publishReport(game.id)}
                   disabled={game.nightRecordsPublic || isPending}
-                  className={game.nightRecordsPublic ? "ui-button-secondary min-h-11 w-full text-lime-700 dark:text-lime-300" : "ui-button-primary min-h-11 w-full"}
+                  className={game.nightRecordsPublic ? "ui-button-secondary min-h-11 w-full text-cyan-700 dark:text-cyan-300" : "ui-button-primary min-h-11 w-full"}
                 >
                   <span className="material-symbols-outlined text-lg">{game.nightRecordsPublic ? "public" : "publish"}</span>
                   {game.nightRecordsPublic ? "گزارش برای بازیکنان فعال است" : "انتشار گزارش برای بازیکنان"}

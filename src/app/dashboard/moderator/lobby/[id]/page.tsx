@@ -483,9 +483,9 @@ export default function GameLobbyPage() {
     return (
       <div className="flex min-h-[560px] items-center justify-center" dir="rtl">
         <div className="ui-card w-full max-w-xl overflow-hidden text-center">
-          <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
+          <div className="h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-300" />
           <div className="p-8 sm:p-10">
-            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-lime-500 text-zinc-950 shadow-lg shadow-lime-500/20">
+            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-cyan-500 text-zinc-950 shadow-lg shadow-cyan-500/20">
               <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
             </div>
             <p className="mt-5 text-lg font-black text-zinc-950 dark:text-white">در حال آماده‌سازی اتاق انتظار</p>
@@ -500,18 +500,18 @@ export default function GameLobbyPage() {
 
   return (
     <div className="flex flex-col gap-5" dir="rtl">
-      <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_54%,#f0fdf4_100%)] shadow-xl shadow-zinc-950/10 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.94)_0%,rgba(9,9,11,0.98)_58%,rgba(20,83,45,0.22)_100%)] dark:shadow-black/30">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+      <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_54%,#ecfeff_100%)] shadow-xl shadow-zinc-950/10 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.94)_0%,rgba(9,9,11,0.98)_58%,rgba(0,168,150,0.22)_100%)] dark:shadow-black/30">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" />
         <header className="relative overflow-hidden border-b border-zinc-200 bg-zinc-950 p-4 text-white dark:border-white/10 sm:p-5">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.28),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.2),transparent_18rem)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.28),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.2),transparent_18rem)]" />
           <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-300">مدیریت لابی</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">مدیریت لابی</p>
               <h1 className="mt-1 line-clamp-2 break-words text-2xl font-black leading-8 sm:text-3xl sm:leading-10">{game?.name || "لابی بازی مافیا"}</h1>
               <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black">
                 <span className="rounded-lg border border-white/10 bg-white/10 px-2.5 py-1 text-zinc-200">{players.length} بازیکن حاضر</span>
                 <span className="rounded-lg border border-white/10 bg-white/10 px-2.5 py-1 text-zinc-200">{requiredPlayers || "بدون"} ظرفیت سناریو</span>
-                <span className="rounded-lg border border-lime-300/20 bg-lime-300/10 px-2.5 py-1 text-lime-200">کد #{game?.code || "------"}</span>
+                <span className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 px-2.5 py-1 text-cyan-200">کد #{game?.code || "------"}</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
@@ -536,10 +536,10 @@ export default function GameLobbyPage() {
                 { icon: "tune", label: "توانایی‌ها", value: missingAbilityRoleNames.length ? "نیاز به انتخاب" : "هماهنگ", done: missingAbilityRoleNames.length === 0 },
                 { icon: "play_arrow", label: "شروع", value: startDisabledReason ? "قفل" : "آماده", done: !startDisabledReason },
               ].map((step) => (
-                <div key={step.label} className={`rounded-lg border p-3 shadow-sm shadow-zinc-950/5 ${step.done ? "border-lime-500/25 bg-lime-500/10" : "border-zinc-200 bg-white/80 dark:border-white/10 dark:bg-white/[0.03]"}`}>
+                <div key={step.label} className={`rounded-lg border p-3 shadow-sm shadow-zinc-950/5 ${step.done ? "border-cyan-500/25 bg-cyan-500/10" : "border-zinc-200 bg-white/80 dark:border-white/10 dark:bg-white/[0.03]"}`}>
                   <div className="flex items-center justify-between gap-2">
-                    <span className={`material-symbols-outlined text-xl ${step.done ? "text-lime-600 dark:text-lime-300" : "text-zinc-400"}`}>{step.icon}</span>
-                    <span className={step.done ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
+                    <span className={`material-symbols-outlined text-xl ${step.done ? "text-cyan-600 dark:text-cyan-300" : "text-zinc-400"}`}>{step.icon}</span>
+                    <span className={step.done ? "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-black text-cyan-700 dark:text-cyan-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
                       {step.value}
                     </span>
                   </div>
@@ -559,7 +559,7 @@ export default function GameLobbyPage() {
                     !requiredPlayers
                       ? "border-zinc-200 bg-white text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400"
                       : seatsRemaining === 0
-                        ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+                        ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
                         : seatsRemaining > 0
                           ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
                           : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300"
@@ -577,7 +577,7 @@ export default function GameLobbyPage() {
                           key={player?.id || `slot-${index}`}
                           className={`flex min-h-14 items-center gap-3 rounded-lg border p-2.5 transition-all ${
                             player
-                              ? "border-lime-500/20 bg-lime-500/10 shadow-sm shadow-lime-500/5"
+                              ? "border-cyan-500/20 bg-cyan-500/10 shadow-sm shadow-cyan-500/5"
                               : "border-dashed border-zinc-200 bg-zinc-50/70 dark:border-white/10 dark:bg-white/[0.03]"
                           }`}
                         >
@@ -623,7 +623,7 @@ export default function GameLobbyPage() {
 
                 <div className="mt-3 grid grid-cols-3 gap-2">
                   {[
-                    ["حاضر", players.length, "text-lime-600 dark:text-lime-300"],
+                    ["حاضر", players.length, "text-cyan-600 dark:text-cyan-300"],
                     ["ظرفیت", requiredPlayers || "?", "text-sky-600 dark:text-sky-300"],
                     ["مانده", requiredPlayers ? Math.max(0, seatsRemaining) : "?", "text-amber-600 dark:text-amber-300"],
                   ].map(([label, value, color]) => (
@@ -638,13 +638,13 @@ export default function GameLobbyPage() {
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
               {game?.scenario ? (
-                <div className="relative overflow-hidden rounded-lg border border-lime-500/20 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 dark:bg-zinc-950/70">
-                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+                <div className="relative overflow-hidden rounded-lg border border-cyan-500/20 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 dark:bg-zinc-950/70">
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" />
                   <div className="flex items-start justify-between gap-3 pt-1">
                     <div className="min-w-0">
-                      <p className="text-xs font-black text-lime-700 dark:text-lime-300">سناریوی فعال</p>
+                      <p className="text-xs font-black text-cyan-700 dark:text-cyan-300">سناریوی فعال</p>
                       <p className="mt-1 line-clamp-2 break-words text-xl font-black leading-7 text-zinc-950 dark:text-white">{game.scenario.name}</p>
-                      <p className="mt-1 text-sm font-bold text-lime-700 dark:text-lime-300">{players.length} / {requiredPlayers} بازیکن</p>
+                      <p className="mt-1 text-sm font-bold text-cyan-700 dark:text-cyan-300">{players.length} / {requiredPlayers} بازیکن</p>
                     </div>
                     <button onClick={() => handleSelectScenario("")} className="ui-button-secondary min-h-9 shrink-0 px-3 text-xs" disabled={settingScenario}>
                       تغییر
@@ -738,9 +738,9 @@ export default function GameLobbyPage() {
                         key={scenario.id}
                         onClick={() => handleSelectScenario(scenario.id)}
                         disabled={settingScenario}
-                        className="group relative overflow-hidden rounded-lg border border-lime-500/25 bg-white/90 p-3 text-right shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/40 hover:shadow-lg hover:shadow-zinc-950/10 disabled:opacity-50 dark:bg-zinc-950/70"
+                        className="group relative overflow-hidden rounded-lg border border-cyan-500/25 bg-white/90 p-3 text-right shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-cyan-500/40 hover:shadow-lg hover:shadow-zinc-950/10 disabled:opacity-50 dark:bg-zinc-950/70"
                       >
-                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 to-sky-400" />
+                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 to-sky-400" />
                         <p className="mt-1 line-clamp-2 break-words font-black leading-6 text-zinc-950 dark:text-white">{scenario.name}</p>
                         <div className="mt-3 flex items-center justify-between gap-2 text-[10px] font-black text-zinc-500 dark:text-zinc-400">
                           <span>{counts.total} نفره</span>
@@ -773,7 +773,7 @@ export default function GameLobbyPage() {
                 <span className="text-zinc-950 dark:text-white">{capacityProgress}%</span>
               </div>
               <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
-                <div className="h-full rounded-full bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" style={{ width: `${capacityProgress}%` }} />
+                <div className="h-full rounded-full bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" style={{ width: `${capacityProgress}%` }} />
               </div>
             </div>
             <button
@@ -789,7 +789,7 @@ export default function GameLobbyPage() {
                 {startDisabledReason}
               </p>
             ) : (
-              <p className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 text-sm font-bold leading-6 text-lime-700 dark:text-lime-300">
+              <p className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-3 text-sm font-bold leading-6 text-cyan-700 dark:text-cyan-300">
                 همه چیز برای شروع آماده است.
               </p>
             )}
@@ -833,7 +833,7 @@ export default function GameLobbyPage() {
                         </span>
                       </div>
                     </div>
-                    <span className={selectedIds.length > 0 ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
+                    <span className={selectedIds.length > 0 ? "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[10px] font-black text-cyan-700 dark:text-cyan-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
                       {selectedIds.length || "بدون"} فعال
                     </span>
                   </div>
@@ -848,7 +848,7 @@ export default function GameLobbyPage() {
                           onClick={() => toggleAbilityForRole(role.roleId, ability.id)}
                           className={`rounded-lg border p-3 text-right transition-all ${
                             active
-                              ? "border-lime-500/30 bg-lime-500/10 shadow-sm shadow-lime-500/10"
+                              ? "border-cyan-500/30 bg-cyan-500/10 shadow-sm shadow-cyan-500/10"
                               : "border-zinc-200 bg-zinc-50 hover:border-zinc-300 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/20"
                           }`}
                         >
@@ -857,7 +857,7 @@ export default function GameLobbyPage() {
                               <p className="text-sm font-black text-zinc-950 dark:text-white">{ability.label}</p>
                               <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{abilityLimitLabel(ability)}</p>
                             </div>
-                            <span className={`material-symbols-outlined text-xl ${active ? "text-lime-600 dark:text-lime-300" : "text-zinc-300 dark:text-zinc-600"}`}>
+                            <span className={`material-symbols-outlined text-xl ${active ? "text-cyan-600 dark:text-cyan-300" : "text-zinc-300 dark:text-zinc-600"}`}>
                               {active ? "check_circle" : "radio_button_unchecked"}
                             </span>
                           </div>
@@ -900,7 +900,7 @@ export default function GameLobbyPage() {
                   </span>
                   <span className={`rounded-lg border px-2.5 py-1 ${
                     selectedCustomCount > 0 && customScenarioDelta === 0
-                      ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+                      ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
                       : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
                   }`}>
                     {customScenarioStatus}
@@ -950,7 +950,7 @@ export default function GameLobbyPage() {
                             key={role.id}
                             className={`rounded-lg border p-3 transition-colors ${
                               count > 0
-                                ? "border-lime-500/30 bg-lime-500/10"
+                                ? "border-cyan-500/30 bg-cyan-500/10"
                                 : "border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]"
                             }`}
                           >
@@ -983,8 +983,8 @@ export default function GameLobbyPage() {
             <div className="sticky bottom-0 grid gap-3 border-t border-zinc-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] dark:border-white/10 dark:bg-zinc-900/95 sm:grid-cols-[minmax(0,1fr)_220px] sm:p-5">
               <label className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-all ${
                 saveCustomScenario
-                  ? "border-lime-500/35 bg-lime-500/10 shadow-sm shadow-lime-500/10"
-                  : "border-zinc-200 bg-zinc-50 hover:border-lime-500/25 dark:border-white/10 dark:bg-white/[0.03]"
+                  ? "border-cyan-500/35 bg-cyan-500/10 shadow-sm shadow-cyan-500/10"
+                  : "border-zinc-200 bg-zinc-50 hover:border-cyan-500/25 dark:border-white/10 dark:bg-white/[0.03]"
               }`}>
                 <input
                   type="checkbox"
@@ -994,7 +994,7 @@ export default function GameLobbyPage() {
                 />
                 <span className={`flex size-10 shrink-0 items-center justify-center rounded-lg border transition-all ${
                   saveCustomScenario
-                    ? "border-lime-400 bg-gradient-to-br from-lime-300 to-lime-500 text-zinc-950 shadow-sm shadow-lime-500/30"
+                    ? "border-cyan-400 bg-gradient-to-br from-cyan-300 to-cyan-500 text-zinc-950 shadow-sm shadow-cyan-500/30"
                     : "border-zinc-300 bg-white text-zinc-300 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-700"
                 }`}>
                   <span className="material-symbols-outlined text-lg">{saveCustomScenario ? "check" : "add"}</span>
@@ -1005,8 +1005,8 @@ export default function GameLobbyPage() {
               </label>
 
               {saveCustomScenario && (
-                <label className="flex flex-col gap-2 rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 sm:col-span-2">
-                  <span className="text-xs font-black text-lime-700 dark:text-lime-300">نام سناریو برای کتابخانه</span>
+                <label className="flex flex-col gap-2 rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-3 sm:col-span-2">
+                  <span className="text-xs font-black text-cyan-700 dark:text-cyan-300">نام سناریو برای کتابخانه</span>
                   <input
                     value={customScenarioName}
                     onChange={(event) => setCustomScenarioName(event.target.value)}

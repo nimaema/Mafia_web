@@ -63,7 +63,7 @@ function roleClass(role: Role) {
 function roleAccentClass(role: Role) {
   if (role === "ADMIN") return "from-purple-500 to-fuchsia-500";
   if (role === "MODERATOR") return "from-sky-500 to-cyan-400";
-  return "from-lime-500 to-emerald-400";
+  return "from-cyan-500 to-emerald-400";
 }
 
 function parseDate(value?: Date | string | null) {
@@ -115,7 +115,7 @@ function getActivityStatus(value?: Date | string | null) {
     detail: formatDateTime(date),
     recent,
     className: recent
-      ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+      ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
       : diff < day
         ? "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300"
         : "border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400",
@@ -137,7 +137,7 @@ function getUserPresence(user: UserRecord, onlineUserIds: Set<string>) {
       detail: activeGame?.name || (activeGame?.code ? `#${activeGame.code}` : "در حال استفاده از اپ"),
       icon: isPlaying ? "sports_esports" : isInLobby ? "sensors" : "radio_button_checked",
       online: true,
-      className: "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300",
+      className: "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300",
     };
   }
 
@@ -529,10 +529,10 @@ export function UserManagementPanel() {
         {showStats && (
           <div className="grid gap-3 border-t border-zinc-200 p-4 dark:border-white/10 md:grid-cols-2 xl:grid-cols-5">
             {[
-              ["کل کاربران", counts.total, "group", "text-lime-500"],
+              ["کل کاربران", counts.total, "group", "text-cyan-500"],
               ["مدیر و گرداننده", counts.admins + counts.moderators, "admin_panel_settings", "text-sky-500"],
               ["حساب فعال", counts.total - counts.banned, "verified", "text-emerald-500"],
-              ["آنلاین همین حالا", counts.onlineUsers, "radio_button_checked", "text-lime-500"],
+              ["آنلاین همین حالا", counts.onlineUsers, "radio_button_checked", "text-cyan-500"],
               ["فعال ۱۵ دقیقه اخیر", counts.recentUsers, "bolt", "text-amber-500"],
             ].map(([label, value, icon, color]) => (
               <div key={label} className="ui-muted p-4">
@@ -597,8 +597,8 @@ export function UserManagementPanel() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-[10px] font-black">
-              <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-lime-700 dark:text-lime-300">{counts.onlineUsers} آنلاین</span>
-              <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-lime-700 dark:text-lime-300">{counts.recentUsers} فعال اخیر</span>
+              <span className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 text-cyan-700 dark:text-cyan-300">{counts.onlineUsers} آنلاین</span>
+              <span className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 text-cyan-700 dark:text-cyan-300">{counts.recentUsers} فعال اخیر</span>
               <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-sky-700 dark:text-sky-300">{counts.admins + counts.moderators} مدیر/گرداننده</span>
               <span className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">برای جزئیات انتخاب کنید</span>
             </div>
@@ -667,7 +667,7 @@ export function UserManagementPanel() {
                       onClick={() => setSelectedUserId(user.id)}
                       className={`group relative grid w-full gap-3 px-4 py-3 text-right transition-all lg:grid-cols-[minmax(220px,1.3fr)_132px_156px_88px] lg:items-center ${
                         isSelected
-                          ? "bg-lime-500/10 shadow-[inset_0_0_0_1px_rgba(132,204,22,0.18)]"
+                          ? "bg-cyan-500/10 shadow-[inset_0_0_0_1px_rgba(0,245,212,0.18)]"
                           : "bg-white hover:bg-zinc-50 dark:bg-transparent dark:hover:bg-white/[0.04]"
                       }`}
                     >
@@ -679,7 +679,7 @@ export function UserManagementPanel() {
                           ) : (
                             getInitial(user.name, user.email)
                           )}
-                          <span className={`absolute bottom-0.5 right-0.5 size-3 rounded-full border-2 border-white dark:border-zinc-950 ${presence.online ? "bg-lime-500" : activity.recent ? "bg-sky-500" : "bg-zinc-300 dark:bg-zinc-700"}`} />
+                          <span className={`absolute bottom-0.5 right-0.5 size-3 rounded-full border-2 border-white dark:border-zinc-950 ${presence.online ? "bg-cyan-500" : activity.recent ? "bg-sky-500" : "bg-zinc-300 dark:bg-zinc-700"}`} />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{user.name || "بدون نام"}</p>
@@ -706,7 +706,7 @@ export function UserManagementPanel() {
                             </span>
                           )}
                         </div>
-                        <p className={`mt-1 text-[10px] font-black ${user.emailVerified ? "text-lime-600 dark:text-lime-300" : "text-amber-600 dark:text-amber-300"}`}>
+                        <p className={`mt-1 text-[10px] font-black ${user.emailVerified ? "text-cyan-600 dark:text-cyan-300" : "text-amber-600 dark:text-amber-300"}`}>
                           {user.emailVerified ? "ایمیل تایید شده" : "در انتظار تایید ایمیل"}
                         </p>
                       </div>
@@ -714,7 +714,7 @@ export function UserManagementPanel() {
                       <div className="hidden min-w-0 lg:block">
                         <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{activity.label}</p>
                         <div className="mt-1 flex min-w-0 items-center gap-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
-                          <span className={`size-1.5 shrink-0 rounded-full ${presence.online ? "bg-lime-500" : "bg-zinc-300 dark:bg-zinc-700"}`} />
+                          <span className={`size-1.5 shrink-0 rounded-full ${presence.online ? "bg-cyan-500" : "bg-zinc-300 dark:bg-zinc-700"}`} />
                           <span className="truncate">{presence.label}، {presence.detail}</span>
                         </div>
                       </div>
@@ -742,7 +742,7 @@ export function UserManagementPanel() {
             <div>
               <div className="relative overflow-hidden border-b border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10">
                 <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${roleAccentClass(selectedUser.role)}`} />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.22),transparent_30rem)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.22),transparent_30rem)]" />
                 <div className="relative flex items-start gap-4">
                   <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-white/10 text-2xl font-black text-white shadow-xl shadow-black/20">
                     {selectedUser.image ? (
@@ -752,12 +752,12 @@ export function UserManagementPanel() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">پرونده کاربر</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">پرونده کاربر</p>
                     <h2 className="mt-2 line-clamp-2 break-words text-2xl font-black leading-8 text-white">{selectedUser.name || "بدون نام"}</h2>
                     <p className="mt-1 truncate text-xs text-zinc-300" dir="ltr">{selectedUser.email || "بدون ایمیل"}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <span className="rounded-lg border border-white/10 bg-white/10 px-2.5 py-1 text-[10px] font-black text-white">{roleLabel(selectedUser.role)}</span>
-                      <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black ${selectedPresence?.online ? "border-lime-400/30 bg-lime-400/10 text-lime-200" : "border-white/10 bg-white/10 text-zinc-300"}`}>
+                      <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black ${selectedPresence?.online ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200" : "border-white/10 bg-white/10 text-zinc-300"}`}>
                         <span className="material-symbols-outlined text-sm">{selectedPresence?.icon}</span>
                         {selectedPresence?.label || "آفلاین"}
                       </span>
@@ -827,7 +827,7 @@ export function UserManagementPanel() {
                   </div>
                   <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm dark:border-white/10">
                     <span className="font-bold text-zinc-500 dark:text-zinc-400">تایید ایمیل</span>
-                    <span className={selectedUser.emailVerified ? "font-black text-lime-600 dark:text-lime-300" : "font-black text-amber-600 dark:text-amber-300"}>
+                    <span className={selectedUser.emailVerified ? "font-black text-cyan-600 dark:text-cyan-300" : "font-black text-amber-600 dark:text-amber-300"}>
                       {selectedUser.emailVerified ? "تایید شده" : "در انتظار تایید"}
                     </span>
                   </div>
@@ -853,7 +853,7 @@ export function UserManagementPanel() {
                     <button
                       onClick={() => handleVerifyEmail(selectedUser)}
                       disabled={busyUserId === selectedUser.id || !selectedUser.email}
-                      className="ui-button-secondary w-full text-lime-700 dark:text-lime-300"
+                      className="ui-button-secondary w-full text-cyan-700 dark:text-cyan-300"
                     >
                       <span className="material-symbols-outlined text-lg">mark_email_read</span>
                       تایید دستی ایمیل کاربر
@@ -1014,7 +1014,7 @@ export function UserManagementPanel() {
                         key={snippet}
                         type="button"
                         onClick={() => insertEmailSnippet(snippet)}
-                        className="w-full rounded-lg border border-zinc-200 bg-white p-3 text-right text-xs font-bold leading-5 text-zinc-600 transition-all hover:border-lime-500/30 hover:bg-lime-500/10 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300"
+                        className="w-full rounded-lg border border-zinc-200 bg-white p-3 text-right text-xs font-bold leading-5 text-zinc-600 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/10 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300"
                       >
                         {snippet}
                       </button>
@@ -1024,16 +1024,16 @@ export function UserManagementPanel() {
               ) : (
                 <div className="overflow-hidden rounded-[28px] border border-zinc-200 bg-[#e8edf0] p-3 shadow-inner dark:border-white/10">
                   <div className="mx-auto max-w-2xl overflow-hidden rounded-[26px] border border-zinc-200 bg-white shadow-2xl shadow-zinc-950/10">
-                    <div className="bg-[linear-gradient(135deg,#101113_0%,#18212f_46%,#365314_100%)] p-6 text-white">
+                    <div className="bg-[linear-gradient(135deg,#101113_0%,#18212f_46%,#00a896_100%)] p-6 text-white">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex size-12 items-center justify-center rounded-lg bg-lime-400 text-xl font-black text-zinc-950">M</div>
+                          <div className="flex size-12 items-center justify-center rounded-lg bg-cyan-400 text-xl font-black text-zinc-950">M</div>
                           <div>
                             <p className="font-black">مافیا بورد</p>
-                            <p className="mt-1 text-xs font-bold text-lime-200">پیام مدیریت</p>
+                            <p className="mt-1 text-xs font-bold text-cyan-200">پیام مدیریت</p>
                           </div>
                         </div>
-                        <span className="rounded-full border border-lime-200/25 bg-lime-400/10 px-3 py-1 text-xs font-black text-lime-200">پیام رسمی</span>
+                        <span className="rounded-full border border-cyan-200/25 bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-200">پیام رسمی</span>
                       </div>
                       <h3 className="mt-7 text-2xl font-black leading-10">{emailSubject.trim() || "موضوع ایمیل"}</h3>
                       <p className="mt-2 text-sm font-bold leading-6 text-zinc-300">این پیام توسط تیم مدیریت مافیا بورد برای اطلاع‌رسانی مستقیم حساب شما ارسال شده است.</p>
@@ -1049,7 +1049,7 @@ export function UserManagementPanel() {
                             <div key={index} className="rounded-lg border border-sky-100 bg-sky-50 p-4">
                               {block.items.map((item, itemIndex) => (
                                 <p key={itemIndex} className="flex items-start gap-2 text-sm font-bold leading-7 text-sky-900">
-                                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-lime-500" />
+                                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-cyan-500" />
                                   <span>{renderPreviewText(item)}</span>
                                 </p>
                               ))}
@@ -1058,7 +1058,7 @@ export function UserManagementPanel() {
                         }
                         if (block.type === "note") {
                           return (
-                            <div key={index} className="rounded-lg border border-lime-300 border-r-4 bg-lime-50 p-4 text-sm font-black leading-7 text-lime-800">
+                            <div key={index} className="rounded-lg border border-cyan-300 border-r-4 bg-cyan-50 p-4 text-sm font-black leading-7 text-cyan-800">
                               {renderPreviewText(block.text)}
                             </div>
                           );
@@ -1077,7 +1077,7 @@ export function UserManagementPanel() {
                           </div>
                         );
                       })}
-                      <div className="rounded-lg border border-lime-300 bg-lime-50 p-3 text-xs font-bold leading-6 text-lime-800">
+                      <div className="rounded-lg border border-cyan-300 bg-cyan-50 p-3 text-xs font-bold leading-6 text-cyan-800">
                         اگر درباره این پیام سوالی دارید، از داخل سایت با مدیریت پیگیری کنید و اطلاعات حساس حساب خود را در پاسخ ایمیل ارسال نکنید.
                       </div>
                     </div>
@@ -1085,7 +1085,7 @@ export function UserManagementPanel() {
                 </div>
               )}
 
-              <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 text-xs font-bold leading-6 text-lime-700 dark:text-lime-300">
+              <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs font-bold leading-6 text-cyan-700 dark:text-cyan-300">
                 ایمیل با قالب رسمی مافیا بورد و راست‌چین ارسال می‌شود. برای قالب‌بندی می‌توانید از عنوان، لیست، متن پررنگ، نکته و خط جداکننده استفاده کنید.
               </div>
             </div>

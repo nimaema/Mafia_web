@@ -38,9 +38,9 @@ export default function RegisterPage() {
     >
       <form onSubmit={handleRegister} noValidate className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">نام کامل</label>
+          <label className="text-xs font-bold text-white/58">نام کامل</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">badge</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/42">badge</span>
             <input
               name="name"
               type="text"
@@ -52,9 +52,9 @@ export default function RegisterPage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">ایمیل</label>
+          <label className="text-xs font-bold text-white/58">ایمیل</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">mail</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/42">mail</span>
             <input
               name="email"
               type="email"
@@ -67,9 +67,9 @@ export default function RegisterPage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">رمز عبور</label>
+          <label className="text-xs font-bold text-white/58">رمز عبور</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/42">lock</span>
             <input
               name="password"
               type="password"
@@ -79,7 +79,7 @@ export default function RegisterPage() {
               className="w-full pl-12"
             />
           </div>
-          <p className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+          <p className="text-xs leading-5 text-white/48">
             برای امنیت بهتر از ترکیب حروف و عدد استفاده کنید.
           </p>
         </div>
@@ -91,9 +91,9 @@ export default function RegisterPage() {
       </form>
 
       <div className="my-6 flex items-center gap-4">
-        <div className="h-px flex-1 bg-zinc-200 dark:bg-white/10"></div>
+        <div className="h-px flex-1 bg-white/10"></div>
         <span className="text-xs font-bold text-zinc-400">یا</span>
-        <div className="h-px flex-1 bg-zinc-200 dark:bg-white/10"></div>
+        <div className="h-px flex-1 bg-white/10"></div>
       </div>
 
       <button onClick={() => signIn("google")} type="button" className="ui-button-secondary min-h-12 w-full">

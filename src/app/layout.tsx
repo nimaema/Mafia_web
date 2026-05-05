@@ -11,15 +11,15 @@ const vazirmatn = Vazirmatn({
 import type { Metadata, Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#84cc16",
+  themeColor: "#15171b",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };
 
 export const metadata: Metadata = {
-  title: "مافیا بورد - دستیار پیشرفته",
-  description: "دستیار دیجیتال برای مدیریت حرفه‌ای بازی مافیا",
+  title: "مافیا بورد - اتاق فرمان بازی",
+  description: "اتاق فرمان مدرن برای اجرای بازی مافیا، لابی‌ها، سناریوها و گزارش‌ها",
   applicationName: "مافیا بورد",
   manifest: "/manifest.webmanifest",
   icons: {

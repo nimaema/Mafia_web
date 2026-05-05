@@ -25,7 +25,7 @@ function statusIcon(status: string) {
 
 function statusTone(status: string) {
   if (status === "IN_PROGRESS") return "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300";
-  if (status === "WAITING") return "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300";
+  if (status === "WAITING") return "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300";
   return "border-zinc-500/20 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300";
 }
 
@@ -127,7 +127,7 @@ export default function ModeratorDashboard() {
   }).length;
   const featuredGame = activeGames.find((game) => game.status === "IN_PROGRESS") || activeGames.find((game) => game.status === "WAITING") || activeGames[0];
   const stats = [
-    { label: "لابی‌ها", value: activeGames.length, icon: "dashboard", tone: "text-lime-300" },
+    { label: "لابی‌ها", value: activeGames.length, icon: "dashboard", tone: "text-cyan-300" },
     { label: "بازیکن‌ها", value: totalPlayers, icon: "group", tone: "text-sky-300" },
     { label: "آماده شروع", value: readyGames, icon: "task_alt", tone: "text-amber-300" },
     { label: "در جریان", value: inProgressGames, icon: "bolt", tone: "text-violet-300" },
@@ -136,16 +136,16 @@ export default function ModeratorDashboard() {
   return (
     <div className="flex flex-col gap-5 font-sans" dir="rtl">
       <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-950 text-white shadow-xl shadow-zinc-950/10 dark:border-white/10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.28),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.18),transparent_20rem)]" />
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.28),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.18),transparent_20rem)]" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" />
         <div className="relative p-4 sm:p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 items-start gap-3">
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-lime-400 text-zinc-950 shadow-sm shadow-lime-500/30 sm:size-14">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-cyan-400 text-zinc-950 shadow-sm shadow-cyan-500/30 sm:size-14">
                 <span className="material-symbols-outlined text-2xl sm:text-3xl">sports_esports</span>
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-300">مرکز گردانندگی</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">مرکز گردانندگی</p>
                 <h1 className="mt-1 line-clamp-2 break-words text-2xl font-black leading-8 sm:text-3xl sm:leading-10">اتاق کنترل بازی‌ها</h1>
                 <p className="mt-2 line-clamp-2 max-w-2xl text-xs font-bold leading-6 text-zinc-300 sm:text-sm">
                   لابی‌ها، سناریوها و بازی‌های در جریان را از یک نمای زنده و مرتب کنترل کنید.
@@ -184,13 +184,13 @@ export default function ModeratorDashboard() {
               {featuredGame ? (
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-[10px] font-black text-lime-300">{featuredGame.status === "IN_PROGRESS" ? "بازی در جریان" : "لابی بعدی"}</p>
+                    <p className="text-[10px] font-black text-cyan-300">{featuredGame.status === "IN_PROGRESS" ? "بازی در جریان" : "لابی بعدی"}</p>
                     <p className="mt-1 truncate text-sm font-black text-white">{featuredGame.name}</p>
                     <p className="mt-1 truncate text-[10px] font-bold text-zinc-300">{featuredGame.scenario?.name || "سناریو انتخاب نشده"}</p>
                   </div>
                   <Link
                     href={featuredGame.status === "WAITING" ? `/dashboard/moderator/lobby/${featuredGame.id}` : `/dashboard/moderator/game/${featuredGame.id}`}
-                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 rounded-lg bg-white px-3 text-xs font-black text-zinc-950 transition-colors hover:bg-lime-300"
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 rounded-lg bg-white px-3 text-xs font-black text-zinc-950 transition-colors hover:bg-cyan-300"
                   >
                     ورود
                     <span className="material-symbols-outlined text-base">arrow_back</span>
@@ -202,7 +202,7 @@ export default function ModeratorDashboard() {
                     <p className="text-sm font-black text-white">لابی فعالی نیست</p>
                     <p className="mt-1 text-[10px] font-bold text-zinc-300">برای شروع، یک لابی تازه بسازید.</p>
                   </div>
-                  <button onClick={() => setShowCreateModal(true)} className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-lime-400 px-3 text-xs font-black text-zinc-950">
+                  <button onClick={() => setShowCreateModal(true)} className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-cyan-400 px-3 text-xs font-black text-zinc-950">
                     ساخت
                   </button>
                 </div>
@@ -216,10 +216,10 @@ export default function ModeratorDashboard() {
         <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 p-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] backdrop-blur-xl sm:items-center sm:p-4">
           <div className="relative flex max-h-[calc(100dvh-7.5rem)] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl shadow-black/30 dark:border-white/10 dark:bg-zinc-950 sm:max-h-[92vh]">
             <div className="relative overflow-hidden border-b border-white/10 bg-zinc-950 p-4 text-white sm:p-5">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.3),transparent_22rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.16),transparent_18rem)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.3),transparent_22rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.16),transparent_18rem)]" />
               <div className="relative flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-300">راه‌اندازی لابی</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">راه‌اندازی لابی</p>
                   <h2 className="mt-1 text-2xl font-black text-white">تنظیم بازی جدید</h2>
                   <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-zinc-300">
                     ابتدا اتاق انتظار ساخته می‌شود؛ سناریو، توانایی‌ها و شروع بازی در مرحله بعد تنظیم می‌شوند.
@@ -254,11 +254,11 @@ export default function ModeratorDashboard() {
                       onClick={() => setIsPrivate(false)}
                       className={`relative overflow-hidden rounded-lg border p-4 text-right transition-all ${
                         !isPrivate
-                          ? "border-lime-500/40 bg-lime-500/10 text-zinc-950 shadow-sm shadow-lime-500/15 dark:text-white"
+                          ? "border-cyan-500/40 bg-cyan-500/10 text-zinc-950 shadow-sm shadow-cyan-500/15 dark:text-white"
                           : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400"
                       }`}
                     >
-                      {!isPrivate && <span className="absolute inset-x-0 top-0 h-1 bg-lime-400" />}
+                      {!isPrivate && <span className="absolute inset-x-0 top-0 h-1 bg-cyan-400" />}
                       <span className="material-symbols-outlined text-xl">lock_open</span>
                       <span className="mt-2 block text-sm font-black">باز</span>
                       <span className="mt-1 block text-xs leading-5">ورود با کد لابی</span>
@@ -294,7 +294,7 @@ export default function ModeratorDashboard() {
                 )}
               </div>
 
-              <aside className="h-fit rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_60%,#f0fdf4_100%)] p-4 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.9)_0%,rgba(9,9,11,0.96)_60%,rgba(20,83,45,0.18)_100%)]">
+              <aside className="h-fit rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_60%,#ecfeff_100%)] p-4 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.9)_0%,rgba(9,9,11,0.96)_60%,rgba(0,168,150,0.18)_100%)]">
                 <p className="font-black text-zinc-950 dark:text-white">جریان بعد از ساخت</p>
                 <div className="mt-4 grid gap-2">
                   {[
@@ -303,7 +303,7 @@ export default function ModeratorDashboard() {
                     { icon: "groups", text: "بازیکنان به صورت زنده دیده می‌شوند." },
                   ].map((item) => (
                     <div key={item.text} className="flex gap-2 rounded-lg border border-zinc-200 bg-white/80 p-3 text-sm text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300">
-                      <span className="material-symbols-outlined text-lg text-lime-600 dark:text-lime-400">{item.icon}</span>
+                      <span className="material-symbols-outlined text-lg text-cyan-600 dark:text-cyan-400">{item.icon}</span>
                       <span className="leading-6">{item.text}</span>
                     </div>
                   ))}
@@ -324,7 +324,7 @@ export default function ModeratorDashboard() {
       )}
 
       <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_56%,#eff6ff_100%)] shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.9)_0%,rgba(9,9,11,0.96)_60%,rgba(12,74,110,0.18)_100%)]">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-sky-400 via-lime-400 to-amber-400" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-sky-400 via-cyan-400 to-amber-400" />
         <div className="flex flex-col gap-3 border-b border-zinc-200/80 p-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div className="min-w-0">
             <p className="ui-kicker">اتاق‌های فعال</p>
@@ -379,9 +379,9 @@ export default function ModeratorDashboard() {
                 const progressText = capacity ? (isReady ? "ظرفیت تکمیل" : `${Math.max(capacity - players, 0)} نفر تا تکمیل`) : "سناریو انتخاب نشده";
 
                 return (
-                  <article key={game.id} className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-xl hover:shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950">
-                    <div className={`absolute inset-x-0 top-0 h-1 ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-lime-500"}`} />
-                    <div className={`absolute inset-y-0 right-0 w-1 ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-lime-500"}`} />
+                  <article key={game.id} className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-cyan-500/30 hover:shadow-xl hover:shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950">
+                    <div className={`absolute inset-x-0 top-0 h-1 ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-cyan-500"}`} />
+                    <div className={`absolute inset-y-0 right-0 w-1 ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-cyan-500"}`} />
                     <div className="flex items-start justify-between gap-4 pt-1">
                       <div className="flex min-w-0 items-start gap-3">
                         <div className={`flex size-12 shrink-0 items-center justify-center rounded-lg border ${tone}`}>
@@ -417,7 +417,7 @@ export default function ModeratorDashboard() {
                         <span className={isReady ? "text-amber-700 dark:text-amber-300" : "text-zinc-500 dark:text-zinc-400"}>{progressText}</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-zinc-200 ring-1 ring-zinc-950/5 dark:bg-white/10 dark:ring-white/10">
-                        <div className={`h-full rounded-full transition-[width] ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-gradient-to-l from-lime-400 to-sky-400"}`} style={{ width: `${progress}%` }} />
+                        <div className={`h-full rounded-full transition-[width] ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-gradient-to-l from-cyan-400 to-sky-400"}`} style={{ width: `${progress}%` }} />
                       </div>
                     </div>
 

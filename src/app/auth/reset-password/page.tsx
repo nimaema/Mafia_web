@@ -67,14 +67,14 @@ function ResetPasswordForm() {
       title="رمز عبور جدید"
       subtitle="برای ادامه، رمز تازه‌ای با حداقل ۸ کاراکتر، یک حرف بزرگ و یک عدد تنظیم کنید."
       footer={
-        <Link href="/auth/login" className="text-center text-sm font-bold text-lime-600 transition-colors hover:text-lime-500 dark:text-lime-400">
+        <Link href="/auth/login" className="text-center text-sm font-bold text-cyan-200 transition-colors hover:text-cyan-100">
           بازگشت به ورود
         </Link>
       }
     >
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         {error && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+          <div className="rounded-2xl border border-red-400/24 bg-red-400/10 px-4 py-3 text-sm text-red-200">
             <div className="flex items-center gap-2 font-medium">
               <span className="material-symbols-outlined text-lg">error</span>
               <span>{error}</span>
@@ -83,9 +83,9 @@ function ResetPasswordForm() {
         )}
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">رمز عبور</label>
+          <label className="text-xs font-bold text-white/58">رمز عبور</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/42">lock</span>
             <input
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -100,9 +100,9 @@ function ResetPasswordForm() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">تکرار رمز عبور</label>
+          <label className="text-xs font-bold text-white/58">تکرار رمز عبور</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/42">lock</span>
             <input
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}

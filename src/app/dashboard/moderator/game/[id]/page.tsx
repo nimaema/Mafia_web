@@ -295,7 +295,7 @@ function SpeechTimer({
   subtitle: string;
   icon: string;
   defaultSeconds: number;
-  tone: "lime" | "amber";
+  tone: "cyan" | "amber";
 }) {
   const [duration, setDuration] = useState(defaultSeconds);
   const [remaining, setRemaining] = useState(defaultSeconds);
@@ -303,8 +303,8 @@ function SpeechTimer({
   const alarmedRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const progress = duration > 0 ? Math.max(0, Math.min(100, (remaining / duration) * 100)) : 0;
-  const toneClass = tone === "lime"
-    ? "border-lime-500/25 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+  const toneClass = tone === "cyan"
+    ? "border-cyan-500/25 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
     : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300";
 
   useEffect(() => {
@@ -382,7 +382,7 @@ function SpeechTimer({
 
       <div className="px-3 pb-3">
         <div className="h-2 overflow-hidden rounded-full bg-white/70 dark:bg-zinc-950/50">
-          <div className={tone === "lime" ? "h-full rounded-full bg-lime-500 transition-[width]" : "h-full rounded-full bg-amber-500 transition-[width]"} style={{ width: `${progress}%` }} />
+          <div className={tone === "cyan" ? "h-full rounded-full bg-cyan-500 transition-[width]" : "h-full rounded-full bg-amber-500 transition-[width]"} style={{ width: `${progress}%` }} />
         </div>
         <div className="mt-3 grid grid-cols-[1fr_44px_96px] gap-2">
           <button type="button" onClick={toggleRunning} className="ui-button-primary min-h-10 px-3 text-xs">
@@ -435,7 +435,7 @@ function ModeratorTimerBoard() {
         </p>
       </div>
       <div className="grid gap-3 p-4">
-        <SpeechTimer title="نوبت اصلی" subtitle="برای صحبت معمول بازیکن" icon="record_voice_over" defaultSeconds={60} tone="lime" />
+        <SpeechTimer title="نوبت اصلی" subtitle="برای صحبت معمول بازیکن" icon="record_voice_over" defaultSeconds={60} tone="cyan" />
         <SpeechTimer title="چالش" subtitle="زمان کوتاه برای پاسخ یا دفاع" icon="forum" defaultSeconds={30} tone="amber" />
       </div>
     </section>
@@ -491,10 +491,10 @@ function reportEventVisual(event: NightEventRecord) {
   return {
     icon: "dark_mode",
     label: "شب",
-    shell: "border-lime-500/20 bg-lime-500/10",
-    badge: "border-lime-500/25 bg-lime-500/15 text-lime-700 dark:text-lime-300",
-    iconBox: "bg-lime-500 text-zinc-950",
-    rail: "bg-lime-500",
+    shell: "border-cyan-500/20 bg-cyan-500/10",
+    badge: "border-cyan-500/25 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300",
+    iconBox: "bg-cyan-500 text-zinc-950",
+    rail: "bg-cyan-500",
   };
 }
 
@@ -1069,7 +1069,7 @@ export default function ModeratorGamePage() {
           type="button"
           onClick={() => openPlayerPicker({ slot, title: label, options, index })}
           disabled={disabled}
-          className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-2 text-right transition-all hover:border-lime-500/40 hover:bg-lime-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950/60"
+          className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-2 text-right transition-all hover:border-cyan-500/40 hover:bg-cyan-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950/60"
         >
           <span className="flex min-w-0 items-center gap-2">
             <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-xs font-black text-white dark:bg-white dark:text-zinc-950">
@@ -1341,7 +1341,7 @@ export default function ModeratorGamePage() {
     return (
       <div className="flex min-h-[560px] items-center justify-center" dir="rtl">
         <div className="ui-card w-full max-w-xl overflow-hidden text-center">
-          <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
+          <div className="h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-300" />
           <div className="p-8 sm:p-10">
             <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-amber-300 text-amber-950 shadow-lg shadow-amber-500/20">
               <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
@@ -1374,7 +1374,7 @@ export default function ModeratorGamePage() {
             <span className="rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs font-black text-zinc-600 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300">
               #{game?.code || gameId.slice(0, 6).toUpperCase()}
             </span>
-            <span className={`rounded-lg border px-3 py-2 text-xs font-black ${game?.status === "FINISHED" ? "border-zinc-500/20 bg-zinc-500/10 text-zinc-500" : "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"}`}>
+            <span className={`rounded-lg border px-3 py-2 text-xs font-black ${game?.status === "FINISHED" ? "border-zinc-500/20 bg-zinc-500/10 text-zinc-500" : "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"}`}>
               {game?.status === "FINISHED" ? "پایان یافته" : "در جریان"}
             </span>
             <Link href="/dashboard/moderator" className="ui-button-secondary min-h-10 px-3 text-xs">
@@ -1386,7 +1386,7 @@ export default function ModeratorGamePage() {
 
         <div className="flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[
-            ["سناریو", game?.scenario?.name || "نامشخص", "account_tree", "text-lime-500"],
+            ["سناریو", game?.scenario?.name || "نامشخص", "account_tree", "text-cyan-500"],
             ["فعال", `${alivePlayers.length}/${players.length}`, "sensors", "text-emerald-500"],
             ["حذف‌شده", `${eliminatedPlayers.length}`, "person_off", "text-red-500"],
             ["گزارش‌ها", `${nightEvents.length}`, "edit_note", "text-sky-500"],
@@ -1420,7 +1420,7 @@ export default function ModeratorGamePage() {
               <div className="mb-4 grid gap-2 sm:grid-cols-3">
                 {[
                   ["کل بازیکنان", players.length, "groups", "text-zinc-500"],
-                  ["فعال", alivePlayers.length, "sensors", "text-lime-600 dark:text-lime-300"],
+                  ["فعال", alivePlayers.length, "sensors", "text-cyan-600 dark:text-cyan-300"],
                   ["حذف‌شده", eliminatedPlayers.length, "person_off", "text-red-600 dark:text-red-300"],
                 ].map(([label, value, icon, color]) => (
                   <div key={String(label)} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
@@ -1442,21 +1442,21 @@ export default function ModeratorGamePage() {
                     key={player.id}
                     className={`relative overflow-hidden border-b border-zinc-200 p-3 transition-all last:border-b-0 dark:border-white/10 ${
                       alive
-                        ? "bg-white hover:bg-lime-500/[0.04] dark:bg-transparent dark:hover:bg-white/[0.04]"
+                        ? "bg-white hover:bg-cyan-500/[0.04] dark:bg-transparent dark:hover:bg-white/[0.04]"
                         : "bg-red-500/10"
                     }`}
                   >
-                    <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${alive ? "bg-lime-500" : "bg-red-500"}`} />
+                    <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${alive ? "bg-cyan-500" : "bg-red-500"}`} />
                     <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)_118px] lg:items-center">
                       <div className="flex min-w-0 items-center gap-3 pr-1">
                         <div className={`relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg text-base font-black shadow-sm shadow-zinc-950/10 ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
                           {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
-                          <span className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white dark:border-zinc-950 ${alive ? "bg-lime-500" : "bg-red-500"}`} />
+                          <span className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white dark:border-zinc-950 ${alive ? "bg-cyan-500" : "bg-red-500"}`} />
                         </div>
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="truncate text-base font-black text-zinc-950 dark:text-white">{player.name}</p>
-                            <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${alive ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300" : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300"}`}>
+                            <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${alive ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300" : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300"}`}>
                               {alive ? "فعال" : "حذف‌شده"}
                             </span>
                           </div>
@@ -1477,7 +1477,7 @@ export default function ModeratorGamePage() {
                       <button
                         onClick={() => handleTogglePlayer(player)}
                         disabled={busy}
-                        className={alive ? "ui-button-secondary min-h-10 w-full text-red-600 dark:text-red-300" : "ui-button-secondary min-h-10 w-full text-lime-700 dark:text-lime-300"}
+                        className={alive ? "ui-button-secondary min-h-10 w-full text-red-600 dark:text-red-300" : "ui-button-secondary min-h-10 w-full text-cyan-700 dark:text-cyan-300"}
                       >
                         <span className="material-symbols-outlined text-lg">{alive ? "person_off" : "person_add"}</span>
                         {alive ? "ثبت حذف" : "بازگرداندن"}
@@ -1505,7 +1505,7 @@ export default function ModeratorGamePage() {
                 <button
                   onClick={handlePublishNightRecords}
                   disabled={busy || game?.nightRecordsPublic}
-                  className={game?.nightRecordsPublic ? "ui-button-secondary min-h-10 px-3 text-xs text-lime-700 dark:text-lime-300" : "ui-button-primary min-h-10 px-3 text-xs"}
+                  className={game?.nightRecordsPublic ? "ui-button-secondary min-h-10 px-3 text-xs text-cyan-700 dark:text-cyan-300" : "ui-button-primary min-h-10 px-3 text-xs"}
                 >
                   <span className="material-symbols-outlined text-base">{game?.nightRecordsPublic ? "public" : "publish"}</span>
                   {game?.nightRecordsPublic ? "عمومی شده" : "عمومی کردن برای بازیکنان"}
@@ -1522,7 +1522,7 @@ export default function ModeratorGamePage() {
                   </p>
                 </div>
 
-                <div className={`mt-4 rounded-lg border p-3 ${reportMode === "DAY" ? "border-amber-500/25 bg-amber-500/10" : "border-lime-500/25 bg-lime-500/10"}`}>
+                <div className={`mt-4 rounded-lg border p-3 ${reportMode === "DAY" ? "border-amber-500/25 bg-amber-500/10" : "border-cyan-500/25 bg-cyan-500/10"}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">مرحله فعال</p>
@@ -1531,7 +1531,7 @@ export default function ModeratorGamePage() {
                         {reportMode === "DAY" ? `حذف‌ها و دفاع‌های روز ${dayNumber} را ثبت کنید؛ بعد مرحله شب ${dayNumber} شروع می‌شود.` : `اتفاقات شب ${nightNumber} را ثبت کنید؛ بعد مرحله روز ${nightNumber + 1} شروع می‌شود.`}
                       </p>
                     </div>
-                    <span className={`material-symbols-outlined text-2xl ${reportMode === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-lime-600 dark:text-lime-300"}`}>
+                    <span className={`material-symbols-outlined text-2xl ${reportMode === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-cyan-600 dark:text-cyan-300"}`}>
                       {reportMode === "DAY" ? "wb_sunny" : "dark_mode"}
                     </span>
                   </div>
@@ -1560,14 +1560,14 @@ export default function ModeratorGamePage() {
                           phase.active
                             ? phase.type === "DAY"
                               ? "border-amber-500/35 bg-amber-500/10 shadow-sm shadow-amber-500/10"
-                              : "border-lime-500/35 bg-lime-500/10 shadow-sm shadow-lime-500/10"
+                              : "border-cyan-500/35 bg-cyan-500/10 shadow-sm shadow-cyan-500/10"
                             : "border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-white/[0.03]"
                         }`}
                       >
                         <span className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-black ${phase.active ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-white text-zinc-500 dark:bg-zinc-950/70 dark:text-zinc-300"}`}>
                           {index + 1}
                         </span>
-                        <span className={`material-symbols-outlined text-lg ${phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-lime-600 dark:text-lime-300"}`}>
+                        <span className={`material-symbols-outlined text-lg ${phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-cyan-600 dark:text-cyan-300"}`}>
                           {phase.icon}
                         </span>
                         <div className="min-w-0 flex-1">
@@ -1629,13 +1629,13 @@ export default function ModeratorGamePage() {
                     </div>
                   </div>
                   ) : (
-                  <div className="rounded-xl border border-lime-500/20 bg-white p-4 shadow-sm shadow-lime-500/5 dark:border-lime-500/20 dark:bg-zinc-950/50">
+                  <div className="rounded-xl border border-cyan-500/20 bg-white p-4 shadow-sm shadow-cyan-500/5 dark:border-cyan-500/20 dark:bg-zinc-950/50">
                     <div className="flex items-center justify-between gap-2">
                       <div>
                         <p className="text-sm font-black text-zinc-950 dark:text-white">اتفاقات شب</p>
                         <p className="mt-1 text-[10px] font-bold leading-5 text-zinc-500 dark:text-zinc-400">روی نام کوچک بازیکن زیر هر نقش بزنید تا پنجره ثبت اتفاق همان نقش باز شود.</p>
                       </div>
-                      <span className="rounded-md bg-lime-500/15 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300">شب {nightNumber}</span>
+                      <span className="rounded-md bg-cyan-500/15 px-2 py-1 text-[10px] font-black text-cyan-700 dark:text-cyan-300">شب {nightNumber}</span>
                     </div>
                     {mafiaShotAction && (
                       <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
@@ -1784,8 +1784,8 @@ export default function ModeratorGamePage() {
                             onClick={() => setSelectedChoiceKey(choice.id)}
                             className={`min-h-10 rounded-lg border px-3 text-right text-xs font-black transition-all ${
                               selectedChoiceKey === choice.id
-                                ? "border-lime-500/40 bg-lime-500/15 text-lime-700 dark:text-lime-300"
-                                : "border-zinc-200 bg-white text-zinc-600 hover:border-lime-500/30 dark:border-white/10 dark:bg-zinc-950/60 dark:text-zinc-300"
+                                ? "border-cyan-500/40 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300"
+                                : "border-zinc-200 bg-white text-zinc-600 hover:border-cyan-500/30 dark:border-white/10 dark:bg-zinc-950/60 dark:text-zinc-300"
                             }`}
                           >
                             {choice.label}
@@ -1921,7 +1921,7 @@ export default function ModeratorGamePage() {
                   )}
 
                   {selectedEffectType !== "NONE" && (
-                    <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3 text-xs font-bold leading-6 text-lime-700 dark:text-lime-300">
+                    <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs font-bold leading-6 text-cyan-700 dark:text-cyan-300">
                       رفتار ثبت‌شده: {effectLabel(selectedEffectType)}
                     </div>
                   )}
@@ -2096,7 +2096,7 @@ export default function ModeratorGamePage() {
                           type="button"
                           onClick={() => resolveMafiaShot(false)}
                           disabled={busy}
-                          className="ui-button-secondary min-h-12 text-sm text-lime-700 dark:text-lime-300"
+                          className="ui-button-secondary min-h-12 text-sm text-cyan-700 dark:text-cyan-300"
                         >
                           <span className="material-symbols-outlined text-xl">health_and_safety</span>
                           زنده ماند
@@ -2142,13 +2142,13 @@ export default function ModeratorGamePage() {
                                 selected
                                   ? "border-amber-500/35 bg-amber-500/15"
                                   : alive
-                                  ? "border-zinc-200 bg-zinc-50 hover:border-lime-500/40 hover:bg-lime-500/10 dark:border-white/10 dark:bg-white/[0.03]"
+                                  ? "border-zinc-200 bg-zinc-50 hover:border-cyan-500/40 hover:bg-cyan-500/10 dark:border-white/10 dark:bg-white/[0.03]"
                                   : "border-red-500/20 bg-red-500/10"
                               }`}
                             >
                               <span className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-sm font-black text-white dark:bg-white dark:text-zinc-950">
                                 {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
-                                <span className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white dark:border-zinc-950 ${alive ? "bg-lime-500" : "bg-red-500"}`} />
+                                <span className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white dark:border-zinc-950 ${alive ? "bg-cyan-500" : "bg-red-500"}`} />
                               </span>
                               <span className="min-w-0">
                                 <span className="block truncate text-sm font-black text-zinc-950 dark:text-white">{player.name}</span>
@@ -2192,7 +2192,7 @@ export default function ModeratorGamePage() {
                           className={`flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between ${
                             phase.type === "DAY"
                               ? "border-amber-500/15 bg-amber-500/[0.06]"
-                              : "border-lime-500/15 bg-lime-500/[0.06]"
+                              : "border-cyan-500/15 bg-cyan-500/[0.06]"
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -2201,7 +2201,7 @@ export default function ModeratorGamePage() {
                             </div>
                             <div>
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className={`material-symbols-outlined text-lg ${phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-lime-600 dark:text-lime-300"}`}>
+                                <span className={`material-symbols-outlined text-lg ${phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-cyan-600 dark:text-cyan-300"}`}>
                                   {phase.icon}
                                 </span>
                                 <p className="text-base font-black text-zinc-950 dark:text-white">{phase.label}</p>
@@ -2215,7 +2215,7 @@ export default function ModeratorGamePage() {
                             className={`inline-flex items-center justify-center rounded-lg border px-3 py-1.5 text-[11px] font-black ${
                               phase.type === "DAY"
                                 ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                                : "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+                                : "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
                             }`}
                           >
                             {phase.events.length} رکورد ثبت‌شده
@@ -2290,7 +2290,7 @@ export default function ModeratorGamePage() {
                 ["timer", "بستن خودکار", "بازی‌های باز بعد از ۸ ساعت با نتیجه نامشخص بسته می‌شوند."],
               ].map(([icon, title, text]) => (
                 <div key={title} className="flex gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                  <span className="material-symbols-outlined text-xl text-lime-500">{icon}</span>
+                  <span className="material-symbols-outlined text-xl text-cyan-500">{icon}</span>
                   <div>
                     <p className="text-sm font-black text-zinc-950 dark:text-white">{title}</p>
                     <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{text}</p>

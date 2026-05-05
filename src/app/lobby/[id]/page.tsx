@@ -175,7 +175,7 @@ export default function UserLobbyPage() {
         <div className="app-container">
           <div className="flex min-h-[560px] items-center justify-center">
             <div className="ui-card w-full max-w-xl overflow-hidden text-center">
-              <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
+              <div className="h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-300" />
               <div className="p-8 sm:p-10">
                 <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-sky-400 text-sky-950 shadow-lg shadow-sky-500/20">
                   <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
@@ -212,7 +212,7 @@ export default function UserLobbyPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-black">
                   {[
-                    { icon: "login", label: "ورود", className: "bg-lime-500 text-zinc-950" },
+                    { icon: "login", label: "ورود", className: "bg-cyan-500 text-zinc-950" },
                     { icon: "groups", label: "انتظار", className: "bg-white text-zinc-600 dark:bg-white/10 dark:text-zinc-300" },
                     { icon: "play_arrow", label: "شروع", className: "bg-white text-zinc-600 dark:bg-white/10 dark:text-zinc-300" },
                   ].map((step) => (
@@ -248,7 +248,7 @@ export default function UserLobbyPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-4 text-lime-700 dark:text-lime-300">
+                <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-4 text-cyan-700 dark:text-cyan-300">
                   <div className="flex items-center gap-2 font-black">
                     <span className="material-symbols-outlined">check_circle</span>
                     شما در لابی هستید
@@ -256,7 +256,7 @@ export default function UserLobbyPage() {
                   <p className="mt-2 text-sm font-bold leading-6">با شروع بازی توسط گرداننده، صفحه نقش به صورت خودکار باز می‌شود.</p>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-black">
-                  <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-2 text-lime-700 dark:text-lime-300">ورود انجام شد</span>
+                  <span className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-2 text-cyan-700 dark:text-cyan-300">ورود انجام شد</span>
                   <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-2 text-sky-700 dark:text-sky-300">انتظار شروع</span>
                   <span className="rounded-lg border border-zinc-200 bg-white px-2 py-2 text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">صفحه نقش</span>
                 </div>

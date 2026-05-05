@@ -159,7 +159,7 @@ export async function getUserStats() {
       moderatorName: activePlayerRecord.game.moderator?.name || "مدیر",
     } : null,
     statsData: [
-      { name: 'پیروزی‌ها', value: wins, color: '#84cc16' },
+      { name: 'پیروزی‌ها', value: wins, color: '#00f5d4' },
       { name: 'شکست‌ها', value: losses, color: '#ef4444' }
     ],
     roleHistory,

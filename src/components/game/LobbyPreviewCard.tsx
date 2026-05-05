@@ -66,7 +66,7 @@ function PlayerAvatar({ player, alive, size = "md" }: { player: LobbyPlayer; ali
       ) : (
         getInitial(player.name)
       )}
-      <span className={`absolute -bottom-1 -right-1 size-3.5 rounded-full border-2 border-zinc-50 dark:border-zinc-950 ${alive ? "bg-lime-500" : "bg-red-500"}`} />
+      <span className={`absolute -bottom-1 -right-1 size-3.5 rounded-full border-2 border-zinc-50 dark:border-zinc-950 ${alive ? "bg-cyan-500" : "bg-red-500"}`} />
     </div>
   );
 }
@@ -107,7 +107,7 @@ export function LobbyPreviewCard({
         <div className="border-b border-zinc-200 bg-zinc-50/90 p-4 dark:border-white/10 dark:bg-white/[0.04]">
           <div className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 items-start gap-3">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-zinc-950 shadow-sm shadow-lime-500/20">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-cyan-500 text-zinc-950 shadow-sm shadow-cyan-500/20">
                 <span className="material-symbols-outlined text-2xl">groups</span>
               </div>
               <div className="min-w-0">
@@ -118,7 +118,7 @@ export function LobbyPreviewCard({
                 </p>
               </div>
             </div>
-            <span className="shrink-0 rounded-lg bg-lime-500 px-2.5 py-1.5 text-[10px] font-black text-zinc-950">
+            <span className="shrink-0 rounded-lg bg-cyan-500 px-2.5 py-1.5 text-[10px] font-black text-zinc-950">
               {statusLabel}
             </span>
           </div>
@@ -145,13 +145,13 @@ export function LobbyPreviewCard({
                 </span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-                <div className="h-full rounded-full bg-lime-500 transition-[width]" style={{ width: `${progress}%` }} />
+                <div className="h-full rounded-full bg-cyan-500 transition-[width]" style={{ width: `${progress}%` }} />
               </div>
               <div className="mt-2 flex items-center justify-between gap-2 text-[11px] font-bold">
                 <span className="text-zinc-500 dark:text-zinc-400">
                   {seatsLeft === null ? "ظرفیت نامشخص" : seatsLeft === 0 ? "لابی تکمیل" : `${seatsLeft} ظرفیت باقی‌مانده`}
                 </span>
-                <span className="text-lime-700 dark:text-lime-300">{progress}% تکمیل</span>
+                <span className="text-cyan-700 dark:text-cyan-300">{progress}% تکمیل</span>
               </div>
             </div>
 
@@ -232,18 +232,18 @@ export function LobbyPreviewCard({
   }
 
   return (
-    <article className="relative overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_52%,#f0fdf4_100%)] shadow-xl shadow-zinc-950/10 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.94)_0%,rgba(9,9,11,0.98)_58%,rgba(20,83,45,0.22)_100%)] dark:shadow-black/35">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+    <article className="relative overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_52%,#ecfeff_100%)] shadow-xl shadow-zinc-950/10 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.94)_0%,rgba(9,9,11,0.98)_58%,rgba(0,168,150,0.22)_100%)] dark:shadow-black/35">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" />
 
       <header className="relative overflow-hidden border-b border-zinc-200 bg-zinc-950 p-4 text-white dark:border-white/10 sm:p-5">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.32),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.18),transparent_20rem)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.32),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.18),transparent_20rem)]" />
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-start gap-3 sm:gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-lime-400 text-zinc-950 shadow-sm shadow-lime-500/30 sm:size-14">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-cyan-400 text-zinc-950 shadow-sm shadow-cyan-500/30 sm:size-14">
               <span className="material-symbols-outlined text-2xl sm:text-3xl">groups</span>
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-300">اتاق انتظار</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">اتاق انتظار</p>
               <h2 className="mt-1 line-clamp-2 break-words text-2xl font-black leading-8 sm:text-3xl sm:leading-10">{title}</h2>
               <p className="mt-2 line-clamp-2 max-w-2xl text-xs font-bold leading-6 text-zinc-300 sm:text-sm">
                 {subtitle || "وضعیت لابی، ظرفیت، بازیکنان و ترکیب سناریو در یک نمای منظم دیده می‌شود."}
@@ -252,7 +252,7 @@ export function LobbyPreviewCard({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-[10px] font-black sm:text-xs">
-            <span className={`rounded-lg px-3 py-1.5 ${isFull ? "bg-lime-400 text-zinc-950" : "bg-sky-400 text-sky-950"}`}>
+            <span className={`rounded-lg px-3 py-1.5 ${isFull ? "bg-cyan-400 text-zinc-950" : "bg-sky-400 text-sky-950"}`}>
               {statusLabel}
             </span>
             <span className="rounded-lg border border-white/10 bg-white/10 px-3 py-1.5 font-mono text-white">
@@ -293,11 +293,11 @@ export function LobbyPreviewCard({
                 </span>
               </div>
               <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-zinc-200/80 ring-1 ring-zinc-950/5 dark:bg-white/10 dark:ring-white/10">
-                <div className="h-full rounded-full bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400 transition-[width]" style={{ width: `${progress}%` }} />
+                <div className="h-full rounded-full bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400 transition-[width]" style={{ width: `${progress}%` }} />
               </div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="font-bold text-zinc-500 dark:text-zinc-400">{progressLabel}</span>
-                <span className={isFull ? "font-black text-lime-700 dark:text-lime-300" : "font-black text-sky-700 dark:text-sky-300"}>{progress}% تکمیل</span>
+                <span className={isFull ? "font-black text-cyan-700 dark:text-cyan-300" : "font-black text-sky-700 dark:text-sky-300"}>{progress}% تکمیل</span>
               </div>
             </div>
           </div>
@@ -313,7 +313,7 @@ export function LobbyPreviewCard({
                   <span className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-zinc-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300">
                     {capacity > 0 ? `${playerCount} از ${capacity}` : `${playerCount} نفر`}
                   </span>
-                  <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2.5 py-1 text-lime-700 dark:text-lime-300">
+                  <span className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 text-cyan-700 dark:text-cyan-300">
                     {aliveCount} فعال
                   </span>
                   {eliminatedCount > 0 && (
@@ -332,24 +332,24 @@ export function LobbyPreviewCard({
                       <div
                         key={player.id}
                         className={`group relative overflow-hidden rounded-lg border p-3 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 dark:shadow-black/20 ${
-                          alive ? "border-zinc-200 bg-white/90 hover:border-lime-500/25 dark:border-white/10 dark:bg-zinc-950/65" : "border-red-500/20 bg-red-500/10"
+                          alive ? "border-zinc-200 bg-white/90 hover:border-cyan-500/25 dark:border-white/10 dark:bg-zinc-950/65" : "border-red-500/20 bg-red-500/10"
                         }`}
                       >
-                        <span className={`absolute inset-y-0 right-0 w-1 ${alive ? "bg-lime-500" : "bg-red-500"}`} />
+                        <span className={`absolute inset-y-0 right-0 w-1 ${alive ? "bg-cyan-500" : "bg-red-500"}`} />
                         <div className="flex min-w-0 items-center gap-3 pr-1">
                           <PlayerAvatar player={player} alive={alive} />
                           <div className="min-w-0 flex-1">
                             <div className="flex min-w-0 items-center gap-2">
                               <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{player.current ? "شما" : player.name}</p>
                               {player.current && (
-                                <span className="rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[9px] font-black text-lime-700 dark:text-lime-300">حساب شما</span>
+                                <span className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[9px] font-black text-cyan-700 dark:text-cyan-300">حساب شما</span>
                               )}
                             </div>
                             <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] font-black">
                               <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">
                                 بازیکن {index + 1}
                               </span>
-                              <span className={alive ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-lime-700 dark:text-lime-300" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-red-600 dark:text-red-300"}>
+                              <span className={alive ? "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-cyan-700 dark:text-cyan-300" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-red-600 dark:text-red-300"}>
                                 {alive ? "آماده" : "حذف‌شده"}
                               </span>
                             </div>
@@ -377,17 +377,17 @@ export function LobbyPreviewCard({
         <aside className="order-1 flex flex-col bg-white/70 dark:bg-zinc-950/20 xl:order-2">
           {actionArea && <div className="border-b border-zinc-200 p-4 dark:border-white/10 sm:p-5">{actionArea}</div>}
           <div className="relative overflow-hidden border-b border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.28),transparent_28rem)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.28),transparent_28rem)]" />
             <div className="relative">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-300">سناریو</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">سناریو</p>
                   <h3 className="mt-2 line-clamp-2 break-words text-xl font-black leading-7 text-white">{scenarioName}</h3>
                   <p className="mt-2 text-xs font-bold text-zinc-300">
                     {roleBreakdown.length ? `${roleBreakdown.length} نوع نقش، ${capacity || playerCount} ظرفیت` : "در انتظار انتخاب سناریو"}
                   </p>
                 </div>
-                <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-lime-500 text-2xl text-zinc-950 shadow-sm shadow-lime-500/30">account_tree</span>
+                <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-cyan-500 text-2xl text-zinc-950 shadow-sm shadow-cyan-500/30">account_tree</span>
               </div>
 
               <div className="mt-5 overflow-hidden rounded-full bg-white/10">

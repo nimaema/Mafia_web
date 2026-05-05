@@ -56,7 +56,7 @@ export default function WinLossBarChart({ data }: Props) {
             </span>
           )}
         />
-        <Bar dataKey="wins" fill="#a3e635" radius={[4, 4, 0, 0]} name="wins" />
+        <Bar dataKey="wins" fill="#00f5d4" radius={[4, 4, 0, 0]} name="wins" />
         <Bar dataKey="losses" fill="#b91c1c" radius={[4, 4, 0, 0]} name="losses" />
       </BarChart>
     </ResponsiveContainer>

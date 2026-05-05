@@ -682,7 +682,7 @@ export default function AdminDashboard() {
                 onClick={() => switchTab("roles")}
                 className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${
                   activeTab === "roles"
-                    ? "bg-lime-500 text-zinc-950 shadow-sm"
+                    ? "bg-cyan-500 text-zinc-950 shadow-sm"
                     : "text-zinc-500 hover:bg-white dark:hover:bg-white/[0.06]"
                 }`}
               >
@@ -693,7 +693,7 @@ export default function AdminDashboard() {
                 onClick={() => switchTab("scenarios")}
                 className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${
                   activeTab === "scenarios"
-                    ? "bg-lime-500 text-zinc-950 shadow-sm"
+                    ? "bg-cyan-500 text-zinc-950 shadow-sm"
                     : "text-zinc-500 hover:bg-white dark:hover:bg-white/[0.06]"
                 }`}
               >
@@ -725,15 +725,15 @@ export default function AdminDashboard() {
         {showStats && (
           <div className="grid gap-3 border-t border-zinc-200 p-4 dark:border-white/10 md:grid-cols-2 xl:grid-cols-4">
             {[
-              ["کل نقش‌ها", stats.roles, "theater_comedy", "text-lime-500"],
+              ["کل نقش‌ها", stats.roles, "theater_comedy", "text-cyan-500"],
               ["شهروند", stats.citizenRoles, "verified_user", "text-sky-500"],
               ["مافیا", stats.mafiaRoles, "local_police", "text-red-500"],
               ["سناریو", stats.scenarios, "account_tree", "text-amber-500"],
             ].map(([label, value, icon, color]) => (
-              <div key={label} className="ui-muted group overflow-hidden p-4 transition-colors hover:border-lime-500/25">
+              <div key={label} className="ui-muted group overflow-hidden p-4 transition-colors hover:border-cyan-500/25">
                 <div className="flex items-center justify-between gap-3">
                   <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-                  <span className="h-1.5 w-10 rounded-full bg-zinc-200 transition-colors group-hover:bg-lime-500 dark:bg-white/10"></span>
+                  <span className="h-1.5 w-10 rounded-full bg-zinc-200 transition-colors group-hover:bg-cyan-500 dark:bg-white/10"></span>
                 </div>
                 <p className="mt-3 text-2xl font-black text-zinc-950 dark:text-white">{value}</p>
                 <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
@@ -747,7 +747,7 @@ export default function AdminDashboard() {
         {loading ? (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/92 p-6 backdrop-blur-xl dark:bg-zinc-900/92">
             <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-5 text-center shadow-2xl shadow-zinc-950/10 dark:border-white/10 dark:bg-zinc-950">
-              <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-lime-500 text-zinc-950 shadow-lg shadow-lime-500/20">
+              <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-cyan-500 text-zinc-950 shadow-lg shadow-cyan-500/20">
                 <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
               </div>
               <p className="mt-4 text-base font-black text-zinc-950 dark:text-white">در حال همگام‌سازی مرکز پیکربندی</p>
@@ -1018,7 +1018,7 @@ export default function AdminDashboard() {
 
                               <p className={`mt-3 rounded-lg border px-3 py-2 text-[10px] font-bold leading-5 ${
                                 ability.choices.filter((choice) => choice.label.trim()).length >= requiredChoiceCount(ability)
-                                  ? "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+                                  ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
                                   : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
                               }`}>
                                 نام {requiredChoiceCount(ability)} گزینه لازم است.
@@ -1133,7 +1133,7 @@ export default function AdminDashboard() {
                               return (
                               <article
                                 key={role.id}
-                                className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                                className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
                               >
                                 <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(role.alignment)}`} />
                                 <div className="flex items-start justify-between gap-3 pt-1">
@@ -1174,7 +1174,7 @@ export default function AdminDashboard() {
                                     abilities.slice(0, 3).map((ability) => (
                                       <span
                                         key={`${role.id}-${ability.id}`}
-                                        className="inline-flex items-center gap-1 rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-1 text-[10px] font-black text-lime-700 dark:text-lime-300"
+                                        className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[10px] font-black text-cyan-700 dark:text-cyan-300"
                                       >
                                         <span className="material-symbols-outlined text-[13px]">dark_mode</span>
                                         {ability.label}، {abilityUsageLabel(ability)}
@@ -1226,9 +1226,9 @@ export default function AdminDashboard() {
               </div>
 
               {!editingScenarioId && isAdmin && (
-                <div className="mt-4 rounded-lg border border-lime-500/20 bg-lime-500/10 p-3">
+                <div className="mt-4 rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-3">
                   <div className="flex items-start gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-lime-500/20 bg-white text-lime-700 dark:bg-zinc-950 dark:text-lime-300">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-cyan-500/20 bg-white text-cyan-700 dark:bg-zinc-950 dark:text-cyan-300">
                       <span className="material-symbols-outlined text-lg">cloud_done</span>
                     </div>
                     <div className="min-w-0 flex-1">
@@ -1335,7 +1335,7 @@ export default function AdminDashboard() {
                             key={role.id}
                             className={`rounded-lg border p-3 transition-colors ${
                               selected
-                                ? "border-lime-500/35 bg-lime-500/10 shadow-sm shadow-lime-500/10"
+                                ? "border-cyan-500/35 bg-cyan-500/10 shadow-sm shadow-cyan-500/10"
                                 : "border-zinc-200 bg-zinc-50 hover:bg-white dark:border-white/10 dark:bg-white/[0.02] dark:hover:bg-white/[0.04]"
                             }`}
                           >
@@ -1347,8 +1347,8 @@ export default function AdminDashboard() {
                               >
                                 <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg border transition-all ${
                                   selected
-                                    ? "border-lime-400 bg-gradient-to-br from-lime-300 to-lime-500 text-zinc-950 shadow-sm shadow-lime-500/30"
-                                    : "border-zinc-300 bg-white text-zinc-300 group-hover/role-option:border-lime-400 group-hover/role-option:text-lime-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-700"
+                                    ? "border-cyan-400 bg-gradient-to-br from-cyan-300 to-cyan-500 text-zinc-950 shadow-sm shadow-cyan-500/30"
+                                    : "border-zinc-300 bg-white text-zinc-300 group-hover/role-option:border-cyan-400 group-hover/role-option:text-cyan-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-700"
                                 }`}>
                                   <span className="material-symbols-outlined text-lg">{selected ? "check" : "add"}</span>
                                 </div>
@@ -1443,7 +1443,7 @@ export default function AdminDashboard() {
                                 setSelectedScenario(scenario);
                               }
                             }}
-                            className="group relative cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-lime-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-lime-500/30 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                            className="group relative cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
                           >
                             <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(dominantAlignment)}`} />
                             <div className="flex items-start justify-between gap-3 pt-1">
@@ -1458,7 +1458,7 @@ export default function AdminDashboard() {
                               </div>
 
                               <div className="flex shrink-0 items-start gap-1">
-                                <span className="flex min-h-8 items-center rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 text-[10px] font-black text-lime-700 dark:text-lime-300">
+                                <span className="flex min-h-8 items-center rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 text-[10px] font-black text-cyan-700 dark:text-cyan-300">
                                   {totalPlayers} نفر
                                 </span>
                                 <button
@@ -1476,7 +1476,7 @@ export default function AdminDashboard() {
                                     event.stopPropagation();
                                     handleDuplicateScenario(scenario);
                                   }}
-                                  className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-lime-500/30 hover:bg-lime-500/10 hover:text-lime-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-lime-300"
+                                  className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/10 hover:text-cyan-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-cyan-300"
                                   title="کپی سناریو"
                                 >
                                   <span className="material-symbols-outlined text-base">content_copy</span>
@@ -1528,7 +1528,7 @@ export default function AdminDashboard() {
                               <div className="min-w-0 flex-1">
                                 <p className="truncate text-xs font-bold text-zinc-500 dark:text-zinc-400">برای دیدن نقش‌ها و ظرفیت دقیق وارد جزئیات شوید.</p>
                               </div>
-                              <div className="mr-auto flex items-center gap-1 text-[10px] font-black text-zinc-400 transition-colors group-hover:text-lime-600 dark:group-hover:text-lime-300">
+                              <div className="mr-auto flex items-center gap-1 text-[10px] font-black text-zinc-400 transition-colors group-hover:text-cyan-600 dark:group-hover:text-cyan-300">
                                 جزئیات
                                 <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>
                               </div>
@@ -1574,7 +1574,7 @@ export default function AdminDashboard() {
             <div className="custom-scrollbar max-h-[calc(100dvh-15rem)] overflow-y-auto p-5 sm:max-h-[62vh]">
               <div className="grid gap-3 sm:grid-cols-4">
                 {[
-                  ["کل بازیکن", scenarioTotalPlayers(selectedScenario), "groups", "text-lime-500"],
+                  ["کل بازیکن", scenarioTotalPlayers(selectedScenario), "groups", "text-cyan-500"],
                   ["شهروند", scenarioAlignmentCounts(selectedScenario).CITIZEN, "verified_user", "text-sky-500"],
                   ["مافیا", scenarioAlignmentCounts(selectedScenario).MAFIA, "local_police", "text-red-500"],
                   ["مستقل", scenarioAlignmentCounts(selectedScenario).NEUTRAL, "casino", "text-amber-500"],

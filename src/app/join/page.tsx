@@ -43,16 +43,16 @@ export default function JoinGamePage() {
   };
 
   return (
-    <div className="app-page min-h-screen p-4" dir="rtl">
+    <div className="app-page pm-force-dark min-h-screen bg-[#15171b] p-4 text-white" dir="rtl">
       <main className="mx-auto grid min-h-[calc(100vh-2rem)] w-full max-w-6xl items-center gap-6 lg:grid-cols-[minmax(0,1fr)_460px]">
         <section className="hidden lg:block">
           <div className="max-w-xl">
-            <div className="ui-muted inline-flex items-center gap-2 px-3 py-2">
-              <span className="material-symbols-outlined text-base text-lime-600 dark:text-lime-400">login</span>
-              <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">ورود بازیکن ثبت‌نام‌شده</span>
+            <div className="pm-chip pm-chip-primary">
+              <span className="material-symbols-outlined text-base">login</span>
+              ورود بازیکن ثبت‌نام‌شده
             </div>
-            <h1 className="mt-5 text-5xl font-black leading-tight text-zinc-950 dark:text-white">کد بازی را وارد کنید و مستقیم به لابی بروید.</h1>
-            <p className="mt-4 text-base leading-8 text-zinc-600 dark:text-zinc-400">
+            <h1 className="mt-5 text-5xl font-black leading-tight">کد بازی را وارد کنید و مستقیم به لابی بروید.</h1>
+            <p className="mt-4 text-base font-bold leading-8 text-white/58">
               فقط کاربران ثبت‌نام‌شده می‌توانند وارد بازی شوند. نام حساب شما در فهرست بازیکنان لابی دیده می‌شود.
             </p>
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
@@ -61,29 +61,29 @@ export default function JoinGamePage() {
                 ["verified_user", "حساب کاربری"],
                 ["lock", "رمز در صورت نیاز"],
               ].map(([icon, text]) => (
-                <div key={text} className="ui-muted p-4">
-                  <span className="material-symbols-outlined text-xl text-lime-600 dark:text-lime-400">{icon}</span>
-                  <p className="mt-3 text-sm font-black text-zinc-950 dark:text-white">{text}</p>
+                <div key={text} className="pm-muted-card p-4">
+                  <span className="material-symbols-outlined text-xl text-cyan-200">{icon}</span>
+                  <p className="mt-3 text-sm font-black">{text}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="ui-card w-full overflow-hidden">
-          <header className="border-b border-zinc-200 bg-zinc-50/80 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
-            <div className="mx-auto flex size-16 items-center justify-center rounded-lg bg-lime-500 text-zinc-950">
+        <section className="pm-command w-full overflow-hidden">
+          <header className="border-b border-white/10 bg-black/18 p-6 text-center">
+            <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-cyan-300 text-zinc-950">
               <span className="material-symbols-outlined text-3xl">stadia_controller</span>
             </div>
-            <h2 className="mt-4 text-3xl font-black text-zinc-950 dark:text-white">پیوستن به بازی</h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+            <h2 className="mt-4 text-3xl font-black">پیوستن به بازی</h2>
+            <p className="mt-2 text-sm font-bold leading-6 text-white/54">
               {session?.user?.name ? `${session.user.name}، کد لابی و رمز اختیاری را وارد کنید.` : "کد لابی و رمز اختیاری را وارد کنید."}
             </p>
           </header>
 
           <form onSubmit={handleJoin} noValidate className="space-y-4 p-6">
             <label className="flex flex-col gap-2">
-              <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">کد بازی</span>
+              <span className="text-xs font-black text-white/52">کد بازی</span>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">tag</span>
                 <input
@@ -98,7 +98,7 @@ export default function JoinGamePage() {
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نام نمایشی حساب</span>
+              <span className="text-xs font-black text-white/52">نام نمایشی حساب</span>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">person</span>
                 <input
@@ -112,7 +112,7 @@ export default function JoinGamePage() {
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">رمز عبور</span>
+              <span className="text-xs font-black text-white/52">رمز عبور</span>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
                 <input

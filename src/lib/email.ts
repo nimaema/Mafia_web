@@ -133,15 +133,15 @@ const RTL_MARK = "\u200F";
 const PERSIAN_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
 
 const resetEmailTheme: AuthEmailTheme = {
-  heroBackground: "#111113",
-  heroGradient: "linear-gradient(135deg, #111113 0%, #1f2937 54%, #365314 100%)",
-  accent: "#a3e635",
-  accentText: "#172006",
-  accentSoft: "#ecfccb",
-  badgeText: "#d9f99d",
-  noteBackground: "#fff7ed",
-  noteBorder: "#fed7aa",
-  noteText: "#9a3412",
+  heroBackground: "#15171b",
+  heroGradient: "linear-gradient(135deg, #15171b 0%, #1f2937 54%, #00a896 100%)",
+  accent: "#00f5d4",
+  accentText: "#002d27",
+  accentSoft: "#ccfbf1",
+  badgeText: "#99fff0",
+  noteBackground: "#ecfeff",
+  noteBorder: "#a5f3fc",
+  noteText: "#155e75",
 };
 
 const verificationEmailTheme: AuthEmailTheme = {
@@ -397,7 +397,7 @@ function buildAdminEmailBodyHtml(body: string) {
           .map(
             (item) => `
               <div dir="rtl" style="${EMAIL_RTL_STYLE} color: #1e3a8a; font-size: 14px; line-height: 30px; font-weight: 700;">
-                <span style="display: inline-block; width: 7px; height: 7px; margin-left: 8px; border-radius: 999px; background: #84cc16;"></span>${renderInlineEmailText(item)}
+                <span style="display: inline-block; width: 7px; height: 7px; margin-left: 8px; border-radius: 999px; background: #00f5d4;"></span>${renderInlineEmailText(item)}
               </div>
             `
           )
@@ -437,7 +437,7 @@ function buildAdminEmailBodyHtml(body: string) {
       flushParagraph();
       flushList();
       blocks.push(`
-        <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 14px; border: 1px solid #d9f99d; border-right: 5px solid #84cc16; border-radius: 18px; background: #f7fee7; padding: 15px 17px; color: #3f6212; font-size: 14px; line-height: 28px; font-weight: 800;">
+        <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 14px; border: 1px solid #99fff0; border-right: 5px solid #00f5d4; border-radius: 18px; background: #ecfeff; padding: 15px 17px; color: #155e75; font-size: 14px; line-height: 28px; font-weight: 800;">
           ${renderInlineEmailText(line.slice(2))}
         </div>
       `);
@@ -492,18 +492,18 @@ function buildAdminUserMessage(email: string, subject: string, body: string, fro
             <td dir="rtl" align="center" style="padding: 28px 12px;">
               <table role="presentation" dir="rtl" width="660" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 660px; border-collapse: separate; border-spacing: 0; background-color: #ffffff; border: 1px solid #d7dee3; border-radius: 30px; overflow: hidden; box-shadow: 0 26px 76px rgba(15, 23, 42, 0.18);">
                 <tr>
-                  <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} padding: 30px 28px 32px; background-color: #101113; background-image: linear-gradient(135deg, #101113 0%, #18212f 46%, #365314 100%); color: #ffffff;">
+                  <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} padding: 30px 28px 32px; background-color: #101113; background-image: linear-gradient(135deg, #101113 0%, #18212f 46%, #00a896 100%); color: #ffffff;">
                     <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                       <tr>
                         <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE}">
-                          <div dir="rtl" style="display: inline-block; width: 48px; height: 48px; border-radius: 17px; background-color: #a3e635; color: #172006; font-family: ${EMAIL_FONT_FAMILY}; font-size: 24px; line-height: 48px; font-weight: 700; text-align: center;">M</div>
+                          <div dir="rtl" style="display: inline-block; width: 48px; height: 48px; border-radius: 17px; background-color: #00f5d4; color: #002d27; font-family: ${EMAIL_FONT_FAMILY}; font-size: 24px; line-height: 48px; font-weight: 700; text-align: center;">M</div>
                           <div dir="rtl" style="${EMAIL_RTL_STYLE} display: inline-block; padding-right: 12px; vertical-align: top;">
                             <div style="${EMAIL_RTL_STYLE} color: #ffffff; font-size: 17px; line-height: 24px; font-weight: 700;">مافیا بورد</div>
-                            <div style="${EMAIL_RTL_STYLE} color: #d9f99d; font-size: 12px; line-height: 20px; font-weight: 700;">پیام مدیریت</div>
+                            <div style="${EMAIL_RTL_STYLE} color: #99fff0; font-size: 12px; line-height: 20px; font-weight: 700;">پیام مدیریت</div>
                           </div>
                         </td>
                         <td dir="rtl" align="left" style="${EMAIL_RTL_STYLE}">
-                          <span style="display: inline-block; border: 1px solid rgba(217,249,157,0.25); border-radius: 999px; padding: 8px 12px; background: rgba(163,230,53,0.10); color: #d9f99d; font-size: 12px; font-weight: 700;">پیام رسمی</span>
+                          <span style="display: inline-block; border: 1px solid rgba(217,249,157,0.25); border-radius: 999px; padding: 8px 12px; background: rgba(163,230,53,0.10); color: #99fff0; font-size: 12px; font-weight: 700;">پیام رسمی</span>
                         </td>
                       </tr>
                     </table>
@@ -520,7 +520,7 @@ function buildAdminUserMessage(email: string, subject: string, body: string, fro
                     </div>
                     <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin-top: 18px; border-collapse: separate; border-spacing: 0;">
                       <tr>
-                        <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} border: 1px solid #d9f99d; border-radius: 18px; background: #f7fee7; padding: 14px 16px; color: #3f6212; font-size: 12px; line-height: 24px; font-weight: 700;">
+                        <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} border: 1px solid #99fff0; border-radius: 18px; background: #ecfeff; padding: 14px 16px; color: #155e75; font-size: 12px; line-height: 24px; font-weight: 700;">
                           اگر درباره این پیام سوالی دارید، از داخل سایت با مدیریت پیگیری کنید و اطلاعات حساس حساب خود را در پاسخ ایمیل ارسال نکنید.
                         </td>
                       </tr>

@@ -134,9 +134,9 @@ export default function UserGamePage() {
     return (
       <div className="flex min-h-[70vh] items-center justify-center p-4" dir="rtl">
         <div className="ui-card w-full max-w-lg overflow-hidden text-center">
-          <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
+          <div className="h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-300" />
           <div className="p-8">
-            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-lime-500 text-zinc-950 shadow-lg shadow-lime-500/20">
+            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-cyan-500 text-zinc-950 shadow-lg shadow-cyan-500/20">
               <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
             </div>
             <p className="mt-5 text-lg font-black text-zinc-950 dark:text-white">در حال آماده‌سازی کارت نقش</p>
@@ -226,12 +226,12 @@ export default function UserGamePage() {
                   {game?.scenario?.description || "ترکیب نقش‌های این بازی را بدون نمایش نقش بازیکنان ببینید."}
                 </p>
               </div>
-              <span className="material-symbols-outlined flex size-12 shrink-0 rounded-lg bg-lime-500 text-2xl text-zinc-950">menu_book</span>
+              <span className="material-symbols-outlined flex size-12 shrink-0 rounded-lg bg-cyan-500 text-2xl text-zinc-950">menu_book</span>
             </div>
 
             <div className="mt-5 grid grid-cols-4 gap-2">
               {[
-                ["کل", scenarioCounts.total, "text-lime-600 dark:text-lime-300"],
+                ["کل", scenarioCounts.total, "text-cyan-600 dark:text-cyan-300"],
                 ["شهروند", scenarioCounts.CITIZEN, "text-sky-600 dark:text-sky-300"],
                 ["مافیا", scenarioCounts.MAFIA, "text-red-600 dark:text-red-300"],
                 ["مستقل", scenarioCounts.NEUTRAL, "text-amber-600 dark:text-amber-300"],
@@ -255,7 +255,7 @@ export default function UserGamePage() {
                   const alive = player.isAlive !== false;
                   return (
                     <div key={player.id} className={alive ? "relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]" : "relative overflow-hidden rounded-lg border border-red-500/20 bg-red-500/10 p-2"}>
-                      <div className={`absolute inset-y-2 right-0 w-1 rounded-l-full ${alive ? "bg-lime-500" : "bg-red-500"}`} />
+                      <div className={`absolute inset-y-2 right-0 w-1 rounded-l-full ${alive ? "bg-cyan-500" : "bg-red-500"}`} />
                       <div className="flex items-center justify-between gap-2 pr-1">
                         <div className="flex min-w-0 items-center gap-2">
                           <div className={`flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg text-xs font-black ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
@@ -263,7 +263,7 @@ export default function UserGamePage() {
                           </div>
                           <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{player.name}</p>
                         </div>
-                        <span className={alive ? "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[9px] font-black text-lime-700 dark:text-lime-300" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[9px] font-black text-red-600 dark:text-red-300"}>
+                        <span className={alive ? "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[9px] font-black text-cyan-700 dark:text-cyan-300" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[9px] font-black text-red-600 dark:text-red-300"}>
                           {alive ? "فعال" : "حذف‌شده"}
                         </span>
                       </div>
@@ -304,26 +304,26 @@ export default function UserGamePage() {
             )}
 
             {groupedNightEvents.length > 0 && (
-              <div className="mt-5 rounded-lg border border-lime-500/20 bg-lime-500/10 p-4">
+              <div className="mt-5 rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-4">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lime-600 dark:text-lime-300">dark_mode</span>
+                  <span className="material-symbols-outlined text-cyan-600 dark:text-cyan-300">dark_mode</span>
                   <p className="text-sm font-black text-zinc-950 dark:text-white">دفترچه عمومی شب</p>
                 </div>
                 <div className="mt-3 space-y-2">
                   {groupedNightEvents.map(([nightNumber, events]) => (
-                    <details key={nightNumber} className="group rounded-lg border border-lime-500/20 bg-white/70 dark:bg-zinc-950/60">
+                    <details key={nightNumber} className="group rounded-lg border border-cyan-500/20 bg-white/70 dark:bg-zinc-950/60">
                       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3">
                         <span className="text-xs font-black text-zinc-950 dark:text-white">شب {nightNumber}</span>
                         <span className="material-symbols-outlined text-zinc-400 transition-transform group-open:rotate-180">keyboard_arrow_down</span>
                       </summary>
-                      <div className="space-y-2 border-t border-lime-500/20 p-3">
+                      <div className="space-y-2 border-t border-cyan-500/20 p-3">
                         {events.map((event: any) => (
                           <div key={event.id} className="rounded-lg bg-white p-2 text-xs leading-5 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="font-black text-zinc-950 dark:text-white">
                                 {event.abilityLabel}{event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}
                               </p>
-                              <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-lime-500/20 bg-lime-500/10 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-300"}>
+                              <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-black text-cyan-700 dark:text-cyan-300"}>
                                 {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
                               </span>
                               {event.details?.effectType && event.details.effectType !== "NONE" && (

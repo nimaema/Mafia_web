@@ -67,7 +67,7 @@ function backupKindLabel(kind: DatabaseBackupRecord["kind"]) {
 }
 
 function backupKindClass(kind: DatabaseBackupRecord["kind"]) {
-  if (kind === "auto") return "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300";
+  if (kind === "auto") return "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300";
   if (kind === "pre-restore") return "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300";
   return "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300";
 }
@@ -77,7 +77,7 @@ function backupAuthorLabel(author?: { name: string | null; email?: string | null
 }
 
 function diffTone(type: "added" | "deleted" | "modified") {
-  if (type === "added") return "border-lime-500/20 bg-lime-500/10 text-lime-700 dark:text-lime-300";
+  if (type === "added") return "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300";
   if (type === "deleted") return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
   return "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300";
 }
@@ -328,7 +328,7 @@ export function DatabaseBackupPanel() {
       <section className="overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-zinc-950/70">
         <div className="grid lg:grid-cols-[minmax(0,1fr)_330px]">
           <div className="relative p-5 sm:p-6">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" />
             <div className="flex items-start gap-4">
               <div className="ui-icon-accent size-12">
                 <span className="material-symbols-outlined text-2xl">restore_page</span>
@@ -351,7 +351,7 @@ export function DatabaseBackupPanel() {
                   {databaseBackupStats.latest ? formatBackupDate(databaseBackupStats.latest.createdAt) : "هنوز ساخته نشده"}
                 </p>
               </div>
-              <div className="flex size-12 items-center justify-center rounded-lg bg-lime-500 text-zinc-950">
+              <div className="flex size-12 items-center justify-center rounded-lg bg-cyan-500 text-zinc-950">
                 <span className="material-symbols-outlined text-2xl">shield</span>
               </div>
             </div>
@@ -371,7 +371,7 @@ export function DatabaseBackupPanel() {
 
       <section className="grid gap-3 md:grid-cols-4">
         {[
-          ["خودکار", `${databaseBackupStats.autoCount} فایل`, "event_repeat", "text-lime-500"],
+          ["خودکار", `${databaseBackupStats.autoCount} فایل`, "event_repeat", "text-cyan-500"],
           ["دستی", `${databaseBackupStats.manualCount} فایل`, "touch_app", "text-sky-500"],
           ["نگهداری", "۷ روز آخر", "calendar_clock", "text-amber-500"],
           ["فرمت", "Postgres dump", "inventory_2", "text-zinc-500"],
@@ -420,7 +420,7 @@ export function DatabaseBackupPanel() {
 
           {databaseBackupsLoading && databaseBackups.length === 0 ? (
             <div className="flex min-h-72 flex-col items-center justify-center p-8 text-center">
-              <div className="grid size-14 place-items-center rounded-2xl bg-lime-500 text-zinc-950 shadow-lg shadow-lime-500/20">
+              <div className="grid size-14 place-items-center rounded-2xl bg-cyan-500 text-zinc-950 shadow-lg shadow-cyan-500/20">
                 <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
               </div>
               <p className="mt-4 text-base font-black text-zinc-950 dark:text-white">در حال خواندن آرشیو بکاپ‌ها</p>
@@ -515,7 +515,7 @@ export function DatabaseBackupPanel() {
         <aside className="h-fit rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-950/60 xl:sticky xl:top-5">
           <div className="flex items-center gap-3">
             <div className="ui-icon">
-              <span className="material-symbols-outlined text-lg text-lime-500">rule_settings</span>
+              <span className="material-symbols-outlined text-lg text-cyan-500">rule_settings</span>
             </div>
             <div>
               <p className="text-sm font-black text-zinc-950 dark:text-white">نوع بازیابی را درست انتخاب کنید</p>
@@ -524,9 +524,9 @@ export function DatabaseBackupPanel() {
           </div>
 
           <div className="mt-4 space-y-3">
-            <div className="rounded-lg border border-lime-500/20 bg-lime-500/10 p-3">
+            <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-3">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-base text-lime-600 dark:text-lime-300">database_upload</span>
+                <span className="material-symbols-outlined text-base text-cyan-600 dark:text-cyan-300">database_upload</span>
                 <p className="text-xs font-black text-zinc-950 dark:text-white">بازیابی داده</p>
               </div>
               <p className="mt-2 text-xs leading-6 text-zinc-600 dark:text-zinc-300">
