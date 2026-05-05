@@ -42,13 +42,15 @@ export default async function DashboardLayout({
     { href: "/dashboard/moderator", icon: "sports_esports", label: "گردانندگی", show: isModerator },
     { href: "/dashboard/admin?tab=scenarios", icon: "account_tree", label: "سناریو", show: isModerator },
     { href: "/dashboard/admin?tab=roles", icon: "theater_comedy", label: "نقش", show: isModerator },
-    { href: "/dashboard/admin?tab=users", icon: "admin_panel_settings", label: "مدیریت", show: isAdmin },
+    { href: "/dashboard/admin/users", icon: "admin_panel_settings", label: "کاربران", show: isAdmin },
+    { href: "/dashboard/admin/history", icon: "manage_history", label: "همه بازی‌ها", show: isAdmin },
+    { href: "/dashboard/admin/backups", icon: "backup", label: "بکاپ", show: isAdmin },
   ].filter((item) => item.show);
   const mobileItems = [
     { href: "/dashboard/user", icon: "dashboard", label: "خانه", show: true },
     { href: "/dashboard/user/history", icon: "history", label: "تاریخچه", show: true },
     { href: "/dashboard/moderator", icon: "sports_esports", label: "بازی", show: isModerator },
-    { href: isAdmin ? "/dashboard/admin?tab=users" : "/dashboard/admin?tab=roles", icon: isAdmin ? "admin_panel_settings" : "theater_comedy", label: isAdmin ? "مدیریت" : "نقش", show: isModerator || isAdmin },
+    { href: isAdmin ? "/dashboard/admin/users" : "/dashboard/admin?tab=roles", icon: isAdmin ? "admin_panel_settings" : "theater_comedy", label: isAdmin ? "مدیریت" : "نقش", show: isModerator || isAdmin },
   ].filter((item) => item.show).slice(0, 4);
 
   return (

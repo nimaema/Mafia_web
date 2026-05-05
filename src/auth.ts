@@ -2,25 +2,39 @@ import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import { PrismaClient } from "@prisma/client"
 import { verifyPassword } from "./lib/password"
+import { prisma } from "./lib/prisma"
 
-const prisma = new PrismaClient()
+function sessionSafeImage(image?: string | null) {
+  const value = image?.trim();
+  if (!value) return undefined;
+  // Large data URLs must never be stored in the JWT session cookie.
+  // They can still live in the database and be rendered by server-fetched UI.
+  return /^https?:\/\//i.test(value) ? value : undefined;
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+    updateAge: 12 * 60 * 60,
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60,
+  },
   trustHost: true,
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: process.env.GOOGLE_CLIENT_ID || process.env.AUTH_GOOGLE_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.AUTH_GOOGLE_SECRET || "",
     }),
     CredentialsProvider({
-      name: "Credentials",
+      name: "ورود با ایمیل",
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        email: { label: "ایمیل", type: "email" },
+        password: { label: "رمز عبور", type: "password" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
@@ -44,10 +58,46 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (user.email) {
-        const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
+      const email = user.email || (profile as { email?: string } | undefined)?.email;
+
+      if (email) {
+        const dbUser = await prisma.user.findUnique({ where: { email } });
         if (dbUser?.isBanned) {
           throw new Error("حساب کاربری شما مسدود شده است");
+        }
+
+        if (account?.provider === "google" && dbUser) {
+          const googleImage =
+            user.image ||
+            (profile as { picture?: string; image?: string } | undefined)?.picture ||
+            (profile as { picture?: string; image?: string } | undefined)?.image;
+
+          if (!dbUser.emailVerified) {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { emailVerified: new Date() },
+            });
+          }
+
+          if (googleImage && googleImage !== dbUser.image) {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { image: googleImage, lastActiveAt: new Date() },
+            });
+            user.image = googleImage;
+          } else {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { lastActiveAt: new Date() },
+            });
+          }
+        } else if (account?.provider === "credentials" && dbUser && !dbUser.emailVerified) {
+          return "/auth/verify-email";
+        } else if (dbUser) {
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { lastActiveAt: new Date() },
+          });
         }
       }
       return true;
@@ -57,25 +107,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = (user as any).role
         token.name = user.name
         token.email = user.email
+        token.picture = sessionSafeImage(user.image) || undefined
       }
-      
-      // Handle session updates
-      if (trigger === "update") {
-        if (session?.user) {
-          token.name = session.user.name
-          token.email = session.user.email
-          if (session.user.role) token.role = session.user.role
-        } else if (token.sub) {
-          // Fallback: re-fetch from database to ensure fresh data
+
+      if (token.sub) {
+        try {
           const dbUser = await prisma.user.findUnique({
-            where: { id: token.sub }
+            where: { id: token.sub },
+            select: {
+              name: true,
+              email: true,
+              image: true,
+              role: true,
+            },
           })
           if (dbUser) {
             token.name = dbUser.name
             token.email = dbUser.email
+            token.picture = sessionSafeImage(dbUser.image)
             token.role = dbUser.role
           }
+        } catch (error) {
+          console.error("Failed to refresh auth token user:", error)
         }
+      } else if (trigger === "update" && session?.user) {
+        token.name = session.user.name
+        token.email = session.user.email
+        token.picture = sessionSafeImage(session.user.image)
+        if (session.user.role) token.role = session.user.role
       }
       return token
     },
@@ -92,7 +151,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user && token.email) {
         session.user.email = token.email as string
       }
+      if (session.user) {
+        session.user.image = typeof token.picture === "string" ? token.picture : null
+      }
       return session
     }
+  },
+  events: {
+    async createUser({ user }) {
+      if (user.email) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { emailVerified: new Date(), lastActiveAt: new Date() },
+        });
+      }
+    },
   }
 })

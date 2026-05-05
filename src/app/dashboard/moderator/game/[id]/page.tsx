@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getGameStatus } from "@/actions/game";
+import { endGame, getGameStatus, publishNightRecords, recordDayElimination, recordNightEvent, setPlayerAliveStatus } from "@/actions/game";
+import { getPusherClient } from "@/lib/pusher-client";
 import { usePopup } from "@/components/PopupProvider";
 import { CommandButton, CommandSurface, EmptyState, SectionHeader, StatCell, StatusChip } from "@/components/CommandUI";
 
@@ -60,24 +61,35 @@ export default function ModeratorGamePage() {
   const [phase, setPhase] = useState<Phase>("روز");
   const [phaseNo, setPhaseNo] = useState(1);
   const [targetSheet, setTargetSheet] = useState<string | null>(null);
-  const [events, setEvents] = useState<Array<{ id: number; phase: string; text: string }>>([]);
+  const [eventNote, setEventNote] = useState("");
   const turnTimer = useTimer(180);
   const challengeTimer = useTimer(45);
 
   useEffect(() => {
-    getGameStatus(gameId).then((res) => {
+    const syncGame = async () => {
+      const res = await getGameStatus(gameId);
       if (!res) {
         router.push("/dashboard/moderator");
         return;
       }
       setGame(res);
       setLoading(false);
-    });
+    };
+
+    syncGame();
+    const pusher = getPusherClient();
+    const channel = pusher.subscribe(`game-${gameId}`);
+    channel.bind("game-state-updated", syncGame);
+    channel.bind("player-status-updated", syncGame);
+    channel.bind("night-records-public", syncGame);
+    channel.bind("game-ended", syncGame);
+    return () => pusher.unsubscribe(`game-${gameId}`);
   }, [gameId, router]);
 
   if (loading) return <EmptyState icon="progress_activity" title="در حال آماده‌سازی کنترل بازی..." />;
 
-  const players = [...(game.players || [])];
+  const players = [...(game.players || [])].sort((a: any, b: any) => Number(a.isAlive === false) - Number(b.isAlive === false));
+  const reports = game.nightEvents || [];
   const advancePhase = () => {
     if (phase === "روز") setPhase("شب");
     else {
@@ -86,18 +98,69 @@ export default function ModeratorGamePage() {
     }
   };
 
-  const addEvent = (text: string) => {
-    setEvents((prev) => [{ id: Date.now(), phase: `${phase} ${phaseNo}`, text }, ...prev]);
-    setTargetSheet(null);
+  const refreshGame = async () => {
+    const fresh = await getGameStatus(gameId);
+    if (fresh) setGame(fresh);
   };
 
-  const finishGame = (winner: string) => {
+  const addEvent = async (player: any, action: string) => {
+    let result: any;
+    if (action === "حذف روز" || action === "رای‌گیری / دفاع") {
+      result = await recordDayElimination(gameId, {
+        dayNumber: phaseNo,
+        targetPlayerId: action === "حذف روز" ? player.id : undefined,
+        defensePlayerIds: action === "رای‌گیری / دفاع" ? [player.id] : [],
+        methodKey: action === "رای‌گیری / دفاع" ? "vote" : "custom",
+        methodLabel: action,
+        note: eventNote,
+      });
+      if (!result.error && action === "حذف روز") await setPlayerAliveStatus(gameId, player.id, false);
+    } else {
+      result = await recordNightEvent(gameId, {
+        nightNumber: phaseNo,
+        abilityKey: action === "شلیک مافیا" ? "mafia-shot" : `manual:${action}`,
+        abilityLabel: action,
+        abilitySource: action === "شلیک مافیا" ? "جبهه مافیا" : player.role?.name || "گزارش دستی",
+        actorPlayerId: action === "شلیک مافیا" ? undefined : player.id,
+        targetPlayerId: action === "بدون استفاده" ? undefined : player.id,
+        actorAlignment: action === "شلیک مافیا" ? "MAFIA" : player.role?.alignment,
+        wasUsed: action !== "بدون استفاده",
+        note: eventNote,
+      });
+      if (!result.error && action === "شلیک مافیا") {
+        showConfirm("نتیجه شلیک", "آیا این بازیکن در پایان شب کشته شد؟", async () => {
+          await setPlayerAliveStatus(gameId, player.id, false);
+          await refreshGame();
+          showToast("بازیکن حذف شد", "success");
+        }, "warning");
+      }
+    }
+
+    if (result?.error) showToast(result.error, "error");
+    else showToast("گزارش ثبت شد", "success");
+    setEventNote("");
+    setTargetSheet(null);
+    await refreshGame();
+  };
+
+  const finishGame = (winner: "CITIZEN" | "MAFIA" | "NEUTRAL") => {
     showConfirm("پایان بازی", "نتیجه برای بازیکنان ثبت می‌شود. ادامه می‌دهید؟", async () => {
-      const { endGame } = await import("@/actions/game");
       await endGame(gameId, winner);
       showToast("بازی پایان یافت", "success");
-      router.push("/dashboard/moderator");
+      await refreshGame();
     });
+  };
+
+  const publishReport = () => {
+    showConfirm("عمومی کردن گزارش", "بازیکنان این بازی گزارش روز و شب را در تاریخچه خود می‌بینند. ادامه می‌دهید؟", async () => {
+      const result = await publishNightRecords(gameId);
+      if (result.success) {
+        showToast("گزارش عمومی شد", "success");
+        await refreshGame();
+      } else {
+        showToast(result.error || "انتشار گزارش انجام نشد", "error");
+      }
+    }, "warning");
   };
 
   return (
@@ -158,8 +221,8 @@ export default function ModeratorGamePage() {
                     <p className="truncate font-black text-zinc-100">{player.name}</p>
                     <p className="mt-1 truncate text-xs text-zinc-500">{player.role?.name || "بدون نقش"}</p>
                   </div>
-                  <StatusChip tone={player.role?.alignment === "MAFIA" ? "rose" : player.role?.alignment === "CITIZEN" ? "cyan" : "amber"}>
-                    ثبت
+                  <StatusChip tone={player.isAlive === false ? "rose" : player.role?.alignment === "MAFIA" ? "rose" : player.role?.alignment === "CITIZEN" ? "cyan" : "amber"}>
+                    {player.isAlive === false ? "حذف‌شده" : "ثبت"}
                   </StatusChip>
                 </button>
               ))}
@@ -171,14 +234,16 @@ export default function ModeratorGamePage() {
       <section className="grid gap-5 xl:grid-cols-[1fr_0.8fr]">
         <div className="space-y-3">
           <SectionHeader title="گزارش رویدادها" eyebrow="Timeline Report" icon="receipt_long" />
-          {events.length === 0 ? (
+          {reports.length === 0 ? (
             <EmptyState icon="edit_note" title="هنوز رویدادی ثبت نشده" text="بازیکن را انتخاب کنید و اتفاق را به فاز جاری اضافه کنید." />
           ) : (
             <div className="space-y-2">
-              {events.map((event) => (
+              {reports.map((event: any) => (
                 <div key={event.id} className="pm-ledger-row p-3">
-                  <p className="text-xs font-black text-cyan-100">{event.phase}</p>
-                  <p className="mt-1 text-sm leading-6 text-zinc-200">{event.text}</p>
+                  <p className="text-xs font-black text-cyan-100">دور {event.nightNumber}</p>
+                  <p className="mt-1 text-sm font-black leading-6 text-zinc-200">{event.abilityLabel}{event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}</p>
+                  <p className="mt-1 text-xs leading-5 text-zinc-500">{event.actorName || event.abilitySource || "نامشخص"} {event.wasUsed === false ? "بدون هدف" : `← ${event.targetName || "نامشخص"}`}</p>
+                  {event.note && <p className="mt-1 text-xs leading-5 text-zinc-400">{event.note}</p>}
                 </div>
               ))}
             </div>
@@ -192,6 +257,9 @@ export default function ModeratorGamePage() {
             <CommandButton tone="cyan" onClick={() => finishGame("CITIZEN")}>پیروزی شهروند</CommandButton>
             <CommandButton tone="rose" onClick={() => finishGame("MAFIA")}>پیروزی مافیا</CommandButton>
             <CommandButton tone="amber" onClick={() => finishGame("NEUTRAL")}>پیروزی مستقل</CommandButton>
+            {game.status === "FINISHED" && !game.nightRecordsPublic && (
+              <CommandButton tone="emerald" onClick={publishReport}>عمومی کردن گزارش</CommandButton>
+            )}
           </div>
         </CommandSurface>
       </section>
@@ -214,12 +282,20 @@ export default function ModeratorGamePage() {
                       <span className="material-symbols-outlined text-[20px]">close</span>
                     </button>
                   </div>
+                  <textarea value={eventNote} onChange={(event) => setEventNote(event.target.value)} placeholder="یادداشت اختیاری برای این رویداد..." className="pm-input mt-5 min-h-24 px-4 py-3" />
                   <div className="mt-5 grid gap-2">
                     {["رای‌گیری / دفاع", "حذف روز", "شلیک مافیا", "نجات یا محافظت", "بازپرسی / توانایی نقش", "بدون استفاده"].map((label) => (
-                      <button key={label} onClick={() => addEvent(`${player.name}: ${label}`)} className="pm-ledger-row p-3 text-right font-black text-zinc-100">
+                      <button key={label} onClick={() => addEvent(player, label)} className="pm-ledger-row p-3 text-right font-black text-zinc-100">
                         {label}
                       </button>
                     ))}
+                    <button onClick={async () => {
+                      await setPlayerAliveStatus(gameId, player.id, player.isAlive === false);
+                      setTargetSheet(null);
+                      await refreshGame();
+                    }} className="pm-ledger-row p-3 text-right font-black text-zinc-100">
+                      {player.isAlive === false ? "برگرداندن به بازی" : "علامت حذف‌شده"}
+                    </button>
                   </div>
                 </>
               );

@@ -38,6 +38,22 @@ export default async function UserHistoryPage() {
                   <p className="mt-1 font-black text-cyan-100">{game.players?.length || 0}</p>
                 </div>
               </div>
+              {game.nightEvents?.length > 0 && (
+                <details className="mt-4 rounded-2xl border border-cyan-300/15 bg-cyan-300/10">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3 text-sm font-black text-cyan-100">
+                    گزارش عمومی بازی
+                    <span className="material-symbols-outlined text-[18px]">expand_more</span>
+                  </summary>
+                  <div className="space-y-2 border-t border-cyan-300/15 p-3">
+                    {game.nightEvents.map((event: any) => (
+                      <div key={event.id} className="rounded-xl border border-white/10 bg-black/20 p-3 text-xs leading-6 text-zinc-300">
+                        <p className="font-black text-zinc-100">دور {event.nightNumber}: {event.abilityLabel}</p>
+                        <p className="mt-1 text-zinc-500">{event.actorName || event.abilitySource || "نامشخص"} {event.wasUsed === false ? "بدون هدف" : `← ${event.targetName || "نامشخص"}`}</p>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
             </CommandSurface>
           ))}
         </div>

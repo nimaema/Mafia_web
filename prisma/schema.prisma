@@ -1,6 +1,6 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
   previewFeatures = ["driverAdapters"]
 }
 
@@ -41,29 +41,30 @@ model User {
   password_hash String?
   role          Role      @default(USER)
   isBanned      Boolean   @default(false)
+  lastActiveAt  DateTime?
 
-  accounts      Account[]
-  sessions      Session[]
-  scenarios     Scenario[]
-  gamesHosted   Game[]        @relation("HostedGames")
-  gameHistories GameHistory[]
-  gamePlayers   GamePlayer[]
+  accounts            Account[]
+  sessions            Session[]
+  scenarios           Scenario[]
+  gamesHosted         Game[]               @relation("HostedGames")
+  gameHistories       GameHistory[]
+  gamePlayers         GamePlayer[]
   passwordResetTokens PasswordResetToken[]
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -97,13 +98,14 @@ model PasswordResetToken {
 }
 
 model MafiaRole {
-  id           String     @id @default(cuid())
-  name         String     @unique
-  description  String?
-  alignment    Alignment
-  is_permanent Boolean    @default(false)
+  id             String    @id @default(cuid())
+  name           String    @unique
+  description    String?
+  alignment      Alignment
+  is_permanent   Boolean   @default(false)
+  nightAbilities Json?
 
-  scenarios    ScenarioRole[]
+  scenarios     ScenarioRole[]
   gameHistories GameHistory[]
   gamePlayers   GamePlayer[]
 }
@@ -116,62 +118,110 @@ model Scenario {
   creator     User?          @relation(fields: [createdBy], references: [id])
   roles       ScenarioRole[]
 
-  games       Game[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  games     Game[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ScenarioRole {
-  id          String    @id @default(cuid())
-  scenarioId  String
-  scenario    Scenario  @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
-  roleId      String
-  role        MafiaRole @relation(fields: [roleId], references: [id])
-  count       Int       @default(1)
+  id         String    @id @default(cuid())
+  scenarioId String
+  scenario   Scenario  @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  roleId     String
+  role       MafiaRole @relation(fields: [roleId], references: [id])
+  count      Int       @default(1)
 
   @@unique([scenarioId, roleId])
 }
 
 model Game {
-  id           String      @id @default(cuid())
-  name         String?
-  code         String?     @unique
-  moderatorId  String
-  moderator    User        @relation("HostedGames", fields: [moderatorId], references: [id])
-  password     String?
-  status       GameStatus  @default(WAITING)
-  scenarioId   String?
-  scenario     Scenario?   @relation(fields: [scenarioId], references: [id])
+  id                 String     @id @default(cuid())
+  name               String?
+  code               String?    @unique
+  moderatorId        String
+  moderator          User       @relation("HostedGames", fields: [moderatorId], references: [id])
+  password           String?
+  status             GameStatus @default(WAITING)
+  scenarioId         String?
+  scenario           Scenario?  @relation(fields: [scenarioId], references: [id])
+  winningAlignment   Alignment?
+  nightRecordsPublic Boolean    @default(false)
+  activeRoleAbilities Json?
 
-  histories    GameHistory[]
-  players      GamePlayer[]
-  createdAt    DateTime    @default(now())
+  histories   GameHistory[]
+  players     GamePlayer[]
+  nightEvents NightEvent[]
+  createdAt   DateTime      @default(now())
+  endedAt     DateTime?
 }
 
 model GameHistory {
-  id       String     @id @default(cuid())
-  gameId   String
-  game     Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  userId   String
-  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roleId   String
-  role     MafiaRole  @relation(fields: [roleId], references: [id])
-  result   GameResult?
-  createdAt DateTime    @default(now())
+  id                         String      @id @default(cuid())
+  gameId                     String?
+  game                       Game?       @relation(fields: [gameId], references: [id], onDelete: SetNull)
+  userId                     String
+  user                       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId                     String
+  role                       MafiaRole   @relation(fields: [roleId], references: [id])
+  roleName                   String?
+  roleAlignment              Alignment?
+  result                     GameResult?
+  gameName                   String?
+  gameCode                   String?
+  scenarioName               String?
+  scenarioDescription        String?
+  moderatorName              String?
+  playerCount                Int?
+  playersSnapshot            Json?
+  nightRecordsPublicSnapshot Boolean     @default(false)
+  nightEventsSnapshot        Json?
+  winningAlignment           Alignment?
+  endedAt                    DateTime?
+  createdAt                  DateTime    @default(now())
 
   @@unique([gameId, userId])
 }
 
 model GamePlayer {
-  id        String     @id @default(cuid())
-  gameId    String
-  game      Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  userId    String?
-  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  roleId    String?
-  role      MafiaRole? @relation(fields: [roleId], references: [id])
-  createdAt DateTime   @default(now())
+  id           String     @id @default(cuid())
+  gameId       String
+  game         Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId       String?
+  user         User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  roleId       String?
+  role         MafiaRole? @relation(fields: [roleId], references: [id])
+  isAlive      Boolean    @default(true)
+  eliminatedAt DateTime?
+  createdAt    DateTime   @default(now())
+
+  nightEventsAsActor  NightEvent[] @relation("NightEventActor")
+  nightEventsAsTarget NightEvent[] @relation("NightEventTarget")
 
   @@unique([gameId, name])
+}
+
+model NightEvent {
+  id                 String      @id @default(cuid())
+  gameId             String
+  game               Game        @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  nightNumber        Int
+  abilityKey         String
+  abilityLabel       String
+  abilityChoiceKey   String?
+  abilityChoiceLabel String?
+  abilitySource      String?
+  actorPlayerId      String?
+  actorPlayer        GamePlayer? @relation("NightEventActor", fields: [actorPlayerId], references: [id], onDelete: SetNull)
+  targetPlayerId     String?
+  targetPlayer       GamePlayer? @relation("NightEventTarget", fields: [targetPlayerId], references: [id], onDelete: SetNull)
+  actorAlignment     Alignment?
+  wasUsed            Boolean     @default(true)
+  details            Json?
+  note               String?
+  isPublic           Boolean     @default(false)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@index([gameId, nightNumber])
 }

@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getPusherClient } from "@/lib/pusher";
-import { createCustomGameScenario, getGameStatus, setGameScenario, startGame } from "@/actions/game";
+import { getPusherClient } from "@/lib/pusher-client";
+import { createCustomGameScenario, getGameStatus, setGameRoleAbilities, setGameScenario, startGame } from "@/actions/game";
 import { getScenarios } from "@/actions/admin";
 import { getRoles } from "@/actions/role";
 import { usePopup } from "@/components/PopupProvider";
@@ -25,11 +25,15 @@ export default function GameLobbyPage() {
   const [showCustomSheet, setShowCustomSheet] = useState(false);
   const [customRoles, setCustomRoles] = useState<{ roleId: string; count: number }[]>([]);
   const [roleQuery, setRoleQuery] = useState("");
+  const [saveCustomScenario, setSaveCustomScenario] = useState(false);
+  const [customScenarioName, setCustomScenarioName] = useState("");
+  const [activeRoleAbilities, setActiveRoleAbilities] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     Promise.all([getGameStatus(gameId), getScenarios(), getRoles()]).then(([gameRes, scenariosRes, rolesRes]) => {
       setGame(gameRes);
       setPlayers(gameRes?.players || []);
+      setActiveRoleAbilities((gameRes?.activeRoleAbilities as Record<string, string[]>) || {});
       setScenarios(scenariosRes);
       setRoles(rolesRes);
       setLoading(false);
@@ -40,7 +44,14 @@ export default function GameLobbyPage() {
     channel.bind("player-joined", (data: { player: Player }) => {
       setPlayers((prev) => (prev.find((p) => p.id === data.player.id) ? prev : [...prev, data.player]));
     });
-    channel.bind("scenario-updated", (data: { scenario: any }) => setGame((prev: any) => ({ ...prev, scenario: data.scenario })));
+    channel.bind("scenario-updated", (data: { scenario: any; activeRoleAbilities?: Record<string, string[]> }) => {
+      setGame((prev: any) => ({ ...prev, scenario: data.scenario, activeRoleAbilities: data.activeRoleAbilities || prev?.activeRoleAbilities }));
+      setActiveRoleAbilities(data.activeRoleAbilities || {});
+    });
+    channel.bind("ability-config-updated", (data: { activeRoleAbilities?: Record<string, string[]> }) => {
+      setActiveRoleAbilities(data.activeRoleAbilities || {});
+      setGame((prev: any) => ({ ...prev, activeRoleAbilities: data.activeRoleAbilities || {} }));
+    });
     return () => pusher.unsubscribe(`game-${gameId}`);
   }, [gameId]);
 
@@ -61,7 +72,12 @@ export default function GameLobbyPage() {
     setSettingScenario(true);
     const res = await setGameScenario(gameId, scenarioId);
     if (!res.success) showAlert("خطا", res.error || "خطا در تنظیم سناریو", "error");
-    else showToast("سناریو انتخاب شد", "success");
+    else {
+      const fresh = await getGameStatus(gameId);
+      setGame(fresh);
+      setActiveRoleAbilities((fresh?.activeRoleAbilities as Record<string, string[]>) || {});
+      showToast("سناریو انتخاب شد", "success");
+    }
     setSettingScenario(false);
   };
 
@@ -79,12 +95,33 @@ export default function GameLobbyPage() {
   const handleCreateCustomScenario = async () => {
     if (!selectedCount) return;
     setSettingScenario(true);
-    const res = await createCustomGameScenario(gameId, customRoles);
+    const res = await createCustomGameScenario(gameId, customRoles, saveCustomScenario, customScenarioName);
     if (!res.success) showAlert("خطا", res.error || "خطا در ایجاد سناریوی سفارشی", "error");
     else {
+      const fresh = await getGameStatus(gameId);
+      setGame(fresh);
+      setActiveRoleAbilities((fresh?.activeRoleAbilities as Record<string, string[]>) || {});
       showToast("سناریوی سفارشی اعمال شد", "success");
       setShowCustomSheet(false);
+      setSaveCustomScenario(false);
+      setCustomScenarioName("");
     }
+    setSettingScenario(false);
+  };
+
+  const toggleAbility = (roleId: string, abilityId: string) => {
+    setActiveRoleAbilities((prev) => {
+      const current = prev[roleId] || [];
+      const nextForRole = current.includes(abilityId) ? current.filter((id) => id !== abilityId) : [...current, abilityId];
+      return { ...prev, [roleId]: nextForRole };
+    });
+  };
+
+  const saveAbilityConfig = async () => {
+    setSettingScenario(true);
+    const res = await setGameRoleAbilities(gameId, activeRoleAbilities);
+    if (!res.success) showAlert("خطا", res.error || "ذخیره توانایی‌ها انجام نشد.", "error");
+    else showToast("توانایی‌های این بازی ذخیره شد", "success");
     setSettingScenario(false);
   };
 
@@ -99,6 +136,10 @@ export default function GameLobbyPage() {
   };
 
   if (loading) return <EmptyState icon="progress_activity" title="در حال بارگذاری لابی..." />;
+
+  const scenarioAbilityRoles = (game?.scenario?.roles || [])
+    .map((item: any) => ({ ...item, abilities: Array.isArray(item.role?.nightAbilities) ? item.role.nightAbilities : [] }))
+    .filter((item: any) => item.abilities.length > 0);
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
@@ -154,6 +195,39 @@ export default function GameLobbyPage() {
             <CommandButton tone="ghost" onClick={() => setShowCustomSheet(true)} className="w-full">
               طراحی سناریوی سفارشی
             </CommandButton>
+            {scenarioAbilityRoles.length > 0 && (
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-zinc-100">توانایی‌های فعال این بازی</p>
+                    <p className="mt-1 text-xs leading-5 text-zinc-500">برای همین لابی مشخص کنید کدام توانایی‌های نقش‌ها در گزارش فعال هستند.</p>
+                  </div>
+                  <CommandButton tone="ghost" onClick={saveAbilityConfig} disabled={settingScenario}>ذخیره</CommandButton>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {scenarioAbilityRoles.map((scenarioRole: any) => (
+                    <div key={scenarioRole.roleId} className="pm-ledger-row p-3">
+                      <p className="font-black text-zinc-100">{scenarioRole.role?.name}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {scenarioRole.abilities.map((ability: any) => {
+                          const checked = (activeRoleAbilities[scenarioRole.roleId] || []).includes(ability.id);
+                          return (
+                            <button
+                              key={ability.id}
+                              type="button"
+                              onClick={() => toggleAbility(scenarioRole.roleId, ability.id)}
+                              className={`rounded-full border px-3 py-2 text-xs font-black transition-all ${checked ? "border-cyan-300/40 bg-cyan-300/15 text-cyan-100" : "border-white/10 bg-white/[0.035] text-zinc-500"}`}
+                            >
+                              {checked ? "فعال: " : "غیرفعال: "}{ability.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CommandSurface>
         </div>
       </section>
@@ -184,6 +258,13 @@ export default function GameLobbyPage() {
               </button>
             </div>
             <input value={roleQuery} onChange={(e) => setRoleQuery(e.target.value)} placeholder="جستجوی نقش..." className="pm-input mt-4 h-12 px-4" />
+            <label className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-sm font-black text-zinc-200">
+              ذخیره در کتابخانه سناریوها
+              <input type="checkbox" checked={saveCustomScenario} onChange={(event) => setSaveCustomScenario(event.target.checked)} className="h-5 w-5 accent-cyan-300" />
+            </label>
+            {saveCustomScenario && (
+              <input value={customScenarioName} onChange={(event) => setCustomScenarioName(event.target.value)} placeholder="نام سناریوی ذخیره‌شده" className="pm-input mt-3 h-12 px-4" />
+            )}
             <div className="pm-scrollbar mt-4 max-h-[54vh] space-y-2 overflow-y-auto">
               {sortedRoles.map((role) => {
                 const count = customRoles.find((item) => item.roleId === role.id)?.count || 0;

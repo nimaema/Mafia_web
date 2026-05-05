@@ -47,3 +47,10 @@ batch*.json
 files_content.json
 package_lock_push.json
 /scratch/
+
+# Local/generated documentation
+/docs/
+/src/app/build-guide/
+/src/components/guide/
+/src/lib/buildGuide.ts
+/src/lib/localDocs.ts

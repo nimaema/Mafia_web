@@ -25,8 +25,8 @@ export default function RegisterPage() {
 
     const result = await registerUser(formData);
     if (result.success) {
-      showToast("حساب ساخته شد. حالا وارد شوید.", "success");
-      router.push("/auth/login");
+      showToast("حساب ساخته شد. ایمیل تایید را بررسی کنید.", "success");
+      router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
     } else {
       showAlert("خطا در ثبت‌نام", result.error || "مشکلی در ایجاد حساب رخ داد.", "error");
     }

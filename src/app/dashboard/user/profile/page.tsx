@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import ProfileForm from "./ProfileForm";
 import { prisma } from "@/lib/prisma";
 import { CommandSurface, SectionHeader, StatusChip } from "@/components/CommandUI";
+import { profileImageUrl } from "@/lib/profileImage";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -14,10 +15,11 @@ export default async function ProfilePage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, email: true, password_hash: true },
+    select: { name: true, email: true, image: true, password_hash: true },
   });
 
   const hasPassword = !!dbUser?.password_hash;
+  const image = profileImageUrl(session.user.id, dbUser?.image || session.user.image);
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
@@ -27,8 +29,8 @@ export default async function ProfilePage() {
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <div className="h-20 w-20 overflow-hidden rounded-3xl border border-cyan-300/20 bg-cyan-300/10">
-              {session.user.image ? (
-                <img src={session.user.image} alt="" className="h-full w-full object-cover" />
+              {image ? (
+                <img src={image} alt="" className="h-full w-full object-cover" />
               ) : (
                 <span className="material-symbols-outlined grid h-full w-full place-items-center text-4xl text-cyan-100">person</span>
               )}
@@ -50,6 +52,7 @@ export default async function ProfilePage() {
           user={{
             name: dbUser?.name || session.user.name || "",
             email: dbUser?.email || session.user.email || "",
+            image,
           }}
           hasGoogleProvider={!!googleAccount}
           hasPassword={hasPassword}

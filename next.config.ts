@@ -14,18 +14,13 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/dashboard/admin/user-management',
-        destination: '/dashboard/admin?tab=users',
-        permanent: true,
+        destination: '/dashboard/admin/users',
+        permanent: false,
       },
       {
         source: '/dashboard/admin/management',
-        destination: '/dashboard/admin?tab=users',
-        permanent: true,
-      },
-      {
-        source: '/dashboard/admin/users',
-        destination: '/dashboard/admin?tab=users',
-        permanent: true,
+        destination: '/dashboard/admin/users',
+        permanent: false,
       }
     ];
   },

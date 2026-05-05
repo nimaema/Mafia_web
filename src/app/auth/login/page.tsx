@@ -19,12 +19,16 @@ export default function LoginPage() {
 
       const result = await loginUser(formData);
       if (result.success) {
-        if (result.role === "ADMIN") router.push("/dashboard/admin?tab=users");
+        if (result.role === "ADMIN") router.push("/dashboard/admin/users");
         else if (result.role === "MODERATOR") router.push("/dashboard/moderator");
         else router.push("/dashboard/user");
         return null;
       }
-      return "ایمیل یا رمز عبور درست نیست.";
+      if (result.needsVerification) {
+        router.push(`/auth/verify-email?email=${encodeURIComponent(result.email || email)}`);
+        return null;
+      }
+      return result.error || "ایمیل یا رمز عبور درست نیست.";
     },
     null
   );

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { getPusherClient } from "@/lib/pusher";
+import { getPusherClient } from "@/lib/pusher-client";
 import { getGameStatus, joinGame } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
 import { CommandButton, CommandSurface, EmptyState, SectionHeader, StatusChip } from "@/components/CommandUI";
@@ -47,7 +47,7 @@ export default function UserLobbyPage() {
   const handleJoin = async () => {
     if (!session?.user?.name) return;
     setLoading(true);
-    const res = await joinGame(game.code, session.user.name, joinPassword, session.user.id);
+    const res = await joinGame(game.code, session.user.name, joinPassword);
     if (res.success) setJoined(true);
     else showAlert("خطا در ورود", res.error || "خطا در پیوستن به لابی", "error");
     setLoading(false);

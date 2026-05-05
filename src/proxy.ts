@@ -2,6 +2,12 @@ import { auth } from "./auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+function requestUrl(req: NextRequest, path: string) {
+  const proto = req.headers.get("x-forwarded-proto") || req.nextUrl.protocol.replace(":", "") || "http";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  return new URL(path, host ? `${proto}://${host}` : req.url);
+}
+
 // Next.js 16+ Proxy pattern (replaces middleware.ts)
 export default auth((req: NextRequest & { auth: any }) => {
   const { nextUrl } = req;
@@ -9,7 +15,7 @@ export default auth((req: NextRequest & { auth: any }) => {
 
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
   const isPublicRoute =
-    ["/", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/api/init-db"].includes(
+    ["/", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/auth/verify-email", "/api/init-db"].includes(
       nextUrl.pathname
     ) || nextUrl.pathname.startsWith("/public");
   const isAuthRoute = ["/auth/login", "/auth/register"].includes(nextUrl.pathname);
@@ -18,13 +24,21 @@ export default auth((req: NextRequest & { auth: any }) => {
 
   if (isAuthRoute) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/dashboard/user", nextUrl));
+      const role = req.auth?.user?.role;
+      const target =
+        role === "ADMIN"
+          ? "/dashboard/admin/users"
+          : role === "MODERATOR"
+            ? "/dashboard/moderator"
+            : "/dashboard/user";
+
+      return NextResponse.redirect(requestUrl(req, target));
     }
     return NextResponse.next();
   }
 
   if (!isLoggedIn && !isPublicRoute) {
-    return NextResponse.redirect(new URL("/auth/login", nextUrl));
+    return NextResponse.redirect(requestUrl(req, "/auth/login"));
   }
 
   return NextResponse.next();
@@ -32,5 +46,5 @@ export default auth((req: NextRequest & { auth: any }) => {
 
 // Middleware config remains valid in proxy mode
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icons/).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|manifest.json|manifest.webmanifest|icon|apple-icon|sw.js|icons/).*)"],
 };

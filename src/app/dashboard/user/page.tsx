@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { getUserStats } from "@/actions/dashboard";
 import { getWaitingGames } from "@/actions/game";
-import { getPusherClient } from "@/lib/pusher";
+import { getPusherClient } from "@/lib/pusher-client";
 import { CommandButton, CommandSurface, EmptyState, SectionHeader, StatCell, StatusChip } from "@/components/CommandUI";
 
 export default function UserDashboard() {
@@ -21,6 +21,11 @@ export default function UserDashboard() {
     const pusher = getPusherClient();
     const channel = pusher.subscribe("lobby");
     channel.bind("game-created", refreshActiveGames);
+    channel.bind("game-started", refreshActiveGames);
+    channel.bind("game-ended", refreshData);
+    channel.bind("game-cancelled", refreshData);
+    channel.bind("player-joined", refreshActiveGames);
+    channel.bind("scenario-updated", refreshActiveGames);
     return () => pusher.unsubscribe("lobby");
   }, []);
 
@@ -51,8 +56,8 @@ export default function UserDashboard() {
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className="h-16 w-16 overflow-hidden rounded-2xl border border-cyan-300/20 bg-cyan-300/10">
-                {session?.user?.image ? (
-                  <img src={session.user.image} alt="" className="h-full w-full object-cover" />
+                {data?.userImage || session?.user?.image ? (
+                  <img src={data?.userImage || session?.user?.image || ""} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <span className="material-symbols-outlined grid h-full w-full place-items-center text-4xl text-cyan-100">person</span>
                 )}
@@ -220,6 +225,19 @@ export default function UserDashboard() {
                 </div>
               ))}
             </div>
+            {selectedHistoryGame.nightEvents?.length > 0 && (
+              <div className="mt-5 rounded-2xl border border-cyan-300/15 bg-cyan-300/10 p-4">
+                <p className="font-black text-cyan-100">گزارش عمومی بازی</p>
+                <div className="mt-3 space-y-2">
+                  {selectedHistoryGame.nightEvents.map((event: any) => (
+                    <div key={event.id} className="pm-ledger-row p-3 text-xs leading-6">
+                      <p className="font-black text-zinc-100">دور {event.nightNumber}: {event.abilityLabel}</p>
+                      <p className="mt-1 text-zinc-500">{event.actorName || event.abilitySource || "نامشخص"} {event.wasUsed === false ? "بدون هدف" : `← ${event.targetName || "نامشخص"}`}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CommandSurface>
         </div>
       )}
