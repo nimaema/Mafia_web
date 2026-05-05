@@ -3,32 +3,40 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
-export function ThemeToggle() {
+export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
-  // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) {
-    return <div className="w-full h-12 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-xl"></div>;
+    return <div className={compact ? "h-10 w-10 rounded-xl bg-white/10" : "h-11 w-full rounded-xl bg-white/10"} />;
   }
 
-  const isDark = theme === "dark";
+  const isDark = theme !== "light";
 
   return (
     <button
+      type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 w-full text-lg"
+      aria-label="تغییر تم"
+      className={
+        compact
+          ? "grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-cyan-100 transition-all hover:border-cyan-300/35 hover:bg-cyan-300/10"
+          : "flex h-11 items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-black text-zinc-100 transition-all hover:border-cyan-300/35 hover:bg-cyan-300/10"
+      }
     >
-      <span className="material-symbols-outlined">
-        {isDark ? "light_mode" : "dark_mode"}
-      </span>
-      <span className="font-medium">
-        {isDark ? "تم روشن" : "تم تاریک"}
-      </span>
+      <span className="material-symbols-outlined text-[20px]">{isDark ? "dark_mode" : "light_mode"}</span>
+      {!compact && (
+        <>
+          <span>{isDark ? "تم تاریک" : "تم روشن"}</span>
+          <span className="relative h-5 w-10 rounded-full bg-white/10">
+            <span className={`absolute top-1 h-3 w-3 rounded-full bg-cyan-200 transition-all ${isDark ? "right-1" : "right-6"}`} />
+          </span>
+        </>
+      )}
     </button>
   );
 }

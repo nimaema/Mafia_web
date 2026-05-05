@@ -1,10 +1,22 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { headers } from "next/headers";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { InstallPWAButton } from "@/components/InstallPWAButton";
 
+const roleLabel: Record<string, string> = {
+  ADMIN: "مدیر",
+  MODERATOR: "گرداننده",
+  USER: "بازیکن",
+};
+
+function formatDates() {
+  const now = new Date();
+  return {
+    fa: new Intl.DateTimeFormat("fa-IR-u-ca-persian", { dateStyle: "medium" }).format(now),
+    en: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(now),
+  };
+}
 
 export default async function DashboardLayout({
   children,
@@ -16,133 +28,107 @@ export default async function DashboardLayout({
 
   const isAdmin = session.user?.role === "ADMIN";
   const isModerator = session.user?.role === "MODERATOR" || isAdmin;
+  const dates = formatDates();
 
-  // Simple server-side logout action
   const handleLogout = async () => {
     "use server";
     await signOut({ redirectTo: "/" });
   };
 
+  const navItems = [
+    { href: "/dashboard/user", icon: "dashboard", label: "خانه", show: true },
+    { href: "/dashboard/user/history", icon: "history", label: "تاریخچه", show: true },
+    { href: "/dashboard/user/profile", icon: "person", label: "پروفایل", show: true },
+    { href: "/dashboard/moderator", icon: "sports_esports", label: "گردانندگی", show: isModerator },
+    { href: "/dashboard/admin?tab=scenarios", icon: "account_tree", label: "سناریو", show: isModerator },
+    { href: "/dashboard/admin?tab=roles", icon: "theater_comedy", label: "نقش", show: isModerator },
+    { href: "/dashboard/admin?tab=users", icon: "admin_panel_settings", label: "مدیریت", show: isAdmin },
+  ].filter((item) => item.show);
+  const mobileItems = [
+    { href: "/dashboard/user", icon: "dashboard", label: "خانه", show: true },
+    { href: "/dashboard/user/history", icon: "history", label: "تاریخچه", show: true },
+    { href: "/dashboard/moderator", icon: "sports_esports", label: "بازی", show: isModerator },
+    { href: isAdmin ? "/dashboard/admin?tab=users" : "/dashboard/admin?tab=roles", icon: isAdmin ? "admin_panel_settings" : "theater_comedy", label: isAdmin ? "مدیریت" : "نقش", show: isModerator || isAdmin },
+  ].filter((item) => item.show).slice(0, 4);
+
   return (
-    <div className="bg-slate-100 dark:bg-[#0a0a0c] text-slate-900 dark:text-zinc-100 min-h-screen pb-20 md:pb-0 flex flex-col md:flex-row items-start transition-all duration-500" dir="rtl">
-      {/* Premium Background Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-lime-500/5 blur-[150px] rounded-full animate-pulse-slow"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 blur-[150px] rounded-full animate-pulse-slow" style={{animationDelay: '4s'}}></div>
-      </div>
+    <div className="pm-app-bg min-h-screen text-zinc-100" dir="rtl">
+      <div className="fixed inset-0 pointer-events-none bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:32px_32px]" />
 
-      {/* Desktop Sidebar */}
-      <aside className="relative z-10 hidden md:flex flex-col w-80 bg-white/90 dark:bg-black/40 backdrop-blur-3xl border-l border-slate-300 dark:border-white/5 h-screen p-8 sticky top-0 transition-all duration-300 shadow-xl">
-        <div className="flex items-center gap-4 mb-12 px-2">
-          <div className="w-14 h-14 bg-gradient-to-br from-lime-400 to-lime-600 rounded-2xl flex items-center justify-center shadow-xl shadow-lime-500/20 rotate-3">
-            <span className="material-symbols-outlined text-zinc-950 text-3xl font-black">theater_comedy</span>
-          </div>
-          <div className="flex flex-col">
-            <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white">مافیا بورد</h1>
-            <span className="text-[10px] uppercase tracking-widest text-lime-600 dark:text-lime-400 font-bold">Premium Companion</span>
-          </div>
-        </div>
-        
-        <nav className="flex flex-col gap-2 flex-1 overflow-y-auto custom-scrollbar">
-          <Link href="/dashboard/user" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-[#0f172a] dark:hover:text-white group">
-            <span className="material-symbols-outlined group-hover:scale-110 transition-transform">dashboard</span>
-            <span className="font-bold text-sm tracking-wide">میز کار (داشبورد)</span>
-          </Link>
+      <aside className="fixed bottom-5 right-5 top-5 z-40 hidden w-[88px] flex-col items-center justify-between rounded-[2rem] border border-white/10 bg-[#11191a]/80 p-3 shadow-2xl backdrop-blur-2xl md:flex">
+        <Link href="/dashboard/user" className="grid h-14 w-14 place-items-center rounded-2xl bg-cyan-300 text-slate-950 shadow-[0_0_24px_rgba(0,229,255,0.24)]">
+          <span className="material-symbols-outlined text-[28px]">theater_comedy</span>
+        </Link>
 
-          <Link href="/dashboard/user/profile" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-[#0f172a] dark:hover:text-white group">
-            <span className="material-symbols-outlined group-hover:scale-110 transition-transform">person</span>
-            <span className="font-bold text-sm tracking-wide">پروفایل من</span>
-          </Link>
-
-          <Link href="/dashboard/user/history" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-[#0f172a] dark:hover:text-white group">
-            <span className="material-symbols-outlined group-hover:scale-110 transition-transform">history</span>
-            <span className="font-bold text-sm tracking-wide">تاریخچه بازی‌ها</span>
-          </Link>
-
-          {isModerator && (
-            <>
-              <div className="h-px bg-white/5 my-4 mx-4"></div>
-              <p className="text-[10px] text-zinc-500 px-5 font-black uppercase tracking-widest mb-2">گردانندگی</p>
-              <Link href="/dashboard/moderator" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-lime-600 dark:hover:text-lime-400 group">
-                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">sports_esports</span>
-                <span className="font-bold text-sm tracking-wide">لابی بازی‌ها</span>
-              </Link>
-              <Link href="/dashboard/admin?tab=scenarios" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-600 dark:text-emerald-400 group">
-                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">account_tree</span>
-                <span className="font-bold text-sm tracking-wide">سناریوها</span>
-              </Link>
-              <Link href="/dashboard/admin?tab=roles" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-teal-600 dark:hover:text-teal-600 dark:text-teal-400 group">
-                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">theater_comedy</span>
-                <span className="font-bold text-sm tracking-wide">نقش‌ها</span>
-              </Link>
-            </>
-          )}
-
-          {isAdmin && (
-            <>
-              <div className="h-px bg-white/5 my-4 mx-4"></div>
-              <p className="text-[10px] text-zinc-500 px-5 font-black uppercase tracking-widest mb-2">مدیریت کل</p>
-              <Link href="/dashboard/admin?tab=users" className="flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 hover:bg-[#0f172a]/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 group">
-                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
-                <span className="font-bold text-sm tracking-wide">کاربران سیستم</span>
-              </Link>
-            </>
-          )}
+        <nav className="flex flex-col gap-2">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              title={item.label}
+              className="group grid h-12 w-12 place-items-center rounded-2xl border border-white/5 bg-white/[0.03] text-zinc-400 transition-all hover:border-cyan-300/35 hover:bg-cyan-300/10 hover:text-cyan-100"
+            >
+              <span className="material-symbols-outlined text-[22px] transition-transform group-hover:scale-110">{item.icon}</span>
+            </Link>
+          ))}
         </nav>
 
-        <div className="mt-auto pt-8 flex flex-col gap-4 border-t border-black/10 dark:border-white/5">
-          <ThemeToggle />
-          <InstallPWAButton />
-          <form action={handleLogout} className="w-full">
-            <button 
-              type="submit"
-              className="flex items-center gap-3 px-5 py-4 rounded-2xl text-red-600 dark:text-red-400/80 hover:text-red-600 dark:text-red-400 hover:bg-red-500/5 transition-all duration-300 w-full group"
-            >
-              <span className="material-symbols-outlined group-hover:-translate-x-1 transition-transform">logout</span>
-              <span className="font-black text-sm tracking-widest uppercase">خروج از سیستم</span>
+        <div className="flex flex-col gap-2">
+          <ThemeToggle compact />
+          <InstallPWAButton compact />
+          <form action={handleLogout}>
+            <button className="grid h-10 w-10 place-items-center rounded-xl border border-rose-300/20 bg-rose-400/10 text-rose-200 transition-all hover:bg-rose-400/20" title="خروج">
+              <span className="material-symbols-outlined text-[20px]">logout</span>
             </button>
           </form>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="relative z-10 flex-1 w-full p-4 md:p-12 overflow-x-hidden">
-        <div className="max-w-7xl mx-auto">
-          {children}
+      <header className="fixed left-3 right-3 top-3 z-30 rounded-[1.75rem] border border-white/10 bg-[#11191a]/85 p-3 shadow-2xl backdrop-blur-2xl md:left-5 md:right-[120px]">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-cyan-300/20 bg-cyan-300/10 text-cyan-100 md:hidden">
+              <span className="material-symbols-outlined">theater_comedy</span>
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-black text-zinc-50">{session.user?.name || "بازیکن PlayMafia"}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] font-black text-zinc-400">
+                <span className="rounded-full border border-violet-300/25 bg-violet-300/10 px-2 py-0.5 text-violet-100">{roleLabel[session.user?.role || "USER"]}</span>
+                <span className="hidden sm:inline">{dates.fa}</span>
+                <span className="hidden text-cyan-100/70 sm:inline">{dates.en}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex">
+              <InstallPWAButton compact />
+            </div>
+            <ThemeToggle compact />
+            <form action={handleLogout} className="hidden md:block">
+              <button className="grid h-10 w-10 place-items-center rounded-xl border border-rose-300/20 bg-rose-400/10 text-rose-200 transition-all hover:bg-rose-400/20" title="خروج">
+                <span className="material-symbols-outlined text-[20px]">logout</span>
+              </button>
+            </form>
+          </div>
         </div>
+      </header>
+
+      <main className="relative z-10 mx-auto w-full max-w-7xl px-3 pb-28 pt-24 md:pr-[120px] md:pl-5 md:pt-28">
+        {children}
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-4 left-4 right-4 bg-[#ffffffcc] dark:bg-zinc-950/80 backdrop-blur-3xl border border-slate-200 dark:border-white/10 flex justify-around items-center h-20 z-50 rounded-[2rem] px-4 shadow-[0_20px_50px_rgba(15,23,42,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all">
-        <Link href="/dashboard/user" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-white">
-          <span className="material-symbols-outlined text-2xl">dashboard</span>
-          <span className="text-[9px] font-black uppercase tracking-tighter">داشبورد</span>
-        </Link>
-        {isModerator && (
-          <>
-            <Link href="/dashboard/moderator" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-lime-400">
-              <span className="material-symbols-outlined text-2xl">sports_esports</span>
-              <span className="text-[9px] font-black uppercase tracking-tighter">بازی‌ها</span>
-            </Link>
-            <Link href="/dashboard/admin?tab=roles" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-teal-600 dark:text-teal-400">
-              <span className="material-symbols-outlined text-2xl">theater_comedy</span>
-              <span className="text-[9px] font-black uppercase tracking-tighter">نقش‌ها</span>
-            </Link>
-          </>
-        )}
-        {isAdmin && (
-          <Link href="/dashboard/admin?tab=users" className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all text-zinc-500 hover:text-white">
-            <span className="material-symbols-outlined text-2xl">admin_panel_settings</span>
-            <span className="text-[9px] font-black uppercase tracking-tighter">مدیریت</span>
+      <nav className="fixed bottom-3 left-3 right-3 z-50 grid grid-cols-5 gap-1 rounded-[1.75rem] border border-white/10 bg-[#11191a]/90 p-2 shadow-2xl backdrop-blur-2xl md:hidden">
+        {mobileItems.map((item) => (
+          <Link key={item.href} href={item.href} className="flex min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-zinc-400 transition-all hover:bg-cyan-300/10 hover:text-cyan-100">
+            <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+            <span className="max-w-full truncate text-[10px] font-black">{item.label}</span>
           </Link>
-        )}
-        <form action={handleLogout} className="flex-1 h-full">
-          <button 
-            type="submit"
-            className="flex flex-col items-center justify-center w-full h-full gap-1 text-red-600 dark:text-red-400/60 hover:text-red-600 dark:text-red-400"
-          >
-            <span className="material-symbols-outlined text-2xl">logout</span>
-            <span className="text-[9px] font-black uppercase tracking-tighter">خروج</span>
+        ))}
+        <form action={handleLogout}>
+          <button className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-rose-200 transition-all hover:bg-rose-400/10">
+            <span className="material-symbols-outlined text-[22px]">logout</span>
+            <span className="text-[10px] font-black">خروج</span>
           </button>
         </form>
       </nav>

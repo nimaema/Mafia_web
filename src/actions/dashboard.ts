@@ -102,19 +102,22 @@ export async function getUserStats() {
       { name: 'شکست‌ها', value: losses, color: '#ef4444' }
     ],
     roleHistory,
-    recentGames: recentGames.map(rg => ({
-      id: rg.gameId,
-      roleName: rg.role.name,
-      result: rg.result || "PENDING",
-      date: rg.createdAt.toLocaleDateString('fa-IR'),
-      scenarioName: rg.game.scenario?.name || "بدون سناریو",
-      moderatorName: rg.game.moderator?.name || "ناشناس",
-      players: rg.game.players.map(p => ({
-        name: p.name,
-        roleName: p.role?.name || "بدون نقش",
-        alignment: p.role?.alignment || "NEUTRAL"
-      }))
-    }))
+    recentGames: recentGames.map(rg => {
+      const game = rg.game;
+      return {
+        id: rg.gameId,
+        roleName: rg.role.name,
+        result: rg.result || "PENDING",
+        date: rg.createdAt.toLocaleDateString('fa-IR'),
+        scenarioName: game?.scenario?.name || "بدون سناریو",
+        moderatorName: game?.moderator?.name || "ناشناس",
+        players: game?.players.map(p => ({
+          name: p.name,
+          roleName: p.role?.name || "بدون نقش",
+          alignment: p.role?.alignment || "NEUTRAL"
+        })) || []
+      };
+    })
   };
 }
 
@@ -141,19 +144,22 @@ export async function getAllUserHistory() {
     }
   });
 
-  return history.map(rg => ({
-    id: rg.gameId,
-    roleName: rg.role.name,
-    result: rg.result || "PENDING",
-    date: rg.createdAt.toLocaleDateString('fa-IR'),
-    scenarioName: rg.game.scenario?.name || "بدون سناریو",
-    moderatorName: rg.game.moderator?.name || "ناشناس",
-    players: rg.game.players.map(p => ({
-      name: p.name,
-      roleName: p.role?.name || "بدون نقش",
-      alignment: p.role?.alignment || "NEUTRAL"
-    }))
-  }));
+  return history.map(rg => {
+    const game = rg.game;
+    return {
+      id: rg.gameId,
+      roleName: rg.role.name,
+      result: rg.result || "PENDING",
+      date: rg.createdAt.toLocaleDateString('fa-IR'),
+      scenarioName: game?.scenario?.name || "بدون سناریو",
+      moderatorName: game?.moderator?.name || "ناشناس",
+      players: game?.players.map(p => ({
+        name: p.name,
+        roleName: p.role?.name || "بدون نقش",
+        alignment: p.role?.alignment || "NEUTRAL"
+      })) || []
+    };
+  });
 }
 
 export async function deleteGameHistory(gameId: string) {

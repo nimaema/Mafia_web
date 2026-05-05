@@ -2,15 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getPusherClient } from "@/lib/pusher";
 import { useSession } from "next-auth/react";
-import { joinGame, getGameStatus } from "@/actions/game";
+import { getPusherClient } from "@/lib/pusher";
+import { getGameStatus, joinGame } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
+import { CommandButton, CommandSurface, EmptyState, SectionHeader, StatusChip } from "@/components/CommandUI";
 
-type Player = {
-  id: string;
-  name: string;
-};
+type Player = { id: string; name: string; userId?: string | null };
 
 export default function UserLobbyPage() {
   const params = useParams();
@@ -18,7 +16,6 @@ export default function UserLobbyPage() {
   const { data: session } = useSession();
   const { showAlert } = usePopup();
   const gameId = params.id as string;
-  
   const [players, setPlayers] = useState<Player[]>([]);
   const [game, setGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -27,141 +24,97 @@ export default function UserLobbyPage() {
 
   useEffect(() => {
     if (!gameId) return;
-
-    // Initial fetch
-    getGameStatus(gameId).then(res => {
-      if (res) {
-        setGame(res);
-        if (res.players) {
-          setPlayers(res.players);
-          // Check if current user is already in the players list
-          if (session?.user?.id && res.players.some((p: any) => p.userId === session.user.id)) {
-            setJoined(true);
-          }
-        }
-      } else {
+    getGameStatus(gameId).then((res) => {
+      if (!res) {
         router.push("/dashboard/user");
+        return;
       }
+      setGame(res);
+      setPlayers(res.players || []);
+      if (session?.user?.id && res.players?.some((p: any) => p.userId === session.user?.id)) setJoined(true);
       setLoading(false);
     });
 
-    // Initialize Pusher
     const pusher = getPusherClient();
     const channel = pusher.subscribe(`game-${gameId}`);
-
-    channel.bind('player-joined', (data: { player: Player }) => {
-      setPlayers((prev) => {
-        if (prev.find(p => p.id === data.player.id)) return prev;
-        return [...prev, data.player];
-      });
+    channel.bind("player-joined", (data: { player: Player }) => {
+      setPlayers((prev) => (prev.find((p) => p.id === data.player.id) ? prev : [...prev, data.player]));
     });
-
-    channel.bind('game-started', () => {
-      router.push(`/game/${gameId}`);
-    });
-
-    return () => {
-      pusher.unsubscribe(`game-${gameId}`);
-    };
+    channel.bind("game-started", () => router.push(`/game/${gameId}`));
+    return () => pusher.unsubscribe(`game-${gameId}`);
   }, [gameId, router, session?.user?.id]);
 
   const handleJoin = async () => {
     if (!session?.user?.name) return;
     setLoading(true);
     const res = await joinGame(game.code, session.user.name, joinPassword, session.user.id);
-    if (res.success) {
-      setJoined(true);
-    } else {
-      showAlert("خطا در ورود", res.error || "خطا در پیوستن به لابی", "error");
-    }
+    if (res.success) setJoined(true);
+    else showAlert("خطا در ورود", res.error || "خطا در پیوستن به لابی", "error");
     setLoading(false);
   };
 
-  if (loading) return <div className="p-12 text-center animate-pulse">در حال بارگذاری لابی...</div>;
+  if (loading) return <EmptyState icon="progress_activity" title="در حال دریافت لابی..." />;
+
+  const capacity = game?.scenario?.roles?.reduce((a: any, b: any) => a + b.count, 0) || 0;
 
   return (
-    <div className="min-h-screen bg-gray-200 dark:bg-zinc-950 p-4 flex flex-col items-center justify-center gap-8">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden flex flex-col">
-        <header className="p-8 bg-lime-500/5 border-b border-zinc-200 dark:border-zinc-800 text-center flex flex-col gap-2">
-          <div className="w-16 h-16 bg-lime-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-lime-500/20 mb-2 rotate-3">
-             <span className="material-symbols-outlined text-zinc-950 text-3xl font-bold">groups</span>
+    <div className="mx-auto max-w-3xl space-y-5">
+      <CommandSurface className="p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <StatusChip tone="emerald" pulse>لابی در انتظار</StatusChip>
+            <h1 className="mt-3 text-2xl font-black text-zinc-50">{game?.name || "لابی بازی"}</h1>
+            <p className="mt-1 text-sm text-zinc-400">سناریو: {game?.scenario?.name || "هنوز انتخاب نشده"}</p>
           </div>
-          <h1 className="text-2xl font-black">{game?.name || "لابی بازی مافیا"}</h1>
-          <p className="text-zinc-500 text-sm italic">سناریو: {game?.scenario?.name || "نامشخص"}</p>
-          <div className="mt-4 px-4 py-2 bg-white dark:bg-zinc-950 rounded-xl border border-dashed border-lime-500/50 flex flex-col">
-              <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">کد بازی</span>
-              <span className="text-xl font-mono font-black text-lime-600 dark:text-lime-400">#{game?.code}</span>
+          <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-center">
+            <p className="text-[10px] font-black text-cyan-100/70">کد بازی</p>
+            <p className="mt-1 font-mono text-3xl font-black tracking-[0.18em] text-cyan-100">#{game?.code}</p>
           </div>
-        </header>
+        </div>
+      </CommandSurface>
 
-        <main className="p-6 flex flex-col gap-6">
-          <div className="flex justify-between items-center px-2">
-            <h3 className="font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-lime-500">person</span>
-              بازیکنان حاضر
-            </h3>
-            <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-xs font-bold">{players.length} / {game?.scenario?.roles.reduce((a:any, b:any) => a + b.count, 0)}</span>
-          </div>
-
-          <div className="flex flex-col gap-2 min-h-[200px]">
-             {players.length === 0 ? (
-               <div className="flex-1 flex flex-col items-center justify-center opacity-30 gap-2">
-                  <span className="material-symbols-outlined text-4xl">hourglass_empty</span>
-                  <p className="text-sm">در انتظار ورود بازیکنان...</p>
-               </div>
-             ) : (
-               players.map((p, i) => (
-                 <div key={p.id} className="flex items-center gap-3 p-3 bg-gray-200 dark:bg-zinc-950/50 rounded-xl border border-zinc-100 dark:border-zinc-800/50 animate-in fade-in slide-in-from-right-4 duration-300" style={{ animationDelay: `${i * 100}ms` }}>
-                    <div className="w-8 h-8 rounded-full bg-lime-500 flex items-center justify-center text-zinc-950 font-bold text-xs">{i + 1}</div>
-                    <span className="font-bold">{p.name}</span>
-                    {p.id === session?.user?.id && <span className="text-[10px] bg-zinc-900 text-white px-2 py-0.5 rounded-lg mr-auto">شما</span>}
-                 </div>
-               ))
-             )}
-          </div>
-
-          {!joined ? (
-            <div className="flex flex-col gap-4">
-              {game?.hasPassword && (
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-zinc-600 dark:text-zinc-400 px-1">رمز ورود به لابی</label>
-                  <input 
-                    type="password"
-                    value={joinPassword}
-                    onChange={(e) => setJoinPassword(e.target.value)}
-                    placeholder="رمز عبور را وارد کنید"
-                    className="w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 px-4 outline-none focus:border-lime-500 transition-colors"
-                  />
-                </div>
-              )}
-              <button 
-                onClick={handleJoin}
-                disabled={loading}
-                className="w-full bg-lime-500 text-zinc-950 py-4 rounded-2xl font-black text-lg shadow-lg shadow-lime-500/20 hover:bg-lime-600 hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-2"
-              >
-                <span className="material-symbols-outlined">login</span>
-                پیوستن به بازی
-              </button>
-            </div>
+      <section className="space-y-3">
+        <SectionHeader title="بازیکنان حاضر" eyebrow="Living Roster" icon="group" action={<StatusChip tone="cyan">{players.length}/{capacity || "?"}</StatusChip>} />
+        <CommandSurface className="p-4">
+          {players.length === 0 ? (
+            <EmptyState icon="hourglass_empty" title="منتظر بازیکنان" />
           ) : (
-            <div className="bg-lime-100 dark:bg-lime-900/20 p-4 rounded-2xl flex flex-col items-center gap-2 border border-lime-200 dark:border-lime-800">
-               <div className="flex items-center gap-2 text-lime-700 dark:text-lime-400 font-bold">
-                  <span className="material-symbols-outlined animate-pulse">check_circle</span>
-                  شما در لابی هستید
-               </div>
-               <p className="text-xs text-lime-600 dark:text-lime-500">منتظر شروع بازی توسط گرداننده باشید...</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {players.map((player, index) => (
+                <div key={player.id} className="pm-ledger-row flex items-center gap-3 p-3">
+                  <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-cyan-300/10 text-xs font-black text-cyan-100">
+                    {index + 1}
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#192122] bg-emerald-300" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-zinc-100">{player.name}</p>
+                    {player.userId === session?.user?.id && <p className="text-[10px] font-bold text-emerald-200">شما</p>}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
-        </main>
-      </div>
+        </CommandSurface>
+      </section>
 
-      <button 
-        onClick={() => router.push("/dashboard/user")}
-        className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 font-bold text-sm flex items-center gap-2"
-      >
-        <span className="material-symbols-outlined">arrow_forward</span>
-        بازگشت به پیشخوان
-      </button>
+      {!joined ? (
+        <CommandSurface className="space-y-3 p-4">
+          {game?.hasPassword && <input type="password" value={joinPassword} onChange={(e) => setJoinPassword(e.target.value)} placeholder="رمز لابی" className="pm-input h-12 px-4 text-left" dir="ltr" />}
+          <CommandButton onClick={handleJoin} disabled={loading} className="w-full">
+            <span className="material-symbols-outlined text-[18px]">login</span>
+            پیوستن به لابی
+          </CommandButton>
+        </CommandSurface>
+      ) : (
+        <CommandSurface className="p-4 text-center">
+          <StatusChip tone="emerald" pulse>شما در لابی هستید</StatusChip>
+          <p className="mt-3 text-sm text-zinc-400">بعد از شروع بازی، به صورت خودکار به کارت نقش منتقل می‌شوید.</p>
+        </CommandSurface>
+      )}
+
+      <CommandButton tone="ghost" onClick={() => router.push("/dashboard/user")} className="w-full">
+        بازگشت به خانه
+      </CommandButton>
     </div>
   );
 }

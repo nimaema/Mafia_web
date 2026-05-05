@@ -2,9 +2,53 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getGameStatus } from "@/actions/game";
 import Link from "next/link";
+import { getGameStatus } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
+import { CommandButton, CommandSurface, EmptyState, SectionHeader, StatCell, StatusChip } from "@/components/CommandUI";
+
+type Phase = "روز" | "شب";
+
+function useTimer(initialSeconds: number) {
+  const [seconds, setSeconds] = useState(initialSeconds);
+  const [running, setRunning] = useState(false);
+
+  useEffect(() => {
+    if (!running) return;
+    const interval = setInterval(() => {
+      setSeconds((value) => {
+        if (value <= 1) {
+          setRunning(false);
+          try {
+            const context = new AudioContext();
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            oscillator.frequency.value = 880;
+            gain.gain.value = 0.18;
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+            oscillator.start();
+            setTimeout(() => {
+              oscillator.stop();
+              context.close();
+            }, 900);
+          } catch {}
+          return 0;
+        }
+        return value - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [running]);
+
+  return { seconds, setSeconds, running, setRunning };
+}
+
+function formatTime(seconds: number) {
+  const min = Math.floor(seconds / 60).toString().padStart(2, "0");
+  const sec = (seconds % 60).toString().padStart(2, "0");
+  return `${min}:${sec}`;
+}
 
 export default function ModeratorGamePage() {
   const params = useParams();
@@ -13,6 +57,12 @@ export default function ModeratorGamePage() {
   const gameId = params.id as string;
   const [game, setGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [phase, setPhase] = useState<Phase>("روز");
+  const [phaseNo, setPhaseNo] = useState(1);
+  const [targetSheet, setTargetSheet] = useState<string | null>(null);
+  const [events, setEvents] = useState<Array<{ id: number; phase: string; text: string }>>([]);
+  const turnTimer = useTimer(180);
+  const challengeTimer = useTimer(45);
 
   useEffect(() => {
     getGameStatus(gameId).then((res) => {
@@ -25,127 +75,158 @@ export default function ModeratorGamePage() {
     });
   }, [gameId, router]);
 
-  if (loading) return <div className="p-12 text-center animate-pulse text-zinc-500">در حال بارگذاری اطلاعات بازی...</div>;
+  if (loading) return <EmptyState icon="progress_activity" title="در حال آماده‌سازی کنترل بازی..." />;
+
+  const players = [...(game.players || [])];
+  const advancePhase = () => {
+    if (phase === "روز") setPhase("شب");
+    else {
+      setPhase("روز");
+      setPhaseNo((value) => value + 1);
+    }
+  };
+
+  const addEvent = (text: string) => {
+    setEvents((prev) => [{ id: Date.now(), phase: `${phase} ${phaseNo}`, text }, ...prev]);
+    setTargetSheet(null);
+  };
+
+  const finishGame = (winner: string) => {
+    showConfirm("پایان بازی", "نتیجه برای بازیکنان ثبت می‌شود. ادامه می‌دهید؟", async () => {
+      const { endGame } = await import("@/actions/game");
+      await endGame(gameId, winner);
+      showToast("بازی پایان یافت", "success");
+      router.push("/dashboard/moderator");
+    });
+  };
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto mb-16">
-      <header className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <span className="material-symbols-outlined text-lime-500">sports_esports</span>
-            بازی در جریان
-          </h2>
-          <p className="text-zinc-500 mt-1">کد لابی: {game.id.substring(0, 6).toUpperCase()}</p>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="bg-zinc-100 dark:bg-zinc-800 px-4 py-2 rounded-xl text-center">
-            <p className="text-xs text-zinc-500 font-bold mb-1">سناریو</p>
-            <p className="font-medium text-sm text-lime-600 dark:text-lime-400">{game.scenario?.name}</p>
+    <div className="space-y-5">
+      <CommandSurface className="p-5">
+        <div className="grid gap-4 lg:grid-cols-[1fr_1fr] lg:items-center">
+          <div>
+            <StatusChip tone="emerald" pulse>Live Game</StatusChip>
+            <h1 className="mt-3 text-2xl font-black text-zinc-50">{game.name || "بازی در جریان"}</h1>
+            <p className="mt-1 text-sm text-zinc-400">{game.scenario?.name || "سناریو"} · #{game.code}</p>
           </div>
-          <Link href="/dashboard/moderator" className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-4 py-2 rounded-xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm">
-            بازگشت
-          </Link>
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {game.players?.map((player: any, index: number) => (
-          <div key={player.id} className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm border border-zinc-200 dark:border-zinc-800 flex flex-col gap-3 relative overflow-hidden group">
-            
-            {/* Background alignment glow */}
-            <div className={`absolute top-0 left-0 w-full h-1 opacity-50 ${
-              player.role?.alignment === 'CITIZEN' ? 'bg-blue-500' : 
-              player.role?.alignment === 'MAFIA' ? 'bg-red-500' : 
-              'bg-amber-500'
-            }`}></div>
-
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-bold text-zinc-500 border border-zinc-200 dark:border-zinc-700">
-                  {index + 1}
-                </div>
-                <div>
-                  <p className="font-bold text-lg">{player.name}</p>
-                  <p className="text-xs text-zinc-400">بازیکن</p>
-                </div>
-              </div>
-            </div>
-
-            <div className={`mt-2 p-3 rounded-xl border ${
-              player.role?.alignment === 'CITIZEN' ? 'bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-600 dark:text-blue-400' : 
-              player.role?.alignment === 'MAFIA' ? 'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-600 dark:text-red-400' : 
-              'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400'
-            }`}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-bold">{player.role?.name || "بدون نقش"}</span>
-                <span className="text-xs opacity-80 px-2 py-0.5 rounded-md bg-white/20 dark:bg-black/20">
-                  {player.role?.alignment === 'CITIZEN' ? 'شهروند' : 
-                   player.role?.alignment === 'MAFIA' ? 'مافیا' : 'مستقل'}
-                </span>
-              </div>
-              <p className="text-xs opacity-70 line-clamp-2">{player.role?.description}</p>
-            </div>
-            
-            {/* Action buttons (for future implementation like Kill, etc) */}
-            <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-               <button className="flex-1 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold py-2 rounded-lg hover:bg-red-500/20 transition-colors border border-red-500/20">
-                 حذف از بازی
-               </button>
-            </div>
+          <div className="grid grid-cols-3 gap-2">
+            <StatCell label="مرحله" value={`${phase} ${phaseNo}`} tone={phase === "روز" ? "amber" : "violet"} />
+            <StatCell label="بازیکن" value={players.length} tone="cyan" />
+            <StatCell label="کد" value={game.code} tone="emerald" />
           </div>
-        ))}
-      </div>
+        </div>
+      </CommandSurface>
 
-      <div className="mt-8 bg-zinc-100 dark:bg-zinc-800/50 rounded-3xl p-6 border border-zinc-200 dark:border-zinc-700/50 flex flex-col gap-4">
-        <div className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
-          <span className="material-symbols-outlined text-red-600 dark:text-red-400">stop_circle</span>
-          <h3 className="font-bold text-lg">پایان بازی</h3>
+      <section className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="space-y-3">
+          <SectionHeader title="تایمرها" eyebrow="Twin Timers" icon="timer" />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              ["نوبت اصلی", turnTimer, 180],
+              ["چالش", challengeTimer, 45],
+            ].map(([label, timer, fallback]: any) => (
+              <CommandSurface key={label} className="p-4">
+                <p className="text-sm font-black text-zinc-300">{label}</p>
+                <p className="mt-3 font-mono text-5xl font-black text-cyan-100">{formatTime(timer.seconds)}</p>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  <button onClick={() => timer.setRunning(!timer.running)} className="rounded-xl bg-cyan-300 px-3 py-2 text-xs font-black text-slate-950">{timer.running ? "توقف" : "شروع"}</button>
+                  <button onClick={() => timer.setSeconds(Math.max(0, timer.seconds + 15))} className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black">+۱۵</button>
+                  <button onClick={() => timer.setSeconds(fallback)} className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black">ریست</button>
+                </div>
+              </CommandSurface>
+            ))}
+          </div>
+
+          <CommandSurface className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-black text-zinc-50">ترتیب فازها</p>
+                <p className="mt-1 text-sm text-zinc-400">از روز اول شروع می‌شود و با پایان هر فاز جلو می‌رود.</p>
+              </div>
+              <CommandButton tone="violet" onClick={advancePhase}>فاز بعد</CommandButton>
+            </div>
+          </CommandSurface>
         </div>
-        <p className="text-sm text-zinc-500">برای پایان بازی، یکی از گروه‌های برنده را انتخاب کنید. نتیجه بازی در پروفایل بازیکنان ثبت خواهد شد.</p>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-          <button 
-            onClick={() => {
-              showConfirm("پایان بازی", "آیا مطمئن هستید که شهروندان پیروز شده‌اند؟", async () => {
-                const { endGame } = await import('@/actions/game');
-                await endGame(gameId, 'CITIZEN');
-                showToast("بازی با پیروزی شهروندان به پایان رسید", "success");
-                router.refresh();
-                router.push("/dashboard/moderator");
-              });
-            }}
-            className="bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:translate-y-1">
-            پیروزی شهروندان
-          </button>
-          <button 
-            onClick={() => {
-              showConfirm("پایان بازی", "آیا مطمئن هستید که مافیا پیروز شده‌است؟", async () => {
-                const { endGame } = await import('@/actions/game');
-                await endGame(gameId, 'MAFIA');
-                showToast("بازی با پیروزی مافیا به پایان رسید", "success");
-                router.refresh();
-                router.push("/dashboard/moderator");
-              }, "error");
-            }}
-            className="bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-red-500/20 active:translate-y-1">
-            پیروزی مافیا
-          </button>
-          <button 
-            onClick={() => {
-              showConfirm("پایان بازی", "آیا مطمئن هستید که مستقل‌ها پیروز شده‌اند؟", async () => {
-                const { endGame } = await import('@/actions/game');
-                await endGame(gameId, 'NEUTRAL');
-                showToast("بازی با پیروزی مستقل‌ها به پایان رسید", "success");
-                router.refresh();
-                router.push("/dashboard/moderator");
-              });
-            }}
-            className="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 active:translate-y-1">
-            پیروزی مستقل‌ها
-          </button>
+
+        <div className="space-y-3">
+          <SectionHeader title="بازیکنان و رویداد" eyebrow="Event Capture" icon="fact_check" />
+          <CommandSurface className="p-4">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {players.map((player: any) => (
+                <button key={player.id} onClick={() => setTargetSheet(player.id)} className="pm-ledger-row flex items-center justify-between gap-3 p-3 text-right">
+                  <div className="min-w-0">
+                    <p className="truncate font-black text-zinc-100">{player.name}</p>
+                    <p className="mt-1 truncate text-xs text-zinc-500">{player.role?.name || "بدون نقش"}</p>
+                  </div>
+                  <StatusChip tone={player.role?.alignment === "MAFIA" ? "rose" : player.role?.alignment === "CITIZEN" ? "cyan" : "amber"}>
+                    ثبت
+                  </StatusChip>
+                </button>
+              ))}
+            </div>
+          </CommandSurface>
         </div>
-      </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[1fr_0.8fr]">
+        <div className="space-y-3">
+          <SectionHeader title="گزارش رویدادها" eyebrow="Timeline Report" icon="receipt_long" />
+          {events.length === 0 ? (
+            <EmptyState icon="edit_note" title="هنوز رویدادی ثبت نشده" text="بازیکن را انتخاب کنید و اتفاق را به فاز جاری اضافه کنید." />
+          ) : (
+            <div className="space-y-2">
+              {events.map((event) => (
+                <div key={event.id} className="pm-ledger-row p-3">
+                  <p className="text-xs font-black text-cyan-100">{event.phase}</p>
+                  <p className="mt-1 text-sm leading-6 text-zinc-200">{event.text}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <CommandSurface className="h-fit p-4">
+          <p className="text-lg font-black text-zinc-50">پایان بازی</p>
+          <p className="mt-1 text-sm leading-6 text-zinc-400">برنده را انتخاب کنید تا نتیجه ثبت شود.</p>
+          <div className="mt-4 grid gap-2">
+            <CommandButton tone="cyan" onClick={() => finishGame("CITIZEN")}>پیروزی شهروند</CommandButton>
+            <CommandButton tone="rose" onClick={() => finishGame("MAFIA")}>پیروزی مافیا</CommandButton>
+            <CommandButton tone="amber" onClick={() => finishGame("NEUTRAL")}>پیروزی مستقل</CommandButton>
+          </div>
+        </CommandSurface>
+      </section>
+
+      {targetSheet && (
+        <div className="fixed inset-0 z-[230] flex items-end justify-center bg-black/70 p-3 backdrop-blur-md md:items-center">
+          <CommandSurface className="pm-safe-sheet w-full max-w-lg overflow-y-auto p-5">
+            {(() => {
+              const player = players.find((item: any) => item.id === targetSheet);
+              if (!player) return null;
+              return (
+                <>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <StatusChip tone="violet">{phase} {phaseNo}</StatusChip>
+                      <h3 className="mt-3 text-xl font-black text-zinc-50">{player.name}</h3>
+                      <p className="mt-1 text-sm text-zinc-400">{player.role?.name || "نقش ثبت نشده"}</p>
+                    </div>
+                    <button onClick={() => setTargetSheet(null)} className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04]">
+                      <span className="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                  </div>
+                  <div className="mt-5 grid gap-2">
+                    {["رای‌گیری / دفاع", "حذف روز", "شلیک مافیا", "نجات یا محافظت", "بازپرسی / توانایی نقش", "بدون استفاده"].map((label) => (
+                      <button key={label} onClick={() => addEvent(`${player.name}: ${label}`)} className="pm-ledger-row p-3 text-right font-black text-zinc-100">
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
+          </CommandSurface>
+        </div>
+      )}
     </div>
   );
 }

@@ -10,18 +10,18 @@ const vazirmatn = Vazirmatn({
 import type { Metadata, Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#84cc16",
+  themeColor: "#0d1516",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };
 
 export const metadata: Metadata = {
-  title: "مافیا بورد - دستیار پیشرفته",
-  description: "دستیار دیجیتال برای مدیریت حرفه‌ای بازی مافیا",
+  title: "PlayMafia - اتاق فرمان بازی",
+  description: "اپلیکیشن فرماندهی و گزارش بازی مافیا",
   appleWebApp: {
     capable: true,
-    title: "مافیا بورد",
+    title: "PlayMafia",
     statusBarStyle: "black-translucent",
   },
 };
