@@ -740,7 +740,7 @@ export function UserManagementPanel() {
         <aside className="ui-card h-fit overflow-hidden xl:sticky xl:top-6">
           {selectedUser ? (
             <div>
-              <div className="relative overflow-hidden border-b border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10">
+              <div className="pm-contrast-surface relative overflow-hidden border-b border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10">
                 <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${roleAccentClass(selectedUser.role)}`} />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.22),transparent_30rem)]" />
                 <div className="relative flex items-start gap-4">
@@ -1024,7 +1024,7 @@ export function UserManagementPanel() {
               ) : (
                 <div className="overflow-hidden rounded-[28px] border border-zinc-200 bg-[#e8edf0] p-3 shadow-inner dark:border-white/10">
                   <div className="mx-auto max-w-2xl overflow-hidden rounded-[26px] border border-zinc-200 bg-white shadow-2xl shadow-zinc-950/10">
-                    <div className="bg-[linear-gradient(135deg,#101113_0%,#18212f_46%,#00a896_100%)] p-6 text-white">
+                    <div className="pm-contrast-surface bg-[linear-gradient(135deg,#101113_0%,#18212f_46%,#00a896_100%)] p-6 text-white">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                           <div className="flex size-12 items-center justify-center rounded-lg bg-cyan-400 text-xl font-black text-zinc-950">M</div>

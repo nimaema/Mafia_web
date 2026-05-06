@@ -634,6 +634,46 @@
   color: #fff !important;
 }
 
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface.text-white,
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface .text-white {
+  color: #fff !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface[class*="text-white/"],
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface [class*="text-white/"],
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface .text-zinc-200 {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface .text-zinc-300,
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface .text-zinc-400 {
+  color: rgba(255, 255, 255, 0.68) !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface .text-cyan-100,
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface .text-cyan-200,
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface .text-cyan-300 {
+  color: #a5f3fc !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface[class*="bg-white/"],
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface [class*="bg-white/"] {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface[class*="border-white/"],
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface [class*="border-white/"] {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface .hover\:bg-white:hover {
+  background-color: #fff !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) .pm-contrast-surface .hover\:text-zinc-950:hover {
+  color: #09090b !important;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .ui-button:hover:not(:disabled),
   .ui-button-primary:hover:not(:disabled),

@@ -17,6 +17,7 @@ import {
 } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
 import { MobilePwaFeatureLock } from "@/components/MobilePwaFeatureLock";
+import { GameReportTimeline, type GameReportEvent } from "@/components/game/GameReportTimeline";
 
 type Alignment = "CITIZEN" | "MAFIA" | "NEUTRAL";
 type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
@@ -458,163 +459,6 @@ function isDayEvent(event: NightEventRecord) {
 function reportEventTitle(event: NightEventRecord) {
   if (isDayEvent(event)) return event.details?.methodLabel || event.abilityLabel.replace(/^حذف روز:\s*/, "") || "حذف روز";
   return `${event.abilityLabel}${event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}`;
-}
-
-function reportActorTargetLine(event: NightEventRecord) {
-  const actor = event.actorPlayer?.name || event.abilitySource || alignmentLabel(event.actorAlignment);
-  const target = event.targetPlayer?.name || "نامشخص";
-  return event.wasUsed === false ? `${actor} ← بدون هدف` : `${actor} ← ${target}`;
-}
-
-function reportEventVisual(event: NightEventRecord) {
-  const dayEvent = isDayEvent(event);
-  if (dayEvent) {
-    return {
-      icon: "wb_sunny",
-      label: "روز",
-      shell: "border-amber-500/20 bg-amber-500/10",
-      badge: "border-amber-500/25 bg-amber-500/15 text-amber-700 dark:text-amber-300",
-      iconBox: "bg-amber-500 text-zinc-950",
-      rail: "bg-amber-500",
-    };
-  }
-  if (event.wasUsed === false) {
-    return {
-      icon: "block",
-      label: "استفاده نشد",
-      shell: "border-zinc-300 bg-zinc-100/80 dark:border-white/10 dark:bg-white/[0.05]",
-      badge: "border-zinc-300 bg-zinc-100 text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300",
-      iconBox: "bg-zinc-500 text-white",
-      rail: "bg-zinc-400",
-    };
-  }
-  return {
-    icon: "dark_mode",
-    label: "شب",
-    shell: "border-cyan-500/20 bg-cyan-500/10",
-    badge: "border-cyan-500/25 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300",
-    iconBox: "bg-cyan-500 text-zinc-950",
-    rail: "bg-cyan-500",
-  };
-}
-
-function ReportEventRow({
-  event,
-  busy,
-  onDelete,
-  onEdit,
-}: {
-  event: NightEventRecord;
-  busy: boolean;
-  onDelete: (event: NightEventRecord) => void;
-  onEdit: (event: NightEventRecord) => void;
-}) {
-  const visual = reportEventVisual(event);
-  const actor = event.actorPlayer?.name || event.abilitySource || alignmentLabel(event.actorAlignment);
-  const target = event.wasUsed === false ? "ثبت بدون هدف" : event.targetPlayer?.name || (isDayEvent(event) ? "بدون حذف نهایی" : "نامشخص");
-
-  return (
-    <article className={`group relative overflow-hidden rounded-xl border p-3 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-950/10 dark:shadow-black/20 ${visual.shell}`}>
-      <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${visual.rail}`} />
-      <div className="flex gap-3 pr-1">
-        <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl shadow-sm ${visual.iconBox}`}>
-          <span className="material-symbols-outlined text-2xl">{visual.icon}</span>
-        </span>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black ${visual.badge}`}>
-              <span className="material-symbols-outlined text-sm">{visual.icon}</span>
-              {visual.label}
-            </span>
-            <h4 className="min-w-0 flex-1 text-base font-black text-zinc-950 dark:text-white">{reportEventTitle(event)}</h4>
-            {event.details?.effectType && event.details.effectType !== "NONE" && (
-              <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-[10px] font-black text-sky-700 dark:text-sky-300">
-                {effectLabel(event.details.effectType)}
-              </span>
-            )}
-          </div>
-
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <div className="rounded-lg border border-white/70 bg-white/75 p-2 dark:border-white/10 dark:bg-zinc-950/35">
-              <p className="text-[10px] font-black text-zinc-400">انجام‌دهنده</p>
-              <p className="mt-1 truncate text-sm font-black text-zinc-950 dark:text-white">{actor}</p>
-            </div>
-            <div className="rounded-lg border border-white/70 bg-white/75 p-2 dark:border-white/10 dark:bg-zinc-950/35">
-              <p className="text-[10px] font-black text-zinc-400">نتیجه / هدف</p>
-              <p className="mt-1 truncate text-sm font-black text-zinc-950 dark:text-white">{target}</p>
-            </div>
-          </div>
-
-          {Array.isArray(event.details?.targetLabels) && event.details.targetLabels.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {event.details.targetLabels.map((target, index) => (
-                <span
-                  key={`${event.id}-target-${index}`}
-                  className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-black text-zinc-600 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-300"
-                >
-                  {target.label}: {target.playerName || "نامشخص"}
-                </span>
-              ))}
-            </div>
-          )}
-          {Array.isArray(event.details?.defensePlayers) && event.details.defensePlayers.length > 0 && (
-            <div className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/10 p-3">
-              <p className="text-[10px] font-black text-amber-700 dark:text-amber-300">بازیکنان دفاع</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {event.details.defensePlayers.map((player) => (
-                  <span key={`${event.id}-defense-${player.id}`} className="rounded-lg border border-amber-500/20 bg-white px-2.5 py-1 text-[11px] font-black text-amber-700 dark:bg-zinc-950/50 dark:text-amber-300">
-                    {player.name}{player.roleName ? ` | ${player.roleName}` : ""}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && event.details?.secondaryTargetName && (
-            <p className="mt-3 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-bold leading-5 text-zinc-600 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-300">
-              {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
-            </p>
-          )}
-          {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
-            <p className="mt-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-bold leading-5 text-zinc-600 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-300">
-              هدف‌های اضافه: {event.details.extraTargets.map((target) => target.name).join("، ")}
-            </p>
-          )}
-          {event.details?.convertedRoleName && (
-            <p className="mt-2 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-bold leading-5 text-red-700 dark:text-red-300">
-              تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
-            </p>
-          )}
-          {event.note && (
-            <p className="mt-3 rounded-lg border border-zinc-200 bg-white/85 px-3 py-2 text-xs leading-6 text-zinc-600 dark:border-white/10 dark:bg-zinc-950/50 dark:text-zinc-300">
-              {event.note}
-            </p>
-          )}
-        </div>
-
-        <div className="flex shrink-0 flex-col gap-2 opacity-90 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-          <button
-            type="button"
-            onClick={() => onEdit(event)}
-            disabled={busy}
-            className="flex size-9 items-center justify-center rounded-lg border border-sky-500/15 bg-sky-500/10 text-sky-600 transition-all hover:bg-sky-500 hover:text-white disabled:opacity-40 dark:text-sky-300"
-            aria-label="ویرایش رکورد"
-          >
-            <span className="material-symbols-outlined text-base">edit</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(event)}
-            disabled={busy}
-            className="flex size-9 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white disabled:opacity-40"
-            aria-label="حذف رکورد"
-          >
-            <span className="material-symbols-outlined text-base">delete</span>
-          </button>
-        </div>
-      </div>
-    </article>
-  );
 }
 
 export default function ModeratorGamePage() {
@@ -1498,8 +1342,8 @@ export default function ModeratorGamePage() {
           <div className="ui-card overflow-hidden">
             <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="ui-kicker">دفترچه اجرا</p>
-                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">رکورد اتفاقات شب و روز</h2>
+                <p className="ui-kicker">دفترچه گرداننده</p>
+                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">گزارش مرحله‌ای بازی</h2>
               </div>
               {game?.status === "FINISHED" && nightEvents.length > 0 && (
                 <button
@@ -1508,7 +1352,7 @@ export default function ModeratorGamePage() {
                   className={game?.nightRecordsPublic ? "ui-button-secondary min-h-10 px-3 text-xs text-cyan-700 dark:text-cyan-300" : "ui-button-primary min-h-10 px-3 text-xs"}
                 >
                   <span className="material-symbols-outlined text-base">{game?.nightRecordsPublic ? "public" : "publish"}</span>
-                  {game?.nightRecordsPublic ? "عمومی شده" : "عمومی کردن برای بازیکنان"}
+                  {game?.nightRecordsPublic ? "گزارش منتشر شده" : "انتشار گزارش برای بازیکنان"}
                 </button>
               )}
             </div>
@@ -1518,17 +1362,17 @@ export default function ModeratorGamePage() {
                 <div>
                   <p className="text-sm font-black text-zinc-950 dark:text-white">خط زمانی بازی</p>
                   <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-                    ترتیب همیشه از روز ۱ شروع می‌شود و بعد به شب همان شماره می‌رسد: روز ۱، شب ۱، روز ۲، شب ۲.
+                    هر اتفاق با زبان گزارش نهایی ثبت می‌شود: چه کسی اقدام کرد، هدف چه کسی بود و نتیجه چه شد.
                   </p>
                 </div>
 
                 <div className={`mt-4 rounded-lg border p-3 ${reportMode === "DAY" ? "border-amber-500/25 bg-amber-500/10" : "border-cyan-500/25 bg-cyan-500/10"}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">مرحله فعال</p>
+                      <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">مرحله در حال ثبت</p>
                       <p className="mt-1 text-lg font-black text-zinc-950 dark:text-white">{activePhaseLabel}</p>
                       <p className="mt-1 text-[10px] font-bold leading-5 text-zinc-500 dark:text-zinc-400">
-                        {reportMode === "DAY" ? `حذف‌ها و دفاع‌های روز ${dayNumber} را ثبت کنید؛ بعد مرحله شب ${dayNumber} شروع می‌شود.` : `اتفاقات شب ${nightNumber} را ثبت کنید؛ بعد مرحله روز ${nightNumber + 1} شروع می‌شود.`}
+                        {reportMode === "DAY" ? `دفاع‌ها، رای نهایی یا حذف روز ${dayNumber} را ثبت کنید؛ بعد شب ${dayNumber} فعال می‌شود.` : `اکشن‌ها، شات، نجات یا تبدیل شب ${nightNumber} را ثبت کنید؛ بعد روز ${nightNumber + 1} فعال می‌شود.`}
                       </p>
                     </div>
                     <span className={`material-symbols-outlined text-2xl ${reportMode === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-cyan-600 dark:text-cyan-300"}`}>
@@ -1549,7 +1393,7 @@ export default function ModeratorGamePage() {
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-black text-zinc-950 dark:text-white">ترتیب مرحله‌ها</p>
                     <span className="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-black text-zinc-500 dark:bg-white/10 dark:text-zinc-300">
-                      قدم بعدی: {nextPhaseLabel}
+                      مرحله بعد: {nextPhaseLabel}
                     </span>
                   </div>
                   <div className="mt-3 space-y-2">
@@ -1577,7 +1421,7 @@ export default function ModeratorGamePage() {
                           </p>
                         </div>
                         <span className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-black ${phase.events.length ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-zinc-100 text-zinc-400 dark:bg-white/5 dark:text-zinc-500"}`}>
-                          {phase.events.length} رکورد
+                          {phase.events.length} اتفاق
                         </span>
                       </div>
                     ))}
@@ -2174,63 +2018,15 @@ export default function ModeratorGamePage() {
               </aside>
 
               <section className="min-w-0">
-                {recordedReportPhases.length === 0 ? (
-                  <div className="flex min-h-72 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-8 text-center dark:border-white/10 dark:bg-white/[0.03]">
-                    <div className="ui-icon size-16">
-                      <span className="material-symbols-outlined text-3xl text-zinc-400">dark_mode</span>
-                    </div>
-                    <div>
-                      <p className="font-black text-zinc-950 dark:text-white">هنوز گزارشی ثبت نشده است</p>
-                      <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">رکوردها به ترتیب واقعی بازی نمایش داده می‌شوند: روز ۱، شب ۱، روز ۲ و ادامه.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {recordedReportPhases.map((phase, index) => (
-                      <article key={`history-${phase.key}`} className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/65">
-                        <div
-                          className={`flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between ${
-                            phase.type === "DAY"
-                              ? "border-amber-500/15 bg-amber-500/[0.06]"
-                              : "border-cyan-500/15 bg-cyan-500/[0.06]"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-zinc-950 text-sm font-black text-white shadow-sm shadow-zinc-950/15 dark:bg-white dark:text-zinc-950">
-                              {index + 1}
-                            </div>
-                            <div>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className={`material-symbols-outlined text-lg ${phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-cyan-600 dark:text-cyan-300"}`}>
-                                  {phase.icon}
-                                </span>
-                                <p className="text-base font-black text-zinc-950 dark:text-white">{phase.label}</p>
-                              </div>
-                              <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">
-                                مرحله {index + 1} در ترتیب گزارش بازی
-                              </p>
-                            </div>
-                          </div>
-                          <span
-                            className={`inline-flex items-center justify-center rounded-lg border px-3 py-1.5 text-[11px] font-black ${
-                              phase.type === "DAY"
-                                ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                                : "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
-                            }`}
-                          >
-                            {phase.events.length} رکورد ثبت‌شده
-                          </span>
-                        </div>
-
-                        <div className="space-y-3 p-4">
-                          {phase.events.map((event) => (
-                            <ReportEventRow key={event.id} event={event} busy={busy} onDelete={handleDeleteNightEvent} onEdit={openEditReportEvent} />
-                          ))}
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
+                <GameReportTimeline
+                  events={nightEvents}
+                  title="گزارش اجرای بازی"
+                  subtitle="متن گزارش حالا مثل روایت گرداننده نوشته می‌شود: اتفاق، عامل، هدف و نتیجه هر مرحله جدا و خوانا است."
+                  isPublic={game?.nightRecordsPublic}
+                  busy={busy}
+                  onEdit={(event: GameReportEvent) => openEditReportEvent(event as NightEventRecord)}
+                  onDelete={(event: GameReportEvent) => handleDeleteNightEvent(event as NightEventRecord)}
+                />
               </section>
             </div>
           </div>

@@ -83,7 +83,7 @@ export function InstallPWANotice() {
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="group flex min-h-32 w-11 flex-col items-center justify-center gap-2 rounded-l-2xl border border-r-0 border-cyan-500/30 bg-zinc-950/95 py-3 text-white shadow-2xl shadow-zinc-950/25 backdrop-blur-xl transition-all active:scale-[0.98]"
+          className="pm-contrast-surface group flex min-h-32 w-11 flex-col items-center justify-center gap-2 rounded-l-2xl border border-r-0 border-cyan-500/30 bg-zinc-950/95 py-3 text-white shadow-2xl shadow-zinc-950/25 backdrop-blur-xl transition-all active:scale-[0.98]"
           aria-label="باز کردن راهنمای نصب برنامه"
         >
           <span className="flex size-8 items-center justify-center rounded-lg bg-cyan-500 text-zinc-950 shadow-sm shadow-cyan-500/25">
@@ -101,7 +101,7 @@ export function InstallPWANotice() {
   return (
     <div className="fixed inset-0 z-[260] flex items-end justify-center bg-zinc-950/82 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] text-right backdrop-blur-xl sm:items-center sm:p-4" dir="rtl">
       <section className="motion-pop flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/15 bg-white shadow-2xl shadow-black/50 dark:bg-zinc-950 sm:max-h-[calc(100dvh-2rem)]">
-        <header className="shrink-0 border-b border-white/10 bg-zinc-950 px-4 py-3 text-white">
+        <header className="pm-contrast-surface shrink-0 border-b border-white/10 bg-zinc-950 px-4 py-3 text-white">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <span className="relative flex size-11 shrink-0 items-center justify-center rounded-xl bg-cyan-500 text-zinc-950 shadow-lg shadow-cyan-500/25">

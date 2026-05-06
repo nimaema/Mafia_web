@@ -39,7 +39,7 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
       <section className="ui-card overflow-hidden">
-        <div className="relative border-b border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10">
+        <div className="pm-contrast-surface relative border-b border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.24),transparent_34rem)]" />
           <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex min-w-0 items-center gap-4">

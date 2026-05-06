@@ -5,6 +5,7 @@ import Link from "next/link";
 import { deleteGameHistory, getAdminGameHistoryPage } from "@/actions/dashboard";
 import { publishNightRecords } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
+import { GameReportTimeline } from "@/components/game/GameReportTimeline";
 
 type AdminHistoryData = Awaited<ReturnType<typeof getAdminGameHistoryPage>>;
 
@@ -18,18 +19,19 @@ type NightReportEvent = {
   targetName?: string | null;
   actorAlignment?: string | null;
   wasUsed?: boolean;
-  details?: {
-    phase?: "NIGHT" | "DAY";
-    methodKey?: string | null;
-    methodLabel?: string | null;
-    effectType?: string | null;
-    secondaryTargetName?: string | null;
-    extraTargets?: { id?: string; name: string }[];
-    targetLabels?: { label: string; playerId?: string | null; playerName?: string | null }[];
-    convertedRoleName?: string | null;
-    previousRoleName?: string | null;
-    sacrificePlayerName?: string | null;
-  } | null;
+    details?: {
+      phase?: "NIGHT" | "DAY";
+      methodKey?: string | null;
+      methodLabel?: string | null;
+      effectType?: string | null;
+      secondaryTargetName?: string | null;
+      extraTargets?: { id?: string; name: string }[];
+      targetLabels?: { label: string; playerId?: string | null; playerName?: string | null }[];
+      convertedRoleName?: string | null;
+      previousRoleName?: string | null;
+      sacrificePlayerName?: string | null;
+      defensePlayers?: { id?: string | null; name: string; roleName?: string | null }[];
+    } | null;
   note?: string | null;
 };
 
@@ -80,13 +82,17 @@ const sampleNightReport: NightReportEvent[] = [
     abilitySource: "روز",
     targetName: "هومن",
     wasUsed: true,
-    details: {
-      phase: "DAY",
-      methodKey: "vote",
-      methodLabel: "رای‌گیری",
-      effectType: "NONE",
-    },
-    note: "با رای اکثریت از بازی خارج شد.",
+      details: {
+        phase: "DAY",
+        methodKey: "vote",
+        methodLabel: "رای‌گیری",
+        effectType: "NONE",
+        defensePlayers: [
+          { name: "هومن", roleName: "شهروند ساده" },
+          { name: "رها", roleName: "تفنگدار" },
+        ],
+      },
+      note: "با رای اکثریت از بازی خارج شد.",
   },
   {
     id: "sample-convert",
@@ -115,120 +121,6 @@ const sampleNightReport: NightReportEvent[] = [
     },
   },
 ];
-
-function effectLabel(effectType?: string | null) {
-  if (effectType === "CONVERT_TO_MAFIA") return "خریداری";
-  if (effectType === "YAKUZA") return "یاکوزا";
-  if (effectType === "TWO_NAME_INQUIRY") return "بازپرسی دو نفره";
-  return "ثبت ساده";
-}
-
-function alignmentLabel(alignment?: string | null) {
-  if (alignment === "CITIZEN") return "شهروند";
-  if (alignment === "MAFIA") return "مافیا";
-  if (alignment === "NEUTRAL") return "مستقل";
-  return "نامشخص";
-}
-
-function isDayReportEvent(event: NightReportEvent) {
-  return event.details?.phase === "DAY" || event.abilityLabel.startsWith("حذف روز");
-}
-
-function groupNightEvents(events: NightReportEvent[]) {
-  const groups = new Map<number, NightReportEvent[]>();
-  events.forEach((event) => {
-    const existing = groups.get(event.nightNumber) || [];
-    groups.set(event.nightNumber, [...existing, event]);
-  });
-  return [...groups.entries()].sort(([left], [right]) => left - right);
-}
-
-function NightReportBlock({
-  events,
-  sample = false,
-  isPublic,
-}: {
-  events: NightReportEvent[];
-  sample?: boolean;
-  isPublic?: boolean;
-}) {
-  if (!events.length) return null;
-
-  return (
-    <div className={sample ? "rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-4" : "rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]"}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-lg text-cyan-600 dark:text-cyan-300">dark_mode</span>
-          <p className="text-sm font-black text-zinc-950 dark:text-white">{sample ? "نمونه گزارش نهایی برای ادمین" : "گزارش نهایی بازی"}</p>
-        </div>
-        <span className={sample || isPublic ? "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[10px] font-black text-cyan-700 dark:text-cyan-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
-          {sample ? "نمونه" : isPublic ? "منتشرشده" : "فقط ادمین"}
-        </span>
-      </div>
-
-      <div className="mt-3 space-y-2">
-        {groupNightEvents(events).map(([nightNumber, nightEvents]) => {
-          const dayCount = nightEvents.filter(isDayReportEvent).length;
-          const nightCount = nightEvents.length - dayCount;
-          return (
-          <div key={`${sample ? "sample" : "real"}-${nightNumber}`} className="rounded-lg border border-white/70 bg-white/80 p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-black text-zinc-950 dark:text-white">دور {nightNumber}</p>
-              <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{nightCount} شب، {dayCount} روز</span>
-            </div>
-            <div className="mt-2 space-y-2">
-              {nightEvents.map((event) => (
-                <div key={event.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-xs leading-6 text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={isDayReportEvent(event) ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-black text-cyan-700 dark:text-cyan-300"}>
-                      {isDayReportEvent(event) ? "روز" : "شب"}
-                    </span>
-                    <p className="font-black text-zinc-950 dark:text-white">
-                      {isDayReportEvent(event) ? event.details?.methodLabel || event.abilityLabel.replace(/^حذف روز:\s*/, "") : `${event.abilityLabel}${event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}`}
-                    </p>
-                    <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-black text-cyan-700 dark:text-cyan-300"}>
-                      {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
-                    </span>
-                    {event.details?.effectType && event.details.effectType !== "NONE" && (
-                      <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
-                        {effectLabel(event.details.effectType)}
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1">
-                    {event.actorName || event.abilitySource || alignmentLabel(event.actorAlignment)}
-                    {event.wasUsed === false ? " ← بدون هدف" : ` ← ${event.targetName || "نامشخص"}`}
-                  </p>
-                  {Array.isArray(event.details?.targetLabels) && event.details.targetLabels.length > 0 && (
-                    <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-                      گزینه‌ها: {event.details.targetLabels.map((target) => `${target.label}: ${target.playerName || "نامشخص"}`).join("، ")}
-                    </p>
-                  )}
-                  {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && event.details?.secondaryTargetName && (
-                    <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-                      {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
-                    </p>
-                  )}
-                  {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
-                    <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-                      هدف‌های اضافه: {event.details.extraTargets.map((target) => target.name).join("، ")}
-                    </p>
-                  )}
-                  {event.details?.convertedRoleName && (
-                    <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-                      تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
-                    </p>
-                  )}
-                  {event.note && <p className="mt-1 text-zinc-500 dark:text-zinc-400">{event.note}</p>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )})}
-      </div>
-    </div>
-  );
-}
 
 export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryData }) {
   const [data, setData] = useState(initialData);
@@ -280,7 +172,12 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
         </Link>
       </section>
 
-      <NightReportBlock events={sampleNightReport} sample />
+      <GameReportTimeline
+        events={sampleNightReport}
+        sample
+        title="نمونه گزارش نهایی برای ادمین"
+        subtitle="نمونه نشان می‌دهد گزارش جدید چطور دفاع روز، شات شب، نجات، تبدیل نقش و بازپرسی را روایت می‌کند."
+      />
 
       <section className="grid gap-4 xl:grid-cols-2">
         {data.items.map((game) => (
@@ -315,7 +212,12 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
                 ))}
               </div>
               {game.nightEvents.length > 0 ? (
-                <NightReportBlock events={game.nightEvents as NightReportEvent[]} isPublic={game.nightRecordsPublic} />
+                <GameReportTimeline
+                  events={game.nightEvents as NightReportEvent[]}
+                  isPublic={game.nightRecordsPublic}
+                  title="گزارش نهایی بازی"
+                  subtitle="اتفاقات منتشرشده با روایت مرحله‌ای و قابل خواندن برای بازیکنان نمایش داده می‌شود."
+                />
               ) : (
                 <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-3 text-xs font-bold leading-6 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
                   برای این بازی هنوز گزارش شب ثبت نشده است.

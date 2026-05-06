@@ -9,6 +9,7 @@ import { getWaitingGamesSafe } from "@/actions/game";
 import { getPusherClient } from "@/lib/pusher-client";
 import { usePresenceSnapshot } from "@/hooks/usePresenceSnapshot";
 import type { PresenceSnapshot } from "@/lib/presence";
+import { GameReportTimeline } from "@/components/game/GameReportTimeline";
 
 type DashboardData = {
   statsData: any[];
@@ -53,13 +54,6 @@ function alignmentClass(alignment: string) {
   if (alignment === "CITIZEN") return "pm-chip border-sky-400/25 bg-sky-400/10 text-sky-700 dark:text-sky-200";
   if (alignment === "MAFIA") return "pm-chip pm-chip-danger";
   return "pm-chip pm-chip-warning";
-}
-
-function effectLabel(effectType?: string) {
-  if (effectType === "CONVERT_TO_MAFIA") return "خریداری";
-  if (effectType === "YAKUZA") return "یاکوزا";
-  if (effectType === "TWO_NAME_INQUIRY") return "بازپرسی دو نفره";
-  return "ثبت ساده";
 }
 
 function gameCapacity(game: any) {
@@ -473,54 +467,13 @@ export default function UserDashboard() {
             </div>
 
             {selectedHistoryGame.nightEvents?.length > 0 && (
-              <div className="mt-5 rounded-[1.1rem] border border-cyan-300/20 bg-cyan-300/8 p-4">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-cyan-700 dark:text-cyan-200">dark_mode</span>
-                  <h4 className="text-sm font-black">رکوردهای منتشرشده شب</h4>
-                </div>
-                <div className="mt-3 space-y-2">
-                  {selectedHistoryGame.nightEvents.map((event: any) => (
-                    <div key={event.id} className="rounded-[1rem] border border-zinc-200 bg-white/72 p-3 text-xs leading-6 text-zinc-600 dark:border-white/10 dark:bg-black/18 dark:text-white/66">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-black text-zinc-950 dark:text-white">
-                          شب {event.nightNumber}: {event.abilityLabel}{event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}
-                        </p>
-                        <span className={event.wasUsed === false ? "pm-chip pm-chip-warning" : "pm-chip pm-chip-success"}>
-                          {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
-                        </span>
-                        {event.details?.effectType && event.details.effectType !== "NONE" && (
-                          <span className="pm-chip pm-chip-primary">{effectLabel(event.details.effectType)}</span>
-                        )}
-                      </div>
-                      <p className="mt-1">
-                        {event.actorName || event.abilitySource || (event.actorAlignment ? alignmentLabel(event.actorAlignment) : "نامشخص")}
-                        {event.wasUsed === false ? " ← بدون هدف" : ` ← ${event.targetName || "نامشخص"}`}
-                      </p>
-                      {Array.isArray(event.details?.targetLabels) && event.details.targetLabels.length > 0 && (
-                        <p className="mt-1 text-zinc-500 dark:text-white/48">
-                          گزینه‌ها: {event.details.targetLabels.map((target: { label: string; playerName?: string | null }) => `${target.label}: ${target.playerName || "نامشخص"}`).join("، ")}
-                        </p>
-                      )}
-                      {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && event.details?.secondaryTargetName && (
-                        <p className="mt-1 text-zinc-500 dark:text-white/48">
-                          {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
-                        </p>
-                      )}
-                      {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
-                        <p className="mt-1 text-zinc-500 dark:text-white/48">
-                          هدف‌های اضافه: {event.details.extraTargets.map((target: { name: string }) => target.name).join("، ")}
-                        </p>
-                      )}
-                      {event.details?.convertedRoleName && (
-                        <p className="mt-1 text-zinc-500 dark:text-white/48">
-                          تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
-                        </p>
-                      )}
-                      {event.note && <p className="mt-1 text-zinc-500 dark:text-white/48">{event.note}</p>}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <GameReportTimeline
+                events={selectedHistoryGame.nightEvents}
+                title="گزارش منتشرشده بازی"
+                subtitle="روایت خلاصه اتفاقات روز و شب، بدون ردیف‌های مبهم و تکراری."
+                isPublic={selectedHistoryGame.nightRecordsPublic}
+                className="mt-5"
+              />
             )}
           </div>
         </div>

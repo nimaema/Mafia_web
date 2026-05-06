@@ -135,7 +135,7 @@ export default function ModeratorDashboard() {
 
   return (
     <div className="flex flex-col gap-5 font-sans" dir="rtl">
-      <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-950 text-white shadow-xl shadow-zinc-950/10 dark:border-white/10">
+      <section className="pm-contrast-surface relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-950 text-white shadow-xl shadow-zinc-950/10 dark:border-white/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.28),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.18),transparent_20rem)]" />
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" />
         <div className="relative p-4 sm:p-5">
@@ -215,7 +215,7 @@ export default function ModeratorDashboard() {
       {showCreateModal && (
         <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/75 backdrop-blur-xl sm:items-center">
           <div className="pm-safe-modal relative flex w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl shadow-black/30 dark:border-white/10 dark:bg-zinc-950">
-            <div className="relative overflow-hidden border-b border-white/10 bg-zinc-950 p-4 text-white sm:p-5">
+            <div className="pm-contrast-surface relative overflow-hidden border-b border-white/10 bg-zinc-950 p-4 text-white sm:p-5">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.3),transparent_22rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.16),transparent_18rem)]" />
               <div className="relative flex items-start justify-between gap-4">
                 <div className="min-w-0">
