@@ -144,14 +144,11 @@ function LiveLobbyCard({ game, active = false }: { game: any; active?: boolean }
   );
 }
 
-function ActionDock({ role }: { role?: string | null }) {
-  const canModerate = role === "ADMIN" || role === "MODERATOR";
+function ActionDock() {
   const actions = [
     { href: "/dashboard/user/history", icon: "history", title: "تاریخچه", text: "گزارش‌ها و نتیجه‌ها" },
     { href: "/game-guide", icon: "menu_book", title: "راهنمای بازی", text: "قوانین و روند اجرا" },
-    ...(canModerate
-      ? [{ href: "/dashboard/moderator", icon: "stadia_controller", title: "اتاق گرداننده", text: "لابی و اجرای بازی" }]
-      : [{ href: "/dashboard/user/requests", icon: "rate_review", title: "پیشنهاد بازی", text: "نقش، سناریو یا اصلاح" }]),
+    { href: "/dashboard/user/requests", icon: "rate_review", title: "پیشنهاد بازی", text: "نقش، سناریو یا اصلاح" },
   ];
 
   return (
@@ -307,7 +304,7 @@ export default function UserDashboard() {
         </div>
       </section>
 
-      <ActionDock role={session?.user?.role} />
+      <ActionDock />
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <section className="pm-command p-4">
