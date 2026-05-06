@@ -254,10 +254,10 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
 
       {selectedGame && (
         <div
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 p-4 pb-28 backdrop-blur-sm sm:items-center sm:pb-4"
+          className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center"
           onClick={() => setSelectedGame(null)}
         >
-          <section className="ui-card max-h-[calc(100dvh-8rem)] w-full max-w-3xl overflow-hidden sm:max-h-[90vh]" onClick={(event) => event.stopPropagation()}>
+          <section className="ui-card pm-safe-modal w-full max-w-3xl overflow-hidden" onClick={(event) => event.stopPropagation()}>
             <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
               <div className="min-w-0">
                 <p className="ui-kicker">جزئیات بازی</p>

@@ -353,10 +353,10 @@ export function DatabaseBackupPanel() {
             </div>
           </div>
 
-          <aside className="border-t border-zinc-200 bg-zinc-950 p-5 text-white dark:border-white/10 dark:bg-white/[0.04] lg:border-r lg:border-t-0">
+          <aside className="border-t border-zinc-200 bg-[linear-gradient(135deg,#f8fafc,#ffffff_55%,#ecfeff)] p-5 text-zinc-950 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.035))] dark:text-white lg:border-r lg:border-t-0">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-bold text-zinc-400">آخرین نقطه بازیابی</p>
+                <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400">آخرین نقطه بازیابی</p>
                 <p className="mt-1 text-lg font-black">
                   {databaseBackupStats.latest ? formatBackupDate(databaseBackupStats.latest.createdAt) : "هنوز ساخته نشده"}
                 </p>
@@ -366,13 +366,13 @@ export function DatabaseBackupPanel() {
               </div>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-2">
-              <div className="rounded-lg border border-white/10 bg-white/10 p-3">
+              <div className="rounded-lg border border-zinc-200 bg-white/78 p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/10">
                 <p className="text-xl font-black">{databaseBackups.length}</p>
-                <p className="mt-1 text-[10px] font-bold text-zinc-400">فایل بکاپ</p>
+                <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">فایل بکاپ</p>
               </div>
-              <div className="rounded-lg border border-white/10 bg-white/10 p-3">
+              <div className="rounded-lg border border-zinc-200 bg-white/78 p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/10">
                 <p className="text-xl font-black">{formatBackupSize(databaseBackupStats.totalSizeBytes)}</p>
-                <p className="mt-1 text-[10px] font-bold text-zinc-400">حجم کل</p>
+                <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">حجم کل</p>
               </div>
             </div>
           </aside>

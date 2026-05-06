@@ -213,8 +213,8 @@ export default function ModeratorDashboard() {
       </section>
 
       {showCreateModal && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 p-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] backdrop-blur-xl sm:items-center sm:p-4">
-          <div className="relative flex max-h-[calc(100dvh-7.5rem)] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl shadow-black/30 dark:border-white/10 dark:bg-zinc-950 sm:max-h-[92vh]">
+        <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/75 backdrop-blur-xl sm:items-center">
+          <div className="pm-safe-modal relative flex w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl shadow-black/30 dark:border-white/10 dark:bg-zinc-950">
             <div className="relative overflow-hidden border-b border-white/10 bg-zinc-950 p-4 text-white sm:p-5">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.3),transparent_22rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.16),transparent_18rem)]" />
               <div className="relative flex items-start justify-between gap-4">
@@ -311,7 +311,7 @@ export default function ModeratorDashboard() {
               </aside>
             </div>
 
-            <div className="sticky bottom-0 border-t border-zinc-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] dark:border-white/10 dark:bg-zinc-950/95 sm:p-5">
+            <div className="sticky bottom-0 border-t border-zinc-200 bg-white p-4 pb-[max(env(safe-area-inset-bottom),1rem)] dark:border-white/10 dark:bg-zinc-950/95 sm:p-5">
               <button onClick={handleCreateGame} disabled={loading} className="ui-button-primary min-h-12 w-full text-base">
                 <span className={`material-symbols-outlined text-xl ${loading ? "animate-spin" : ""}`}>
                   {loading ? "progress_activity" : "bolt"}

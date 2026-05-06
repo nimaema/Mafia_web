@@ -175,6 +175,12 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
     return false;
   };
 
+  const navGroups = [
+    { key: "player", label: "بازیکن", items: items.filter((item) => item.group === "player") },
+    { key: "moderator", label: "گرداننده", items: items.filter((item) => item.group === "moderator") },
+    { key: "admin", label: "مدیریت", items: items.filter((item) => item.group === "admin") },
+  ].filter((group) => group.items.length);
+
   const renderDesktopLink = (item: NavItem) => {
     const active = isActive(item);
 
@@ -184,23 +190,23 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         href={item.href}
         aria-current={active ? "page" : undefined}
         className={cx(
-          "motion-nav-item group relative grid min-h-[3.65rem] grid-cols-[2.5rem_minmax(0,1fr)_1.2rem] items-center gap-3 overflow-hidden rounded-2xl border px-2.5 text-right shadow-sm transition-all",
+          "motion-nav-item group relative grid min-h-[3.35rem] grid-cols-[2.35rem_minmax(0,1fr)_1rem] items-center gap-2.5 overflow-hidden rounded-[1.15rem] border px-2.5 text-right shadow-sm transition-all",
           toneClasses(item.tone, active),
-          active ? "shadow-lg" : "border-transparent bg-white/35 dark:border-white/0 dark:bg-white/[0.025]"
+          active ? "shadow-lg shadow-zinc-950/8 dark:shadow-black/20" : "border-transparent bg-white/38 hover:bg-white/72 dark:border-white/0 dark:bg-white/[0.025] dark:hover:bg-white/[0.055]"
         )}
       >
         <span className={cx("absolute inset-y-2 right-0 w-1 rounded-l-full bg-gradient-to-b opacity-0 transition-opacity", toneRail(item.tone), active && "opacity-100")} />
         <span className={cx(
-          "material-symbols-outlined grid size-10 place-items-center rounded-xl border text-[1.28rem] leading-none",
+          "material-symbols-outlined grid size-9 place-items-center rounded-xl border text-[1.2rem] leading-none",
           active ? "border-zinc-950/8 bg-white text-zinc-950 dark:border-white/14 dark:bg-white/14 dark:text-white" : "border-zinc-950/6 bg-white/70 text-zinc-500 group-hover:text-zinc-950 dark:border-white/8 dark:bg-white/[0.045] dark:text-white/70 dark:group-hover:text-white"
         )}>
           {item.icon}
         </span>
         <span className="min-w-0">
           <span className="block truncate text-sm font-black">{item.label}</span>
-          <span className="mt-0.5 block truncate text-[10px] font-bold text-zinc-500 dark:text-white/42">{item.description}</span>
+          <span className="mt-0.5 block truncate text-[10px] font-bold text-zinc-500 dark:text-white/46">{item.description}</span>
         </span>
-        <span className="material-symbols-outlined text-lg text-zinc-400 transition-all group-hover:-translate-x-0.5 group-hover:text-zinc-700 dark:text-white/28 dark:group-hover:text-white/70">
+        <span className="material-symbols-outlined text-base text-zinc-400 transition-all group-hover:-translate-x-0.5 group-hover:text-zinc-700 dark:text-white/28 dark:group-hover:text-white/70">
           chevron_left
         </span>
       </Link>
@@ -216,13 +222,13 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         href={item.href}
         aria-current={active ? "page" : undefined}
         className={cx(
-          "motion-nav-item relative flex min-w-[3.7rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-1.5 text-center transition-all",
+          "motion-nav-item relative flex min-w-[3.65rem] flex-col items-center justify-center gap-1 rounded-[1.15rem] px-2 py-1.5 text-center transition-all",
           active ? "bg-zinc-950 text-white shadow-lg shadow-zinc-950/14 dark:bg-white dark:text-zinc-950 dark:shadow-black/20" : "text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-950 dark:text-white/58 dark:hover:bg-white/8 dark:hover:text-white"
         )}
       >
-        {active && <span className={cx("absolute top-1 h-1 w-6 rounded-full bg-gradient-to-l", toneRail(item.tone))} />}
+        {active && <span className={cx("absolute top-1 h-0.5 w-7 rounded-full bg-gradient-to-l", toneRail(item.tone))} />}
         <span className={cx(
-          "material-symbols-outlined grid size-8 place-items-center rounded-xl text-[1.2rem] leading-none",
+          "material-symbols-outlined grid size-8 place-items-center rounded-xl text-[1.16rem] leading-none",
           active ? "bg-cyan-300 text-zinc-950" : "bg-zinc-950/[0.045] text-zinc-500 dark:bg-white/[0.055] dark:text-white/70"
         )}>
           {item.icon}
@@ -234,10 +240,11 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
 
   return (
     <>
-      <aside className="sticky top-0 z-30 hidden h-screen w-[18.5rem] shrink-0 border-l border-zinc-200 bg-white/88 p-3 text-zinc-950 shadow-2xl shadow-zinc-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-[#12151a]/95 dark:text-white dark:shadow-black/30 md:flex md:flex-col">
-        <div className="pm-aurora relative overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white/75 p-3 shadow-2xl shadow-zinc-950/8 dark:border-white/12 dark:bg-white/[0.055] dark:shadow-black/25">
+      <aside className="sticky top-0 z-30 hidden h-screen w-[19rem] shrink-0 border-l border-zinc-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.92)_45%,rgba(236,254,255,0.74))] p-3 text-zinc-950 shadow-2xl shadow-zinc-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(18,21,26,0.98),rgba(14,16,20,0.96)_50%,rgba(8,47,73,0.18))] dark:text-white dark:shadow-black/35 md:flex md:flex-col">
+        <div className="relative overflow-hidden rounded-[1.6rem] border border-zinc-200 bg-white/76 p-3 shadow-2xl shadow-zinc-950/8 dark:border-white/12 dark:bg-white/[0.055] dark:shadow-black/25">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.22),transparent_14rem),radial-gradient(circle_at_bottom_left,rgba(168,85,247,0.12),transparent_12rem)]" />
           <div className="relative z-10 flex items-center gap-3">
-            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-zinc-200 bg-white text-base font-black text-zinc-950 shadow-lg shadow-zinc-950/10 dark:border-white/12 dark:shadow-black/20">
+            <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-[1.1rem] border border-zinc-200 bg-white text-base font-black text-zinc-950 shadow-lg shadow-zinc-950/10 dark:border-white/12 dark:bg-white/[0.08] dark:text-white dark:shadow-black/20">
               {user.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={user.image} alt="" className="size-full object-cover" />
@@ -246,64 +253,59 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-black">{user.name || "بازیکن مافیا"}</p>
-              <div className="mt-1 flex items-center gap-2">
+              <p className="truncate text-[15px] font-black">{user.name || "بازیکن مافیا"}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5">
                 <span className={roleTone(user.role)}>{roleLabel(user.role)}</span>
-                <span className="pm-chip pm-chip-primary" dir="ltr">{panelDate.miladi}</span>
+                <span className="pm-chip pm-chip-primary">{currentLabel}</span>
               </div>
             </div>
           </div>
-          <div className="relative z-10 mt-3 rounded-2xl border border-zinc-200 bg-zinc-950/[0.035] px-3 py-2 dark:border-white/10 dark:bg-black/18">
-            <div className="flex items-center justify-between gap-3">
-              <span className="flex items-center gap-2 text-[11px] font-black text-zinc-700 dark:text-white/78">
-                <span className="material-symbols-outlined text-base text-cyan-700 dark:text-cyan-200">calendar_month</span>
-                امروز
-              </span>
-              <span className="truncate text-[11px] font-black text-cyan-700 dark:text-cyan-100">{panelDate.shamsi}</span>
+          <div className="relative z-10 mt-3 grid grid-cols-[1fr_auto] items-center gap-2 rounded-[1.1rem] border border-zinc-200 bg-zinc-950/[0.035] px-3 py-2 dark:border-white/10 dark:bg-black/18">
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-black text-cyan-700 dark:text-cyan-100">{panelDate.shamsi}</p>
+              <p className="mt-0.5 truncate text-[10px] font-bold text-zinc-500 dark:text-white/46" dir="ltr">{panelDate.miladi}</p>
             </div>
+            <span className="material-symbols-outlined grid size-9 place-items-center rounded-xl bg-white text-base text-cyan-700 shadow-sm shadow-zinc-950/5 dark:bg-white/[0.08] dark:text-cyan-100">
+              calendar_month
+            </span>
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-2 px-1">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-200/80">COMMAND</p>
-            <p className="mt-1 text-lg font-black leading-6">{currentLabel}</p>
-          </div>
-          <span className="material-symbols-outlined grid size-10 place-items-center rounded-2xl border border-zinc-200 bg-white/80 text-cyan-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-cyan-100">
-            route
-          </span>
-        </div>
-
-        <nav className="custom-scrollbar motion-list mt-3 flex flex-1 flex-col gap-1.5 overflow-y-auto rounded-[1.35rem] border border-zinc-200 bg-zinc-950/[0.035] p-2 dark:border-white/10 dark:bg-black/16">
-          {items.map(renderDesktopLink)}
+        <nav className="custom-scrollbar mt-3 flex flex-1 flex-col gap-3 overflow-y-auto rounded-[1.55rem] border border-zinc-200 bg-white/45 p-2.5 dark:border-white/10 dark:bg-black/16">
+          {navGroups.map((group) => (
+            <section key={group.key} className="motion-list">
+              <div className="mb-1.5 flex items-center gap-2 px-2">
+                <span className="h-px flex-1 bg-gradient-to-l from-cyan-400/40 to-transparent" />
+                <p className="text-[10px] font-black tracking-[0.16em] text-zinc-400 dark:text-white/36">{group.label}</p>
+              </div>
+              <div className="grid gap-1.5">
+                {group.items.map(renderDesktopLink)}
+              </div>
+            </section>
+          ))}
         </nav>
 
-        <div className="mt-3 flex items-center gap-2 rounded-[1.35rem] border border-zinc-200 bg-zinc-950/[0.035] p-2 dark:border-white/10 dark:bg-black/16">
-          <ThemeToggle compact />
+        <div className="mt-3 grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-2 rounded-[1.35rem] border border-zinc-200 bg-white/62 p-2 dark:border-white/10 dark:bg-black/16">
+          <ThemeToggle nav />
           <form action={logoutAction} className="shrink-0">
             <button
               type="submit"
-              className="motion-nav-item inline-flex min-h-10 items-center gap-2 rounded-full border border-rose-400/20 bg-rose-400/10 px-3 text-xs font-black text-rose-700 transition-all hover:bg-rose-500 hover:text-white dark:border-rose-300/18 dark:text-rose-100"
+              className="motion-nav-item grid size-11 place-items-center rounded-full border border-rose-500/18 bg-rose-500/10 text-rose-600 shadow-sm shadow-zinc-950/5 transition-all hover:bg-rose-500 hover:text-white dark:text-rose-200"
+              aria-label="خروج"
+              title="خروج"
             >
-              <span className="material-symbols-outlined grid size-8 place-items-center rounded-full bg-white/10 text-lg leading-none">logout</span>
-              <span className="truncate text-right">خروج</span>
+              <span className="material-symbols-outlined text-[1.2rem] leading-none">logout</span>
             </button>
           </form>
+          <p className="min-w-0 truncate text-[11px] font-bold text-zinc-500 dark:text-white/42">کنترل سریع پنل</p>
         </div>
       </aside>
 
-      <nav className="fixed bottom-3 left-3 right-3 z-50 rounded-[2rem] border border-zinc-950/8 bg-white/88 p-2 text-zinc-950 shadow-2xl shadow-zinc-950/12 backdrop-blur-2xl dark:border-white/12 dark:bg-[#12151a]/92 dark:text-white dark:shadow-black/35 md:hidden">
-        <Link
-          href={isModerator ? "/dashboard/moderator" : "/dashboard/user"}
-          className="absolute -top-6 left-1/2 grid size-14 -translate-x-1/2 place-items-center rounded-full border border-white bg-gradient-to-br from-cyan-300 to-emerald-300 text-zinc-950 shadow-2xl shadow-cyan-500/22 dark:border-[#12151a]"
-          aria-label="اکشن اصلی"
-        >
-          <span className="material-symbols-outlined text-2xl">{isModerator ? "stadia_controller" : "sports_esports"}</span>
-        </Link>
+      <nav className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-50 rounded-[1.55rem] border border-zinc-950/8 bg-white/90 p-2 text-zinc-950 shadow-2xl shadow-zinc-950/12 backdrop-blur-2xl dark:border-white/12 dark:bg-[#12151a]/94 dark:text-white dark:shadow-black/35 md:hidden">
         <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
           <ThemeToggle nav />
-          <div className="custom-scrollbar flex h-[4.25rem] items-stretch gap-1 overflow-x-auto px-2">
-          {items.map(renderMobileLink)}
+          <div className="custom-scrollbar flex h-[4.05rem] items-stretch gap-1 overflow-x-auto rounded-[1.25rem] border border-zinc-950/6 bg-zinc-950/[0.035] p-1 dark:border-white/8 dark:bg-white/[0.035]">
+            {items.map(renderMobileLink)}
           </div>
           <form action={logoutAction} className="shrink-0">
             <button

@@ -425,7 +425,7 @@ export default function UserDashboard() {
       </div>
 
       {selectedHistoryGame && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 p-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] backdrop-blur-xl sm:items-center sm:p-4">
+        <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/75 backdrop-blur-xl sm:items-center">
           <div className="pm-command pm-safe-modal custom-scrollbar w-full max-w-3xl overflow-y-auto p-5 text-zinc-950 dark:text-white">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>

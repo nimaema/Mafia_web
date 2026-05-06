@@ -597,8 +597,8 @@ export function ScenariosManager({
       )}
 
       {showForm && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 p-4 pb-28 backdrop-blur-sm sm:items-center sm:pb-4">
-          <section className="ui-card flex max-h-[calc(100dvh-8rem)] w-full max-w-3xl flex-col overflow-hidden sm:max-h-[90vh]">
+        <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center">
+          <section className="ui-card pm-safe-modal flex w-full max-w-3xl flex-col overflow-hidden">
             <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
               <div>
                 <p className="ui-kicker">طراحی سناریو</p>
@@ -727,11 +727,11 @@ export function ScenariosManager({
 
       {selectedScenario && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-4"
+          className="pm-modal-layer fixed inset-0 z-[240] flex items-center justify-center bg-black/60 backdrop-blur-sm"
           onClick={() => setSelectedScenario(null)}
         >
           <section
-            className="ui-card motion-pop max-h-[calc(100dvh-1.5rem)] w-full max-w-3xl overflow-hidden sm:max-h-[88vh]"
+            className="ui-card pm-safe-modal motion-pop w-full max-w-3xl overflow-hidden"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">

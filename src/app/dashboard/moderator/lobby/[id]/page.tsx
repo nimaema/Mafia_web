@@ -888,8 +888,8 @@ export default function GameLobbyPage() {
       />
 
       {showCustomModal && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 p-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] backdrop-blur-xl sm:items-center sm:p-4">
-          <div className="ui-card flex max-h-[calc(100dvh-7.5rem)] w-full flex-col overflow-hidden rounded-lg sm:max-h-[92vh] sm:max-w-6xl">
+        <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/70 backdrop-blur-xl sm:items-center">
+          <div className="ui-card pm-safe-modal flex w-full flex-col overflow-hidden rounded-lg sm:max-w-6xl">
             <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/90 p-4 dark:border-white/10 dark:bg-white/[0.03] sm:p-5">
               <div className="min-w-0">
                 <p className="ui-kicker">سناریوی سفارشی</p>
@@ -980,7 +980,7 @@ export default function GameLobbyPage() {
               </div>
             </div>
 
-            <div className="sticky bottom-0 grid gap-3 border-t border-zinc-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] dark:border-white/10 dark:bg-zinc-900/95 sm:grid-cols-[minmax(0,1fr)_220px] sm:p-5">
+            <div className="sticky bottom-0 grid gap-3 border-t border-zinc-200 bg-white p-4 pb-[max(env(safe-area-inset-bottom),1rem)] dark:border-white/10 dark:bg-zinc-900/95 sm:grid-cols-[minmax(0,1fr)_220px] sm:p-5">
               <label className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-all ${
                 saveCustomScenario
                   ? "border-cyan-500/35 bg-cyan-500/10 shadow-sm shadow-cyan-500/10"
