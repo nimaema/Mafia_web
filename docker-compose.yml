@@ -45,8 +45,7 @@ services:
       POSTGRES_USER: mafia
       POSTGRES_PASSWORD: mafiapass
       POSTGRES_DB: mafiadb
-    ports:
-      - "5432:5432"
+    # Keep Postgres private on Docker's internal network. The app reaches it via db:5432.
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
