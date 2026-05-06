@@ -151,7 +151,7 @@ function ActionDock({ role }: { role?: string | null }) {
     { href: "/game-guide", icon: "menu_book", title: "راهنمای بازی", text: "قوانین و روند اجرا" },
     ...(canModerate
       ? [{ href: "/dashboard/moderator", icon: "stadia_controller", title: "اتاق گرداننده", text: "لابی و اجرای بازی" }]
-      : [{ href: "/dashboard/user/history", icon: "insights", title: "مرور عملکرد", text: "نقش‌ها و نتیجه‌ها" }]),
+      : [{ href: "/dashboard/user/requests", icon: "rate_review", title: "پیشنهاد بازی", text: "نقش، سناریو یا اصلاح" }]),
   ];
 
   return (

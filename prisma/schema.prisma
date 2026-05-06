@@ -32,6 +32,19 @@ enum GameResult {
   LOSS
 }
 
+enum SuggestionType {
+  NEW_ROLE
+  NEW_SCENARIO
+  CHANGE_ROLE
+  CHANGE_SCENARIO
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -50,6 +63,8 @@ model User {
   gameHistories       GameHistory[]
   gamePlayers         GamePlayer[]
   passwordResetTokens PasswordResetToken[]
+  suggestionRequests  SuggestionRequest[] @relation("SuggestionRequester")
+  reviewedSuggestions SuggestionRequest[] @relation("SuggestionReviewer")
 }
 
 model Account {
@@ -108,6 +123,8 @@ model MafiaRole {
   scenarios     ScenarioRole[]
   gameHistories GameHistory[]
   gamePlayers   GamePlayer[]
+  targetSuggestionRequests  SuggestionRequest[] @relation("SuggestionTargetRole")
+  createdSuggestionRequests SuggestionRequest[] @relation("SuggestionCreatedRole")
 }
 
 model Scenario {
@@ -121,6 +138,8 @@ model Scenario {
   games     Game[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  targetSuggestionRequests  SuggestionRequest[] @relation("SuggestionTargetScenario")
+  createdSuggestionRequests SuggestionRequest[] @relation("SuggestionCreatedScenario")
 }
 
 model ScenarioRole {
@@ -224,4 +243,34 @@ model NightEvent {
   updatedAt          DateTime    @updatedAt
 
   @@index([gameId, nightNumber])
+}
+
+model SuggestionRequest {
+  id                String           @id @default(cuid())
+  userId            String
+  user              User             @relation("SuggestionRequester", fields: [userId], references: [id], onDelete: Cascade)
+  type              SuggestionType
+  status            SuggestionStatus @default(PENDING)
+  title             String
+  description       String           @db.Text
+  payload           Json?
+  targetRoleId      String?
+  targetRole        MafiaRole?       @relation("SuggestionTargetRole", fields: [targetRoleId], references: [id], onDelete: SetNull)
+  targetScenarioId  String?
+  targetScenario    Scenario?        @relation("SuggestionTargetScenario", fields: [targetScenarioId], references: [id], onDelete: SetNull)
+  reviewedById      String?
+  reviewedBy        User?            @relation("SuggestionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  adminNote         String?          @db.Text
+  createdRoleId     String?
+  createdRole       MafiaRole?       @relation("SuggestionCreatedRole", fields: [createdRoleId], references: [id], onDelete: SetNull)
+  createdScenarioId String?
+  createdScenario   Scenario?        @relation("SuggestionCreatedScenario", fields: [createdScenarioId], references: [id], onDelete: SetNull)
+  reviewedAt        DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@index([targetRoleId])
+  @@index([targetScenarioId])
 }

@@ -56,6 +56,7 @@ function activeLabel(pathname: string, adminTab: string | null) {
   if (pathname === "/game-guide") return "راهنمای بازی";
   if (pathname.startsWith("/dashboard/user/history")) return "تاریخچه";
   if (pathname.startsWith("/dashboard/user/profile")) return "پروفایل";
+  if (pathname.startsWith("/dashboard/user/requests") || pathname === "/dashboard/admin/requests") return "درخواست‌ها";
   if (pathname === "/dashboard/moderator" || pathname.startsWith("/dashboard/moderator/lobby")) return "لابی‌ها";
   if (pathname.startsWith("/dashboard/moderator/game")) return "اتاق اجرا";
   if (pathname === "/dashboard/moderator/scenarios" || (pathname === "/dashboard/admin" && adminTab === "scenarios")) return "سناریوها";
@@ -138,6 +139,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
     { key: "dashboard", href: "/dashboard/user", label: "خانه", description: "لابی‌های زنده و وضعیت بازی", icon: "space_dashboard", tone: "cyan", group: "player" },
     { key: "history", href: "/dashboard/user/history", label: "تاریخچه", description: "نتایج، نقش‌ها و گزارش‌ها", icon: "history", tone: "violet", group: "player" },
     { key: "guide", href: "/game-guide", label: "راهنما", description: "قوانین، لابی و گزارش", icon: "menu_book", tone: "amber", group: "player" },
+    { key: "requests", href: "/dashboard/user/requests", label: "پیشنهادها", description: "ثبت پیشنهاد نقش و سناریو", icon: "rate_review", tone: "rose", group: "player" },
     { key: "profile", href: "/dashboard/user/profile", label: "پروفایل", description: "تصویر، نام و امنیت حساب", icon: "account_circle", tone: "emerald", group: "player" },
   ];
 
@@ -152,6 +154,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
   if (isAdmin) {
     items.push(
       { key: "users", href: "/dashboard/admin/users", label: "کاربران", description: "کنترل حساب و دسترسی", icon: "group", tone: "cyan", group: "admin" },
+      { key: "adminRequests", href: "/dashboard/admin/requests", label: "بررسی درخواست‌ها", description: "تایید نقش و سناریو", icon: "fact_check", tone: "emerald", group: "admin" },
       { key: "adminHistory", href: "/dashboard/admin/history", label: "آرشیو کل", description: "همه بازی‌ها و گزارش‌ها", icon: "database_search", tone: "violet", group: "admin" },
       { key: "backups", href: "/dashboard/admin/backups", label: "بکاپ", description: "نسخه‌ها و بازیابی امن", icon: "cloud_sync", tone: "amber", group: "admin" },
     );
@@ -161,6 +164,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
     if (item.key === "dashboard") return pathname === "/dashboard/user";
     if (item.key === "history") return pathname.startsWith("/dashboard/user/history");
     if (item.key === "guide") return pathname === "/game-guide";
+    if (item.key === "requests") return pathname.startsWith("/dashboard/user/requests");
     if (item.key === "profile") return pathname.startsWith("/dashboard/user/profile");
     if (item.key === "moderator") {
       return pathname === "/dashboard/moderator" || pathname.startsWith("/dashboard/moderator/lobby") || pathname.startsWith("/dashboard/moderator/game");
@@ -170,6 +174,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
     }
     if (item.key === "roles") return pathname === "/dashboard/admin" && (!adminTab || adminTab === "roles");
     if (item.key === "users") return pathname === "/dashboard/admin/users";
+    if (item.key === "adminRequests") return pathname === "/dashboard/admin/requests";
     if (item.key === "adminHistory") return pathname === "/dashboard/admin/history";
     if (item.key === "backups") return pathname === "/dashboard/admin/backups";
     return false;
