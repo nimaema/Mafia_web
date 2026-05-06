@@ -199,6 +199,20 @@
       linear-gradient(135deg, var(--pm-bg), var(--pm-bg-deep));
   }
 
+  .pm-mobile-app-landing {
+    background:
+      radial-gradient(circle at 50% 18%, rgba(0, 217, 191, 0.16), transparent 16rem),
+      radial-gradient(circle at 14% 78%, rgba(139, 92, 246, 0.11), transparent 13rem);
+  }
+
+  @media (display-mode: standalone) {
+    .pm-mobile-app-landing {
+      min-height: 100dvh;
+      padding-top: calc(env(safe-area-inset-top) + 0.65rem);
+      padding-bottom: calc(env(safe-area-inset-bottom) + 0.7rem);
+    }
+  }
+
   .pm-force-dark {
     --pm-bg: #15171b;
     --pm-bg-deep: #101216;

@@ -502,24 +502,24 @@ export default function GameLobbyPage() {
     <div className="flex flex-col gap-5" dir="rtl">
       <section className="relative overflow-hidden rounded-lg border border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_54%,#ecfeff_100%)] shadow-xl shadow-zinc-950/10 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.94)_0%,rgba(9,9,11,0.98)_58%,rgba(0,168,150,0.22)_100%)] dark:shadow-black/30">
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" />
-        <header className="relative overflow-hidden border-b border-zinc-200 bg-zinc-950 p-4 text-white dark:border-white/10 sm:p-5">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.28),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.2),transparent_18rem)]" />
+        <header className="relative overflow-hidden border-b border-zinc-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_58%,#ecfeff_100%)] p-4 text-zinc-950 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.96)_0%,rgba(9,9,11,0.98)_58%,rgba(0,168,150,0.2)_100%)] dark:text-white sm:p-5">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.16),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.12),transparent_18rem)] dark:bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.28),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.2),transparent_18rem)]" />
           <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">مدیریت لابی</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-300">مدیریت لابی</p>
               <h1 className="mt-1 line-clamp-2 break-words text-2xl font-black leading-8 sm:text-3xl sm:leading-10">{game?.name || "لابی بازی مافیا"}</h1>
               <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black">
-                <span className="rounded-lg border border-white/10 bg-white/10 px-2.5 py-1 text-zinc-200">{players.length} بازیکن حاضر</span>
-                <span className="rounded-lg border border-white/10 bg-white/10 px-2.5 py-1 text-zinc-200">{requiredPlayers || "بدون"} ظرفیت سناریو</span>
-                <span className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 px-2.5 py-1 text-cyan-200">کد #{game?.code || "------"}</span>
+                <span className="rounded-lg border border-zinc-200 bg-white/82 px-2.5 py-1 text-zinc-600 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/10 dark:text-zinc-200">{players.length} بازیکن حاضر</span>
+                <span className="rounded-lg border border-zinc-200 bg-white/82 px-2.5 py-1 text-zinc-600 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/10 dark:text-zinc-200">{requiredPlayers || "بدون"} ظرفیت سناریو</span>
+                <span className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 text-cyan-700 shadow-sm shadow-cyan-500/10 dark:border-cyan-300/20 dark:bg-cyan-300/10 dark:text-cyan-200">کد #{game?.code || "------"}</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-              <button onClick={copyJoinLink} className="ui-button-secondary min-h-10 border-white/10 bg-white/10 px-3 text-xs text-white hover:bg-white hover:text-zinc-950">
+              <button onClick={copyJoinLink} className="ui-button-secondary min-h-10 border-zinc-200 bg-white/82 px-3 text-xs text-zinc-700 shadow-sm shadow-zinc-950/5 hover:border-cyan-500/30 hover:bg-cyan-50 hover:text-zinc-950 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white dark:hover:text-zinc-950">
                 <span className="material-symbols-outlined text-base">content_copy</span>
                 کپی لینک
               </button>
-              <button onClick={() => router.push("/dashboard/moderator")} className="ui-button-secondary min-h-10 border-white/10 bg-white/10 px-3 text-xs text-white hover:bg-white hover:text-zinc-950">
+              <button onClick={() => router.push("/dashboard/moderator")} className="ui-button-secondary min-h-10 border-zinc-200 bg-white/82 px-3 text-xs text-zinc-700 shadow-sm shadow-zinc-950/5 hover:border-cyan-500/30 hover:bg-cyan-50 hover:text-zinc-950 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white dark:hover:text-zinc-950">
                 <span className="material-symbols-outlined text-base">arrow_forward</span>
                 بازگشت
               </button>
