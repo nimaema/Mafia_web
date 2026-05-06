@@ -29,7 +29,8 @@ services:
       - DB_BACKUP_DIR=${DB_BACKUP_DIR:-/app/backups}
       - DB_BACKUP_RETENTION_DAYS=${DB_BACKUP_RETENTION_DAYS:-7}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     # Port is not exposed to host to ensure strict zero-trust networking
     ports:
       - "3000:3000"
@@ -48,16 +49,23 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mafia -d mafiadb"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
   db-backup:
     image: postgres:15-alpine
     restart: always
     environment:
       - DATABASE_URL=postgresql://mafia:mafiapass@db:5432/mafiadb
+      - DB_BACKUP_DIR=/backups
       - DB_BACKUP_RETENTION_DAYS=${DB_BACKUP_RETENTION_DAYS:-7}
       - DB_BACKUP_INTERVAL_SECONDS=${DB_BACKUP_INTERVAL_SECONDS:-86400}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - db_backups:/backups
       - ./scripts/backup-db.sh:/usr/local/bin/backup-db.sh:ro

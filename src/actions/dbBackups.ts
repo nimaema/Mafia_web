@@ -35,14 +35,14 @@ export async function listDatabaseBackups() {
 export async function createDatabaseBackup() {
   await checkAdmin();
   const backup = await createDatabaseBackupFile("manual");
-  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/admin/backups");
   return { success: true, backup };
 }
 
 export async function deleteDatabaseBackup(fileName: string) {
   await checkAdmin();
   await deleteDatabaseBackupFile(fileName);
-  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/admin/backups");
   return { success: true };
 }
 
@@ -50,7 +50,7 @@ export async function restoreDatabaseBackup(fileName: string) {
   await checkAdmin();
   await prisma.$disconnect();
   const result = await restoreDatabaseBackupFile(fileName);
-  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/admin/backups");
   revalidatePath("/dashboard/admin/users");
   revalidatePath("/dashboard/user");
   revalidatePath("/dashboard/moderator");
@@ -61,7 +61,7 @@ export async function restoreDatabaseBackupDataOnly(fileName: string) {
   await checkAdmin();
   await prisma.$disconnect();
   const result = await restoreDatabaseBackupDataOnlyFile(fileName);
-  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/admin/backups");
   revalidatePath("/dashboard/admin/users");
   revalidatePath("/dashboard/user");
   revalidatePath("/dashboard/moderator");

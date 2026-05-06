@@ -33,7 +33,7 @@ export function VerifyEmailClient({ email, verified, error }: { email?: string; 
   };
 
   return (
-    <div className="app-page pm-force-dark min-h-screen overflow-hidden p-4 text-white" dir="rtl">
+    <div className="app-page min-h-screen overflow-hidden p-4 text-zinc-950 dark:text-white" dir="rtl">
       <main className="mx-auto grid min-h-[calc(100vh-2rem)] w-full max-w-6xl items-center gap-6 lg:grid-cols-[minmax(0,1fr)_460px]">
         <section className="hidden lg:block">
           <div className="pm-chip pm-chip-primary">

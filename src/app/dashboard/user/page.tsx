@@ -154,7 +154,7 @@ function ActionDock({ role }: { role?: string | null }) {
   const canModerate = role === "ADMIN" || role === "MODERATOR";
   const actions = [
     { href: "/dashboard/user/history", icon: "history", title: "تاریخچه", text: "گزارش‌ها و نتیجه‌ها" },
-    { href: "/build-guide", icon: "menu_book", title: "راهنمای بازی", text: "قوانین و روند اجرا" },
+    { href: "/game-guide", icon: "menu_book", title: "راهنمای بازی", text: "قوانین و روند اجرا" },
     ...(canModerate
       ? [{ href: "/dashboard/moderator", icon: "stadia_controller", title: "اتاق گرداننده", text: "لابی و اجرای بازی" }]
       : [{ href: "/dashboard/user/history", icon: "insights", title: "مرور عملکرد", text: "نقش‌ها و نتیجه‌ها" }]),

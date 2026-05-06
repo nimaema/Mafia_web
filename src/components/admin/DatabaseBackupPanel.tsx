@@ -168,12 +168,17 @@ export function DatabaseBackupPanel() {
   const handleRestoreDatabaseBackup = (backup: DatabaseBackupRecord) => {
     showConfirm(
       "بازیابی کامل دیتابیس",
-      `کل دیتابیس به وضعیت ${formatBackupDate(backup.createdAt)} برمی‌گردد. قبل از بازیابی، یک بکاپ ایمنی جدید ساخته می‌شود. ادامه می‌دهید؟`,
+      `کل دیتابیس به وضعیت ${formatBackupDate(backup.createdAt)} برمی‌گردد. قبل از بازیابی، فایل بکاپ اعتبارسنجی می‌شود و اگر بکاپ ایمنی ۱۵ دقیقه اخیر وجود داشته باشد همان استفاده می‌شود. ادامه می‌دهید؟`,
       async () => {
         setDatabaseBackupBusy(`full:${backup.fileName}`);
         try {
           const result = await restoreDatabaseBackup(backup.fileName);
-          showToast(`دیتابیس بازیابی شد. بکاپ ایمنی: ${result.safetyBackup.fileName}`, "success");
+          showToast(
+            result.safetyBackupReused
+              ? `دیتابیس بازیابی شد. از بکاپ ایمنی اخیر استفاده شد: ${result.safetyBackup.fileName}`
+              : `دیتابیس بازیابی شد. بکاپ ایمنی: ${result.safetyBackup.fileName}`,
+            "success"
+          );
           await refreshDatabaseBackups();
           window.location.reload();
         } catch (error: any) {
@@ -189,12 +194,17 @@ export function DatabaseBackupPanel() {
   const handleRestoreDatabaseBackupDataOnly = (backup: DatabaseBackupRecord) => {
     showConfirm(
       "بازیابی داده با ساختار فعلی",
-      `داده‌های ${formatBackupDate(backup.createdAt)} روی جداول فعلی اعمال می‌شود، اما ساختار فعلی دیتابیس و ستون‌های جدید حذف نمی‌شوند. قبل از بازیابی، یک بکاپ ایمنی جدید ساخته می‌شود. ادامه می‌دهید؟`,
+      `داده‌های ${formatBackupDate(backup.createdAt)} روی جداول فعلی اعمال می‌شود، اما ساختار فعلی دیتابیس و ستون‌های جدید حذف نمی‌شوند. فایل ابتدا اعتبارسنجی می‌شود و بکاپ ایمنی اخیر دوباره استفاده می‌شود تا با هر تلاش فایل تازه ساخته نشود. ادامه می‌دهید؟`,
       async () => {
         setDatabaseBackupBusy(`data:${backup.fileName}`);
         try {
           const result = await restoreDatabaseBackupDataOnly(backup.fileName);
-          showToast(`داده‌ها با ساختار فعلی بازیابی شدند. بکاپ ایمنی: ${result.safetyBackup.fileName}`, "success");
+          showToast(
+            result.safetyBackupReused
+              ? `داده‌ها بازیابی شدند. از بکاپ ایمنی اخیر استفاده شد: ${result.safetyBackup.fileName}`
+              : `داده‌ها با ساختار فعلی بازیابی شدند. بکاپ ایمنی: ${result.safetyBackup.fileName}`,
+            "success"
+          );
           await refreshDatabaseBackups();
           window.location.reload();
         } catch (error: any) {
@@ -519,7 +529,7 @@ export function DatabaseBackupPanel() {
             </div>
             <div>
               <p className="text-sm font-black text-zinc-950 dark:text-white">نوع بازیابی را درست انتخاب کنید</p>
-              <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">برای هر عملیات اول بکاپ ایمنی ساخته می‌شود.</p>
+              <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">فایل قبل از بازیابی اعتبارسنجی می‌شود و بکاپ ایمنی اخیر دوباره استفاده می‌شود.</p>
             </div>
           </div>
 

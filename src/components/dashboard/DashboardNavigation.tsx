@@ -53,6 +53,7 @@ function userInitial(name?: string | null) {
 
 function activeLabel(pathname: string, adminTab: string | null) {
   if (pathname === "/dashboard/user") return "خانه";
+  if (pathname === "/game-guide") return "راهنمای بازی";
   if (pathname.startsWith("/dashboard/user/history")) return "تاریخچه";
   if (pathname.startsWith("/dashboard/user/profile")) return "پروفایل";
   if (pathname === "/dashboard/moderator" || pathname.startsWith("/dashboard/moderator/lobby")) return "لابی‌ها";
@@ -136,6 +137,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
   const items: NavItem[] = [
     { key: "dashboard", href: "/dashboard/user", label: "خانه", description: "لابی‌های زنده و وضعیت بازی", icon: "space_dashboard", tone: "cyan", group: "player" },
     { key: "history", href: "/dashboard/user/history", label: "تاریخچه", description: "نتایج، نقش‌ها و گزارش‌ها", icon: "history", tone: "violet", group: "player" },
+    { key: "guide", href: "/game-guide", label: "راهنما", description: "قوانین، لابی و گزارش", icon: "menu_book", tone: "amber", group: "player" },
     { key: "profile", href: "/dashboard/user/profile", label: "پروفایل", description: "تصویر، نام و امنیت حساب", icon: "account_circle", tone: "emerald", group: "player" },
   ];
 
@@ -158,6 +160,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
   const isActive = (item: NavItem) => {
     if (item.key === "dashboard") return pathname === "/dashboard/user";
     if (item.key === "history") return pathname.startsWith("/dashboard/user/history");
+    if (item.key === "guide") return pathname === "/game-guide";
     if (item.key === "profile") return pathname.startsWith("/dashboard/user/profile");
     if (item.key === "moderator") {
       return pathname === "/dashboard/moderator" || pathname.startsWith("/dashboard/moderator/lobby") || pathname.startsWith("/dashboard/moderator/game");
@@ -231,10 +234,10 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
 
   return (
     <>
-      <aside className="sticky top-0 z-30 hidden h-screen w-[18.5rem] shrink-0 border-l border-white/10 bg-[#12151a]/95 p-3 text-white shadow-2xl shadow-black/30 backdrop-blur-2xl md:flex md:flex-col">
-        <div className="pm-aurora relative overflow-hidden rounded-[1.35rem] border border-white/12 bg-white/[0.055] p-3 shadow-2xl shadow-black/25">
+      <aside className="sticky top-0 z-30 hidden h-screen w-[18.5rem] shrink-0 border-l border-zinc-200 bg-white/88 p-3 text-zinc-950 shadow-2xl shadow-zinc-950/10 backdrop-blur-2xl dark:border-white/10 dark:bg-[#12151a]/95 dark:text-white dark:shadow-black/30 md:flex md:flex-col">
+        <div className="pm-aurora relative overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white/75 p-3 shadow-2xl shadow-zinc-950/8 dark:border-white/12 dark:bg-white/[0.055] dark:shadow-black/25">
           <div className="relative z-10 flex items-center gap-3">
-            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/12 bg-white text-base font-black text-zinc-950 shadow-lg shadow-black/20">
+            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-zinc-200 bg-white text-base font-black text-zinc-950 shadow-lg shadow-zinc-950/10 dark:border-white/12 dark:shadow-black/20">
               {user.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={user.image} alt="" className="size-full object-cover" />
@@ -250,37 +253,37 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
               </div>
             </div>
           </div>
-          <div className="relative z-10 mt-3 rounded-2xl border border-white/10 bg-black/18 px-3 py-2">
+          <div className="relative z-10 mt-3 rounded-2xl border border-zinc-200 bg-zinc-950/[0.035] px-3 py-2 dark:border-white/10 dark:bg-black/18">
             <div className="flex items-center justify-between gap-3">
-              <span className="flex items-center gap-2 text-[11px] font-black text-white/78">
-                <span className="material-symbols-outlined text-base text-cyan-200">calendar_month</span>
+              <span className="flex items-center gap-2 text-[11px] font-black text-zinc-700 dark:text-white/78">
+                <span className="material-symbols-outlined text-base text-cyan-700 dark:text-cyan-200">calendar_month</span>
                 امروز
               </span>
-              <span className="truncate text-[11px] font-black text-cyan-100">{panelDate.shamsi}</span>
+              <span className="truncate text-[11px] font-black text-cyan-700 dark:text-cyan-100">{panelDate.shamsi}</span>
             </div>
           </div>
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-2 px-1">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200/80">COMMAND</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-200/80">COMMAND</p>
             <p className="mt-1 text-lg font-black leading-6">{currentLabel}</p>
           </div>
-          <span className="material-symbols-outlined grid size-10 place-items-center rounded-2xl border border-white/10 bg-white/[0.06] text-cyan-100">
+          <span className="material-symbols-outlined grid size-10 place-items-center rounded-2xl border border-zinc-200 bg-white/80 text-cyan-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-cyan-100">
             route
           </span>
         </div>
 
-        <nav className="custom-scrollbar motion-list mt-3 flex flex-1 flex-col gap-1.5 overflow-y-auto rounded-[1.35rem] border border-white/10 bg-black/16 p-2">
+        <nav className="custom-scrollbar motion-list mt-3 flex flex-1 flex-col gap-1.5 overflow-y-auto rounded-[1.35rem] border border-zinc-200 bg-zinc-950/[0.035] p-2 dark:border-white/10 dark:bg-black/16">
           {items.map(renderDesktopLink)}
         </nav>
 
-        <div className="mt-3 grid gap-2 rounded-[1.35rem] border border-white/10 bg-black/16 p-2">
+        <div className="mt-3 grid gap-2 rounded-[1.35rem] border border-zinc-200 bg-zinc-950/[0.035] p-2 dark:border-white/10 dark:bg-black/16">
           <ThemeToggle />
           <form action={logoutAction}>
             <button
               type="submit"
-              className="motion-nav-item grid w-full grid-cols-[2.5rem_minmax(0,1fr)_1rem] items-center gap-2 rounded-2xl border border-rose-300/18 bg-rose-400/10 px-2.5 py-2 text-xs font-black text-rose-100 transition-all hover:bg-rose-500 hover:text-white"
+              className="motion-nav-item grid w-full grid-cols-[2.5rem_minmax(0,1fr)_1rem] items-center gap-2 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-2.5 py-2 text-xs font-black text-rose-700 transition-all hover:bg-rose-500 hover:text-white dark:border-rose-300/18 dark:text-rose-100"
             >
               <span className="material-symbols-outlined grid size-9 place-items-center rounded-xl bg-white/10 text-lg leading-none">logout</span>
               <span className="truncate text-right">خروج</span>
@@ -290,8 +293,8 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         </div>
       </aside>
 
-      <nav className="fixed bottom-3 left-3 right-3 z-50 overflow-hidden rounded-[1.45rem] border border-white/12 bg-[#12151a]/95 text-white shadow-2xl shadow-black/35 backdrop-blur-2xl md:hidden">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-white/10 px-3 py-2">
+      <nav className="fixed bottom-3 left-3 right-3 z-50 overflow-hidden rounded-[1.45rem] border border-zinc-200 bg-white/92 text-zinc-950 shadow-2xl shadow-zinc-950/12 backdrop-blur-2xl dark:border-white/12 dark:bg-[#12151a]/95 dark:text-white dark:shadow-black/35 md:hidden">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-zinc-200 px-3 py-2 dark:border-white/10">
           <div className="flex min-w-0 items-center gap-2">
             <span className="material-symbols-outlined grid size-8 place-items-center rounded-xl bg-cyan-300 text-lg text-zinc-950">route</span>
             <span className="truncate text-xs font-black">{currentLabel}</span>

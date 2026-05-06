@@ -13,6 +13,11 @@ if [ -z "${DATABASE_URL:-}" ]; then
   exit 1
 fi
 
+until pg_isready -d "$DATABASE_URL" >/dev/null 2>&1; do
+  echo "Waiting for database before starting backup loop..."
+  sleep 5
+done
+
 while true; do
   timestamp="$(date -u +"%Y-%m-%dT%H-%M-%SZ")"
   target="$BACKUP_DIR/mafia-db-auto-$timestamp.dump"

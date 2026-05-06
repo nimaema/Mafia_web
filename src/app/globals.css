@@ -42,11 +42,11 @@
 @layer base {
   :root {
     color-scheme: light;
-    --pm-bg: #eef3f7;
-    --pm-bg-deep: #dde8ee;
-    --pm-surface: rgba(255, 255, 255, 0.78);
-    --pm-surface-strong: rgba(255, 255, 255, 0.93);
-    --pm-surface-soft: rgba(241, 245, 249, 0.76);
+    --pm-bg: #f6f8fb;
+    --pm-bg-deep: #eaf1f6;
+    --pm-surface: rgba(255, 255, 255, 0.86);
+    --pm-surface-strong: rgba(255, 255, 255, 0.96);
+    --pm-surface-soft: rgba(234, 240, 245, 0.82);
     --pm-line: rgba(15, 23, 42, 0.12);
     --pm-line-strong: rgba(15, 23, 42, 0.18);
     --pm-text: #101317;
@@ -107,8 +107,8 @@
     font-family: var(--font-vazirmatn), ui-sans-serif, system-ui, sans-serif;
     letter-spacing: 0;
     background:
-      radial-gradient(circle at 12% 0%, rgba(0, 245, 212, 0.13), transparent 28rem),
-      radial-gradient(circle at 88% 6%, rgba(139, 92, 246, 0.12), transparent 25rem),
+      radial-gradient(circle at 12% 0%, rgba(0, 168, 150, 0.14), transparent 28rem),
+      radial-gradient(circle at 88% 6%, rgba(109, 93, 246, 0.12), transparent 25rem),
       linear-gradient(135deg, var(--pm-bg), var(--pm-bg-deep));
     background-attachment: fixed;
     antialiasing: antialiased;
@@ -194,8 +194,9 @@
     min-height: 100dvh;
     color: var(--pm-text);
     background:
-      radial-gradient(circle at 8% 0%, rgba(0, 245, 212, 0.1), transparent 23rem),
-      radial-gradient(circle at 90% 14%, rgba(139, 92, 246, 0.1), transparent 22rem);
+      radial-gradient(circle at 8% 0%, rgba(0, 168, 150, 0.11), transparent 23rem),
+      radial-gradient(circle at 90% 14%, rgba(109, 93, 246, 0.1), transparent 22rem),
+      linear-gradient(135deg, var(--pm-bg), var(--pm-bg-deep));
   }
 
   .pm-force-dark {
@@ -540,11 +541,48 @@
   direction: ltr;
   -webkit-font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
+  padding-top: 0.035em;
+  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;
   transition:
     color var(--motion-medium) var(--ease-fluid),
     background-color var(--motion-medium) var(--ease-fluid),
     transform var(--motion-medium) var(--ease-snappy),
     opacity var(--motion-medium) var(--ease-fluid);
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) .text-white {
+  color: var(--pm-text) !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) [class*="text-white/"] {
+  color: var(--pm-muted) !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) [class*="border-white/"] {
+  border-color: var(--pm-line) !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) [class*="bg-white/"] {
+  background-color: rgba(255, 255, 255, 0.74) !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) [class*="bg-black/"] {
+  background-color: rgba(15, 23, 42, 0.045) !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) .text-cyan-100,
+:root:not(.dark) .app-page:not(.pm-force-dark) .text-cyan-200,
+:root:not(.dark) .app-page:not(.pm-force-dark) .text-cyan-300 {
+  color: #008577 !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) .shadow-black\/20,
+:root:not(.dark) .app-page:not(.pm-force-dark) .shadow-black\/25,
+:root:not(.dark) .app-page:not(.pm-force-dark) .shadow-black\/30,
+:root:not(.dark) .app-page:not(.pm-force-dark) .shadow-black\/35,
+:root:not(.dark) .app-page:not(.pm-force-dark) .shadow-black\/40,
+:root:not(.dark) .app-page:not(.pm-force-dark) .shadow-black\/45 {
+  --tw-shadow-color: rgba(15, 23, 42, 0.14) !important;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -589,12 +627,10 @@
   from {
     opacity: 0;
     transform: translateY(14px);
-    filter: blur(6px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 

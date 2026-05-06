@@ -10,6 +10,7 @@ const BACKUP_PREFIX = "mafia-db";
 const BACKUP_EXTENSION = ".dump";
 const BACKUP_NAME_PATTERN = /^mafia-db-(auto|manual|pre-restore)-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z\.dump$/;
 const DEFAULT_BACKUP_DIR = path.join(process.cwd(), "data", "db-backups");
+const SAFETY_BACKUP_REUSE_WINDOW_MS = 15 * 60 * 1000;
 
 export type DatabaseBackupRecord = {
   fileName: string;
@@ -79,19 +80,36 @@ async function runPgTool(command: "pg_dump" | "pg_restore", args: string[]) {
   }
 }
 
+async function validateDatabaseBackupArchive(filePath: string) {
+  await runPgTool("pg_restore", ["--list", filePath]);
+}
+
+async function latestReusableSafetyBackup(excludeFileName: string): Promise<DatabaseBackupRecord | null> {
+  const backups = await listDatabaseBackupFiles();
+  const cutoff = Date.now() - SAFETY_BACKUP_REUSE_WINDOW_MS;
+  return (
+    backups.find(
+      (backup) =>
+        backup.kind === "pre-restore" &&
+        backup.fileName !== excludeFileName &&
+        Date.parse(backup.createdAt) >= cutoff
+    ) || null
+  );
+}
+
 export async function pruneOldDatabaseBackups() {
   await ensureBackupDirectory();
   const cutoff = Date.now() - retentionDays() * 24 * 60 * 60 * 1000;
   const fileNames = await readdir(backupDirectory());
 
-  await Promise.all(
+  await Promise.allSettled(
     fileNames
       .filter((fileName) => BACKUP_NAME_PATTERN.test(fileName))
       .map(async (fileName) => {
         const filePath = backupPath(fileName);
         const fileStat = await stat(filePath);
         if (fileStat.mtime.getTime() < cutoff) {
-          await unlink(filePath);
+          await unlink(filePath).catch(() => undefined);
         }
       })
   );
@@ -124,7 +142,12 @@ export async function createDatabaseBackupFile(kind: DatabaseBackupRecord["kind"
   const fileName = backupFileName(kind);
   const filePath = backupPath(fileName);
 
-  await runPgTool("pg_dump", [databaseUrl, "-Fc", "--no-owner", "--no-acl", "-f", filePath]);
+  try {
+    await runPgTool("pg_dump", [databaseUrl, "-Fc", "--no-owner", "--no-acl", "-f", filePath]);
+  } catch (error) {
+    await unlink(filePath).catch(() => undefined);
+    throw error;
+  }
   await pruneOldDatabaseBackups();
 
   const fileStat = await stat(filePath);
@@ -146,7 +169,9 @@ export async function restoreDatabaseBackupFile(fileName: string, mode: Database
   const filePath = backupPath(safeFileName);
 
   await stat(filePath);
-  const safetyBackup = await createDatabaseBackupFile("pre-restore");
+  await validateDatabaseBackupArchive(filePath);
+  const reusableSafetyBackup = await latestReusableSafetyBackup(safeFileName);
+  const safetyBackup = reusableSafetyBackup || await createDatabaseBackupFile("pre-restore");
 
   const restoreArgs =
     mode === "data-only"
@@ -177,7 +202,7 @@ export async function restoreDatabaseBackupFile(fileName: string, mode: Database
 
   await runPgTool("pg_restore", restoreArgs);
 
-  return { restoredFileName: safeFileName, safetyBackup, mode };
+  return { restoredFileName: safeFileName, safetyBackup, safetyBackupReused: Boolean(reusableSafetyBackup), mode };
 }
 
 export async function restoreDatabaseBackupDataOnlyFile(fileName: string) {

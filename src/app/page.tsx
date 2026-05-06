@@ -15,21 +15,15 @@ const desktopFlows = [
 
 export default function Home() {
   return (
-    <main className="app-page pm-force-dark min-h-screen overflow-hidden bg-[#15171b] text-white" dir="rtl">
-      <section
-        className="fixed inset-0 flex items-center justify-center bg-[#15171b] px-6 py-10 md:hidden"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 8%, rgba(0, 245, 212, 0.1), transparent 16rem), radial-gradient(circle at 50% 92%, rgba(139, 92, 246, 0.08), transparent 17rem), linear-gradient(135deg, #15171b 0%, #101216 100%)",
-        }}
-      >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,245,212,0.08),transparent_16rem),radial-gradient(circle_at_bottom,rgba(139,92,246,0.08),transparent_17rem)]" />
+    <main className="app-page min-h-screen overflow-hidden text-zinc-950 dark:text-white" dir="rtl">
+      <section className="fixed inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(0,168,150,0.16),transparent_16rem),radial-gradient(circle_at_bottom,rgba(109,93,246,0.12),transparent_17rem),linear-gradient(135deg,#f8fbfd_0%,#edf4f8_100%)] px-6 py-10 dark:bg-[radial-gradient(circle_at_top,rgba(0,245,212,0.1),transparent_16rem),radial-gradient(circle_at_bottom,rgba(139,92,246,0.08),transparent_17rem),linear-gradient(135deg,#15171b_0%,#101216_100%)] md:hidden">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.9),transparent_14rem)] dark:bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.035),transparent_14rem)]" />
         <div className="relative z-10 flex w-full max-w-xs flex-col items-center text-center">
-          <div className="motion-pop grid size-24 place-items-center rounded-[2rem] border border-white/12 bg-white/[0.07] shadow-2xl shadow-cyan-500/10 backdrop-blur-2xl">
-            <span className="material-symbols-outlined text-5xl text-cyan-200">theater_comedy</span>
+          <div className="motion-pop grid size-24 place-items-center rounded-[2rem] border border-cyan-500/15 bg-white/80 shadow-2xl shadow-cyan-900/10 backdrop-blur-2xl dark:border-white/12 dark:bg-white/[0.07] dark:shadow-cyan-500/10">
+            <span className="material-symbols-outlined text-5xl text-cyan-700 dark:text-cyan-200">theater_comedy</span>
           </div>
           <h1 className="mt-5 text-4xl font-black leading-tight">مافیا بورد</h1>
-          <p className="mt-3 whitespace-nowrap text-sm font-bold text-white/68">اتاق فرمان ساده، سریع و امن بازی مافیا</p>
+          <p className="mt-3 whitespace-nowrap text-sm font-bold text-zinc-600 dark:text-white/68">اتاق فرمان ساده، سریع و امن بازی مافیا</p>
           <Link href="/auth/login" className="pm-button pm-button-primary mt-8 min-h-14 w-full text-base">
             <span className="material-symbols-outlined text-xl">login</span>
             ورود
@@ -45,7 +39,7 @@ export default function Home() {
             </div>
             <div>
               <p className="text-lg font-black">مافیا بورد</p>
-              <p className="text-[11px] font-black text-cyan-200/80">PlayMafia Command</p>
+              <p className="text-[11px] font-black text-cyan-700 dark:text-cyan-200/80">PlayMafia Command</p>
             </div>
           </Link>
 
@@ -67,7 +61,7 @@ export default function Home() {
             <h1 className="mt-5 max-w-3xl text-6xl font-black leading-[1.12] lg:text-7xl">
               مافیا بورد
             </h1>
-            <p className="mt-5 max-w-2xl text-lg font-bold leading-9 text-white/68">
+            <p className="mt-5 max-w-2xl text-lg font-bold leading-9 text-zinc-600 dark:text-white/68">
               لابی، سناریو، تایمر، نقش‌ها و گزارش نهایی در یک تجربه یکپارچه برای بازیکن، گرداننده و مدیر.
             </p>
 
@@ -89,7 +83,7 @@ export default function Home() {
                     <span className="material-symbols-outlined text-2xl text-cyan-200">{item.icon}</span>
                     <span className="text-lg font-black">{item.value}</span>
                   </div>
-                  <p className="mt-2 text-xs font-black text-white/50">{item.label}</p>
+                  <p className="mt-2 text-xs font-black text-zinc-500 dark:text-white/50">{item.label}</p>
                 </div>
               ))}
             </div>
@@ -97,12 +91,12 @@ export default function Home() {
 
           <aside className="pm-command pm-aurora motion-reveal p-4">
             <div className="relative z-10 grid gap-4">
-              <div className="rounded-[1.2rem] border border-white/10 bg-black/20 p-4">
+              <div className="rounded-[1.2rem] border border-zinc-200 bg-white/70 p-4 dark:border-white/10 dark:bg-black/20">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200">CONTROL ROOM</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-200">CONTROL ROOM</p>
                     <h2 className="mt-2 text-3xl font-black">نمای اجرای بازی</h2>
-                    <p className="mt-2 max-w-xl text-sm font-bold leading-7 text-white/58">
+                    <p className="mt-2 max-w-xl text-sm font-bold leading-7 text-zinc-600 dark:text-white/58">
                       تجربه اصلی از همان ابتدا شبیه اپ طراحی شده: روشن، کم‌حاشیه و آماده استفاده وسط بازی.
                     </p>
                   </div>
@@ -112,19 +106,19 @@ export default function Home() {
 
               <div className="grid gap-3 lg:grid-cols-3">
                 {desktopFlows.map((item) => (
-                  <div key={item.title} className="rounded-[1.2rem] border border-white/10 bg-white/[0.055] p-4">
-                    <span className="material-symbols-outlined grid size-11 place-items-center rounded-2xl bg-white/10 text-2xl text-cyan-100">{item.icon}</span>
+                  <div key={item.title} className="rounded-[1.2rem] border border-zinc-200 bg-white/72 p-4 dark:border-white/10 dark:bg-white/[0.055]">
+                    <span className="material-symbols-outlined grid size-11 place-items-center rounded-2xl bg-cyan-500/10 text-2xl text-cyan-700 dark:bg-white/10 dark:text-cyan-100">{item.icon}</span>
                     <h3 className="mt-4 text-lg font-black">{item.title}</h3>
-                    <p className="mt-2 text-sm font-bold leading-7 text-white/54">{item.text}</p>
+                    <p className="mt-2 text-sm font-bold leading-7 text-zinc-600 dark:text-white/54">{item.text}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="rounded-[1.2rem] border border-white/10 bg-black/20 p-4">
+              <div className="rounded-[1.2rem] border border-zinc-200 bg-white/70 p-4 dark:border-white/10 dark:bg-black/20">
                 <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                   <div>
-                    <p className="text-sm font-black text-cyan-100">آماده برای موبایل و دسکتاپ</p>
-                    <p className="mt-1 text-xs font-bold text-white/48">ناوبری پایین موبایل، پنل کناری دسکتاپ و پنجره‌های امن برای همه فرم‌ها.</p>
+                    <p className="text-sm font-black text-cyan-700 dark:text-cyan-100">آماده برای موبایل و دسکتاپ</p>
+                    <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-white/48">ناوبری پایین موبایل، پنل کناری دسکتاپ و پنجره‌های امن برای همه فرم‌ها.</p>
                   </div>
                   <Link href="/auth/login" className="pm-button pm-button-secondary bg-white text-zinc-950">
                     شروع
