@@ -86,28 +86,28 @@ function formatPanelDate() {
 function toneClasses(tone: NavTone, active: boolean) {
   const map: Record<NavTone, { active: string; idle: string; rail: string }> = {
     cyan: {
-      active: "border-cyan-300/45 bg-cyan-300/15 text-cyan-100 shadow-cyan-500/10",
-      idle: "text-cyan-100/72 hover:border-cyan-300/24 hover:bg-cyan-300/10 hover:text-cyan-50",
+      active: "border-cyan-500/25 bg-cyan-500/10 text-cyan-800 shadow-cyan-500/10 dark:border-cyan-300/45 dark:bg-cyan-300/15 dark:text-cyan-100",
+      idle: "text-zinc-600 hover:border-cyan-500/22 hover:bg-cyan-500/8 hover:text-cyan-800 dark:text-cyan-100/72 dark:hover:border-cyan-300/24 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50",
       rail: "from-cyan-300 to-teal-300",
     },
     violet: {
-      active: "border-violet-300/45 bg-violet-300/15 text-violet-100 shadow-violet-500/10",
-      idle: "text-violet-100/72 hover:border-violet-300/24 hover:bg-violet-300/10 hover:text-violet-50",
+      active: "border-violet-500/25 bg-violet-500/10 text-violet-800 shadow-violet-500/10 dark:border-violet-300/45 dark:bg-violet-300/15 dark:text-violet-100",
+      idle: "text-zinc-600 hover:border-violet-500/22 hover:bg-violet-500/8 hover:text-violet-800 dark:text-violet-100/72 dark:hover:border-violet-300/24 dark:hover:bg-violet-300/10 dark:hover:text-violet-50",
       rail: "from-violet-300 to-fuchsia-300",
     },
     amber: {
-      active: "border-amber-300/45 bg-amber-300/15 text-amber-100 shadow-amber-500/10",
-      idle: "text-amber-100/72 hover:border-amber-300/24 hover:bg-amber-300/10 hover:text-amber-50",
+      active: "border-amber-500/25 bg-amber-500/10 text-amber-800 shadow-amber-500/10 dark:border-amber-300/45 dark:bg-amber-300/15 dark:text-amber-100",
+      idle: "text-zinc-600 hover:border-amber-500/22 hover:bg-amber-500/8 hover:text-amber-800 dark:text-amber-100/72 dark:hover:border-amber-300/24 dark:hover:bg-amber-300/10 dark:hover:text-amber-50",
       rail: "from-amber-300 to-orange-300",
     },
     emerald: {
-      active: "border-emerald-300/45 bg-emerald-300/15 text-emerald-100 shadow-emerald-500/10",
-      idle: "text-emerald-100/72 hover:border-emerald-300/24 hover:bg-emerald-300/10 hover:text-emerald-50",
+      active: "border-emerald-500/25 bg-emerald-500/10 text-emerald-800 shadow-emerald-500/10 dark:border-emerald-300/45 dark:bg-emerald-300/15 dark:text-emerald-100",
+      idle: "text-zinc-600 hover:border-emerald-500/22 hover:bg-emerald-500/8 hover:text-emerald-800 dark:text-emerald-100/72 dark:hover:border-emerald-300/24 dark:hover:bg-emerald-300/10 dark:hover:text-emerald-50",
       rail: "from-emerald-300 to-teal-300",
     },
     rose: {
-      active: "border-rose-300/45 bg-rose-300/15 text-rose-100 shadow-rose-500/10",
-      idle: "text-rose-100/72 hover:border-rose-300/24 hover:bg-rose-300/10 hover:text-rose-50",
+      active: "border-rose-500/25 bg-rose-500/10 text-rose-800 shadow-rose-500/10 dark:border-rose-300/45 dark:bg-rose-300/15 dark:text-rose-100",
+      idle: "text-zinc-600 hover:border-rose-500/22 hover:bg-rose-500/8 hover:text-rose-800 dark:text-rose-100/72 dark:hover:border-rose-300/24 dark:hover:bg-rose-300/10 dark:hover:text-rose-50",
       rail: "from-rose-300 to-pink-300",
     },
   };
@@ -186,21 +186,21 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         className={cx(
           "motion-nav-item group relative grid min-h-[3.65rem] grid-cols-[2.5rem_minmax(0,1fr)_1.2rem] items-center gap-3 overflow-hidden rounded-2xl border px-2.5 text-right shadow-sm transition-all",
           toneClasses(item.tone, active),
-          active ? "shadow-lg" : "border-white/0 bg-white/[0.025]"
+          active ? "shadow-lg" : "border-transparent bg-white/35 dark:border-white/0 dark:bg-white/[0.025]"
         )}
       >
         <span className={cx("absolute inset-y-2 right-0 w-1 rounded-l-full bg-gradient-to-b opacity-0 transition-opacity", toneRail(item.tone), active && "opacity-100")} />
         <span className={cx(
           "material-symbols-outlined grid size-10 place-items-center rounded-xl border text-[1.28rem] leading-none",
-          active ? "border-white/14 bg-white/14 text-white" : "border-white/8 bg-white/[0.045] text-white/70 group-hover:text-white"
+          active ? "border-zinc-950/8 bg-white text-zinc-950 dark:border-white/14 dark:bg-white/14 dark:text-white" : "border-zinc-950/6 bg-white/70 text-zinc-500 group-hover:text-zinc-950 dark:border-white/8 dark:bg-white/[0.045] dark:text-white/70 dark:group-hover:text-white"
         )}>
           {item.icon}
         </span>
         <span className="min-w-0">
           <span className="block truncate text-sm font-black">{item.label}</span>
-          <span className="mt-0.5 block truncate text-[10px] font-bold text-white/42">{item.description}</span>
+          <span className="mt-0.5 block truncate text-[10px] font-bold text-zinc-500 dark:text-white/42">{item.description}</span>
         </span>
-        <span className="material-symbols-outlined text-lg text-white/28 transition-all group-hover:-translate-x-0.5 group-hover:text-white/70">
+        <span className="material-symbols-outlined text-lg text-zinc-400 transition-all group-hover:-translate-x-0.5 group-hover:text-zinc-700 dark:text-white/28 dark:group-hover:text-white/70">
           chevron_left
         </span>
       </Link>
@@ -216,14 +216,14 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         href={item.href}
         aria-current={active ? "page" : undefined}
         className={cx(
-          "motion-nav-item relative flex min-w-[4.35rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-1.5 text-center transition-all",
-          active ? "bg-white text-zinc-950 shadow-lg shadow-black/20" : "text-white/58 hover:bg-white/8 hover:text-white"
+          "motion-nav-item relative flex min-w-[3.7rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-1.5 text-center transition-all",
+          active ? "bg-zinc-950 text-white shadow-lg shadow-zinc-950/14 dark:bg-white dark:text-zinc-950 dark:shadow-black/20" : "text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-950 dark:text-white/58 dark:hover:bg-white/8 dark:hover:text-white"
         )}
       >
         {active && <span className={cx("absolute top-1 h-1 w-6 rounded-full bg-gradient-to-l", toneRail(item.tone))} />}
         <span className={cx(
           "material-symbols-outlined grid size-8 place-items-center rounded-xl text-[1.2rem] leading-none",
-          active ? "bg-zinc-950 text-cyan-200" : "bg-white/[0.055] text-white/70"
+          active ? "bg-cyan-300 text-zinc-950" : "bg-zinc-950/[0.045] text-zinc-500 dark:bg-white/[0.055] dark:text-white/70"
         )}>
           {item.icon}
         </span>
@@ -278,39 +278,41 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
           {items.map(renderDesktopLink)}
         </nav>
 
-        <div className="mt-3 grid gap-2 rounded-[1.35rem] border border-zinc-200 bg-zinc-950/[0.035] p-2 dark:border-white/10 dark:bg-black/16">
-          <ThemeToggle />
-          <form action={logoutAction}>
+        <div className="mt-3 flex items-center gap-2 rounded-[1.35rem] border border-zinc-200 bg-zinc-950/[0.035] p-2 dark:border-white/10 dark:bg-black/16">
+          <ThemeToggle compact />
+          <form action={logoutAction} className="shrink-0">
             <button
               type="submit"
-              className="motion-nav-item grid w-full grid-cols-[2.5rem_minmax(0,1fr)_1rem] items-center gap-2 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-2.5 py-2 text-xs font-black text-rose-700 transition-all hover:bg-rose-500 hover:text-white dark:border-rose-300/18 dark:text-rose-100"
+              className="motion-nav-item inline-flex min-h-10 items-center gap-2 rounded-full border border-rose-400/20 bg-rose-400/10 px-3 text-xs font-black text-rose-700 transition-all hover:bg-rose-500 hover:text-white dark:border-rose-300/18 dark:text-rose-100"
             >
-              <span className="material-symbols-outlined grid size-9 place-items-center rounded-xl bg-white/10 text-lg leading-none">logout</span>
+              <span className="material-symbols-outlined grid size-8 place-items-center rounded-full bg-white/10 text-lg leading-none">logout</span>
               <span className="truncate text-right">خروج</span>
-              <span className="material-symbols-outlined text-sm opacity-60">chevron_left</span>
             </button>
           </form>
         </div>
       </aside>
 
-      <nav className="fixed bottom-3 left-3 right-3 z-50 overflow-hidden rounded-[1.45rem] border border-zinc-200 bg-white/92 text-zinc-950 shadow-2xl shadow-zinc-950/12 backdrop-blur-2xl dark:border-white/12 dark:bg-[#12151a]/95 dark:text-white dark:shadow-black/35 md:hidden">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-zinc-200 px-3 py-2 dark:border-white/10">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="material-symbols-outlined grid size-8 place-items-center rounded-xl bg-cyan-300 text-lg text-zinc-950">route</span>
-            <span className="truncate text-xs font-black">{currentLabel}</span>
-          </div>
-          <span className="pm-chip pm-chip-primary">{panelDate.shamsi}</span>
-        </div>
-        <div className="custom-scrollbar flex h-[5.2rem] items-stretch gap-1 overflow-x-auto px-2 py-2">
-          {items.map(renderMobileLink)}
+      <nav className="fixed bottom-3 left-3 right-3 z-50 rounded-[2rem] border border-zinc-950/8 bg-white/88 p-2 text-zinc-950 shadow-2xl shadow-zinc-950/12 backdrop-blur-2xl dark:border-white/12 dark:bg-[#12151a]/92 dark:text-white dark:shadow-black/35 md:hidden">
+        <Link
+          href={isModerator ? "/dashboard/moderator" : "/dashboard/user"}
+          className="absolute -top-6 left-1/2 grid size-14 -translate-x-1/2 place-items-center rounded-full border border-white bg-gradient-to-br from-cyan-300 to-emerald-300 text-zinc-950 shadow-2xl shadow-cyan-500/22 dark:border-[#12151a]"
+          aria-label="اکشن اصلی"
+        >
+          <span className="material-symbols-outlined text-2xl">{isModerator ? "stadia_controller" : "sports_esports"}</span>
+        </Link>
+        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
           <ThemeToggle nav />
-          <form action={logoutAction} className="min-w-[4.35rem]">
+          <div className="custom-scrollbar flex h-[4.25rem] items-stretch gap-1 overflow-x-auto px-2">
+          {items.map(renderMobileLink)}
+          </div>
+          <form action={logoutAction} className="shrink-0">
             <button
               type="submit"
-              className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-2xl px-2 py-1.5 text-rose-200 transition-all hover:bg-rose-500/12"
+              className="grid size-11 place-items-center rounded-full border border-rose-500/15 bg-rose-500/10 text-rose-600 shadow-sm shadow-zinc-950/5 transition-all hover:bg-rose-500 hover:text-white dark:text-rose-200"
+              aria-label="خروج"
+              title="خروج"
             >
-              <span className="material-symbols-outlined grid size-8 place-items-center rounded-xl bg-rose-400/12 text-[1.2rem] leading-none">logout</span>
-              <span className="w-full truncate text-[10px] font-black leading-4">خروج</span>
+              <span className="material-symbols-outlined text-[1.25rem] leading-none">logout</span>
             </button>
           </form>
         </div>

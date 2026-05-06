@@ -24,10 +24,10 @@ const ROLE_CHART_COLORS = ["#00F5D4", "#8B5CF6", "#22C55E", "#F59E0B", "#F43F5E"
 function EmptyState({ icon, title, text }: { icon: string; title: string; text: string }) {
   return (
     <div className="pm-muted-card flex min-h-44 flex-col items-center justify-center gap-3 p-6 text-center">
-      <span className="material-symbols-outlined text-4xl text-white/30">{icon}</span>
+      <span className="material-symbols-outlined text-4xl text-zinc-400 dark:text-white/30">{icon}</span>
       <div>
-        <p className="font-black text-white">{title}</p>
-        <p className="mt-1 max-w-sm text-xs font-bold leading-6 text-white/48">{text}</p>
+        <p className="font-black text-zinc-950 dark:text-white">{title}</p>
+        <p className="mt-1 max-w-sm text-xs font-bold leading-6 text-zinc-500 dark:text-white/48">{text}</p>
       </div>
     </div>
   );
@@ -50,7 +50,7 @@ function alignmentLabel(alignment: string) {
 }
 
 function alignmentClass(alignment: string) {
-  if (alignment === "CITIZEN") return "pm-chip border-sky-400/25 bg-sky-400/10 text-sky-200";
+  if (alignment === "CITIZEN") return "pm-chip border-sky-400/25 bg-sky-400/10 text-sky-700 dark:text-sky-200";
   if (alignment === "MAFIA") return "pm-chip pm-chip-danger";
   return "pm-chip pm-chip-warning";
 }
@@ -89,18 +89,18 @@ function PresenceFaces({ presence }: { presence: PresenceSnapshot }) {
     <div className="flex items-center gap-3">
       <div className="-space-x-2 space-x-reverse">
         {members.length > 0 ? members.map((member) => (
-          <span key={member.id} className="inline-flex size-8 items-center justify-center overflow-hidden rounded-full border-2 border-[#15171b] bg-white/10 text-xs font-black text-white">
+          <span key={member.id} className="inline-flex size-8 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-zinc-100 text-xs font-black text-zinc-700 dark:border-[#15171b] dark:bg-white/10 dark:text-white">
             {member.image ? <img src={member.image} alt="" className="size-full object-cover" /> : initials(member.name)}
           </span>
         )) : (
-          <span className="inline-flex size-8 items-center justify-center rounded-full border-2 border-[#15171b] bg-white/10 text-cyan-200">
+          <span className="inline-flex size-8 items-center justify-center rounded-full border-2 border-white bg-cyan-500/10 text-cyan-700 dark:border-[#15171b] dark:bg-white/10 dark:text-cyan-200">
             <span className="material-symbols-outlined text-base">group</span>
           </span>
         )}
       </div>
       <div>
-        <p className="text-sm font-black text-white">{presence.updatedAt ? presence.count : "..."} آنلاین</p>
-        <p className="mt-0.5 text-[10px] font-bold text-white/42">حاضر در اپ</p>
+        <p className="text-sm font-black text-zinc-950 dark:text-white">{presence.updatedAt ? presence.count : "..."} آنلاین</p>
+        <p className="mt-0.5 text-[10px] font-bold text-zinc-500 dark:text-white/42">حاضر در اپ</p>
       </div>
     </div>
   );
@@ -114,11 +114,11 @@ function LiveLobbyCard({ game, active = false }: { game: any; active?: boolean }
   const href = active ? `/game/${game.id}` : `/lobby/${game.id}`;
 
   return (
-    <Link href={href} className="motion-surface group relative overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/[0.055] p-4 text-white shadow-lg shadow-black/10">
+    <Link href={href} className="motion-surface group relative overflow-hidden rounded-[1.25rem] border border-zinc-200 bg-white/78 p-4 text-zinc-950 shadow-lg shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.055] dark:text-white dark:shadow-black/10">
       <span className="absolute inset-y-0 right-0 w-1 bg-gradient-to-b from-cyan-300 via-violet-300 to-transparent opacity-80" />
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <span className={`material-symbols-outlined grid size-11 place-items-center rounded-2xl text-xl ${active ? "bg-cyan-300 text-zinc-950" : "bg-white/10 text-cyan-100"}`}>
+          <span className={`material-symbols-outlined grid size-11 place-items-center rounded-2xl text-xl ${active ? "bg-cyan-300 text-zinc-950" : "bg-cyan-500/10 text-cyan-700 dark:bg-white/10 dark:text-cyan-100"}`}>
             {active ? "sports_esports" : "groups"}
           </span>
           <div className="min-w-0">
@@ -129,19 +129,19 @@ function LiveLobbyCard({ game, active = false }: { game: any; active?: boolean }
               {!active && game.code && <span className="pm-chip font-mono" dir="ltr">#{game.code}</span>}
             </div>
             <h3 className="mt-2 line-clamp-2 break-words text-lg font-black leading-7">{active ? game.scenarioName || "بازی مافیا" : game.name}</h3>
-            <p className="mt-1 truncate text-xs font-bold text-white/48">{active ? `گرداننده: ${game.moderatorName || "نامشخص"}` : game.scenario?.name || "سناریو انتخاب نشده"}</p>
+            <p className="mt-1 truncate text-xs font-bold text-zinc-500 dark:text-white/48">{active ? `گرداننده: ${game.moderatorName || "نامشخص"}` : game.scenario?.name || "سناریو انتخاب نشده"}</p>
           </div>
         </div>
-        <span className="material-symbols-outlined text-white/40 transition-transform group-hover:-translate-x-1">arrow_back</span>
+        <span className="material-symbols-outlined text-zinc-400 transition-transform group-hover:-translate-x-1 dark:text-white/40">arrow_back</span>
       </div>
 
       {!active && (
         <div className="mt-4">
-          <div className="flex items-center justify-between gap-3 text-xs font-black text-white/66">
+          <div className="flex items-center justify-between gap-3 text-xs font-black text-zinc-600 dark:text-white/66">
             <span>{joinedPlayers}{capacity ? ` از ${capacity}` : ""} بازیکن</span>
             <span>{capacity ? `${Math.max(capacity - joinedPlayers, 0)} جای خالی` : "ظرفیت نامشخص"}</span>
           </div>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-950/8 dark:bg-white/10">
             <div className="h-full rounded-full bg-gradient-to-l from-cyan-300 via-violet-300 to-emerald-300" style={{ width: `${progress}%` }} />
           </div>
         </div>
@@ -163,13 +163,13 @@ function ActionDock({ role }: { role?: string | null }) {
   return (
     <section className="grid gap-3 md:grid-cols-3">
       {actions.map((action) => (
-        <Link key={action.href} href={action.href} className="motion-surface rounded-[1.2rem] border border-white/10 bg-white/[0.055] p-4 text-white hover:bg-white/[0.085]">
+        <Link key={action.href} href={action.href} className="motion-surface rounded-[1.2rem] border border-zinc-200 bg-white/78 p-4 text-zinc-950 shadow-sm shadow-zinc-950/5 hover:bg-white dark:border-white/10 dark:bg-white/[0.055] dark:text-white dark:hover:bg-white/[0.085]">
           <div className="flex items-center justify-between gap-3">
-            <span className="material-symbols-outlined grid size-11 place-items-center rounded-2xl bg-cyan-300/12 text-2xl text-cyan-100">{action.icon}</span>
-            <span className="material-symbols-outlined text-white/32">chevron_left</span>
+            <span className="material-symbols-outlined grid size-11 place-items-center rounded-2xl bg-cyan-500/10 text-2xl text-cyan-700 dark:bg-cyan-300/12 dark:text-cyan-100">{action.icon}</span>
+            <span className="material-symbols-outlined text-zinc-400 dark:text-white/32">chevron_left</span>
           </div>
           <h3 className="mt-4 font-black">{action.title}</h3>
-          <p className="mt-1 text-xs font-bold text-white/46">{action.text}</p>
+          <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-white/46">{action.text}</p>
         </Link>
       ))}
     </section>
@@ -235,26 +235,26 @@ export default function UserDashboard() {
   if (!mounted) {
     return (
       <div className="grid gap-4">
-        <div className="h-28 animate-pulse rounded-[1.35rem] bg-white/10" />
+        <div className="h-28 animate-pulse rounded-[1.35rem] bg-zinc-950/8 dark:bg-white/10" />
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="h-96 animate-pulse rounded-[1.35rem] bg-white/10" />
-          <div className="h-96 animate-pulse rounded-[1.35rem] bg-white/10" />
+          <div className="h-96 animate-pulse rounded-[1.35rem] bg-zinc-950/8 dark:bg-white/10" />
+          <div className="h-96 animate-pulse rounded-[1.35rem] bg-zinc-950/8 dark:bg-white/10" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5 font-sans text-white">
+    <div className="space-y-5 font-sans text-zinc-950 dark:text-white">
       <section className="pm-command pm-aurora p-4">
         <div className="relative z-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/12 bg-white/10 text-xl font-black">
+            <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-zinc-950/8 bg-white text-xl font-black shadow-sm shadow-zinc-950/5 dark:border-white/12 dark:bg-white/10">
               {displayImage ? <img src={displayImage} alt="" className="size-full object-cover" /> : initials(displayName)}
-              <span className="absolute bottom-1 right-1 size-3 rounded-full border-2 border-[#15171b] bg-emerald-400" />
+              <span className="absolute bottom-1 right-1 size-3 rounded-full border-2 border-white bg-emerald-400 dark:border-[#15171b]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200/85">PLAYER DECK</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-200/85">PLAYER DECK</p>
               <h1 className="mt-1 truncate text-2xl font-black">{displayName}</h1>
               <div className="mt-2 flex flex-wrap gap-2">
                 <span className="pm-chip pm-chip-primary">{data?.currentActiveGame ? "بازی فعال دارید" : primaryLobby ? "لابی آماده است" : "در انتظار لابی"}</span>
@@ -282,7 +282,7 @@ export default function UserDashboard() {
       </section>
 
       {dashboardError && (
-        <div className="pm-muted-card border-amber-400/25 bg-amber-400/10 p-4 text-sm font-bold leading-7 text-amber-100">
+        <div className="pm-muted-card border-amber-400/25 bg-amber-400/10 p-4 text-sm font-bold leading-7 text-amber-800 dark:text-amber-100">
           <span className="material-symbols-outlined ml-2 text-xl align-middle">cloud_off</span>
           {dashboardError}
         </div>
@@ -322,7 +322,7 @@ export default function UserDashboard() {
               <p className="pm-kicker">بازی‌های اخیر</p>
               <h2 className="mt-1 text-2xl font-black">آخرین بازی‌ها</h2>
             </div>
-            <Link href="/dashboard/user/history" className="pm-button pm-button-secondary min-h-10 bg-white/[0.07] px-3 text-xs text-white shadow-none">
+            <Link href="/dashboard/user/history" className="pm-button pm-button-secondary min-h-10 px-3 text-xs shadow-none">
               همه تاریخچه
             </Link>
           </div>
@@ -337,12 +337,12 @@ export default function UserDashboard() {
                   <button
                     key={game.id}
                     onClick={() => setSelectedHistoryGame(game)}
-                    className="motion-surface grid w-full gap-3 rounded-[1.05rem] border border-white/10 bg-white/[0.045] p-3 text-right hover:bg-white/[0.075] sm:grid-cols-[2.6rem_minmax(0,1fr)_auto] sm:items-center"
+                    className="motion-surface grid w-full gap-3 rounded-[1.05rem] border border-zinc-200 bg-white/72 p-3 text-right shadow-sm shadow-zinc-950/5 hover:bg-white dark:border-white/10 dark:bg-white/[0.045] dark:hover:bg-white/[0.075] sm:grid-cols-[2.6rem_minmax(0,1fr)_auto] sm:items-center"
                   >
-                    <span className="hidden size-10 items-center justify-center rounded-2xl bg-white/8 text-sm font-black text-white/64 sm:flex">{index + 1}</span>
+                    <span className="hidden size-10 items-center justify-center rounded-2xl bg-zinc-950/5 text-sm font-black text-zinc-500 dark:bg-white/8 dark:text-white/64 sm:flex">{index + 1}</span>
                     <span className="min-w-0">
-                      <span className="block truncate font-black text-white">{game.scenarioName}</span>
-                      <span className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-black text-white/48">
+                      <span className="block truncate font-black text-zinc-950 dark:text-white">{game.scenarioName}</span>
+                      <span className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-black text-zinc-500 dark:text-white/48">
                         <span className="pm-chip">{game.roleName}</span>
                         <span className="pm-chip">{game.moderatorName}</span>
                         <span className="pm-chip">{game.date}</span>
@@ -353,7 +353,7 @@ export default function UserDashboard() {
                         <span className="material-symbols-outlined text-sm">{result.icon}</span>
                         {result.label}
                       </span>
-                      <span className="material-symbols-outlined text-base text-white/36">arrow_back</span>
+                      <span className="material-symbols-outlined text-base text-zinc-400 dark:text-white/36">arrow_back</span>
                     </span>
                   </button>
                 );
@@ -368,7 +368,7 @@ export default function UserDashboard() {
             <h2 className="mt-1 text-2xl font-black">خلاصه عملکرد</h2>
             <div className="mt-4 grid gap-3">
               <div className="pm-muted-card p-4">
-                <p className="text-xs font-black text-white/48">آخرین نتیجه</p>
+                <p className="text-xs font-black text-zinc-500 dark:text-white/48">آخرین نتیجه</p>
                 <div className="mt-3 flex items-center justify-between gap-3">
                   <p className="min-w-0 truncate text-lg font-black">{latestGame ? latestGame.scenarioName : "هنوز بازی کامل نشده"}</p>
                   {latestGame && <span className={resultMeta(latestGame.result).className}>{resultMeta(latestGame.result).label}</span>}
@@ -376,10 +376,10 @@ export default function UserDashboard() {
               </div>
               <div className="pm-muted-card p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs font-black text-white/48">درصد برد</p>
-                  <p className="text-xl font-black text-cyan-200">{winRate}%</p>
+                  <p className="text-xs font-black text-zinc-500 dark:text-white/48">درصد برد</p>
+                  <p className="text-xl font-black text-cyan-700 dark:text-cyan-200">{winRate}%</p>
                 </div>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-950/8 dark:bg-white/10">
                   <div className="h-full rounded-full bg-gradient-to-l from-cyan-300 to-emerald-300" style={{ width: `${winRate}%` }} />
                 </div>
               </div>
@@ -410,11 +410,11 @@ export default function UserDashboard() {
                 <div className="mt-3 grid gap-2">
                   {roleChartData.map((role, index) => (
                     <div key={role.role} className="flex items-center justify-between gap-3 text-xs">
-                      <span className="flex min-w-0 items-center gap-2 font-bold text-white/62">
+                      <span className="flex min-w-0 items-center gap-2 font-bold text-zinc-600 dark:text-white/62">
                         <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: ROLE_CHART_COLORS[index % ROLE_CHART_COLORS.length] }} />
                         <span className="truncate">{role.role}</span>
                       </span>
-                      <span className="font-black text-white">{role.count}</span>
+                      <span className="font-black text-zinc-950 dark:text-white">{role.count}</span>
                     </div>
                   ))}
                 </div>
@@ -426,41 +426,41 @@ export default function UserDashboard() {
 
       {selectedHistoryGame && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 p-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] backdrop-blur-xl sm:items-center sm:p-4">
-          <div className="pm-command pm-safe-modal custom-scrollbar w-full max-w-3xl overflow-y-auto p-5 text-white">
+          <div className="pm-command pm-safe-modal custom-scrollbar w-full max-w-3xl overflow-y-auto p-5 text-zinc-950 dark:text-white">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <p className="pm-kicker">گزارش بازی</p>
                 <h3 className="mt-1 text-2xl font-black">{selectedHistoryGame.scenarioName}</h3>
-                <p className="mt-1 text-xs font-bold text-white/46">{selectedHistoryGame.date}</p>
+                <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-white/46">{selectedHistoryGame.date}</p>
               </div>
-              <button onClick={() => setSelectedHistoryGame(null)} className="pm-button pm-button-secondary size-10 bg-white/[0.07] p-0 text-white shadow-none">
+              <button onClick={() => setSelectedHistoryGame(null)} className="pm-button pm-button-secondary size-10 p-0 shadow-none">
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="pm-muted-card p-4">
-                <p className="text-xs font-bold text-white/46">نقش شما</p>
+                <p className="text-xs font-bold text-zinc-500 dark:text-white/46">نقش شما</p>
                 <p className="mt-2 font-black">{selectedHistoryGame.roleName}</p>
               </div>
               <div className="pm-muted-card p-4">
-                <p className="text-xs font-bold text-white/46">گرداننده</p>
+                <p className="text-xs font-bold text-zinc-500 dark:text-white/46">گرداننده</p>
                 <p className="mt-2 font-black">{selectedHistoryGame.moderatorName}</p>
               </div>
               <div className="pm-muted-card p-4">
-                <p className="text-xs font-bold text-white/46">نتیجه</p>
+                <p className="text-xs font-bold text-zinc-500 dark:text-white/46">نتیجه</p>
                 <p className="mt-2 font-black">{resultMeta(selectedHistoryGame.result).label}</p>
               </div>
             </div>
 
             <div className="mt-5">
-              <h4 className="mb-3 text-sm font-black text-white/72">نقش‌های بازیکنان</h4>
+              <h4 className="mb-3 text-sm font-black text-zinc-700 dark:text-white/72">نقش‌های بازیکنان</h4>
               <div className="grid max-h-80 gap-2 overflow-y-auto sm:grid-cols-2">
                 {selectedHistoryGame.players?.map((player: any, idx: number) => (
-                  <div key={idx} className="flex items-center justify-between rounded-[1rem] border border-white/10 bg-white/[0.045] p-3">
+                  <div key={idx} className="flex items-center justify-between rounded-[1rem] border border-zinc-200 bg-white/70 p-3 dark:border-white/10 dark:bg-white/[0.045]">
                     <div>
                       <p className="text-sm font-black">{player.name}</p>
-                      <p className="mt-1 text-xs text-white/46">
+                      <p className="mt-1 text-xs text-zinc-500 dark:text-white/46">
                         {player.roleName}{player.isAlive === false ? "، حذف‌شده" : ""}
                       </p>
                     </div>
@@ -475,14 +475,14 @@ export default function UserDashboard() {
             {selectedHistoryGame.nightEvents?.length > 0 && (
               <div className="mt-5 rounded-[1.1rem] border border-cyan-300/20 bg-cyan-300/8 p-4">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-cyan-200">dark_mode</span>
+                  <span className="material-symbols-outlined text-cyan-700 dark:text-cyan-200">dark_mode</span>
                   <h4 className="text-sm font-black">رکوردهای منتشرشده شب</h4>
                 </div>
                 <div className="mt-3 space-y-2">
                   {selectedHistoryGame.nightEvents.map((event: any) => (
-                    <div key={event.id} className="rounded-[1rem] border border-white/10 bg-black/18 p-3 text-xs leading-6 text-white/66">
+                    <div key={event.id} className="rounded-[1rem] border border-zinc-200 bg-white/72 p-3 text-xs leading-6 text-zinc-600 dark:border-white/10 dark:bg-black/18 dark:text-white/66">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-black text-white">
+                        <p className="font-black text-zinc-950 dark:text-white">
                           شب {event.nightNumber}: {event.abilityLabel}{event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}
                         </p>
                         <span className={event.wasUsed === false ? "pm-chip pm-chip-warning" : "pm-chip pm-chip-success"}>
@@ -497,26 +497,26 @@ export default function UserDashboard() {
                         {event.wasUsed === false ? " ← بدون هدف" : ` ← ${event.targetName || "نامشخص"}`}
                       </p>
                       {Array.isArray(event.details?.targetLabels) && event.details.targetLabels.length > 0 && (
-                        <p className="mt-1 text-white/48">
+                        <p className="mt-1 text-zinc-500 dark:text-white/48">
                           گزینه‌ها: {event.details.targetLabels.map((target: { label: string; playerName?: string | null }) => `${target.label}: ${target.playerName || "نامشخص"}`).join("، ")}
                         </p>
                       )}
                       {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && event.details?.secondaryTargetName && (
-                        <p className="mt-1 text-white/48">
+                        <p className="mt-1 text-zinc-500 dark:text-white/48">
                           {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
                         </p>
                       )}
                       {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
-                        <p className="mt-1 text-white/48">
+                        <p className="mt-1 text-zinc-500 dark:text-white/48">
                           هدف‌های اضافه: {event.details.extraTargets.map((target: { name: string }) => target.name).join("، ")}
                         </p>
                       )}
                       {event.details?.convertedRoleName && (
-                        <p className="mt-1 text-white/48">
+                        <p className="mt-1 text-zinc-500 dark:text-white/48">
                           تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
                         </p>
                       )}
-                      {event.note && <p className="mt-1 text-white/48">{event.note}</p>}
+                      {event.note && <p className="mt-1 text-zinc-500 dark:text-white/48">{event.note}</p>}
                     </div>
                   ))}
                 </div>

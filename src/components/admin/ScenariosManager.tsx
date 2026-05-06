@@ -3,7 +3,15 @@
 import { useMemo, useState } from "react";
 import { Alignment } from "@prisma/client";
 import { useSession } from "next-auth/react";
-import { createScenario, deleteScenario, exportScenarioBackup, restoreScenarioBackup, updateScenario } from "@/actions/admin";
+import {
+  createScenario,
+  deleteScenario,
+  downloadScenarioBackupJson,
+  exportScenarioBackup,
+  importScenarioBackupJson,
+  restoreScenarioBackup,
+  updateScenario,
+} from "@/actions/admin";
 import { usePopup } from "@/components/PopupProvider";
 import { ScenarioRoleComposition } from "@/components/ScenarioRoleComposition";
 
@@ -65,6 +73,36 @@ function normalizeSearchText(value: string) {
 
 function scenarioTotalPlayers(scenario: ScenarioRecord) {
   return scenario.roles.reduce((sum, role) => sum + role.count, 0);
+}
+
+function downloadJsonFile(data: unknown, fileName: string) {
+  const blob = new Blob([`${JSON.stringify(data, null, 2)}\n`], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function readJsonUpload(file: File) {
+  if (!file.name.toLowerCase().endsWith(".json")) {
+    throw new Error("فایل باید با فرمت JSON باشد.");
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    throw new Error("حجم فایل JSON خیلی زیاد است. فایل سناریو باید کمتر از ۲ مگابایت باشد.");
+  }
+  try {
+    return JSON.parse(await file.text());
+  } catch {
+    throw new Error("ساختار فایل JSON معتبر نیست.");
+  }
+}
+
+function backupFileDate() {
+  return new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
 }
 
 function scenarioAlignmentCounts(scenario: ScenarioRecord) {
@@ -262,6 +300,48 @@ export function ScenariosManager({
     }
   };
 
+  const handleDownload = async () => {
+    setBackupBusy(true);
+    try {
+      const result = await downloadScenarioBackupJson();
+      downloadJsonFile(result.backup, `playmafia-scenarios-${backupFileDate()}.json`);
+      showToast(`${result.scenarios} سناریو به صورت JSON دانلود شد`, "success");
+    } catch (error: any) {
+      showAlert("دانلود JSON سناریو", error.message || "دانلود JSON انجام نشد.", "error");
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const handleJsonUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const payload = await readJsonUpload(file);
+      showConfirm(
+        "به‌روزرسانی سناریوها از JSON",
+        "سناریوها و نقش‌های داخل فایل روی دیتابیس اعمال می‌شوند. موارد هم‌نام بروزرسانی می‌شوند و بقیه سناریوهای فعلی حذف نمی‌شوند.",
+        async () => {
+          setBackupBusy(true);
+          try {
+            const result = await importScenarioBackupJson(payload);
+            showToast(`${result.scenarios} سناریو و ${result.roles} نقش از JSON اعمال شد`, "success");
+            window.location.reload();
+          } catch (error: any) {
+            showAlert("آپلود JSON سناریو", error.message || "آپلود JSON انجام نشد.", "error");
+          } finally {
+            setBackupBusy(false);
+          }
+        },
+        "warning"
+      );
+    } catch (error: any) {
+      showAlert("فایل JSON", error.message || "فایل JSON قابل خواندن نیست.", "error");
+    }
+  };
+
   const handleRestore = () => {
     showConfirm(
       "بازیابی سناریوها",
@@ -312,11 +392,11 @@ export function ScenariosManager({
             <div>
               <p className="text-sm font-black text-zinc-950 dark:text-white">پشتیبان کتابخانه سناریو</p>
               <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-                بکاپ، همین وضعیت نقش‌ها و سناریوها را روی فایل سرور ذخیره می‌کند؛ بازیابی همان فایل را دوباره روی دیتابیس اعمال می‌کند.
+                وضعیت فعلی را روی سرور ذخیره کنید، یا نسخه JSON بگیرید و همان JSON را برای بروزرسانی روی دیتابیس اعمال کنید.
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
             <button onClick={handleBackup} disabled={backupBusy} className="ui-button-secondary min-h-10 px-3 text-xs">
               <span className="material-symbols-outlined text-base">backup</span>
               ذخیره بکاپ
@@ -325,6 +405,15 @@ export function ScenariosManager({
               <span className="material-symbols-outlined text-base">settings_backup_restore</span>
               بازیابی
             </button>
+            <button onClick={handleDownload} disabled={backupBusy} className="ui-button-secondary min-h-10 px-3 text-xs">
+              <span className="material-symbols-outlined text-base">download</span>
+              JSON
+            </button>
+            <label className={`ui-button-secondary min-h-10 cursor-pointer px-3 text-xs ${backupBusy ? "pointer-events-none opacity-60" : ""}`}>
+              <span className="material-symbols-outlined text-base">upload_file</span>
+              آپلود
+              <input type="file" accept="application/json,.json" className="hidden" onChange={handleJsonUpload} disabled={backupBusy} />
+            </label>
           </div>
         </div>
       </section>

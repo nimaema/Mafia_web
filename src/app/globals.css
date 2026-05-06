@@ -42,11 +42,11 @@
 @layer base {
   :root {
     color-scheme: light;
-    --pm-bg: #f6f8fb;
-    --pm-bg-deep: #eaf1f6;
+    --pm-bg: #fcf8f8;
+    --pm-bg-deep: #f1eded;
     --pm-surface: rgba(255, 255, 255, 0.86);
     --pm-surface-strong: rgba(255, 255, 255, 0.96);
-    --pm-surface-soft: rgba(234, 240, 245, 0.82);
+    --pm-surface-soft: rgba(246, 243, 242, 0.86);
     --pm-line: rgba(15, 23, 42, 0.12);
     --pm-line-strong: rgba(15, 23, 42, 0.18);
     --pm-text: #101317;
@@ -107,8 +107,8 @@
     font-family: var(--font-vazirmatn), ui-sans-serif, system-ui, sans-serif;
     letter-spacing: 0;
     background:
-      radial-gradient(circle at 12% 0%, rgba(0, 168, 150, 0.14), transparent 28rem),
-      radial-gradient(circle at 88% 6%, rgba(109, 93, 246, 0.12), transparent 25rem),
+      radial-gradient(circle at 12% 0%, rgba(0, 229, 255, 0.11), transparent 28rem),
+      radial-gradient(circle at 88% 6%, rgba(139, 92, 246, 0.09), transparent 25rem),
       linear-gradient(135deg, var(--pm-bg), var(--pm-bg-deep));
     background-attachment: fixed;
     antialiasing: antialiased;
@@ -194,8 +194,8 @@
     min-height: 100dvh;
     color: var(--pm-text);
     background:
-      radial-gradient(circle at 8% 0%, rgba(0, 168, 150, 0.11), transparent 23rem),
-      radial-gradient(circle at 90% 14%, rgba(109, 93, 246, 0.1), transparent 22rem),
+      radial-gradient(circle at 8% 0%, rgba(0, 229, 255, 0.09), transparent 23rem),
+      radial-gradient(circle at 90% 14%, rgba(139, 92, 246, 0.08), transparent 22rem),
       linear-gradient(135deg, var(--pm-bg), var(--pm-bg-deep));
   }
 
@@ -583,6 +583,12 @@
 :root:not(.dark) .app-page:not(.pm-force-dark) .shadow-black\/40,
 :root:not(.dark) .app-page:not(.pm-force-dark) .shadow-black\/45 {
   --tw-shadow-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+:root:not(.dark) .app-page:not(.pm-force-dark) [class*="bg-zinc-950"].text-white,
+:root:not(.dark) .app-page:not(.pm-force-dark) [class*="bg-red-500"].text-white,
+:root:not(.dark) .app-page:not(.pm-force-dark) [class*="bg-rose-500"].text-white {
+  color: #fff !important;
 }
 
 @media (prefers-reduced-motion: no-preference) {

@@ -509,12 +509,19 @@ function buildScenarioDiff(currentScenarios: ScenarioDefinition[], backupScenari
 export async function exportRoleBackup() {
   const adminId = await checkAdmin();
   const { writeRoleBackupFile } = await import("../../prisma/scenario-backup");
+  const backup = await buildCurrentRoleBackup(adminId);
 
+  const filePath = await writeRoleBackupFile(backup);
+  revalidatePath("/dashboard/admin/backups");
+  return { success: true, filePath, roles: backup.roles.length };
+}
+
+async function buildCurrentRoleBackup(adminId: string): Promise<RoleBackupFile> {
   const roles = await prisma.mafiaRole.findMany({
     orderBy: [{ alignment: "asc" }, { name: "asc" }],
   });
 
-  const backup: RoleBackupFile = {
+  return {
     version: 1,
     exportedAt: new Date().toISOString(),
     exportedBy: await getBackupAuthor(adminId),
@@ -526,10 +533,30 @@ export async function exportRoleBackup() {
       nightAbilities: role.nightAbilities,
     })),
   };
+}
 
-  const filePath = await writeRoleBackupFile(backup);
+export async function downloadRoleBackupJson() {
+  const adminId = await checkAdmin();
+  const backup = await buildCurrentRoleBackup(adminId);
+  return { success: true, roles: backup.roles.length, backup };
+}
+
+export async function importRoleBackupJson(payload: unknown) {
+  await checkAdmin();
+  const { normalizeRoleBackupPayload } = await import("../../prisma/scenario-backup");
+  const backup = normalizeRoleBackupPayload(payload);
+  if (!backup) {
+    throw new Error("فایل JSON نقش‌ها معتبر نیست یا نقشی داخل آن پیدا نشد.");
+  }
+
+  const result = await syncScenarioDefinitions(
+    mergeRoleDefinitions(STANDARD_ROLE_DEFINITIONS, backup.roles),
+    []
+  );
+
+  revalidatePath("/dashboard/admin");
   revalidatePath("/dashboard/admin/backups");
-  return { success: true, filePath, roles: backup.roles.length };
+  return { success: true, roles: result.roles };
 }
 
 export async function restoreRoleBackup() {
@@ -709,7 +736,14 @@ async function syncScenarioDefinitions(roleDefinitions: RoleDefinition[], scenar
 export async function exportScenarioBackup() {
   const adminId = await checkAdmin();
   const { writeScenarioBackupFile } = await import("../../prisma/scenario-backup");
+  const backup = await buildCurrentScenarioBackup(adminId);
 
+  const filePath = await writeScenarioBackupFile(backup);
+  revalidatePath("/dashboard/admin/backups");
+  return { success: true, filePath, scenarios: backup.scenarios.length, roles: backup.roles.length };
+}
+
+async function buildCurrentScenarioBackup(adminId: string): Promise<ScenarioBackupFile> {
   const [roles, scenarios] = await Promise.all([
     prisma.mafiaRole.findMany({ orderBy: [{ alignment: "asc" }, { name: "asc" }] }),
     prisma.scenario.findMany({
@@ -724,7 +758,7 @@ export async function exportScenarioBackup() {
     }),
   ]);
 
-  const backup: ScenarioBackupFile = {
+  return {
     version: 1,
     exportedAt: new Date().toISOString(),
     exportedBy: await getBackupAuthor(adminId),
@@ -744,10 +778,31 @@ export async function exportScenarioBackup() {
       })),
     })),
   };
+}
 
-  const filePath = await writeScenarioBackupFile(backup);
+export async function downloadScenarioBackupJson() {
+  const adminId = await checkAdmin();
+  const backup = await buildCurrentScenarioBackup(adminId);
+  return { success: true, roles: backup.roles.length, scenarios: backup.scenarios.length, backup };
+}
+
+export async function importScenarioBackupJson(payload: unknown) {
+  await checkAdmin();
+  const { normalizeScenarioBackupPayload } = await import("../../prisma/scenario-backup");
+  const backup = normalizeScenarioBackupPayload(payload);
+  if (!backup) {
+    throw new Error("فایل JSON سناریوها معتبر نیست یا سناریویی داخل آن پیدا نشد.");
+  }
+
+  const result = await syncScenarioDefinitions(
+    mergeRoleDefinitions(STANDARD_ROLE_DEFINITIONS, backup.roles),
+    backup.scenarios
+  );
+
+  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/moderator/scenarios");
   revalidatePath("/dashboard/admin/backups");
-  return { success: true, filePath, scenarios: backup.scenarios.length, roles: backup.roles.length };
+  return { success: true, ...result };
 }
 
 export async function getRoleScenarioBackupOverview() {

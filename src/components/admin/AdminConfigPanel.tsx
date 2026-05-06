@@ -6,11 +6,15 @@ import {
   updateMafiaRole,
   deleteMafiaRole,
   exportRoleBackup,
+  downloadRoleBackupJson,
+  importRoleBackupJson,
   createScenario,
   updateScenario,
   deleteScenario,
   installStandardScenarios,
   exportScenarioBackup,
+  downloadScenarioBackupJson,
+  importScenarioBackupJson,
   restoreScenarioBackup,
   restoreRoleBackup,
   getMafiaRolesSafe,
@@ -81,6 +85,36 @@ const STANDARD_SCENARIO_NAMES = [
   "کاپو ۱۲ نفره",
   "کاپو ۱۳ نفره",
 ];
+
+function downloadJsonFile(data: unknown, fileName: string) {
+  const blob = new Blob([`${JSON.stringify(data, null, 2)}\n`], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function readJsonUpload(file: File) {
+  if (!file.name.toLowerCase().endsWith(".json")) {
+    throw new Error("فایل باید با فرمت JSON باشد.");
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    throw new Error("حجم فایل JSON خیلی زیاد است. فایل نقش‌ها یا سناریوها باید کمتر از ۲ مگابایت باشد.");
+  }
+  try {
+    return JSON.parse(await file.text());
+  } catch {
+    throw new Error("ساختار فایل JSON معتبر نیست.");
+  }
+}
+
+function backupFileDate() {
+  return new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+}
 
 function normalizeEffectType(value: unknown): AbilityEffectType {
   if (value === "CONVERT_TO_MAFIA" || value === "YAKUZA" || value === "TWO_NAME_INQUIRY") return value;
@@ -391,6 +425,48 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleRoleDownload = async () => {
+    setRoleBackupBusy(true);
+    try {
+      const result = await downloadRoleBackupJson();
+      downloadJsonFile(result.backup, `playmafia-roles-${backupFileDate()}.json`);
+      showToast(`${result.roles} نقش به صورت JSON دانلود شد`, "success");
+    } catch (error: any) {
+      showAlert("دانلود JSON نقش‌ها", error.message || "دانلود JSON نقش‌ها انجام نشد.", "error");
+    } finally {
+      setRoleBackupBusy(false);
+    }
+  };
+
+  const handleRoleJsonUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const payload = await readJsonUpload(file);
+      showConfirm(
+        "به‌روزرسانی نقش‌ها از JSON",
+        "نقش‌های داخل فایل روی دیتابیس اعمال می‌شوند. نقش‌های هم‌نام بروزرسانی می‌شوند و بقیه نقش‌های فعلی حذف نمی‌شوند.",
+        async () => {
+          setRoleBackupBusy(true);
+          try {
+            const result = await importRoleBackupJson(payload);
+            showToast(`${result.roles} نقش از فایل JSON اعمال شد`, "success");
+            await refreshData();
+          } catch (error: any) {
+            showAlert("آپلود JSON نقش‌ها", error.message || "آپلود JSON نقش‌ها انجام نشد.", "error");
+          } finally {
+            setRoleBackupBusy(false);
+          }
+        },
+        "warning"
+      );
+    } catch (error: any) {
+      showAlert("فایل JSON", error.message || "فایل JSON قابل خواندن نیست.", "error");
+    }
+  };
+
   const handleRoleRestore = () => {
     showConfirm(
       "بازیابی نقش‌ها",
@@ -506,6 +582,48 @@ export default function AdminDashboard() {
       showAlert("بکاپ سناریو", error.message || "بکاپ سناریو انجام نشد.", "error");
     } finally {
       setScenarioBackupBusy(false);
+    }
+  };
+
+  const handleScenarioDownload = async () => {
+    setScenarioBackupBusy(true);
+    try {
+      const result = await downloadScenarioBackupJson();
+      downloadJsonFile(result.backup, `playmafia-scenarios-${backupFileDate()}.json`);
+      showToast(`${result.scenarios} سناریو به صورت JSON دانلود شد`, "success");
+    } catch (error: any) {
+      showAlert("دانلود JSON سناریوها", error.message || "دانلود JSON سناریوها انجام نشد.", "error");
+    } finally {
+      setScenarioBackupBusy(false);
+    }
+  };
+
+  const handleScenarioJsonUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const payload = await readJsonUpload(file);
+      showConfirm(
+        "به‌روزرسانی سناریوها از JSON",
+        "سناریوها و نقش‌های داخل فایل روی دیتابیس اعمال می‌شوند. موارد هم‌نام بروزرسانی می‌شوند و سناریوهای دیگر حذف نمی‌شوند.",
+        async () => {
+          setScenarioBackupBusy(true);
+          try {
+            const result = await importScenarioBackupJson(payload);
+            showToast(`${result.scenarios} سناریو و ${result.roles} نقش از JSON اعمال شد`, "success");
+            await refreshData();
+          } catch (error: any) {
+            showAlert("آپلود JSON سناریوها", error.message || "آپلود JSON سناریوها انجام نشد.", "error");
+          } finally {
+            setScenarioBackupBusy(false);
+          }
+        },
+        "warning"
+      );
+    } catch (error: any) {
+      showAlert("فایل JSON", error.message || "فایل JSON قابل خواندن نیست.", "error");
     }
   };
 
@@ -805,7 +923,7 @@ export default function AdminDashboard() {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-black text-zinc-950 dark:text-white">پشتیبان نقش‌ها</p>
                       <p className="mt-1 text-[10px] leading-5 text-zinc-600 dark:text-zinc-300">
-                        نقش‌ها، جبهه‌ها، توضیحات و توانایی‌های شب را جداگانه روی فایل سرور ذخیره یا بازیابی کنید.
+                        نقش‌ها را روی سرور نگه دارید، یا نسخه JSON همین وضعیت را دانلود و با فایل JSON بروزرسانی کنید.
                       </p>
                     </div>
                   </div>
@@ -828,6 +946,20 @@ export default function AdminDashboard() {
                       <span className="material-symbols-outlined text-base">settings_backup_restore</span>
                       بازیابی
                     </button>
+                    <button
+                      type="button"
+                      onClick={handleRoleDownload}
+                      disabled={roleBackupBusy}
+                      className="ui-button-secondary min-h-9 px-3 text-xs"
+                    >
+                      <span className="material-symbols-outlined text-base">download</span>
+                      JSON
+                    </button>
+                    <label className={`ui-button-secondary min-h-9 cursor-pointer px-3 text-xs ${roleBackupBusy ? "pointer-events-none opacity-60" : ""}`}>
+                      <span className="material-symbols-outlined text-base">upload_file</span>
+                      آپلود
+                      <input type="file" accept="application/json,.json" className="hidden" onChange={handleRoleJsonUpload} disabled={roleBackupBusy} />
+                    </label>
                   </div>
                 </div>
               )}
@@ -1234,7 +1366,7 @@ export default function AdminDashboard() {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-black text-zinc-950 dark:text-white">پشتیبان سناریوها</p>
                       <p className="mt-1 text-[10px] leading-5 text-zinc-600 dark:text-zinc-300">
-                        برای انتقال به سرور، وضعیت فعلی را بکاپ بگیرید یا فایل بکاپ را به دیتابیس برگردانید.
+                        وضعیت فعلی را روی سرور ذخیره کنید، یا برای انتقال/ویرایش دستی نسخه JSON بگیرید و دوباره آپلود کنید.
                       </p>
                     </div>
                   </div>
@@ -1257,6 +1389,20 @@ export default function AdminDashboard() {
                       <span className="material-symbols-outlined text-base">settings_backup_restore</span>
                       بازیابی
                     </button>
+                    <button
+                      type="button"
+                      onClick={handleScenarioDownload}
+                      disabled={scenarioBackupBusy}
+                      className="ui-button-secondary min-h-9 px-3 text-xs"
+                    >
+                      <span className="material-symbols-outlined text-base">download</span>
+                      JSON
+                    </button>
+                    <label className={`ui-button-secondary min-h-9 cursor-pointer px-3 text-xs ${scenarioBackupBusy ? "pointer-events-none opacity-60" : ""}`}>
+                      <span className="material-symbols-outlined text-base">upload_file</span>
+                      آپلود
+                      <input type="file" accept="application/json,.json" className="hidden" onChange={handleScenarioJsonUpload} disabled={scenarioBackupBusy} />
+                    </label>
                     {!installedStandardScenarios && (
                       <button
                         type="button"

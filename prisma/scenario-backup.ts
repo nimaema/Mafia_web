@@ -45,7 +45,7 @@ function normalizeAlignment(value: unknown): Alignment | null {
   return null;
 }
 
-function normalizeBackupRole(role: any): RoleDefinition | null {
+export function normalizeBackupRole(role: any): RoleDefinition | null {
   const name = typeof role?.name === "string" ? role.name.trim() : "";
   const alignment = normalizeAlignment(role?.alignment);
   if (!name || !alignment) return null;
@@ -59,7 +59,7 @@ function normalizeBackupRole(role: any): RoleDefinition | null {
   };
 }
 
-function normalizeBackupScenario(scenario: any): ScenarioDefinition | null {
+export function normalizeBackupScenario(scenario: any): ScenarioDefinition | null {
   const name = typeof scenario?.name === "string" ? scenario.name.trim() : "";
   if (!name || !Array.isArray(scenario.roles)) return null;
 
@@ -79,7 +79,7 @@ function normalizeBackupScenario(scenario: any): ScenarioDefinition | null {
   };
 }
 
-function normalizeBackupAuthor(author: any): BackupAuthor | null {
+export function normalizeBackupAuthor(author: any): BackupAuthor | null {
   const id = typeof author?.id === "string" ? author.id.trim() : "";
   if (!id) return null;
 
@@ -90,22 +90,38 @@ function normalizeBackupAuthor(author: any): BackupAuthor | null {
   };
 }
 
+export function normalizeScenarioBackupPayload(parsed: any): ScenarioBackupFile | null {
+  const roles = Array.isArray(parsed?.roles) ? parsed.roles.map(normalizeBackupRole).filter(Boolean) : [];
+  const scenarios = Array.isArray(parsed?.scenarios) ? parsed.scenarios.map(normalizeBackupScenario).filter(Boolean) : [];
+
+  if (scenarios.length === 0) return null;
+
+  return {
+    version: SCENARIO_BACKUP_VERSION,
+    exportedAt: typeof parsed?.exportedAt === "string" ? parsed.exportedAt : new Date().toISOString(),
+    exportedBy: normalizeBackupAuthor(parsed?.exportedBy),
+    roles: roles as RoleDefinition[],
+    scenarios: scenarios as ScenarioDefinition[],
+  };
+}
+
+export function normalizeRoleBackupPayload(parsed: any): RoleBackupFile | null {
+  const roles = Array.isArray(parsed?.roles) ? parsed.roles.map(normalizeBackupRole).filter(Boolean) : [];
+
+  if (roles.length === 0) return null;
+
+  return {
+    version: ROLE_BACKUP_VERSION,
+    exportedAt: typeof parsed?.exportedAt === "string" ? parsed.exportedAt : new Date().toISOString(),
+    exportedBy: normalizeBackupAuthor(parsed?.exportedBy),
+    roles: roles as RoleDefinition[],
+  };
+}
+
 export async function readScenarioBackupFile(): Promise<ScenarioBackupFile | null> {
   try {
     const raw = await readFile(scenarioBackupPath(), "utf8");
-    const parsed = JSON.parse(raw);
-    const roles = Array.isArray(parsed.roles) ? parsed.roles.map(normalizeBackupRole).filter(Boolean) : [];
-    const scenarios = Array.isArray(parsed.scenarios) ? parsed.scenarios.map(normalizeBackupScenario).filter(Boolean) : [];
-
-    if (scenarios.length === 0) return null;
-
-    return {
-      version: SCENARIO_BACKUP_VERSION,
-      exportedAt: typeof parsed.exportedAt === "string" ? parsed.exportedAt : new Date().toISOString(),
-      exportedBy: normalizeBackupAuthor(parsed.exportedBy),
-      roles: roles as RoleDefinition[],
-      scenarios: scenarios as ScenarioDefinition[],
-    };
+    return normalizeScenarioBackupPayload(JSON.parse(raw));
   } catch {
     return null;
   }
@@ -114,17 +130,7 @@ export async function readScenarioBackupFile(): Promise<ScenarioBackupFile | nul
 export async function readRoleBackupFile(): Promise<RoleBackupFile | null> {
   try {
     const raw = await readFile(roleBackupPath(), "utf8");
-    const parsed = JSON.parse(raw);
-    const roles = Array.isArray(parsed.roles) ? parsed.roles.map(normalizeBackupRole).filter(Boolean) : [];
-
-    if (roles.length === 0) return null;
-
-    return {
-      version: ROLE_BACKUP_VERSION,
-      exportedAt: typeof parsed.exportedAt === "string" ? parsed.exportedAt : new Date().toISOString(),
-      exportedBy: normalizeBackupAuthor(parsed.exportedBy),
-      roles: roles as RoleDefinition[],
-    };
+    return normalizeRoleBackupPayload(JSON.parse(raw));
   } catch {
     return null;
   }
