@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { hashPassword } from "@/lib/password";
+import { hashPassword, passwordValidationError } from "@/lib/password";
 
 const schema = z.object({
-  name: z.string().min(2, "نام حداقل ۲ کاراکتر باشد"),
-  email: z.string().email("ایمیل معتبر وارد کنید"),
+  name: z.string().trim().min(2, "نام حداقل ۲ کاراکتر باشد"),
+  email: z.string().trim().toLowerCase().email("ایمیل معتبر وارد کنید"),
   password: z
     .string()
     .min(8, "رمز عبور حداقل ۸ کاراکتر باشد")
@@ -17,6 +17,11 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { name, email, password } = schema.parse(body);
+    const passwordError = passwordValidationError(password);
+
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 });
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {

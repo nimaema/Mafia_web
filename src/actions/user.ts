@@ -81,7 +81,7 @@ export async function updateProfile(formData: FormData) {
   }
 }
 
-import { hashPassword, verifyPassword } from "@/lib/password";
+import { hashPassword, passwordValidationError, verifyPassword } from "@/lib/password";
 
 export async function changePassword(formData: FormData) {
   try {
@@ -100,6 +100,11 @@ export async function changePassword(formData: FormData) {
 
     if (newPassword !== confirmPassword) {
       return { error: "رمز عبور جدید و تکرار آن یکسان نیستند" };
+    }
+
+    const passwordError = passwordValidationError(newPassword);
+    if (passwordError) {
+      return { error: passwordError };
     }
 
     const user = await prisma.user.findUnique({ where: { id: session.user.id } });

@@ -28,10 +28,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ use
     return new NextResponse(null, { status: 404 });
   }
 
-  if (/^https?:\/\//i.test(image)) {
-    return NextResponse.redirect(image);
-  }
-
   const match = image.match(DATA_IMAGE_PATTERN);
   if (!match) {
     return new NextResponse(null, { status: 404 });

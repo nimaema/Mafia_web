@@ -1,21 +1,28 @@
 import { auth } from "./auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getTrustedBaseUrlFromRequest } from "./lib/site";
 
 function requestUrl(req: NextRequest, path: string) {
-  const proto = req.headers.get("x-forwarded-proto") || req.nextUrl.protocol.replace(":", "") || "http";
-  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
-  return new URL(path, host ? `${proto}://${host}` : req.url);
+  return new URL(path, getTrustedBaseUrlFromRequest(req));
 }
 
+type AuthenticatedRequest = NextRequest & {
+  auth?: {
+    user?: {
+      role?: string | null;
+    } | null;
+  } | null;
+};
+
 // Next.js 16+ Proxy pattern (replaces middleware.ts)
-export default auth((req: NextRequest & { auth: any }) => {
+export default auth((req: AuthenticatedRequest) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
   const isPublicRoute =
-    ["/", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/auth/verify-email", "/api/init-db"].includes(
+    ["/", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/auth/verify-email"].includes(
       nextUrl.pathname
     ) || nextUrl.pathname.startsWith("/public");
   const isAuthRoute = ["/auth/login", "/auth/register"].includes(nextUrl.pathname);

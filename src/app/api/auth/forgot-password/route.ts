@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { getTrustedBaseUrlFromRequest } from "@/lib/site";
 
 const PASSWORD_RESET_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -13,23 +14,6 @@ function getErrorCode(error: unknown): string {
 
 function isValidEmail(value: unknown): value is string {
   return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
-
-function getBaseUrl(request: Request) {
-  const envBaseUrl = process.env.NEXTAUTH_URL || process.env.AUTH_URL;
-  const requestUrl = new URL(request.url);
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto");
-
-  const requestBaseUrl = forwardedHost
-    ? `${forwardedProto || requestUrl.protocol.replace(":", "")}://${forwardedHost}`
-    : requestUrl.origin;
-
-  if (process.env.NODE_ENV !== "production" && /localhost|127\.0\.0\.1/.test(requestBaseUrl)) {
-    return requestBaseUrl;
-  }
-
-  return envBaseUrl || requestBaseUrl;
 }
 
 export async function POST(request: Request) {
@@ -59,7 +43,7 @@ export async function POST(request: Request) {
       data: { token, userId: user.id, expiresAt },
     });
 
-    const mailResult = await sendPasswordResetEmail(email, token, getBaseUrl(request));
+    const mailResult = await sendPasswordResetEmail(email, token, getTrustedBaseUrlFromRequest(request));
 
     if (!mailResult.delivered && process.env.NODE_ENV === "production") {
       await prisma.passwordResetToken.deleteMany({ where: { token } });

@@ -1,20 +1,17 @@
 "use server";
 
-import { saltAndHashPassword } from "@/lib/password";
+import { passwordValidationError, saltAndHashPassword } from "@/lib/password";
 import { signIn, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationEmail } from "@/lib/email";
 import { randomBytes } from "crypto";
 import { headers } from "next/headers";
+import { getTrustedBaseUrlFromHeaders } from "@/lib/site";
 
 const INVALID_LOGIN_MESSAGE = "ایمیل یا رمز عبور اشتباه است";
 
 async function getBaseUrl() {
-  const h = await headers();
-  const proto = h.get("x-forwarded-proto") || "http";
-  const host = h.get("x-forwarded-host") || h.get("host") || process.env.NEXTAUTH_URL || process.env.AUTH_URL || "localhost:3000";
-  if (host.startsWith("http")) return host;
-  return `${proto}://${host}`;
+  return getTrustedBaseUrlFromHeaders(await headers());
 }
 
 async function createVerificationToken(email: string) {
@@ -37,6 +34,11 @@ export async function registerUser(formData: FormData) {
 
   if (!email || !password || !name) {
     return { error: "لطفاً نام، ایمیل و رمز عبور را کامل وارد کنید." };
+  }
+
+  const passwordError = passwordValidationError(password);
+  if (passwordError) {
+    return { error: passwordError };
   }
 
   const existingUser = await prisma.user.findUnique({

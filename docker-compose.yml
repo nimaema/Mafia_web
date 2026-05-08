@@ -3,10 +3,11 @@ services:
     build: .
     restart: always
     environment:
-      - DATABASE_URL=postgresql://mafia:mafiapass@db:5432/mafiadb
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-mafia}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-mafiadb}
+      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-supersecret}
-      - AUTH_SECRET=${AUTH_SECRET:-supersecret}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AUTH_SECRET=${AUTH_SECRET}
       - SMTP_HOST=${SMTP_HOST:-}
       - SMTP_PORT=${SMTP_PORT:-}
       - SMTP_SECURE=${SMTP_SECURE:-}
@@ -24,8 +25,14 @@ services:
       - PUSHER_APP_ID=${PUSHER_APP_ID}
       - NEXT_PUBLIC_PUSHER_KEY=${NEXT_PUBLIC_PUSHER_KEY}
       - PUSHER_SECRET=${PUSHER_SECRET}
+      - PUSHER_CLUSTER=${PUSHER_CLUSTER:-eu}
       - NEXT_PUBLIC_PUSHER_CLUSTER=${NEXT_PUBLIC_PUSHER_CLUSTER}
-      - INITIAL_ADMIN_PASSWORD=${INITIAL_ADMIN_PASSWORD:-admin123}
+      - BOOTSTRAP_TOKEN=${BOOTSTRAP_TOKEN}
+      - INITIAL_ADMIN_EMAIL=${INITIAL_ADMIN_EMAIL:-admin@mafia.com}
+      - INITIAL_ADMIN_PASSWORD=${INITIAL_ADMIN_PASSWORD}
+      - INITIAL_MODERATOR_EMAIL=${INITIAL_MODERATOR_EMAIL:-}
+      - INITIAL_MODERATOR_PASSWORD=${INITIAL_MODERATOR_PASSWORD:-}
+      - PRISMA_DB_PUSH_ACCEPT_DATA_LOSS=${PRISMA_DB_PUSH_ACCEPT_DATA_LOSS:-false}
       - DB_BACKUP_DIR=${DB_BACKUP_DIR:-/app/backups}
       - DB_BACKUP_RETENTION_DAYS=${DB_BACKUP_RETENTION_DAYS:-7}
     depends_on:
@@ -42,9 +49,9 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      POSTGRES_USER: mafia
-      POSTGRES_PASSWORD: mafiapass
-      POSTGRES_DB: mafiadb
+      POSTGRES_USER: ${POSTGRES_USER:-mafia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-mafiadb}
     # Keep Postgres private on Docker's internal network. The app reaches it via db:5432.
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -58,7 +65,7 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      - DATABASE_URL=postgresql://mafia:mafiapass@db:5432/mafiadb
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-mafia}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-mafiadb}
       - DB_BACKUP_DIR=/backups
       - DB_BACKUP_RETENTION_DAYS=${DB_BACKUP_RETENTION_DAYS:-7}
       - DB_BACKUP_INTERVAL_SECONDS=${DB_BACKUP_INTERVAL_SECONDS:-86400}

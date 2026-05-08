@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { hashPassword } from "@/lib/password";
+import { hashPassword, passwordValidationError } from "@/lib/password";
 
 const schema = z.object({
   token: z.string().min(1),
@@ -16,6 +16,11 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { token, password } = schema.parse(body);
+    const passwordError = passwordValidationError(password);
+
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 });
+    }
 
     const resetToken = await prisma.passwordResetToken.findUnique({
       where: { token },

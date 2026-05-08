@@ -13,29 +13,48 @@ const prisma = new PrismaClient();
 
 async function seedUsers() {
   console.log("🔐 Seeding users...");
-  const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || "admin123";
+  const adminEmail = (process.env.INITIAL_ADMIN_EMAIL || process.env.ADMIN_EMAIL || "admin@mafia.com").trim().toLowerCase();
+  const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || "";
+  const moderatorEmail = process.env.INITIAL_MODERATOR_EMAIL?.trim().toLowerCase();
+  const moderatorPassword = process.env.INITIAL_MODERATOR_PASSWORD || "";
 
-  await prisma.user.upsert({
-    where: { email: "admin@mafia.com" },
-    update: {},
-    create: {
-      email: "admin@mafia.com",
-      name: "مدیر سیستم",
-      password_hash: await bcrypt.hash(adminPassword, 10),
-      role: "ADMIN",
-    },
-  });
+  if (adminPassword) {
+    if (adminPassword.length < 12) {
+      throw new Error("INITIAL_ADMIN_PASSWORD must be at least 12 characters long.");
+    }
 
-  await prisma.user.upsert({
-    where: { email: "mod@mafia.com" },
-    update: {},
-    create: {
-      email: "mod@mafia.com",
-      name: "گرداننده",
-      password_hash: await bcrypt.hash("mod123", 10),
-      role: "MODERATOR",
-    },
-  });
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: {},
+      create: {
+        email: adminEmail,
+        name: "مدیر سیستم",
+        emailVerified: new Date(),
+        password_hash: await bcrypt.hash(adminPassword, 10),
+        role: "ADMIN",
+      },
+    });
+  } else {
+    console.warn("  ⚠️ INITIAL_ADMIN_PASSWORD is not set; skipping admin user seed.");
+  }
+
+  if (moderatorEmail && moderatorPassword) {
+    if (moderatorPassword.length < 12) {
+      throw new Error("INITIAL_MODERATOR_PASSWORD must be at least 12 characters long.");
+    }
+
+    await prisma.user.upsert({
+      where: { email: moderatorEmail },
+      update: {},
+      create: {
+        email: moderatorEmail,
+        name: "گرداننده",
+        emailVerified: new Date(),
+        password_hash: await bcrypt.hash(moderatorPassword, 10),
+        role: "MODERATOR",
+      },
+    });
+  }
 }
 
 async function migrateLegacyRoleNames() {

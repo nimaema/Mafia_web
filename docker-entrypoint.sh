@@ -8,7 +8,11 @@ until nc -z db 5432; do
 done
 
 echo "🔧 Running database migrations..."
-./node_modules/.bin/prisma db push --accept-data-loss
+if [ "$PRISMA_DB_PUSH_ACCEPT_DATA_LOSS" = "true" ]; then
+  ./node_modules/.bin/prisma db push --accept-data-loss
+else
+  ./node_modules/.bin/prisma db push
+fi
 
 echo "🌱 Running database seed..."
 ./node_modules/.bin/prisma db seed || echo "⚠️ Seed may have already been applied, continuing..."

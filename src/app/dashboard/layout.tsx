@@ -3,7 +3,14 @@ import { redirect } from "next/navigation";
 import { DashboardNavigation } from "@/components/dashboard/DashboardNavigation";
 import { prisma } from "@/lib/prisma";
 import { profileImageUrl } from "@/lib/profileImage";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function DashboardLayout({
   children,

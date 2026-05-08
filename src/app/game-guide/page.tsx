@@ -1,5 +1,21 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ThemeToggle } from "@/components/ThemeToggle";
+
+export const metadata: Metadata = {
+  title: "راهنمای بازی مافیا | مافیا بورد",
+  description: "راهنمای اجرای بازی مافیا با لابی، نقش‌ها، تایمر، رای‌گیری، توانایی‌های شب و گزارش نهایی در مافیا بورد.",
+  alternates: {
+    canonical: "/game-guide",
+  },
+  openGraph: {
+    title: "راهنمای بازی مافیا | مافیا بورد",
+    description: "راهنمای اجرای بازی مافیا با لابی، نقش‌ها، تایمر، رای‌گیری، توانایی‌های شب و گزارش نهایی.",
+    url: "/game-guide",
+    locale: "fa_IR",
+    type: "article",
+  },
+};
 
 const guideSections = [
   {
