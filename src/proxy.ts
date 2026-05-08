@@ -22,7 +22,7 @@ export default auth((req: AuthenticatedRequest) => {
 
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
   const isPublicRoute =
-    ["/", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/auth/verify-email"].includes(
+    ["/", "/game-guide", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/auth/verify-email"].includes(
       nextUrl.pathname
     ) || nextUrl.pathname.startsWith("/public") || nextUrl.pathname.startsWith("/fonts/");
   const isAuthRoute = ["/auth/login", "/auth/register"].includes(nextUrl.pathname);
