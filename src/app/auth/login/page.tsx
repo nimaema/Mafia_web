@@ -77,7 +77,7 @@ export default function LoginPage() {
     >
       <form action={setError} noValidate className="flex flex-col gap-5">
         {(error || authQueryError) && (
-          <div className="rounded-2xl border border-red-400/24 bg-red-400/10 px-4 py-3 text-sm text-red-200">
+          <div className="rounded-[var(--radius-md)] border border-[var(--pm-danger)]/20 bg-[var(--pm-danger)]/10 px-4 py-3 text-sm text-[var(--pm-danger)]">
             <div className="flex items-center gap-2 font-medium">
               <span className="material-symbols-outlined text-lg">error</span>
               <span>{error || authQueryError}</span>
@@ -86,9 +86,9 @@ export default function LoginPage() {
         )}
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-white/58">ایمیل</label>
+          <label className="text-xs font-bold text-[var(--pm-muted)]">ایمیل</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/42">mail</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">mail</span>
             <input
               name="email"
               type="email"
@@ -102,13 +102,13 @@ export default function LoginPage() {
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-white/58">رمز عبور</label>
-            <Link href="/auth/forgot-password" className="text-xs font-bold text-cyan-200 transition-colors hover:text-cyan-100">
+            <label className="text-xs font-bold text-[var(--pm-muted)]">رمز عبور</label>
+            <Link href="/auth/forgot-password" className="text-xs font-bold text-[var(--pm-primary)] transition-colors opacity-90 hover:opacity-100">
               فراموشی رمز؟
             </Link>
           </div>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/42">lock</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">lock</span>
             <input
               name="password"
               type="password"
@@ -127,9 +127,9 @@ export default function LoginPage() {
       </form>
 
       <div className="my-6 flex items-center gap-4">
-        <div className="h-px flex-1 bg-white/10"></div>
-        <span className="text-xs font-bold text-zinc-400">یا</span>
-        <div className="h-px flex-1 bg-white/10"></div>
+        <div className="h-px flex-1 bg-[var(--pm-line)]"></div>
+        <span className="text-xs font-bold text-[var(--pm-muted)]">یا</span>
+        <div className="h-px flex-1 bg-[var(--pm-line)]"></div>
       </div>
 
       <button onClick={() => signIn("google")} type="button" className="ui-button-secondary min-h-12 w-full">

@@ -19,53 +19,48 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
   const palette =
     type === 'error'
       ? {
-          accent: 'bg-red-500',
-          orb: 'bg-red-500/10',
-          iconShell: 'bg-red-500/10 text-red-500',
+          accent: 'bg-[var(--pm-danger)]',
+          orb: 'bg-[var(--pm-danger)]/10',
+          iconBox: 'text-[var(--pm-danger)] border-[var(--pm-danger)]/20 bg-[var(--pm-danger)]/10',
           icon: 'error',
-          confirm: 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20',
-          single: 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20',
+          confirmBtn: 'ui-button-danger',
         }
       : type === 'warning'
         ? {
-            accent: 'bg-amber-500',
-            orb: 'bg-amber-500/10',
-            iconShell: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+            accent: 'bg-[var(--pm-warning)]',
+            orb: 'bg-[var(--pm-warning)]/10',
+            iconBox: 'text-[var(--pm-warning)] border-[var(--pm-warning)]/20 bg-[var(--pm-warning)]/10',
             icon: 'warning',
-            confirm: 'bg-amber-500 text-zinc-950 hover:bg-amber-400 shadow-amber-500/20',
-            single: 'bg-amber-500 text-zinc-950 hover:bg-amber-400 shadow-amber-500/20',
+            confirmBtn: 'ui-button-primary',
           }
         : type === 'success'
           ? {
-              accent: 'bg-cyan-500',
-              orb: 'bg-cyan-500/10',
-              iconShell: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400',
+              accent: 'bg-[var(--pm-success)]',
+              orb: 'bg-[var(--pm-success)]/10',
+              iconBox: 'text-[var(--pm-success)] border-[var(--pm-success)]/20 bg-[var(--pm-success)]/10',
               icon: 'check_circle',
-              confirm: 'bg-cyan-500 text-zinc-950 hover:bg-cyan-400 shadow-cyan-500/20',
-              single: 'bg-cyan-500 text-zinc-950 hover:bg-cyan-400 shadow-cyan-500/20',
+              confirmBtn: 'ui-button-primary',
             }
           : {
-              accent: 'bg-sky-500',
-              orb: 'bg-sky-500/10',
-              iconShell: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
+              accent: 'bg-[var(--pm-primary)]',
+              orb: 'bg-[var(--pm-primary)]/10',
+              iconBox: 'text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10',
               icon: 'info',
-              confirm: 'bg-sky-500 text-white hover:bg-sky-600 shadow-sky-500/20',
-              single: 'bg-sky-500 text-white hover:bg-sky-600 shadow-sky-500/20',
+              confirmBtn: 'ui-button-primary',
             };
 
   return (
-    <div className="fixed inset-0 z-[520] flex items-end justify-center p-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-[520] flex items-end justify-center p-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:items-center sm:p-4" dir="rtl">
       <div 
-        className="absolute inset-0 bg-zinc-950/78 backdrop-blur-xl transition-opacity"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm dark:bg-black/60 dark:backdrop-blur-xl transition-opacity"
         onClick={onClose}
       />
-      <div className="pm-safe-modal motion-pop relative flex w-full max-w-md flex-col overflow-hidden rounded-[1.35rem] border border-white/12 bg-[#15171b]/96 text-white shadow-2xl shadow-black/45 backdrop-blur-2xl">
-        <div className={`pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full blur-[70px] ${palette.orb}`}></div>
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.12),transparent_18rem)]" />
+      <div className="pm-safe-modal motion-pop ui-card relative flex w-full max-w-md flex-col overflow-hidden !rounded-[var(--radius-lg)] shadow-2xl">
+        <div className={`pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full blur-[60px] ${palette.orb}`}></div>
         <button
           type="button"
           onClick={onClose}
-          className="absolute left-3 top-3 z-20 flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.07] text-white/62 transition-all hover:bg-white hover:text-zinc-950"
+          className="absolute left-3 top-3 z-20 flex size-9 items-center justify-center rounded-xl border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] text-[var(--pm-muted)] transition-all hover:bg-[var(--pm-line)] hover:text-[var(--pm-text)]"
           aria-label="بستن"
         >
           <span className="material-symbols-outlined text-base">close</span>
@@ -73,41 +68,39 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
         
         <div className="custom-scrollbar relative z-10 flex min-h-0 flex-col gap-5 overflow-y-auto p-5 sm:p-6">
           <div className="flex items-center gap-4">
-            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 ${palette.iconShell}`}>
+            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${palette.iconBox}`}>
               <span className="material-symbols-outlined text-2xl font-black">
                 {palette.icon}
               </span>
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200/70">MESSAGE</p>
-              <h3 className="mt-1 break-words text-xl font-black leading-7 text-white">{title}</h3>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--pm-primary)] opacity-80">MESSAGE</p>
+              <h3 className="mt-1 break-words text-xl font-black leading-7 text-[var(--pm-text)]">{title}</h3>
             </div>
           </div>
           
-          <p className="rounded-2xl border border-white/10 bg-white/[0.055] p-4 text-sm font-bold leading-7 text-white/68">
+          <p className="ui-muted p-4 text-sm font-bold leading-7 text-[var(--pm-text)] opacity-90">
             {message}
           </p>
           
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-2 mt-2">
             {onConfirm && (
               <button 
                 onClick={() => { onConfirm(); onClose(); }}
-                className={`min-h-12 rounded-2xl px-4 text-sm font-black shadow-lg transition-all ${palette.confirm}`}
+                className={palette.confirmBtn}
               >
                 {confirmText}
               </button>
             )}
             <button 
               onClick={onClose}
-              className={`min-h-12 rounded-2xl px-4 text-sm font-black transition-all ${
-                onConfirm ? 'border border-white/10 bg-white/[0.07] text-white/70 hover:bg-white hover:text-zinc-950' : palette.single
-              }`}
+              className={onConfirm ? 'ui-button-secondary' : palette.confirmBtn}
             >
               {onConfirm ? cancelText : confirmText}
             </button>
           </div>
         </div>
-        <div className="h-1 bg-white/10">
+        <div className="h-1 bg-[var(--pm-line)] w-full absolute bottom-0 left-0 right-0">
           <div className={`h-full w-1/3 animate-pulse rounded-l-full ${palette.accent}`} />
         </div>
       </div>
@@ -126,30 +119,30 @@ export const Toast = ({ message, type, onClose }: ToastProps) => {
   const palette =
     type === 'success'
       ? {
-          shell: 'border-cyan-500/30 bg-cyan-50/95 text-cyan-700 shadow-cyan-950/10 dark:border-cyan-400/25 dark:bg-cyan-950/35 dark:text-cyan-300',
+          shell: 'border-[var(--pm-success)]/30 bg-[var(--pm-surface)] text-[var(--pm-success)] shadow-2xl',
           icon: 'check_circle',
-          iconBox: 'bg-cyan-500 text-zinc-950',
-          progress: 'bg-cyan-500',
+          iconBox: 'bg-[var(--pm-success)]/10 text-[var(--pm-success)]',
+          progress: 'bg-[var(--pm-success)]',
         }
       : type === 'error'
         ? {
-            shell: 'border-red-500/30 bg-red-50/95 text-red-700 shadow-red-950/10 dark:border-red-400/25 dark:bg-red-950/35 dark:text-red-300',
+            shell: 'border-[var(--pm-danger)]/30 bg-[var(--pm-surface)] text-[var(--pm-danger)] shadow-2xl',
             icon: 'error',
-            iconBox: 'bg-red-500 text-white',
-            progress: 'bg-red-500',
+            iconBox: 'bg-[var(--pm-danger)]/10 text-[var(--pm-danger)]',
+            progress: 'bg-[var(--pm-danger)]',
           }
         : type === 'warning'
           ? {
-              shell: 'border-amber-500/35 bg-amber-50/95 text-amber-800 shadow-amber-950/10 dark:border-amber-400/25 dark:bg-amber-950/35 dark:text-amber-300',
+              shell: 'border-[var(--pm-warning)]/30 bg-[var(--pm-surface)] text-[var(--pm-warning)] shadow-2xl',
               icon: 'warning',
-              iconBox: 'bg-amber-500 text-zinc-950',
-              progress: 'bg-amber-500',
+              iconBox: 'bg-[var(--pm-warning)]/10 text-[var(--pm-warning)]',
+              progress: 'bg-[var(--pm-warning)]',
             }
           : {
-              shell: 'border-sky-500/30 bg-sky-50/95 text-sky-700 shadow-sky-950/10 dark:border-sky-400/25 dark:bg-sky-950/35 dark:text-sky-300',
+              shell: 'border-[var(--pm-primary)]/30 bg-[var(--pm-surface)] text-[var(--pm-primary)] shadow-2xl',
               icon: 'info',
-              iconBox: 'bg-sky-500 text-white',
-              progress: 'bg-sky-500',
+              iconBox: 'bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]',
+              progress: 'bg-[var(--pm-primary)]',
             };
 
   useEffect(() => {
@@ -158,16 +151,16 @@ export const Toast = ({ message, type, onClose }: ToastProps) => {
   }, [onClose]);
 
   return (
-    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+8.85rem)] right-3 left-3 z-[300] animate-in slide-in-from-bottom-10 duration-300 md:bottom-8 md:left-auto md:right-6 md:w-96">
-      <div className={`relative flex items-center gap-3 overflow-hidden rounded-2xl border p-3 shadow-2xl backdrop-blur-xl ${palette.shell}`}>
-        <span className={`material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-xl font-black shadow-sm ${palette.iconBox}`}>
+    <div className="fixed top-[calc(env(safe-area-inset-top)+1rem)] left-3 right-3 z-[600] animate-in slide-in-from-top-4 duration-300 md:left-auto md:right-6 md:w-[26rem]" dir="rtl">
+      <div className={`relative flex items-center gap-3 overflow-hidden rounded-[var(--radius-md)] border p-3 shadow-2xl backdrop-blur-2xl ${palette.shell}`}>
+        <span className={`material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] font-black ${palette.iconBox}`}>
           {palette.icon}
         </span>
-        <span className="flex-1 text-sm font-black leading-6">{message}</span>
-        <button onClick={onClose} className="grid size-8 place-items-center rounded-xl bg-black/5 opacity-60 transition-opacity hover:opacity-100 dark:bg-white/10">
+        <span className="flex-1 text-sm font-black leading-6 text-[var(--pm-text)]">{message}</span>
+        <button onClick={onClose} className="grid size-8 place-items-center rounded-[var(--radius-xs)] bg-[var(--pm-line)] text-[var(--pm-muted)] transition-opacity hover:opacity-100 opacity-70">
           <span className="material-symbols-outlined text-sm">close</span>
         </button>
-        <span className="absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded-b-2xl bg-black/5 dark:bg-white/10">
+        <span className="absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded-b-[var(--radius-md)] bg-[var(--pm-line)]">
           <span
             className={`block h-full ${palette.progress}`}
             style={{ animation: `toast-progress ${durationMs}ms linear forwards` }}
