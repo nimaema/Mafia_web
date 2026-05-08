@@ -62,7 +62,7 @@ export default function JoinGamePage() {
                 ["lock", "رمز در صورت نیاز"],
               ].map(([icon, text]) => (
                 <div key={text} className="pm-muted-card p-4">
-                  <span className="material-symbols-outlined text-xl text-cyan-200">{icon}</span>
+                  <span className="material-symbols-outlined text-xl text-[var(--pm-primary)]">{icon}</span>
                   <p className="mt-3 text-sm font-black">{text}</p>
                 </div>
               ))}
@@ -71,7 +71,7 @@ export default function JoinGamePage() {
         </section>
 
         <section className="pm-command w-full overflow-hidden">
-          <header className="border-b border-white/10 bg-black/18 p-6 text-center">
+          <header className="border-b border-[var(--pm-line)] bg-black/18 p-6 text-center">
             <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-cyan-300 text-zinc-950">
               <span className="material-symbols-outlined text-3xl">stadia_controller</span>
             </div>
@@ -85,7 +85,7 @@ export default function JoinGamePage() {
             <label className="flex flex-col gap-2">
               <span className="text-xs font-black text-white/52">کد بازی</span>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">tag</span>
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">tag</span>
                 <input
                   name="gameId"
                   type="text"
@@ -100,7 +100,7 @@ export default function JoinGamePage() {
             <label className="flex flex-col gap-2">
               <span className="text-xs font-black text-white/52">نام نمایشی حساب</span>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">person</span>
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">person</span>
                 <input
                   name="name"
                   type="text"
@@ -114,7 +114,7 @@ export default function JoinGamePage() {
             <label className="flex flex-col gap-2">
               <span className="text-xs font-black text-white/52">رمز عبور</span>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">lock</span>
                 <input
                   name="password"
                   type="password"
@@ -125,7 +125,7 @@ export default function JoinGamePage() {
               </div>
             </label>
 
-            <button disabled={loading} type="submit" className="ui-button-primary min-h-12 w-full text-base">
+            <button disabled={loading} type="submit" className="pm-button-primary min-h-12 w-full text-base">
               <span className={`material-symbols-outlined text-xl ${loading ? "animate-spin" : ""}`}>
                 {loading ? "refresh" : "login"}
               </span>

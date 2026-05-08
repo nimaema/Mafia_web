@@ -153,7 +153,7 @@ export default function ProfileForm({
 
   return (
     <div className="grid gap-5">
-    <form action={action} noValidate className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.03]" onSubmit={(event) => {
+    <form action={action} noValidate className="pm-card p-5" onSubmit={(event) => {
       const formData = new FormData(event.currentTarget);
       if (!String(formData.get("name") || "").trim() || !String(formData.get("email") || "").trim()) {
         event.preventDefault();
@@ -171,33 +171,33 @@ export default function ProfileForm({
       <input type="hidden" name="profileImage" value={imageValue} />
       <input type="hidden" name="removeProfileImage" value={removeProfileImage ? "true" : "false"} />
       <div className="mb-5 flex items-start gap-3">
-        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-cyan-500 text-xl text-zinc-950 shadow-sm shadow-cyan-500/20">manage_accounts</span>
+        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-primary)] text-xl text-[#002d27] shadow-[0_0_15px_var(--color-noir-cyan-glow)]">manage_accounts</span>
         <div>
-          <h3 className="text-xl font-black text-zinc-950 dark:text-white">اطلاعات پروفایل</h3>
-          <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">نام نمایشی و ایمیل حساب را مدیریت کنید.</p>
+          <h3 className="text-xl font-black text-[var(--pm-text)]">اطلاعات پروفایل</h3>
+          <p className="mt-1 text-sm leading-6 text-[var(--pm-muted)]">نام نمایشی و ایمیل حساب را مدیریت کنید.</p>
         </div>
       </div>
 
-      <div className="mb-5 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-zinc-950/50">
+      <div className="mb-5 overflow-hidden pm-muted-card border border-[var(--pm-line)]">
         <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <div className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white text-3xl font-black text-zinc-400 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950">
+            <div className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-strong)] text-3xl font-black text-[var(--pm-muted)] shadow-[var(--pm-shadow-soft)]">
               {imagePreview ? (
                 <img src={imagePreview} alt="" className="size-full object-cover" />
               ) : (
                 getInitial(nameValue)
               )}
-              <span className="absolute inset-x-0 bottom-0 bg-zinc-950/70 py-1 text-center text-[9px] font-black text-white">
+              <span className="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[9px] font-black text-[var(--pm-text)]">
                 پروفایل
               </span>
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-black text-zinc-950 dark:text-white">تصویر بازیکن</p>
-              <p className="mt-1 max-w-lg text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm font-black text-[var(--pm-text)]">تصویر بازیکن</p>
+              <p className="mt-1 max-w-lg text-xs leading-6 text-[var(--pm-muted)]">
                 یک تصویر واضح انتخاب کنید تا در لابی و صفحه بازی کنار نام شما نمایش داده شود.
               </p>
               {imageValue.startsWith("data:image/") && (
-                <p className="mt-2 inline-flex rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[10px] font-black text-cyan-700 dark:text-cyan-300">
+                <p className="mt-2 inline-flex pm-chip pm-chip-primary">
                   تصویر آماده ذخیره است
                 </p>
               )}
@@ -216,7 +216,7 @@ export default function ProfileForm({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={imageProcessing}
-              className="ui-button-primary min-h-10 px-3 text-xs"
+              className="pm-button pm-button-primary min-h-10 px-3 text-xs"
             >
               <span className={`material-symbols-outlined text-base ${imageProcessing ? "animate-spin" : ""}`}>{imageProcessing ? "refresh" : "upload"}</span>
               {imageProcessing ? "پردازش..." : "انتخاب تصویر"}
@@ -230,7 +230,7 @@ export default function ProfileForm({
                   setRemoveProfileImage(true);
                   setImageWarning("");
                 }}
-                className="ui-button-secondary min-h-10 px-3 text-xs text-red-600 dark:text-red-300"
+                className="pm-button pm-button-secondary min-h-10 px-3 text-xs text-[var(--pm-danger)] border-[var(--pm-danger)]/50 hover:bg-[var(--pm-danger)]/10"
               >
                 <span className="material-symbols-outlined text-base">delete</span>
                 حذف تصویر
@@ -239,7 +239,7 @@ export default function ProfileForm({
           </div>
         </div>
         {imageWarning && (
-          <p className="border-t border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs font-bold text-amber-700 dark:text-amber-300">
+          <p className="border-t border-[var(--pm-warning)]/20 bg-[var(--pm-warning)]/10 px-4 py-3 text-xs font-bold text-[var(--pm-warning)]">
             {imageWarning}
           </p>
         )}
@@ -247,9 +247,9 @@ export default function ProfileForm({
 
       <div className="grid gap-4 md:grid-cols-2">
       <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">نام و نام خانوادگی</label>
+        <label className="text-xs font-black text-[var(--pm-muted)]">نام و نام خانوادگی</label>
         <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">person</span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">person</span>
           <input 
             type="text" 
             name="name" 
@@ -259,27 +259,27 @@ export default function ProfileForm({
               checkName(event.target.value);
             }}
             maxLength={60}
-            className="w-full pl-10 pr-4"
+            className="w-full pl-10 pr-4 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
           />
         </div>
         {nameWarning && (
-          <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-700 dark:text-amber-300">
+          <p className="rounded-[var(--radius-sm)] border border-[var(--pm-warning)]/20 bg-[var(--pm-warning)]/10 px-3 py-2 text-xs font-bold text-[var(--pm-warning)]">
             {nameWarning}
           </p>
         )}
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">ایمیل</label>
+        <label className="text-xs font-black text-[var(--pm-muted)]">ایمیل</label>
         <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">mail</span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">mail</span>
           <input 
             type="email" 
             name="email" 
             defaultValue={user.email} 
             dir="ltr"
             readOnly={hasGoogleProvider}
-            className={`w-full pl-10 pr-4 ${hasGoogleProvider ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`w-full pl-10 pr-4 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-[var(--pm-text)] focus:border-[var(--pm-primary)] ${hasGoogleProvider ? 'opacity-60 cursor-not-allowed' : ''}`}
           />
         </div>
       </div>
@@ -288,7 +288,7 @@ export default function ProfileForm({
       <button 
         type="submit" 
         disabled={isPending}
-        className="ui-button-primary mt-5 min-h-12 w-full"
+        className="pm-button pm-button-primary mt-5 min-h-12 w-full"
       >
         {isPending ? (
           <span className="material-symbols-outlined animate-spin">refresh</span>
@@ -299,7 +299,7 @@ export default function ProfileForm({
       </button>
     </form>
 
-    <form action={pwdAction} noValidate className="rounded-lg border border-zinc-200 bg-zinc-50 p-5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/50" onSubmit={(event) => {
+    <form action={pwdAction} noValidate className="pm-card p-5" onSubmit={(event) => {
       const formData = new FormData(event.currentTarget);
       if (!String(formData.get("newPassword") || "") || !String(formData.get("confirmPassword") || "") || (hasPassword && !String(formData.get("currentPassword") || ""))) {
         event.preventDefault();
@@ -307,51 +307,51 @@ export default function ProfileForm({
       }
     }}>
       <div className="mb-5 flex items-start gap-3">
-        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-sky-500 text-xl text-white shadow-sm shadow-sky-500/20">encrypted</span>
+        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-surface-strong)] text-xl text-[var(--pm-primary)] shadow-[var(--pm-shadow-soft)]">encrypted</span>
         <div>
-          <h3 className="text-xl font-black text-zinc-950 dark:text-white">{hasPassword ? "تغییر رمز عبور" : "ایجاد رمز عبور"}</h3>
-          <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">برای ورود مستقیم با ایمیل، رمز حساب را امن نگه دارید.</p>
+          <h3 className="text-xl font-black text-[var(--pm-text)]">{hasPassword ? "تغییر رمز عبور" : "ایجاد رمز عبور"}</h3>
+          <p className="mt-1 text-sm leading-6 text-[var(--pm-muted)]">برای ورود مستقیم با ایمیل، رمز حساب را امن نگه دارید.</p>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
       {hasPassword && (
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">رمز عبور فعلی</label>
+          <label className="text-xs font-black text-[var(--pm-muted)]">رمز عبور فعلی</label>
           <div className="relative group">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">lock</span>
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">lock</span>
             <input 
               type="password" 
               name="currentPassword" 
               dir="ltr"
-              className="w-full pl-10 pr-4"
+              className="w-full pl-10 pr-4 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
             />
           </div>
         </div>
       )}
 
       <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">رمز عبور جدید</label>
+        <label className="text-xs font-black text-[var(--pm-muted)]">رمز عبور جدید</label>
         <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">key</span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">key</span>
           <input 
             type="password" 
             name="newPassword" 
             dir="ltr"
-            className="w-full pl-10 pr-4"
+            className="w-full pl-10 pr-4 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
           />
         </div>
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">تکرار رمز عبور جدید</label>
+        <label className="text-xs font-black text-[var(--pm-muted)]">تکرار رمز عبور جدید</label>
         <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">key</span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">key</span>
           <input 
             type="password" 
             name="confirmPassword" 
             dir="ltr"
-            className="w-full pl-10 pr-4"
+            className="w-full pl-10 pr-4 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
           />
         </div>
       </div>
@@ -360,7 +360,7 @@ export default function ProfileForm({
       <button 
         type="submit" 
         disabled={isPwdPending}
-        className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-sky-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-sky-500/20 transition-colors hover:bg-sky-400 disabled:opacity-50"
+        className="pm-button pm-button-primary mt-5 min-h-12 w-full"
       >
         {isPwdPending ? (
           <span className="material-symbols-outlined animate-spin">refresh</span>
@@ -371,29 +371,29 @@ export default function ProfileForm({
       </button>
     </form>
 
-    <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-white/[0.03]">
+    <div className="pm-card p-5">
       <div className="mb-5 flex items-start gap-3">
-        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-xl text-white shadow-sm shadow-zinc-950/20 dark:bg-white dark:text-zinc-950">linked_services</span>
+        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-surface-strong)] text-xl text-[var(--pm-text)] shadow-[var(--pm-shadow-soft)]">linked_services</span>
         <div>
-          <h3 className="text-xl font-black text-zinc-950 dark:text-white">اتصال حساب‌ها</h3>
-          <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">ورود سریع‌تر و تصویر پروفایل گوگل از اینجا مدیریت می‌شود.</p>
+          <h3 className="text-xl font-black text-[var(--pm-text)]">اتصال حساب‌ها</h3>
+          <p className="mt-1 text-sm leading-6 text-[var(--pm-muted)]">ورود سریع‌تر و تصویر پروفایل گوگل از اینجا مدیریت می‌شود.</p>
         </div>
       </div>
       {hasGoogleProvider ? (
-        <div className="flex items-center justify-between rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-4">
+        <div className="flex items-center justify-between rounded-[var(--radius-sm)] border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-4">
           <div className="flex items-center gap-3">
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-6 h-6" />
             <div>
-              <span className="font-black text-zinc-950 dark:text-white">حساب گوگل</span>
-              <p className="mt-1 text-xs font-bold text-cyan-700 dark:text-cyan-300">تصویر و تایید ایمیل از گوگل دریافت می‌شود.</p>
+              <span className="font-black text-[var(--pm-text)]">حساب گوگل</span>
+              <p className="mt-1 text-xs font-bold text-[var(--pm-primary)]">تصویر و تایید ایمیل از گوگل دریافت می‌شود.</p>
             </div>
           </div>
-          <span className="rounded-lg border border-cyan-500/20 bg-white px-3 py-1 text-xs font-black text-cyan-600 dark:bg-zinc-950 dark:text-cyan-300">متصل</span>
+          <span className="pm-chip pm-chip-primary">متصل</span>
         </div>
       ) : (
         <button 
           onClick={() => signIn("google", { callbackUrl: "/dashboard/user/profile" })}
-          className="flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 font-black text-zinc-950 transition-colors hover:bg-white dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:hover:bg-white/[0.06]"
+          className="pm-button pm-button-secondary w-full min-h-12 flex items-center justify-center gap-3"
         >
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
           اتصال به حساب گوگل
@@ -404,3 +404,4 @@ export default function ProfileForm({
     </div>
   );
 }
+

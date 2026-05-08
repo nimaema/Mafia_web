@@ -67,7 +67,7 @@ function ResetPasswordForm() {
       title="رمز عبور جدید"
       subtitle="برای ادامه، رمز تازه‌ای با حداقل ۸ کاراکتر، یک حرف بزرگ و یک عدد تنظیم کنید."
       footer={
-        <Link href="/auth/login" className="text-center text-sm font-bold text-cyan-200 transition-colors hover:text-cyan-100">
+        <Link href="/auth/login" className="text-center text-sm font-bold text-[var(--pm-primary)] transition-colors hover:text-cyan-100">
           بازگشت به ورود
         </Link>
       }
@@ -116,7 +116,7 @@ function ResetPasswordForm() {
           </div>
         </div>
 
-        <button disabled={isSubmitting} type="submit" className="ui-button-primary mt-2 min-h-12 w-full">
+        <button disabled={isSubmitting} type="submit" className="pm-button-primary mt-2 min-h-12 w-full">
           <span className="material-symbols-outlined text-xl">check</span>
           {isSubmitting ? "در حال ذخیره..." : "ذخیره رمز جدید"}
         </button>

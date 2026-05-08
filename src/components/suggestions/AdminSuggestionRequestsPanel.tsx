@@ -57,7 +57,7 @@ const REQUEST_TYPES: Record<SuggestionType, { label: string; icon: string; tone:
 
 const STATUS_META: Record<SuggestionStatus, { label: string; icon: string; className: string }> = {
   PENDING: { label: "در انتظار بررسی", icon: "hourglass_top", className: "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
-  APPROVED: { label: "تایید شد", icon: "task_alt", className: "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300" },
+  APPROVED: { label: "تایید شد", icon: "task_alt", className: "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]" },
   REJECTED: { label: "رد شد", icon: "block", className: "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300" },
 };
 
@@ -164,27 +164,27 @@ export function AdminSuggestionRequestsPanel() {
 
   return (
     <div className="space-y-5" dir="rtl">
-      <section className="ui-card overflow-hidden">
+      <section className="pm-card overflow-hidden">
         <div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <div>
-            <p className="ui-kicker">مدیریت پیشنهادها</p>
-            <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">درخواست‌های نقش و سناریو</h1>
-            <p className="mt-2 max-w-3xl text-sm font-bold leading-7 text-zinc-500 dark:text-zinc-400">
+            <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">مدیریت پیشنهادها</p>
+            <h1 className="mt-1 text-3xl font-black text-[var(--pm-text)]">درخواست‌های نقش و سناریو</h1>
+            <p className="mt-2 max-w-3xl text-sm font-bold leading-7 text-[var(--pm-muted)]">
               این صفحه درخواست‌های کاربران برای نقش جدید، سناریوی جدید یا اصلاح موارد موجود را یک‌جا نشان می‌دهد. تایید درخواست می‌تواند تغییر را مستقیم روی کتابخانه اعمال کند.
             </p>
           </div>
           <div className="grid grid-cols-4 gap-2 text-center sm:min-w-[28rem]">
-            <div className="rounded-xl border border-zinc-200 bg-white/72 p-3 dark:border-white/10 dark:bg-white/[0.04]">
-              <p className="text-xl font-black text-zinc-950 dark:text-white">{stats.total}</p>
-              <p className="mt-1 text-[10px] font-black text-zinc-500 dark:text-zinc-400">کل</p>
+            <div className="rounded-xl border border-[var(--pm-line)] bg-white/72 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.04]">
+              <p className="text-xl font-black text-[var(--pm-text)]">{stats.total}</p>
+              <p className="mt-1 text-[10px] font-black text-[var(--pm-muted)]">کل</p>
             </div>
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
               <p className="text-xl font-black text-amber-700 dark:text-amber-300">{stats.pending}</p>
               <p className="mt-1 text-[10px] font-black text-amber-700/70 dark:text-amber-300/70">در انتظار</p>
             </div>
-            <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3">
-              <p className="text-xl font-black text-cyan-700 dark:text-cyan-300">{stats.approved}</p>
-              <p className="mt-1 text-[10px] font-black text-cyan-700/70 dark:text-cyan-300/70">تایید</p>
+            <div className="rounded-xl border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3">
+              <p className="text-xl font-black text-[var(--pm-primary)]">{stats.approved}</p>
+              <p className="mt-1 text-[10px] font-black text-cyan-700/70 dark:text-[var(--pm-primary)]/70">تایید</p>
             </div>
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3">
               <p className="text-xl font-black text-red-600 dark:text-red-300">{stats.rejected}</p>
@@ -194,8 +194,8 @@ export function AdminSuggestionRequestsPanel() {
         </div>
       </section>
 
-      <section className="ui-card overflow-hidden">
-        <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
+      <section className="pm-card overflow-hidden">
+        <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-zinc-50/80 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap gap-2">
             {FILTERS.map((item) => (
               <button
@@ -204,15 +204,15 @@ export function AdminSuggestionRequestsPanel() {
                 onClick={() => setFilter(item.value)}
                 className={`rounded-xl border px-3 py-2 text-xs font-black transition-all ${
                   filter === item.value
-                    ? "border-cyan-500/30 bg-cyan-500/12 text-cyan-800 dark:text-cyan-200"
-                    : "border-zinc-200 bg-white text-zinc-500 hover:border-cyan-500/25 hover:text-zinc-950 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:text-white"
+                    ? "border-[var(--pm-primary)]/30 bg-[var(--pm-primary)]/12 text-[var(--pm-primary)] dark:text-[var(--pm-primary)]"
+                    : "border-[var(--pm-line)] bg-white text-[var(--pm-muted)] hover:border-[var(--pm-primary)]/25 hover:text-zinc-950 dark:border-[var(--pm-line)] dark:bg-white/[0.04] dark:text-zinc-300 dark:hover:text-white"
                 }`}
               >
                 {item.label}
               </button>
             ))}
           </div>
-          <button onClick={() => loadRequests(filter)} disabled={loading || isPending} className="ui-button-secondary min-h-10 px-3 text-xs">
+          <button onClick={() => loadRequests(filter)} disabled={loading || isPending} className="pm-button-secondary min-h-10 px-3 text-xs">
             <span className={`material-symbols-outlined text-base ${loading ? "animate-spin" : ""}`}>refresh</span>
             بروزرسانی
           </button>
@@ -220,15 +220,15 @@ export function AdminSuggestionRequestsPanel() {
 
         {loading ? (
           <div className="flex min-h-96 items-center justify-center p-8">
-            <span className="material-symbols-outlined animate-spin text-4xl text-cyan-600">progress_activity</span>
+            <span className="material-symbols-outlined animate-spin text-4xl text-[var(--pm-primary)]">progress_activity</span>
           </div>
         ) : requests.length === 0 ? (
           <div className="flex min-h-96 flex-col items-center justify-center gap-3 p-8 text-center">
-            <div className="ui-icon size-16">
-              <span className="material-symbols-outlined text-3xl text-zinc-400">rate_review</span>
+            <div className="pm-icon size-16">
+              <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">rate_review</span>
             </div>
-            <p className="font-black text-zinc-950 dark:text-white">درخواستی برای این فیلتر وجود ندارد</p>
-            <p className="max-w-sm text-sm font-bold leading-6 text-zinc-500 dark:text-zinc-400">وقتی کاربران پیشنهادی ثبت کنند، کارت بررسی آن اینجا نمایش داده می‌شود.</p>
+            <p className="font-black text-[var(--pm-text)]">درخواستی برای این فیلتر وجود ندارد</p>
+            <p className="max-w-sm text-sm font-bold leading-6 text-[var(--pm-muted)]">وقتی کاربران پیشنهادی ثبت کنند، کارت بررسی آن اینجا نمایش داده می‌شود.</p>
           </div>
         ) : (
           <div className="grid gap-4 p-4 xl:grid-cols-2">
@@ -238,7 +238,7 @@ export function AdminSuggestionRequestsPanel() {
               const rows = payloadRows(request.payload);
               const isBusy = activeId === request.id && isPending;
               return (
-                <article key={request.id} className="motion-surface overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60">
+                <article key={request.id} className="motion-surface overflow-hidden rounded-[1.35rem] border border-[var(--pm-line)] bg-white shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/60">
                   <div className={`h-1.5 bg-gradient-to-l ${typeMeta.tone}`} />
                   <div className="space-y-4 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -248,19 +248,19 @@ export function AdminSuggestionRequestsPanel() {
                         </div>
                         <div className="min-w-0">
                           <div className="flex flex-wrap gap-2">
-                            <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">{typeMeta.label}</span>
+                            <span className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-zinc-300">{typeMeta.label}</span>
                             <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black ${status.className}`}>
                               <span className="material-symbols-outlined text-sm">{status.icon}</span>
                               {status.label}
                             </span>
                           </div>
-                          <h2 className="mt-2 line-clamp-2 text-lg font-black leading-7 text-zinc-950 dark:text-white">{request.title}</h2>
-                          <p className="mt-1 text-[11px] font-bold text-zinc-500 dark:text-zinc-400">{formatDate(request.createdAt)}</p>
+                          <h2 className="mt-2 line-clamp-2 text-lg font-black leading-7 text-[var(--pm-text)]">{request.title}</h2>
+                          <p className="mt-1 text-[11px] font-bold text-[var(--pm-muted)]">{formatDate(request.createdAt)}</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                    <div className="flex items-center gap-3 rounded-xl border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
                       <div className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-white text-sm font-black text-zinc-950 shadow-sm shadow-zinc-950/5 dark:bg-white/[0.08] dark:text-white">
                         {request.user?.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -270,17 +270,17 @@ export function AdminSuggestionRequestsPanel() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{request.user?.name || "کاربر بدون نام"}</p>
-                        <p className="truncate text-[11px] font-bold text-zinc-500 dark:text-zinc-400">{request.user?.email || "ایمیل ثبت نشده"}</p>
+                        <p className="truncate text-sm font-black text-[var(--pm-text)]">{request.user?.name || "کاربر بدون نام"}</p>
+                        <p className="truncate text-[11px] font-bold text-[var(--pm-muted)]">{request.user?.email || "ایمیل ثبت نشده"}</p>
                       </div>
                     </div>
 
-                    <p className="text-sm font-bold leading-7 text-zinc-600 dark:text-zinc-300">{request.description}</p>
+                    <p className="text-sm font-bold leading-7 text-[var(--pm-muted)]">{request.description}</p>
 
                     {(request.targetRole || request.targetScenario) && (
                       <div className="rounded-xl border border-violet-500/20 bg-violet-500/10 p-3">
                         <p className="text-[10px] font-black text-violet-700 dark:text-violet-300">مورد هدف</p>
-                        <p className="mt-1 text-sm font-black text-zinc-950 dark:text-white">{request.targetRole?.name || request.targetScenario?.name}</p>
+                        <p className="mt-1 text-sm font-black text-[var(--pm-text)]">{request.targetRole?.name || request.targetScenario?.name}</p>
                         {request.targetRole?.alignment && <p className="mt-1 text-xs font-bold text-violet-700 dark:text-violet-300">{alignmentLabel(request.targetRole.alignment)}</p>}
                       </div>
                     )}
@@ -288,8 +288,8 @@ export function AdminSuggestionRequestsPanel() {
                     {rows.length > 0 && (
                       <div className="grid gap-2">
                         {rows.map((row) => (
-                          <div key={row.label} className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3">
-                            <p className="text-[10px] font-black text-cyan-700 dark:text-cyan-300">{row.label}</p>
+                          <div key={row.label} className="rounded-xl border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3">
+                            <p className="text-[10px] font-black text-[var(--pm-primary)]">{row.label}</p>
                             <p className="mt-1 whitespace-pre-line text-sm font-bold leading-7 text-cyan-950 dark:text-cyan-100">{row.value}</p>
                           </div>
                         ))}
@@ -303,15 +303,15 @@ export function AdminSuggestionRequestsPanel() {
                     )}
 
                     {request.reviewedAt && (
-                      <p className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400">
+                      <p className="text-[11px] font-bold text-[var(--pm-muted)]">
                         بررسی شده در {formatDate(request.reviewedAt)} توسط {request.reviewedBy?.name || request.reviewedBy?.email || "مدیر"}
                       </p>
                     )}
 
                     {request.status === "PENDING" ? (
-                      <div className="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                      <div className="space-y-3 rounded-xl border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
                         <label className="flex flex-col gap-2">
-                          <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">پاسخ مدیر برای کاربر</span>
+                          <span className="text-xs font-black text-[var(--pm-muted)]">پاسخ مدیر برای کاربر</span>
                           <textarea
                             value={notes[request.id] || ""}
                             onChange={(event) => setNotes((current) => ({ ...current, [request.id]: event.target.value.slice(0, 1000) }))}
@@ -320,18 +320,18 @@ export function AdminSuggestionRequestsPanel() {
                           />
                         </label>
                         <div className="grid gap-2 sm:grid-cols-2">
-                          <button onClick={() => review(request, "APPROVED")} disabled={isBusy} className="ui-button-primary min-h-11">
+                          <button onClick={() => review(request, "APPROVED")} disabled={isBusy} className="pm-button-primary min-h-11">
                             <span className={`material-symbols-outlined text-xl ${isBusy ? "animate-spin" : ""}`}>{isBusy ? "progress_activity" : "task_alt"}</span>
                             تایید و اعمال
                           </button>
-                          <button onClick={() => review(request, "REJECTED")} disabled={isBusy} className="ui-button-secondary min-h-11 border-red-500/20 text-red-600 hover:bg-red-500/10 dark:text-red-300">
+                          <button onClick={() => review(request, "REJECTED")} disabled={isBusy} className="pm-button-secondary min-h-11 border-red-500/20 text-red-600 hover:bg-red-500/10 dark:text-red-300">
                             <span className="material-symbols-outlined text-xl">block</span>
                             رد درخواست
                           </button>
                         </div>
                       </div>
                     ) : request.adminNote ? (
-                      <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-bold leading-6 text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
+                      <div className="rounded-xl border border-[var(--pm-line)] bg-zinc-50 px-3 py-2 text-xs font-bold leading-6 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-zinc-300">
                         پاسخ مدیر: {request.adminNote}
                       </div>
                     ) : null}

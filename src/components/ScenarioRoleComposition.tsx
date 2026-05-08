@@ -49,7 +49,7 @@ function alignmentClass(alignment: Alignment | "UNKNOWN") {
   if (alignment === "CITIZEN") return "border-sky-400/22 bg-sky-400/10 text-sky-300";
   if (alignment === "MAFIA") return "border-rose-400/24 bg-rose-400/10 text-rose-300";
   if (alignment === "NEUTRAL") return "border-amber-400/24 bg-amber-400/10 text-amber-300";
-  return "border-white/10 bg-white/[0.055] text-white/50";
+  return "border-[var(--pm-line)] bg-white/[0.055] text-white/50";
 }
 
 function alignmentBar(alignment: Alignment | "UNKNOWN") {
@@ -83,8 +83,8 @@ export function ScenarioRoleComposition({ roles, compact = false }: ScenarioRole
   return (
     <div className={compact ? "grid gap-3" : "grid gap-4"}>
       {grouped.map((group) => (
-        <section key={group.alignment} className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.045] shadow-lg shadow-black/10 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-black/18 px-3 py-2.5">
+        <section key={group.alignment} className="overflow-hidden rounded-2xl border border-[var(--pm-line)] bg-white/[0.045] shadow-lg shadow-black/10 backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-line)] bg-black/18 px-3 py-2.5">
             <div className="flex min-w-0 items-center gap-2">
               <span className={`material-symbols-outlined flex size-9 shrink-0 items-center justify-center rounded-xl border text-lg ${alignmentClass(group.alignment)}`}>
                 {alignmentIcon(group.alignment)}
@@ -106,7 +106,7 @@ export function ScenarioRoleComposition({ roles, compact = false }: ScenarioRole
               return (
                 <article
                   key={item.roleId || item.id || roleName(item)}
-                  className="motion-surface relative overflow-hidden rounded-2xl border border-white/10 bg-[#15171b]/72 p-3 shadow-sm shadow-black/10"
+                  className="motion-surface relative overflow-hidden rounded-2xl border border-[var(--pm-line)] bg-[#15171b]/72 p-3 shadow-sm shadow-black/10"
                 >
                   <span className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${alignmentBar(alignment)}`} />
                   <div className="flex items-start justify-between gap-3 pr-1">

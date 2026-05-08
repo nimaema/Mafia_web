@@ -35,7 +35,7 @@ export default function NotFound() {
               ["login", "بازگشت", "آماده"],
             ].map(([icon, label, value]) => (
               <div key={label} className="pm-muted-card p-4">
-                <span className="material-symbols-outlined text-2xl text-cyan-200">{icon}</span>
+                <span className="material-symbols-outlined text-2xl text-[var(--pm-primary)]">{icon}</span>
                 <p className="mt-4 text-xl font-black">{value}</p>
                 <p className="mt-1 text-xs font-bold text-white/48">{label}</p>
               </div>

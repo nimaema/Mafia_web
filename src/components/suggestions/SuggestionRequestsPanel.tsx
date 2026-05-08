@@ -40,9 +40,9 @@ const REQUEST_TYPES: { value: SuggestionType; title: string; text: string; icon:
 ];
 
 const STATUS_META = {
-  PENDING: { label: "در انتظار بررسی", icon: "hourglass_top", className: "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
-  APPROVED: { label: "تایید شد", icon: "task_alt", className: "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300" },
-  REJECTED: { label: "رد شد", icon: "block", className: "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300" },
+  PENDING: { label: "در انتظار بررسی", icon: "hourglass_top", className: "pm-chip pm-chip-warning" },
+  APPROVED: { label: "تایید شد", icon: "task_alt", className: "pm-chip pm-chip-primary" },
+  REJECTED: { label: "رد شد", icon: "block", className: "pm-chip pm-chip-danger" },
 };
 
 function typeLabel(type: SuggestionType) {
@@ -145,34 +145,34 @@ export function SuggestionRequestsPanel() {
 
   return (
     <div className="space-y-5" dir="rtl">
-      <section className="ui-card overflow-hidden">
+      <section className="pm-card overflow-hidden">
         <div className="flex flex-col gap-5 p-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="ui-kicker">درخواست‌های بازی</p>
-            <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">پیشنهاد نقش و سناریو</h1>
-            <p className="mt-2 max-w-3xl text-sm font-bold leading-7 text-zinc-500 dark:text-zinc-400">
+            <p className="text-[10px] font-bold tracking-widest text-[var(--pm-primary)] uppercase">درخواست‌های بازی</p>
+            <h1 className="mt-1 text-3xl font-black text-[var(--pm-text)]">پیشنهاد نقش و سناریو</h1>
+            <p className="mt-2 max-w-3xl text-sm font-bold leading-7 text-[var(--pm-muted)]">
               اگر نقش، سناریو یا تغییری به ذهنتان رسیده، اینجا ثبت کنید. مدیر می‌تواند آن را تایید کند، رد کند یا بعد از تایید وارد کتابخانه نقش‌ها و سناریوها کند.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 text-center sm:min-w-64">
-            <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-3">
-              <p className="text-2xl font-black text-cyan-700 dark:text-cyan-300">{requests.length}</p>
-              <p className="mt-1 text-[10px] font-black text-cyan-700/70 dark:text-cyan-300/70">کل درخواست‌ها</p>
+            <div className="pm-muted-card border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3">
+              <p className="text-2xl font-black text-[var(--pm-primary)]">{requests.length}</p>
+              <p className="mt-1 text-[10px] font-black text-[var(--pm-primary)]/70">کل درخواست‌ها</p>
             </div>
-            <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3">
-              <p className="text-2xl font-black text-amber-700 dark:text-amber-300">{pendingCount}</p>
-              <p className="mt-1 text-[10px] font-black text-amber-700/70 dark:text-amber-300/70">در انتظار بررسی</p>
+            <div className="pm-muted-card border border-[var(--pm-warning)]/20 bg-[var(--pm-warning)]/10 p-3">
+              <p className="text-2xl font-black text-[var(--pm-warning)]">{pendingCount}</p>
+              <p className="mt-1 text-[10px] font-black text-[var(--pm-warning)]/70">در انتظار بررسی</p>
             </div>
           </div>
         </div>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-        <div className="ui-card overflow-hidden">
-          <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-            <p className="ui-kicker">ثبت درخواست جدید</p>
-            <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">{selectedType.title}</h2>
-            <p className="mt-2 text-sm font-bold leading-6 text-zinc-500 dark:text-zinc-400">{selectedType.text}</p>
+        <div className="pm-card overflow-hidden">
+          <div className="border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-5">
+            <p className="text-[10px] font-bold tracking-widest text-[var(--pm-primary)] uppercase">ثبت درخواست جدید</p>
+            <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">{selectedType.title}</h2>
+            <p className="mt-2 text-sm font-bold leading-6 text-[var(--pm-muted)]">{selectedType.text}</p>
           </div>
 
           <div className="space-y-4 p-5">
@@ -182,23 +182,23 @@ export function SuggestionRequestsPanel() {
                   key={item.value}
                   type="button"
                   onClick={() => selectType(item.value)}
-                  className={`rounded-lg border p-3 text-right transition-all ${
+                  className={`rounded-[var(--radius-sm)] border p-3 text-right transition-all ${
                     type === item.value
-                      ? "border-cyan-500/35 bg-cyan-500/10 shadow-sm shadow-cyan-500/10"
-                      : "border-zinc-200 bg-zinc-50 hover:border-cyan-500/25 hover:bg-white dark:border-white/10 dark:bg-white/[0.03]"
+                      ? "border-[var(--pm-primary)]/50 bg-[var(--pm-primary)]/10 shadow-[var(--pm-shadow-glow)]"
+                      : "border-[var(--pm-line)] bg-[var(--pm-surface)] hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-surface-strong)]"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-xl text-cyan-700 dark:text-cyan-300">{item.icon}</span>
-                  <span className="mt-2 block text-sm font-black text-zinc-950 dark:text-white">{item.title}</span>
-                  <span className="mt-1 block text-[10px] font-bold leading-5 text-zinc-500 dark:text-zinc-400">{item.text}</span>
+                  <span className={`material-symbols-outlined text-xl ${type === item.value ? 'text-[var(--pm-primary)]' : 'text-[var(--pm-muted)]'}`}>{item.icon}</span>
+                  <span className="mt-2 block text-sm font-black text-[var(--pm-text)]">{item.title}</span>
+                  <span className="mt-1 block text-[10px] font-bold leading-5 text-[var(--pm-muted)]">{item.text}</span>
                 </button>
               ))}
             </div>
 
             {needsRole && (
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نقش مورد نظر</span>
-                <select value={targetRoleId} onChange={(event) => setTargetRoleId(event.target.value)}>
+                <span className="text-xs font-black text-[var(--pm-muted)]">نقش مورد نظر</span>
+                <select value={targetRoleId} onChange={(event) => setTargetRoleId(event.target.value)} className="w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-4 py-3 text-[var(--pm-text)] focus:border-[var(--pm-primary)]">
                   <option value="">انتخاب نقش...</option>
                   {reference.roles.map((role) => (
                     <option key={role.id} value={role.id}>{role.name} | {alignmentLabel(role.alignment)}</option>
@@ -209,8 +209,8 @@ export function SuggestionRequestsPanel() {
 
             {needsScenario && (
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">سناریوی مورد نظر</span>
-                <select value={targetScenarioId} onChange={(event) => setTargetScenarioId(event.target.value)}>
+                <span className="text-xs font-black text-[var(--pm-muted)]">سناریوی مورد نظر</span>
+                <select value={targetScenarioId} onChange={(event) => setTargetScenarioId(event.target.value)} className="w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-4 py-3 text-[var(--pm-text)] focus:border-[var(--pm-primary)]">
                   <option value="">انتخاب سناریو...</option>
                   {reference.scenarios.map((scenario) => (
                     <option key={scenario.id} value={scenario.id}>{scenario.name}</option>
@@ -221,19 +221,19 @@ export function SuggestionRequestsPanel() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">عنوان درخواست</span>
-                <input value={title} onChange={(event) => setTitle(event.target.value.slice(0, 90))} placeholder="مثلاً اضافه شدن نقش نگهبان" />
+                <span className="text-xs font-black text-[var(--pm-muted)]">عنوان درخواست</span>
+                <input value={title} onChange={(event) => setTitle(event.target.value.slice(0, 90))} placeholder="مثلاً اضافه شدن نقش نگهبان" className="w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-4 py-3 text-[var(--pm-text)] focus:border-[var(--pm-primary)]" />
               </label>
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">{proposedNameLabel}</span>
-                <input value={proposedName} onChange={(event) => setProposedName(event.target.value.slice(0, 80))} placeholder="نام نقش یا سناریو" />
+                <span className="text-xs font-black text-[var(--pm-muted)]">{proposedNameLabel}</span>
+                <input value={proposedName} onChange={(event) => setProposedName(event.target.value.slice(0, 80))} placeholder="نام نقش یا سناریو" className="w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-4 py-3 text-[var(--pm-text)] focus:border-[var(--pm-primary)]" />
               </label>
             </div>
 
             {roleRelated && (
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">{type === "CHANGE_ROLE" ? "جبهه جدید اگر لازم است" : "جبهه پیشنهادی"}</span>
-                <select value={proposedAlignment} onChange={(event) => setProposedAlignment(event.target.value as Alignment | "")}>
+                <span className="text-xs font-black text-[var(--pm-muted)]">{type === "CHANGE_ROLE" ? "جبهه جدید اگر لازم است" : "جبهه پیشنهادی"}</span>
+                <select value={proposedAlignment} onChange={(event) => setProposedAlignment(event.target.value as Alignment | "")} className="w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-4 py-3 text-[var(--pm-text)] focus:border-[var(--pm-primary)]">
                   {type === "CHANGE_ROLE" && <option value="">بدون تغییر جبهه</option>}
                   <option value="CITIZEN">شهروند</option>
                   <option value="MAFIA">مافیا</option>
@@ -243,39 +243,39 @@ export function SuggestionRequestsPanel() {
             )}
 
             <label className="flex flex-col gap-2">
-              <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">توضیح درخواست</span>
+              <span className="text-xs font-black text-[var(--pm-muted)]">توضیح درخواست</span>
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value.slice(0, 1800))}
-                className="min-h-32 resize-none"
+                className="min-h-32 resize-none w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] p-4 text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
                 placeholder="مشکل، ایده یا دلیل پیشنهاد را واضح بنویسید."
               />
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">{proposedDescriptionLabel}</span>
+              <span className="text-xs font-black text-[var(--pm-muted)]">{proposedDescriptionLabel}</span>
               <textarea
                 value={proposedDescription}
                 onChange={(event) => setProposedDescription(event.target.value.slice(0, 1600))}
-                className="min-h-28 resize-none"
+                className="min-h-28 resize-none w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] p-4 text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
                 placeholder={type === "NEW_SCENARIO" ? "مثلاً: ۱۰ نفره؛ ۳ مافیا، ۶ شهروند، ۱ مستقل..." : "متن نهایی پیشنهادی یا تغییر دقیق را بنویسید."}
               />
             </label>
 
-            <button onClick={submitRequest} disabled={isPending} className="ui-button-primary min-h-12 w-full">
+            <button onClick={submitRequest} disabled={isPending} className="pm-button pm-button-primary min-h-12 w-full mt-2">
               <span className={`material-symbols-outlined text-xl ${isPending ? "animate-spin" : ""}`}>{isPending ? "progress_activity" : "send"}</span>
               ثبت درخواست
             </button>
           </div>
         </div>
 
-        <div className="ui-card overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+        <div className="pm-card overflow-hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-5">
             <div>
-              <p className="ui-kicker">پیگیری</p>
-              <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">وضعیت درخواست‌های شما</h2>
+              <p className="text-[10px] font-bold tracking-widest text-[var(--pm-primary)] uppercase">پیگیری</p>
+              <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">وضعیت درخواست‌های شما</h2>
             </div>
-            <button onClick={loadData} disabled={loading || isPending} className="ui-button-secondary min-h-10 px-3 text-xs">
+            <button onClick={loadData} disabled={loading || isPending} className="pm-button pm-button-secondary min-h-10 px-3 text-xs">
               <span className={`material-symbols-outlined text-base ${loading ? "animate-spin" : ""}`}>refresh</span>
               بروزرسانی
             </button>
@@ -283,15 +283,15 @@ export function SuggestionRequestsPanel() {
 
           {loading ? (
             <div className="flex min-h-80 items-center justify-center p-8">
-              <span className="material-symbols-outlined animate-spin text-4xl text-cyan-600">progress_activity</span>
+              <span className="material-symbols-outlined animate-spin text-4xl text-[var(--pm-primary)]">progress_activity</span>
             </div>
           ) : requests.length === 0 ? (
             <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-8 text-center">
-              <div className="ui-icon size-16">
-                <span className="material-symbols-outlined text-3xl text-zinc-400">rate_review</span>
+              <div className="flex size-16 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-surface-strong)] text-[var(--pm-muted)] shadow-[var(--pm-shadow-soft)]">
+                <span className="material-symbols-outlined text-3xl">rate_review</span>
               </div>
-              <p className="font-black text-zinc-950 dark:text-white">هنوز درخواستی ثبت نکرده‌اید</p>
-              <p className="max-w-sm text-sm font-bold leading-6 text-zinc-500 dark:text-zinc-400">بعد از ثبت، وضعیت بررسی مدیر همین‌جا نمایش داده می‌شود.</p>
+              <p className="font-black text-[var(--pm-text)]">هنوز درخواستی ثبت نکرده‌اید</p>
+              <p className="max-w-sm text-sm font-bold leading-6 text-[var(--pm-muted)]">بعد از ثبت، وضعیت بررسی مدیر همین‌جا نمایش داده می‌شود.</p>
             </div>
           ) : (
             <div className="custom-scrollbar max-h-[760px] space-y-3 overflow-y-auto p-4">
@@ -299,41 +299,41 @@ export function SuggestionRequestsPanel() {
                 const status = STATUS_META[request.status];
                 const payload = request.payload || {};
                 return (
-                  <article key={request.id} className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60">
+                  <article key={request.id} className="pm-muted-card border border-[var(--pm-line)] bg-[var(--pm-surface)] p-4 shadow-[var(--pm-shadow-soft)]">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex flex-wrap gap-2">
-                          <span className="rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">{typeLabel(request.type)}</span>
-                          <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black ${status.className}`}>
+                          <span className="pm-chip bg-[var(--pm-surface-strong)]">{typeLabel(request.type)}</span>
+                          <span className={`${status.className} inline-flex items-center gap-1`}>
                             <span className="material-symbols-outlined text-sm">{status.icon}</span>
                             {status.label}
                           </span>
                         </div>
-                        <h3 className="mt-2 text-lg font-black text-zinc-950 dark:text-white">{request.title}</h3>
-                        <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{formatDate(request.createdAt)}</p>
+                        <h3 className="mt-2 text-lg font-black text-[var(--pm-text)]">{request.title}</h3>
+                        <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{formatDate(request.createdAt)}</p>
                       </div>
                     </div>
 
-                    <p className="mt-3 text-sm font-bold leading-7 text-zinc-600 dark:text-zinc-300">{request.description}</p>
+                    <p className="mt-3 text-sm font-bold leading-7 text-[var(--pm-text)] opacity-80">{request.description}</p>
                     {(payload.proposedName || payload.proposedDescription || payload.proposedAlignment) && (
-                      <div className="mt-3 rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs font-bold leading-6 text-cyan-800 dark:text-cyan-200">
+                      <div className="mt-3 rounded-[var(--radius-sm)] border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/5 p-3 text-xs font-bold leading-6 text-[var(--pm-primary)]">
                         {payload.proposedName && <p>نام پیشنهادی: {payload.proposedName}</p>}
                         {payload.proposedAlignment && <p>جبهه پیشنهادی: {alignmentLabel(payload.proposedAlignment)}</p>}
                         {payload.proposedDescription && <p>متن پیشنهادی: {payload.proposedDescription}</p>}
                       </div>
                     )}
                     {(request.targetRole || request.targetScenario) && (
-                      <p className="mt-2 text-xs font-black text-zinc-500 dark:text-zinc-400">
+                      <p className="mt-2 text-xs font-black text-[var(--pm-muted)]">
                         مورد مرتبط: {request.targetRole?.name || request.targetScenario?.name}
                       </p>
                     )}
                     {(request.createdRole || request.createdScenario) && (
-                      <p className="mt-2 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-xs font-black text-cyan-700 dark:text-cyan-300">
+                      <p className="mt-2 pm-chip pm-chip-primary px-3 py-2 text-xs font-black text-[var(--pm-primary)] border-transparent bg-[var(--pm-primary)]/10">
                         اضافه شد: {request.createdRole?.name || request.createdScenario?.name}
                       </p>
                     )}
                     {request.adminNote && (
-                      <p className="mt-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-bold leading-6 text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300">
+                      <p className="mt-2 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-strong)] px-3 py-2 text-xs font-bold leading-6 text-[var(--pm-text)]">
                         پاسخ مدیر: {request.adminNote}
                       </p>
                     )}

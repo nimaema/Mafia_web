@@ -133,14 +133,14 @@ export default function UserGamePage() {
   if (loading) {
     return (
       <div className="flex min-h-[70vh] items-center justify-center p-4" dir="rtl">
-        <div className="ui-card w-full max-w-lg overflow-hidden text-center">
+        <div className="pm-card w-full max-w-lg overflow-hidden text-center">
           <div className="h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-300" />
           <div className="p-8">
-            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-cyan-500 text-zinc-950 shadow-lg shadow-cyan-500/20">
+            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-lg shadow-[var(--pm-primary)]/20">
               <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
             </div>
-            <p className="mt-5 text-lg font-black text-zinc-950 dark:text-white">در حال آماده‌سازی کارت نقش</p>
-            <p className="mt-2 text-sm font-bold leading-6 text-zinc-500 dark:text-zinc-400">
+            <p className="mt-5 text-lg font-black text-[var(--pm-text)]">در حال آماده‌سازی کارت نقش</p>
+            <p className="mt-2 text-sm font-bold leading-6 text-[var(--pm-muted)]">
               نقش، سناریو و گزارش‌های عمومی بازی در حال دریافت هستند.
             </p>
           </div>
@@ -162,7 +162,7 @@ export default function UserGamePage() {
   return (
     <div className="min-h-[80vh] px-4 py-6" dir="rtl">
       <div className="mx-auto grid w-full max-w-6xl gap-5 lg:grid-cols-[minmax(320px,430px)_minmax(0,1fr)]">
-        <section className="ui-card relative flex flex-col items-center overflow-hidden p-6 sm:p-8">
+        <section className="pm-card relative flex flex-col items-center overflow-hidden p-6 sm:p-8">
           {revealRole && (
             <div className={`pointer-events-none absolute inset-0 opacity-10 transition-opacity duration-1000 ${
               role?.alignment === 'CITIZEN' ? 'bg-blue-500' :
@@ -172,9 +172,9 @@ export default function UserGamePage() {
           )}
 
           <div className="z-10 mb-6 text-center">
-            <p className="ui-kicker">کارت محرمانه</p>
-            <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">نقش شما</h1>
-            <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">نقش خود را فقط در محیط امن ببینید.</p>
+            <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">کارت محرمانه</p>
+            <h1 className="mt-1 text-3xl font-black text-[var(--pm-text)]">نقش شما</h1>
+            <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">نقش خود را فقط در محیط امن ببینید.</p>
           </div>
 
           <div
@@ -182,12 +182,12 @@ export default function UserGamePage() {
             className={`relative z-10 aspect-[2/3] w-full max-w-sm cursor-pointer rounded-lg transition-all duration-700 preserve-3d ${revealRole ? '[transform:rotateY(180deg)]' : ''}`}
             style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
           >
-            <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg border-4 border-zinc-800 bg-zinc-950 p-6 shadow-2xl backface-hidden" style={{ backfaceVisibility: 'hidden' }}>
-              <div className="mb-4 flex size-24 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03]">
+            <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg border-4 border-[var(--pm-line)] bg-zinc-950 p-6 shadow-2xl backface-hidden" style={{ backfaceVisibility: 'hidden' }}>
+              <div className="mb-4 flex size-24 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-white/[0.03]">
                 <span className="material-symbols-outlined text-5xl text-zinc-700">visibility_off</span>
               </div>
               <p className="mb-2 text-lg font-black text-white">برای مشاهده نقش ضربه بزنید</p>
-              <p className="text-center text-xs leading-5 text-zinc-500">پس از دیدن، دوباره کارت را مخفی کنید.</p>
+              <p className="text-center text-xs leading-5 text-[var(--pm-muted)]">پس از دیدن، دوباره کارت را مخفی کنید.</p>
             </div>
 
             <div className={`absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-lg border-4 p-6 shadow-2xl backface-hidden ${
@@ -201,7 +201,7 @@ export default function UserGamePage() {
 
               <div className="flex w-full flex-1 flex-col items-center justify-center">
                 <h2 className="mb-4 text-center text-4xl font-black text-white drop-shadow-md">{role?.name || "بدون نقش"}</h2>
-                <div className="w-full rounded-lg border border-white/10 bg-black/20 p-4 text-center">
+                <div className="w-full rounded-lg border border-[var(--pm-line)] bg-black/20 p-4 text-center">
                   <p className="text-sm leading-7 text-white/85">{role?.description || "توضیحی برای این نقش وجود ندارد."}</p>
                 </div>
               </div>
@@ -210,43 +210,43 @@ export default function UserGamePage() {
             </div>
           </div>
 
-          <Link href="/dashboard/user" className="ui-button-secondary z-10 mt-6 min-h-12 w-full max-w-sm">
+          <Link href="/dashboard/user" className="pm-button-secondary z-10 mt-6 min-h-12 w-full max-w-sm">
             <span className="material-symbols-outlined text-xl">dashboard</span>
             بازگشت به داشبورد
           </Link>
         </section>
 
-        <aside className="ui-card overflow-hidden">
-          <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+        <aside className="pm-card overflow-hidden">
+          <div className="border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <p className="ui-kicker">راهنمای سناریو</p>
-                <h2 className="mt-1 truncate text-2xl font-black text-zinc-950 dark:text-white">{game?.scenario?.name || "سناریو"}</h2>
-                <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">راهنمای سناریو</p>
+                <h2 className="mt-1 truncate text-2xl font-black text-[var(--pm-text)]">{game?.scenario?.name || "سناریو"}</h2>
+                <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">
                   {game?.scenario?.description || "ترکیب نقش‌های این بازی را بدون نمایش نقش بازیکنان ببینید."}
                 </p>
               </div>
-              <span className="material-symbols-outlined flex size-12 shrink-0 rounded-lg bg-cyan-500 text-2xl text-zinc-950">menu_book</span>
+              <span className="material-symbols-outlined flex size-12 shrink-0 rounded-lg bg-[var(--pm-primary)] text-2xl text-zinc-950">menu_book</span>
             </div>
 
             <div className="mt-5 grid grid-cols-4 gap-2">
               {[
-                ["کل", scenarioCounts.total, "text-cyan-600 dark:text-cyan-300"],
+                ["کل", scenarioCounts.total, "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]"],
                 ["شهروند", scenarioCounts.CITIZEN, "text-sky-600 dark:text-sky-300"],
                 ["مافیا", scenarioCounts.MAFIA, "text-red-600 dark:text-red-300"],
                 ["مستقل", scenarioCounts.NEUTRAL, "text-amber-600 dark:text-amber-300"],
               ].map(([label, value, color]) => (
-                <div key={label} className="rounded-lg border border-zinc-200 bg-white p-3 text-center dark:border-white/10 dark:bg-zinc-950/60">
+                <div key={label} className="rounded-lg border border-[var(--pm-line)] bg-white p-3 text-center dark:border-[var(--pm-line)] dark:bg-zinc-950/60">
                   <p className={`text-lg font-black ${color}`}>{value}</p>
-                  <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                  <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">{label}</p>
                 </div>
               ))}
             </div>
 
-            <div className="mt-5 rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/60">
+            <div className="mt-5 rounded-lg border border-[var(--pm-line)] bg-white p-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/60">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="text-xs font-black text-zinc-950 dark:text-white">وضعیت بازیکنان</p>
-                <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
+                <p className="text-xs font-black text-[var(--pm-text)]">وضعیت بازیکنان</p>
+                <span className="text-[10px] font-bold text-[var(--pm-muted)]">
                   {players.filter((player: any) => player.isAlive !== false).length} فعال
                 </span>
               </div>
@@ -254,16 +254,16 @@ export default function UserGamePage() {
                 {players.map((player: any) => {
                   const alive = player.isAlive !== false;
                   return (
-                    <div key={player.id} className={alive ? "relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]" : "relative overflow-hidden rounded-lg border border-red-500/20 bg-red-500/10 p-2"}>
-                      <div className={`absolute inset-y-2 right-0 w-1 rounded-l-full ${alive ? "bg-cyan-500" : "bg-red-500"}`} />
+                    <div key={player.id} className={alive ? "relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-2 dark:border-[var(--pm-line)] dark:bg-white/[0.03]" : "relative overflow-hidden rounded-lg border border-red-500/20 bg-red-500/10 p-2"}>
+                      <div className={`absolute inset-y-2 right-0 w-1 rounded-l-full ${alive ? "bg-[var(--pm-primary)]" : "bg-red-500"}`} />
                       <div className="flex items-center justify-between gap-2 pr-1">
                         <div className="flex min-w-0 items-center gap-2">
                           <div className={`flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg text-xs font-black ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
                             {player.image ? <img src={player.image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
                           </div>
-                          <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{player.name}</p>
+                          <p className="truncate text-xs font-black text-[var(--pm-text)]">{player.name}</p>
                         </div>
-                        <span className={alive ? "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[9px] font-black text-cyan-700 dark:text-cyan-300" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[9px] font-black text-red-600 dark:text-red-300"}>
+                        <span className={alive ? "rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 py-0.5 text-[9px] font-black text-[var(--pm-primary)]" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[9px] font-black text-red-600 dark:text-red-300"}>
                           {alive ? "فعال" : "حذف‌شده"}
                         </span>
                       </div>
@@ -278,10 +278,10 @@ export default function UserGamePage() {
             {scenarioRoles.length ? (
               <div className="grid gap-3 md:grid-cols-2">
                 {scenarioRoles.map((scenarioRole: any) => (
-                  <div key={scenarioRole.id || scenarioRole.name} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                  <div key={scenarioRole.id || scenarioRole.name} className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{scenarioRole.name}</p>
+                        <p className="truncate text-sm font-black text-[var(--pm-text)]">{scenarioRole.name}</p>
                         <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[10px] font-black ${alignmentClass(scenarioRole.alignment)}`}>
                           {alignmentLabel(scenarioRole.alignment)}
                         </p>
@@ -291,39 +291,39 @@ export default function UserGamePage() {
                       </span>
                     </div>
                     {scenarioRole.description && (
-                      <p className="mt-3 line-clamp-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{scenarioRole.description}</p>
+                      <p className="mt-3 line-clamp-2 text-xs leading-5 text-[var(--pm-muted)]">{scenarioRole.description}</p>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
-                <span className="material-symbols-outlined text-4xl text-zinc-400">account_tree</span>
-                <p className="text-sm font-black text-zinc-950 dark:text-white">راهنمایی برای این سناریو ثبت نشده است</p>
+              <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[var(--pm-line)] bg-zinc-50 p-6 text-center dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                <span className="material-symbols-outlined text-4xl text-[var(--pm-muted)]">account_tree</span>
+                <p className="text-sm font-black text-[var(--pm-text)]">راهنمایی برای این سناریو ثبت نشده است</p>
               </div>
             )}
 
             {groupedNightEvents.length > 0 && (
-              <div className="mt-5 rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-4">
+              <div className="mt-5 rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-4">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-cyan-600 dark:text-cyan-300">dark_mode</span>
-                  <p className="text-sm font-black text-zinc-950 dark:text-white">دفترچه عمومی شب</p>
+                  <span className="material-symbols-outlined text-[var(--pm-primary)] dark:text-[var(--pm-primary)]">dark_mode</span>
+                  <p className="text-sm font-black text-[var(--pm-text)]">دفترچه عمومی شب</p>
                 </div>
                 <div className="mt-3 space-y-2">
                   {groupedNightEvents.map(([nightNumber, events]) => (
-                    <details key={nightNumber} className="group rounded-lg border border-cyan-500/20 bg-white/70 dark:bg-zinc-950/60">
+                    <details key={nightNumber} className="group rounded-lg border border-[var(--pm-primary)]/20 bg-white/70 dark:bg-zinc-950/60">
                       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3">
-                        <span className="text-xs font-black text-zinc-950 dark:text-white">شب {nightNumber}</span>
-                        <span className="material-symbols-outlined text-zinc-400 transition-transform group-open:rotate-180">keyboard_arrow_down</span>
+                        <span className="text-xs font-black text-[var(--pm-text)]">شب {nightNumber}</span>
+                        <span className="material-symbols-outlined text-[var(--pm-muted)] transition-transform group-open:rotate-180">keyboard_arrow_down</span>
                       </summary>
-                      <div className="space-y-2 border-t border-cyan-500/20 p-3">
+                      <div className="space-y-2 border-t border-[var(--pm-primary)]/20 p-3">
                         {events.map((event: any) => (
-                          <div key={event.id} className="rounded-lg bg-white p-2 text-xs leading-5 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+                          <div key={event.id} className="rounded-lg bg-white p-2 text-xs leading-5 text-[var(--pm-muted)] dark:bg-zinc-900 dark:text-zinc-300">
                             <div className="flex flex-wrap items-center gap-2">
-                              <p className="font-black text-zinc-950 dark:text-white">
+                              <p className="font-black text-[var(--pm-text)]">
                                 {event.abilityLabel}{event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}
                               </p>
-                              <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-black text-cyan-700 dark:text-cyan-300"}>
+                              <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 py-0.5 text-[10px] font-black text-[var(--pm-primary)]"}>
                                 {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
                               </span>
                               {event.details?.effectType && event.details.effectType !== "NONE" && (
@@ -337,26 +337,26 @@ export default function UserGamePage() {
                               {event.wasUsed === false ? " ← بدون هدف" : ` ← ${event.targetPlayer?.name || "نامشخص"}`}
                             </p>
                             {Array.isArray(event.details?.targetLabels) && event.details.targetLabels.length > 0 && (
-                              <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                              <p className="mt-1 text-[var(--pm-muted)]">
                                 گزینه‌ها: {event.details.targetLabels.map((target: { label: string; playerName?: string | null }) => `${target.label}: ${target.playerName || "نامشخص"}`).join("، ")}
                               </p>
                             )}
                             {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && event.details?.secondaryTargetName && (
-                              <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                              <p className="mt-1 text-[var(--pm-muted)]">
                                 {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
                               </p>
                             )}
                             {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
-                              <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                              <p className="mt-1 text-[var(--pm-muted)]">
                                 هدف‌های اضافه: {event.details.extraTargets.map((target: { name: string }) => target.name).join("، ")}
                               </p>
                             )}
                             {event.details?.convertedRoleName && (
-                              <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                              <p className="mt-1 text-[var(--pm-muted)]">
                                 تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
                               </p>
                             )}
-                            {event.note && <p className="mt-1 text-zinc-500 dark:text-zinc-400">{event.note}</p>}
+                            {event.note && <p className="mt-1 text-[var(--pm-muted)]">{event.note}</p>}
                           </div>
                         ))}
                       </div>

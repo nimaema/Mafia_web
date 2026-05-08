@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
       title="بازیابی رمز عبور"
       subtitle="ایمیل حساب خود را وارد کنید تا لینک تنظیم رمز تازه برای شما آماده شود."
       footer={
-        <Link href="/auth/login" className="text-center text-sm font-bold text-cyan-200 transition-colors hover:text-cyan-100">
+        <Link href="/auth/login" className="text-center text-sm font-bold text-[var(--pm-primary)] transition-colors hover:text-cyan-100">
           بازگشت به ورود
         </Link>
       }
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
         )}
 
         {message && (
-          <div className="rounded-2xl border border-cyan-300/24 bg-cyan-300/10 px-4 py-3 text-sm text-cyan-100">
+          <div className="rounded-2xl border border-[var(--pm-primary)]/30/24 bg-cyan-300/10 px-4 py-3 text-sm text-cyan-100">
             <div className="flex items-center gap-2 font-medium">
               <span className="material-symbols-outlined text-lg">mark_email_read</span>
               <span>{message}</span>
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
             <p className="mt-2 leading-6">
               چون سرویس ایمیل در این محیط در دسترس نیست، می‌توانید مستقیم از همین لینک روند بازیابی را تست کنید.
             </p>
-            <a href={previewUrl} className="ui-button-secondary mt-3 min-h-10 px-3 text-xs">
+            <a href={previewUrl} className="pm-button-secondary mt-3 min-h-10 px-3 text-xs">
               <span className="material-symbols-outlined text-base">open_in_new</span>
               باز کردن لینک بازیابی
             </a>
@@ -104,7 +104,7 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
 
-        <button disabled={isSubmitting} type="submit" className="ui-button-primary mt-2 min-h-12 w-full">
+        <button disabled={isSubmitting} type="submit" className="pm-button-primary mt-2 min-h-12 w-full">
           <span className="material-symbols-outlined text-xl">send</span>
           {isSubmitting ? "در حال ارسال..." : "ارسال لینک بازیابی"}
         </button>

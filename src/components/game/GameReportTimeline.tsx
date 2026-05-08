@@ -170,9 +170,9 @@ function phaseMeta(type: "DAY" | "NIGHT") {
   return {
     icon: "dark_mode",
     label: "شب",
-    card: "border-cyan-500/20 bg-cyan-500/[0.06]",
-    badge: "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300",
-    iconBox: "bg-cyan-500 text-zinc-950",
+    card: "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/[0.06]",
+    badge: "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]",
+    iconBox: "bg-[var(--pm-primary)] text-[var(--pm-text-inverse)]",
   };
 }
 
@@ -182,8 +182,8 @@ function eventTone(event: GameReportEvent) {
     return {
       icon: "block",
       label: "استفاده نشد",
-      card: "border-zinc-300 bg-zinc-100/75 dark:border-white/10 dark:bg-white/[0.045]",
-      badge: "border-zinc-300 bg-zinc-100 text-zinc-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300",
+      card: "border-zinc-300 bg-zinc-100/75 dark:border-[var(--pm-line)] dark:bg-white/[0.045]",
+      badge: "border-zinc-300 bg-zinc-100 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.06] dark:text-zinc-300",
       iconBox: "bg-zinc-500 text-white",
     };
   }
@@ -212,12 +212,12 @@ function reportPhases(events: GameReportEvent[]) {
 function DetailChip({ label, value, tone = "zinc" }: { label: string; value: string; tone?: "zinc" | "cyan" | "amber" | "red" }) {
   const toneClass =
     tone === "cyan"
-      ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
+      ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]"
       : tone === "amber"
         ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
         : tone === "red"
           ? "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300"
-          : "border-zinc-200 bg-white/78 text-zinc-600 dark:border-white/10 dark:bg-zinc-950/45 dark:text-zinc-300";
+          : "border-[var(--pm-line)] bg-white/78 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950/45 dark:text-zinc-300";
 
   return (
     <span className={cx("inline-flex min-h-8 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-black", toneClass)}>
@@ -263,12 +263,12 @@ function ReportEventCard({
                 {effectLabel(event.details.effectType)}
               </span>
             )}
-            <h4 className="min-w-0 flex-1 basis-full text-base font-black leading-7 text-zinc-950 dark:text-white sm:basis-auto">
+            <h4 className="min-w-0 flex-1 basis-full text-base font-black leading-7 text-[var(--pm-text)] sm:basis-auto">
               {eventHeadline(event)}
             </h4>
           </div>
 
-          <p className="mt-2 text-sm font-bold leading-7 text-zinc-600 dark:text-zinc-300">{eventNarrative(event)}</p>
+          <p className="mt-2 text-sm font-bold leading-7 text-[var(--pm-muted)]">{eventNarrative(event)}</p>
 
           <div className="mt-3 flex flex-wrap gap-2">
             <DetailChip label="عامل" value={actor} />
@@ -281,7 +281,7 @@ function ReportEventCard({
           </div>
 
           {event.note && (
-            <p className="mt-3 rounded-lg border border-zinc-200 bg-white/72 px-3 py-2 text-xs font-bold leading-6 text-zinc-500 dark:border-white/10 dark:bg-zinc-950/40 dark:text-zinc-400">
+            <p className="mt-3 rounded-lg border border-[var(--pm-line)] bg-white/72 px-3 py-2 text-xs font-bold leading-6 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950/40 dark:text-[var(--pm-muted)]">
               {event.note}
             </p>
           )}
@@ -336,21 +336,21 @@ export function GameReportTimeline({
   const nightCount = events.length - dayCount;
 
   return (
-    <section className={cx("overflow-hidden rounded-[1.45rem] border border-zinc-200 bg-white/86 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/62", className)}>
-      <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/86 p-4 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
+    <section className={cx("overflow-hidden rounded-[1.45rem] border border-[var(--pm-line)] bg-white/86 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/62", className)}>
+      <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-zinc-50/86 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="material-symbols-outlined text-xl text-cyan-700 dark:text-cyan-100">receipt_long</span>
-            <h3 className="text-base font-black text-zinc-950 dark:text-white">{title}</h3>
+            <h3 className="text-base font-black text-[var(--pm-text)]">{title}</h3>
           </div>
-          <p className="mt-1 text-xs font-bold leading-6 text-zinc-500 dark:text-zinc-400">{subtitle}</p>
+          <p className="mt-1 text-xs font-bold leading-6 text-[var(--pm-muted)]">{subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-2 text-[10px] font-black">
-          <span className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300">{events.length} اتفاق</span>
+          <span className="rounded-lg border border-[var(--pm-line)] bg-white px-2.5 py-1 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-300">{events.length} اتفاق</span>
           <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-amber-700 dark:text-amber-300">{dayCount} روز</span>
-          <span className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 text-cyan-700 dark:text-cyan-300">{nightCount} شب</span>
+          <span className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2.5 py-1 text-[var(--pm-primary)]">{nightCount} شب</span>
           {(sample || isPublic !== undefined) && (
-            <span className={sample || isPublic ? "rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 text-cyan-700 dark:text-cyan-300" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-amber-700 dark:text-amber-300"}>
+            <span className={sample || isPublic ? "rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2.5 py-1 text-[var(--pm-primary)]" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-amber-700 dark:text-amber-300"}>
               {sample ? "نمونه" : isPublic ? "منتشرشده" : "فقط مدیریت"}
             </span>
           )}
@@ -359,12 +359,12 @@ export function GameReportTimeline({
 
       {phases.length === 0 ? (
         <div className="flex min-h-72 flex-col items-center justify-center gap-4 p-8 text-center">
-          <div className="ui-icon size-16">
-            <span className="material-symbols-outlined text-3xl text-zinc-400">edit_note</span>
+          <div className="pm-icon size-16">
+            <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">edit_note</span>
           </div>
           <div>
-            <p className="font-black text-zinc-950 dark:text-white">{emptyTitle}</p>
-            <p className="mt-1 max-w-md text-sm font-bold leading-6 text-zinc-500 dark:text-zinc-400">{emptyText}</p>
+            <p className="font-black text-[var(--pm-text)]">{emptyTitle}</p>
+            <p className="mt-1 max-w-md text-sm font-bold leading-6 text-[var(--pm-muted)]">{emptyText}</p>
           </div>
         </div>
       ) : (
@@ -380,10 +380,10 @@ export function GameReportTimeline({
                     </span>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className={cx("material-symbols-outlined text-lg", phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-cyan-600 dark:text-cyan-300")}>{meta.icon}</span>
-                        <p className="font-black text-zinc-950 dark:text-white">{meta.label} {phase.round}</p>
+                        <span className={cx("material-symbols-outlined text-lg", phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]")}>{meta.icon}</span>
+                        <p className="font-black text-[var(--pm-text)]">{meta.label} {phase.round}</p>
                       </div>
-                      <p className="mt-1 text-[11px] font-bold text-zinc-500 dark:text-zinc-400">
+                      <p className="mt-1 text-[11px] font-bold text-[var(--pm-muted)]">
                         {phase.type === "DAY" ? "گفتگو، دفاع، رای‌گیری یا حذف روز" : "اکشن‌های شب، شات، نجات، استعلام یا تبدیل"}
                       </p>
                     </div>

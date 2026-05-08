@@ -22,7 +22,7 @@ export function AuthShell({ icon, title, subtitle, activeTab, children, footer }
     <div className="app-page min-h-screen overflow-hidden text-[var(--pm-text)]" dir="rtl">
       <header className="app-container relative z-20 flex items-center justify-between py-5">
         <Link href="/" className="flex items-center gap-3">
-          <div className="ui-icon size-11 text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10">
+          <div className="pm-icon size-11 text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10">
             <span className="material-symbols-outlined text-xl">theater_comedy</span>
           </div>
           <div>
@@ -33,7 +33,7 @@ export function AuthShell({ icon, title, subtitle, activeTab, children, footer }
 
         <div className="flex items-center gap-2">
           <ThemeToggle compact />
-          <Link href="/" className="ui-button-secondary min-h-10 px-3 text-xs shadow-none sm:px-4 sm:text-sm">
+          <Link href="/" className="pm-button-secondary min-h-10 px-3 text-xs shadow-none sm:px-4 sm:text-sm">
             <span className="material-symbols-outlined text-lg">arrow_back</span>
             خانه
           </Link>
@@ -49,14 +49,14 @@ export function AuthShell({ icon, title, subtitle, activeTab, children, footer }
           <h1 className="mt-5 max-w-3xl text-5xl font-black leading-tight text-[var(--pm-text)]">
             یک ورود کوتاه؛ بعدش مستقیم به لابی، نقش و گزارش بازی.
           </h1>
-          <p className="mt-5 max-w-2xl text-base font-bold leading-8 ui-muted text-[var(--pm-text)] opacity-90">
+          <p className="mt-5 max-w-2xl text-base font-bold leading-8 pm-muted-card text-[var(--pm-text)] opacity-90">
             فرم‌ها جمع‌وجور شده‌اند تا آیکن، فیلد و متن‌ها فاصله اضافه نداشته باشند و روی موبایل مثل یک اپ واقعی حس شوند.
           </p>
 
           <div className="motion-list mt-8 grid gap-3 xl:grid-cols-3">
             {highlights.map((item) => (
-              <div key={item.title} className="ui-card p-4">
-                <span className="material-symbols-outlined ui-icon size-11 text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-2xl">{item.icon}</span>
+              <div key={item.title} className="pm-card p-4">
+                <span className="material-symbols-outlined pm-icon size-11 text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-2xl">{item.icon}</span>
                 <h2 className="mt-4 font-black text-[var(--pm-text)]">{item.title}</h2>
                 <p className="mt-2 text-sm font-bold leading-7 text-[var(--pm-muted)]">{item.text}</p>
               </div>
@@ -64,7 +64,7 @@ export function AuthShell({ icon, title, subtitle, activeTab, children, footer }
           </div>
         </section>
 
-        <section className="motion-pop mx-auto w-full max-w-[440px] ui-card p-4 sm:p-5">
+        <section className="motion-pop mx-auto w-full max-w-[440px] pm-card p-4 sm:p-5">
           <header className="rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-4 text-center">
             <div className="mx-auto grid size-16 place-items-center rounded-[var(--radius-md)] border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]">
               <span className="material-symbols-outlined text-3xl">{icon}</span>
@@ -77,19 +77,19 @@ export function AuthShell({ icon, title, subtitle, activeTab, children, footer }
             <div className="mt-4 grid grid-cols-2 gap-1 rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-1">
               {activeTab === "login" ? (
                 <>
-                  <button className="ui-button-primary rounded-[var(--radius-sm)] py-2.5 text-sm">
+                  <button className="pm-button-primary rounded-[var(--radius-sm)] py-2.5 text-sm">
                     ورود
                   </button>
-                  <Link href="/auth/register" className="ui-button-secondary rounded-[var(--radius-sm)] py-2.5 text-sm border-transparent bg-transparent shadow-none hover:bg-[var(--pm-surface)] text-center">
+                  <Link href="/auth/register" className="pm-button-secondary rounded-[var(--radius-sm)] py-2.5 text-sm border-transparent bg-transparent shadow-none hover:bg-[var(--pm-surface)] text-center">
                     ثبت نام
                   </Link>
                 </>
               ) : (
                 <>
-                  <Link href="/auth/login" className="ui-button-secondary rounded-[var(--radius-sm)] py-2.5 text-sm border-transparent bg-transparent shadow-none hover:bg-[var(--pm-surface)] text-center">
+                  <Link href="/auth/login" className="pm-button-secondary rounded-[var(--radius-sm)] py-2.5 text-sm border-transparent bg-transparent shadow-none hover:bg-[var(--pm-surface)] text-center">
                     ورود
                   </Link>
-                  <button className="ui-button-primary rounded-[var(--radius-sm)] py-2.5 text-sm">
+                  <button className="pm-button-primary rounded-[var(--radius-sm)] py-2.5 text-sm">
                     ثبت نام
                   </button>
                 </>

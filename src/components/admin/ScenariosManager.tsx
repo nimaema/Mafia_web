@@ -364,17 +364,17 @@ export function ScenariosManager({
 
   return (
     <div className="space-y-5" dir="rtl">
-      <section className="ui-card overflow-hidden">
+      <section className="pm-card overflow-hidden">
         <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="ui-kicker">کتابخانه سناریوها</p>
-            <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">ترکیب‌های آماده بازی</h2>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+            <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">کتابخانه سناریوها</p>
+            <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">ترکیب‌های آماده بازی</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--pm-muted)]">
               سناریوها را به صورت خلاصه ببینید، با جستجو سریع پیدا کنید و جزئیات نقش‌ها را در پنجره جداگانه بررسی کنید.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => openForm()} className="ui-button-primary min-h-11 px-5">
+            <button onClick={() => openForm()} className="pm-button-primary min-h-11 px-5">
               <span className="material-symbols-outlined text-xl">add_circle</span>
               سناریو جدید
             </button>
@@ -383,33 +383,33 @@ export function ScenariosManager({
       </section>
 
       {isAdmin && (
-      <section className="ui-card overflow-hidden">
+      <section className="pm-card overflow-hidden">
         <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]">
               <span className="material-symbols-outlined text-xl">cloud_done</span>
             </div>
             <div>
-              <p className="text-sm font-black text-zinc-950 dark:text-white">پشتیبان کتابخانه سناریو</p>
-              <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm font-black text-[var(--pm-text)]">پشتیبان کتابخانه سناریو</p>
+              <p className="mt-1 text-xs leading-5 text-[var(--pm-muted)]">
                 وضعیت فعلی را روی سرور ذخیره کنید، یا نسخه JSON بگیرید و همان JSON را برای بروزرسانی روی دیتابیس اعمال کنید.
               </p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
-            <button onClick={handleBackup} disabled={backupBusy} className="ui-button-secondary min-h-10 px-3 text-xs">
+            <button onClick={handleBackup} disabled={backupBusy} className="pm-button-secondary min-h-10 px-3 text-xs">
               <span className="material-symbols-outlined text-base">backup</span>
               ذخیره بکاپ
             </button>
-            <button onClick={handleRestore} disabled={backupBusy} className="ui-button-secondary min-h-10 px-3 text-xs">
+            <button onClick={handleRestore} disabled={backupBusy} className="pm-button-secondary min-h-10 px-3 text-xs">
               <span className="material-symbols-outlined text-base">settings_backup_restore</span>
               بازیابی
             </button>
-            <button onClick={handleDownload} disabled={backupBusy} className="ui-button-secondary min-h-10 px-3 text-xs">
+            <button onClick={handleDownload} disabled={backupBusy} className="pm-button-secondary min-h-10 px-3 text-xs">
               <span className="material-symbols-outlined text-base">download</span>
               JSON
             </button>
-            <label className={`ui-button-secondary min-h-10 cursor-pointer px-3 text-xs ${backupBusy ? "pointer-events-none opacity-60" : ""}`}>
+            <label className={`pm-button-secondary min-h-10 cursor-pointer px-3 text-xs ${backupBusy ? "pointer-events-none opacity-60" : ""}`}>
               <span className="material-symbols-outlined text-base">upload_file</span>
               آپلود
               <input type="file" accept="application/json,.json" className="hidden" onChange={handleJsonUpload} disabled={backupBusy} />
@@ -419,44 +419,44 @@ export function ScenariosManager({
       </section>
       )}
 
-      <section className="ui-card overflow-hidden">
+      <section className="pm-card overflow-hidden">
         <button
           type="button"
           onClick={() => setShowStats((value) => !value)}
           className="flex min-h-14 w-full items-center justify-between gap-3 p-4 text-right"
         >
           <div>
-            <p className="text-sm font-black text-zinc-950 dark:text-white">نمای کلی سناریوها</p>
-            <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">
+            <p className="text-sm font-black text-[var(--pm-text)]">نمای کلی سناریوها</p>
+            <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">
               {stats.scenarios} سناریو، {stats.roles} نقش قابل استفاده
             </p>
           </div>
-          <span className="material-symbols-outlined text-zinc-400">
+          <span className="material-symbols-outlined text-[var(--pm-muted)]">
             {showStats ? "keyboard_arrow_up" : "keyboard_arrow_down"}
           </span>
         </button>
 
         {showStats && (
-          <div className="grid gap-3 border-t border-zinc-200 p-4 dark:border-white/10 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 border-t border-[var(--pm-line)] p-4 dark:border-[var(--pm-line)] md:grid-cols-2 xl:grid-cols-4">
             {[
-              ["سناریوها", stats.scenarios, "account_tree", "text-cyan-500"],
+              ["سناریوها", stats.scenarios, "account_tree", "text-[var(--pm-primary)]"],
               ["نقش‌های قابل استفاده", stats.roles, "theater_comedy", "text-sky-500"],
               ["نقش‌های شهروند", stats.citizenRoles, "verified_user", "text-sky-500"],
               ["نقش‌های مافیا", stats.mafiaRoles, "local_police", "text-red-500"],
             ].map(([label, value, icon, color]) => (
-              <div key={label} className="ui-muted p-4">
+              <div key={label} className="pm-muted-card p-4">
                 <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-                <p className="mt-3 text-2xl font-black text-zinc-950 dark:text-white">{value}</p>
-                <p className="mt-1 text-xs font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                <p className="mt-3 text-2xl font-black text-[var(--pm-text)]">{value}</p>
+                <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{label}</p>
               </div>
             ))}
           </div>
         )}
       </section>
 
-      <section className="ui-card p-3">
-        <label className="flex min-h-12 items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 dark:border-white/10 dark:bg-zinc-950/40">
-          <span className="material-symbols-outlined text-zinc-400">search</span>
+      <section className="pm-card p-3">
+        <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/40">
+          <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
           <input
             value={scenarioSearch}
             onChange={(event) => setScenarioSearch(event.target.value)}
@@ -467,13 +467,13 @@ export function ScenariosManager({
       </section>
 
       {filteredScenarios.length === 0 ? (
-        <section className="ui-card flex min-h-[380px] flex-col items-center justify-center gap-4 p-8 text-center">
-          <div className="ui-icon size-16">
-            <span className="material-symbols-outlined text-3xl text-zinc-400">account_tree</span>
+        <section className="pm-card flex min-h-[380px] flex-col items-center justify-center gap-4 p-8 text-center">
+          <div className="pm-icon size-16">
+            <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">account_tree</span>
           </div>
           <div>
-            <p className="font-black text-zinc-950 dark:text-white">سناریویی برای نمایش وجود ندارد</p>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">یک سناریوی جدید بسازید یا عبارت جستجو را تغییر دهید.</p>
+            <p className="font-black text-[var(--pm-text)]">سناریویی برای نمایش وجود ندارد</p>
+            <p className="mt-1 text-sm text-[var(--pm-muted)]">یک سناریوی جدید بسازید یا عبارت جستجو را تغییر دهید.</p>
           </div>
         </section>
       ) : (
@@ -500,7 +500,7 @@ export function ScenariosManager({
                     setSelectedScenario(scenario);
                   }
                 }}
-                className="group relative cursor-pointer overflow-hidden rounded-lg border border-zinc-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 dark:border-white/10 dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                className="group relative cursor-pointer overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-[var(--pm-primary)]/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-[var(--pm-primary)]/30 dark:border-[var(--pm-line)] dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
               >
                 <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(dominantAlignment)}`} />
                 <div className="flex items-start justify-between gap-3 pt-1">
@@ -509,13 +509,13 @@ export function ScenariosManager({
                       <span className="material-symbols-outlined text-xl">account_tree</span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">سناریوی {alignmentLabel(dominantAlignment)}</p>
-                      <h3 className="mt-1 break-words text-xl font-black leading-8 text-zinc-950 dark:text-white">{scenario.name}</h3>
+                      <p className="text-[10px] font-bold text-[var(--pm-muted)]">سناریوی {alignmentLabel(dominantAlignment)}</p>
+                      <h3 className="mt-1 break-words text-xl font-black leading-8 text-[var(--pm-text)]">{scenario.name}</h3>
                     </div>
                   </div>
 
                   <div className="flex shrink-0 items-start gap-1">
-                    <span className="flex min-h-8 items-center rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 text-[10px] font-black text-cyan-700 dark:text-cyan-300">
+                    <span className="flex min-h-8 items-center rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 text-[10px] font-black text-[var(--pm-primary)]">
                       {total} نفر
                     </span>
                     <button
@@ -523,7 +523,7 @@ export function ScenariosManager({
                         event.stopPropagation();
                         openForm(scenario);
                       }}
-                      className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-sky-300"
+                      className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)] dark:hover:text-sky-300"
                       title="ویرایش سناریو"
                     >
                       <span className="material-symbols-outlined text-base">edit_square</span>
@@ -533,7 +533,7 @@ export function ScenariosManager({
                         event.stopPropagation();
                         openDuplicateForm(scenario);
                       }}
-                      className="flex size-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/10 hover:text-cyan-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400 dark:hover:text-cyan-300"
+                      className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-cyan-700 dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)] dark:hover:text-[var(--pm-primary)]"
                       title="کپی سناریو"
                     >
                       <span className="material-symbols-outlined text-base">content_copy</span>
@@ -551,14 +551,14 @@ export function ScenariosManager({
                   </div>
                 </div>
 
-                <p className="mt-4 line-clamp-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+                <p className="mt-4 line-clamp-3 text-sm leading-6 text-[var(--pm-muted)]">
                   {scenario.description || "توضیحی برای این سناریو ثبت نشده است."}
                 </p>
 
-                <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="mt-4 overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface-soft)]">
                   <div className="flex items-center justify-between gap-3 px-3 py-2 text-xs">
-                    <span className="font-black text-zinc-950 dark:text-white">ترکیب سناریو</span>
-                    <span className="font-bold text-zinc-500 dark:text-zinc-400">{scenario.roles.length} نوع نقش</span>
+                    <span className="font-black text-[var(--pm-text)]">ترکیب سناریو</span>
+                    <span className="font-bold text-[var(--pm-muted)]">{scenario.roles.length} نوع نقش</span>
                   </div>
                   <div className="flex h-2 overflow-hidden bg-zinc-200 dark:bg-white/10">
                     {composition.map((item) => (
@@ -581,11 +581,11 @@ export function ScenariosManager({
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center gap-3 border-t border-zinc-200 pt-3 dark:border-white/10">
+                <div className="mt-4 flex items-center gap-3 border-t border-[var(--pm-line)] pt-3 dark:border-[var(--pm-line)]">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-zinc-500 dark:text-zinc-400">برای دیدن نقش‌ها و ظرفیت دقیق وارد جزئیات شوید.</p>
+                    <p className="truncate text-xs font-bold text-[var(--pm-muted)]">برای دیدن نقش‌ها و ظرفیت دقیق وارد جزئیات شوید.</p>
                   </div>
-                  <div className="mr-auto flex items-center gap-1 text-[10px] font-black text-zinc-400 transition-colors group-hover:text-cyan-600 dark:group-hover:text-cyan-300">
+                  <div className="mr-auto flex items-center gap-1 text-[10px] font-black text-[var(--pm-muted)] transition-colors group-hover:text-[var(--pm-primary)] dark:group-hover:text-[var(--pm-primary)]">
                     جزئیات
                     <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>
                   </div>
@@ -598,18 +598,18 @@ export function ScenariosManager({
 
       {showForm && (
         <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center">
-          <section className="ui-card pm-safe-modal flex w-full max-w-3xl flex-col overflow-hidden">
-            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+          <section className="pm-card pm-safe-modal flex w-full max-w-3xl flex-col overflow-hidden">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
               <div>
-                <p className="ui-kicker">طراحی سناریو</p>
-                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">طراحی سناریو</p>
+                <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">
                   {editingScenario ? "ویرایش سناریو" : "ساخت سناریو جدید"}
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">
                   نقش‌ها را جستجو و تعداد هر کدام را مشخص کنید.
                 </p>
               </div>
-              <button onClick={closeForm} className="ui-button-secondary size-10 p-0">
+              <button onClick={closeForm} className="pm-button-secondary size-10 p-0">
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>
             </div>
@@ -617,7 +617,7 @@ export function ScenariosManager({
             <form id="scenario-form" onSubmit={handleSubmit} noValidate className="custom-scrollbar flex-1 space-y-5 overflow-y-auto p-5">
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="flex flex-col gap-2">
-                  <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">نام سناریو</span>
+                  <span className="text-xs font-bold text-[var(--pm-muted)]">نام سناریو</span>
                   <input
                     value={formData.name}
                     onChange={(event) => setFormData({ ...formData, name: event.target.value })}
@@ -625,14 +625,14 @@ export function ScenariosManager({
                   />
                 </label>
 
-                <div className="ui-muted p-3">
-                  <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400">مجموع بازیکنان</p>
-                  <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">{totalPlayers}</p>
+                <div className="pm-muted-card p-3">
+                  <p className="text-xs font-bold text-[var(--pm-muted)]">مجموع بازیکنان</p>
+                  <p className="mt-2 text-2xl font-black text-[var(--pm-text)]">{totalPlayers}</p>
                 </div>
               </div>
 
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">توضیحات</span>
+                <span className="text-xs font-bold text-[var(--pm-muted)]">توضیحات</span>
                 <textarea
                   value={formData.description}
                   onChange={(event) => setFormData({ ...formData, description: event.target.value })}
@@ -641,16 +641,16 @@ export function ScenariosManager({
                 />
               </label>
 
-              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-zinc-950/40">
+              <div className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/40">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <p className="text-sm font-black text-zinc-950 dark:text-white">نقش‌های سناریو</p>
-                  <span className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
+                  <p className="text-sm font-black text-[var(--pm-text)]">نقش‌های سناریو</p>
+                  <span className="rounded-lg border border-[var(--pm-line)] bg-white px-2.5 py-1 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-[var(--pm-muted)]">
                     {formData.roles.length} نقش انتخاب شده
                   </span>
                 </div>
 
-                <label className="mb-3 flex min-h-11 items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 dark:border-white/10 dark:bg-white/[0.03]">
-                  <span className="material-symbols-outlined text-zinc-400">search</span>
+                <label className="mb-3 flex min-h-11 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-white px-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                  <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
                   <input
                     value={roleSearch}
                     onChange={(event) => setRoleSearch(event.target.value)}
@@ -661,8 +661,8 @@ export function ScenariosManager({
 
                 <div className="custom-scrollbar max-h-[390px] overflow-y-auto">
                   {filteredRoles.length === 0 ? (
-                    <div className="flex min-h-40 flex-col items-center justify-center gap-3 text-center text-sm text-zinc-500 dark:text-zinc-400">
-                      <span className="material-symbols-outlined text-3xl text-zinc-400">manage_search</span>
+                    <div className="flex min-h-40 flex-col items-center justify-center gap-3 text-center text-sm text-[var(--pm-muted)]">
+                      <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">manage_search</span>
                       نقشی با این جستجو پیدا نشد.
                     </div>
                   ) : (
@@ -671,15 +671,15 @@ export function ScenariosManager({
                         const currentCount = formData.roles.find((item) => item.roleId === role.id)?.count || 0;
 
                         return (
-                          <div key={role.id} className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                          <div key={role.id} className="rounded-lg border border-[var(--pm-line)] bg-white p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
                             <div className="flex items-center justify-between gap-3">
                               <div className="min-w-0">
-                                <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{role.name}</p>
+                                <p className="truncate text-sm font-black text-[var(--pm-text)]">{role.name}</p>
                                 <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
                                   {alignmentLabel(role.alignment)}
                                 </p>
                               </div>
-                              <div className="flex shrink-0 items-center gap-2 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
+                              <div className="flex shrink-0 items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-white p-1 dark:border-[var(--pm-line)] dark:bg-zinc-950">
                                 <button
                                   type="button"
                                   onClick={() => updateRoleCount(role.id, -1)}
@@ -688,7 +688,7 @@ export function ScenariosManager({
                                 >
                                   <span className="material-symbols-outlined text-base">remove</span>
                                 </button>
-                                <span className="w-5 text-center text-sm font-black text-zinc-950 dark:text-white">{currentCount}</span>
+                                <span className="w-5 text-center text-sm font-black text-[var(--pm-text)]">{currentCount}</span>
                                 <button
                                   type="button"
                                   onClick={() => updateRoleCount(role.id, 1)}
@@ -707,15 +707,15 @@ export function ScenariosManager({
               </div>
             </form>
 
-            <div className="flex flex-wrap justify-end gap-3 border-t border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-              <button type="button" onClick={closeForm} className="ui-button-secondary min-h-11 px-5">
+            <div className="flex flex-wrap justify-end gap-3 border-t border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+              <button type="button" onClick={closeForm} className="pm-button-secondary min-h-11 px-5">
                 انصراف
               </button>
               <button
                 type="submit"
                 form="scenario-form"
                 disabled={loading || formData.roles.length === 0}
-                className="ui-button-primary min-h-11 px-5 disabled:opacity-50"
+                className="pm-button-primary min-h-11 px-5 disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-xl">{loading ? "progress_activity" : "save"}</span>
                 {loading ? "در حال ذخیره..." : "ذخیره سناریو"}
@@ -731,18 +731,18 @@ export function ScenariosManager({
           onClick={() => setSelectedScenario(null)}
         >
           <section
-            className="ui-card pm-safe-modal motion-pop w-full max-w-3xl overflow-hidden"
+            className="pm-card pm-safe-modal motion-pop w-full max-w-3xl overflow-hidden"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
               <div className="min-w-0">
-                <p className="ui-kicker">جزئیات سناریو</p>
-                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">{selectedScenario.name}</h2>
-                <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">جزئیات سناریو</p>
+                <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">{selectedScenario.name}</h2>
+                <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">
                   {selectedScenario.description || "توضیحی برای این سناریو ثبت نشده است."}
                 </p>
               </div>
-              <button onClick={() => setSelectedScenario(null)} className="ui-button-secondary size-10 p-0">
+              <button onClick={() => setSelectedScenario(null)} className="pm-button-secondary size-10 p-0">
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>
             </div>
@@ -750,15 +750,15 @@ export function ScenariosManager({
             <div className="custom-scrollbar max-h-[calc(100dvh-15rem)] overflow-y-auto p-5 sm:max-h-[62vh]">
               <div className="grid gap-3 sm:grid-cols-4">
                 {[
-                  ["کل بازیکن", scenarioTotalPlayers(selectedScenario), "groups", "text-cyan-500"],
+                  ["کل بازیکن", scenarioTotalPlayers(selectedScenario), "groups", "text-[var(--pm-primary)]"],
                   ["شهروند", scenarioAlignmentCounts(selectedScenario).CITIZEN, "verified_user", "text-sky-500"],
                   ["مافیا", scenarioAlignmentCounts(selectedScenario).MAFIA, "local_police", "text-red-500"],
                   ["مستقل", scenarioAlignmentCounts(selectedScenario).NEUTRAL, "casino", "text-amber-500"],
                 ].map(([label, value, icon, color]) => (
-                  <div key={label} className="ui-muted p-3">
+                  <div key={label} className="pm-muted-card p-3">
                     <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-                    <p className="mt-2 text-lg font-black text-zinc-950 dark:text-white">{value}</p>
-                    <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                    <p className="mt-2 text-lg font-black text-[var(--pm-text)]">{value}</p>
+                    <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">{label}</p>
                   </div>
                 ))}
               </div>
@@ -768,25 +768,25 @@ export function ScenariosManager({
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 border-t border-zinc-200 p-5 dark:border-white/10">
+            <div className="flex flex-wrap gap-2 border-t border-[var(--pm-line)] p-5 dark:border-[var(--pm-line)]">
               <button
                 onClick={() => {
                   openForm(selectedScenario);
                   setSelectedScenario(null);
                 }}
-                className="ui-button-secondary min-h-10 flex-1 px-4"
+                className="pm-button-secondary min-h-10 flex-1 px-4"
               >
                 <span className="material-symbols-outlined text-lg">edit_square</span>
                 ویرایش سناریو
               </button>
               <button
                 onClick={() => openDuplicateForm(selectedScenario)}
-                className="ui-button-secondary min-h-10 flex-1 px-4"
+                className="pm-button-secondary min-h-10 flex-1 px-4"
               >
                 <span className="material-symbols-outlined text-lg">content_copy</span>
                 کپی برای نسخه جدید
               </button>
-              <button onClick={() => handleDelete(selectedScenario.id)} className="ui-button-danger min-h-10 flex-1 px-4">
+              <button onClick={() => handleDelete(selectedScenario.id)} className="pm-button-danger min-h-10 flex-1 px-4">
                 <span className="material-symbols-outlined text-lg">delete</span>
                 حذف سناریو
               </button>

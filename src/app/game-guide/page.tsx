@@ -150,7 +150,7 @@ export default async function GameGuidePage() {
     .filter((group) => group.roles.length > 0);
 
   return (
-    <main className="app-page min-h-screen overflow-hidden text-zinc-950 dark:text-white" dir="rtl">
+    <main className="app-page min-h-screen overflow-hidden text-[var(--pm-text)]" dir="rtl">
       <header className="app-container relative z-10 flex items-center justify-between gap-3 py-5">
         <Link href="/" className="flex items-center gap-3">
           <div className="pm-icon-primary">
@@ -158,7 +158,7 @@ export default async function GameGuidePage() {
           </div>
           <div>
             <p className="text-lg font-black">مافیا بورد</p>
-            <p className="text-[11px] font-black text-cyan-700 dark:text-cyan-200">راهنمای بازی</p>
+            <p className="text-[11px] font-black text-cyan-700 dark:text-[var(--pm-primary)]">راهنمای بازی</p>
           </div>
         </Link>
         <div className="flex items-center gap-2">
@@ -179,7 +179,7 @@ export default async function GameGuidePage() {
           <h1 className="mt-5 max-w-3xl text-4xl font-black leading-tight sm:text-5xl">
             از ورود تا گزارش نهایی، بازی را بدون ابهام اجرا کنید.
           </h1>
-          <p className="mt-5 max-w-2xl text-base font-bold leading-8 text-zinc-600 dark:text-white/58">
+          <p className="mt-5 max-w-2xl text-base font-bold leading-8 text-[var(--pm-muted)] dark:text-white/58">
             این صفحه هم جریان استفاده از اپ را توضیح می‌دهد، هم منطق اجرای مافیا در روز، شب، رای‌گیری، توانایی‌ها و تاریخچه را.
           </p>
           <div className="mt-7 flex flex-wrap gap-2">
@@ -192,13 +192,13 @@ export default async function GameGuidePage() {
         <aside className="pm-command pm-aurora motion-pop p-4">
           <div className="relative z-10 grid gap-3">
             {phaseRows.map(([phase, text], index) => (
-              <div key={phase} className="grid grid-cols-[2.6rem_minmax(0,1fr)] gap-3 rounded-2xl border border-zinc-200 bg-white/72 p-3 dark:border-white/10 dark:bg-black/20">
-                <span className="grid size-10 place-items-center rounded-xl bg-cyan-500/10 text-sm font-black text-cyan-700 dark:bg-cyan-300/12 dark:text-cyan-100">
+              <div key={phase} className="grid grid-cols-[2.6rem_minmax(0,1fr)] gap-3 rounded-2xl border border-[var(--pm-line)] bg-white/72 p-3 dark:border-[var(--pm-line)] dark:bg-black/20">
+                <span className="grid size-10 place-items-center rounded-xl bg-[var(--pm-primary)]/10 text-sm font-black text-cyan-700 dark:bg-cyan-300/12 dark:text-cyan-100">
                   {index + 1}
                 </span>
                 <div>
                   <p className="font-black">{phase}</p>
-                  <p className="mt-1 text-xs font-bold leading-6 text-zinc-600 dark:text-white/52">{text}</p>
+                  <p className="mt-1 text-xs font-bold leading-6 text-[var(--pm-muted)] dark:text-white/52">{text}</p>
                 </div>
               </div>
             ))}
@@ -211,18 +211,18 @@ export default async function GameGuidePage() {
           {guideSections.map((section) => (
             <article key={section.title} className="pm-card motion-surface overflow-hidden p-4">
               <div className="flex items-start gap-3">
-                <span className="material-symbols-outlined grid size-12 place-items-center rounded-2xl bg-cyan-500/10 text-2xl text-cyan-700 dark:bg-cyan-300/12 dark:text-cyan-100">
+                <span className="material-symbols-outlined grid size-12 place-items-center rounded-2xl bg-[var(--pm-primary)]/10 text-2xl text-cyan-700 dark:bg-cyan-300/12 dark:text-cyan-100">
                   {section.icon}
                 </span>
                 <div>
                   <h2 className="text-xl font-black">{section.title}</h2>
-                  <p className="mt-2 text-sm font-bold leading-7 text-zinc-600 dark:text-white/54">{section.text}</p>
+                  <p className="mt-2 text-sm font-bold leading-7 text-[var(--pm-muted)] dark:text-white/54">{section.text}</p>
                 </div>
               </div>
               <div className="mt-4 grid gap-2">
                 {section.points.map((point) => (
-                  <div key={point} className="flex items-start gap-2 rounded-xl border border-zinc-200 bg-white/65 px-3 py-2 text-sm font-bold leading-6 text-zinc-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/68">
-                    <span className="material-symbols-outlined mt-0.5 text-base text-cyan-600 dark:text-cyan-300">check_circle</span>
+                  <div key={point} className="flex items-start gap-2 rounded-xl border border-[var(--pm-line)] bg-white/65 px-3 py-2 text-sm font-bold leading-6 text-zinc-700 dark:border-[var(--pm-line)] dark:bg-white/[0.04] dark:text-white/68">
+                    <span className="material-symbols-outlined mt-0.5 text-base text-[var(--pm-primary)] dark:text-[var(--pm-primary)]">check_circle</span>
                     <span>{point}</span>
                   </div>
                 ))}
@@ -235,10 +235,10 @@ export default async function GameGuidePage() {
       <section className="app-container pb-12">
         <div className="pm-command overflow-hidden p-0">
           <div className="grid gap-0 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-            <div className="border-b border-zinc-200 p-5 dark:border-white/10 xl:border-b-0 xl:border-l">
+            <div className="border-b border-[var(--pm-line)] p-5 dark:border-[var(--pm-line)] xl:border-b-0 xl:border-l">
               <p className="pm-kicker">کتابخانه عمومی بازی</p>
               <h2 className="mt-2 text-2xl font-black">نقش‌ها و سناریوها برای بازیکنان</h2>
-              <p className="mt-3 text-sm font-bold leading-7 text-zinc-600 dark:text-white/54">
+              <p className="mt-3 text-sm font-bold leading-7 text-[var(--pm-muted)] dark:text-white/54">
                 این بخش همان اطلاعاتی را نشان می‌دهد که بازیکن عادی برای شناخت سناریوها، تعداد نقش‌ها و توضیح کلی هر نقش لازم دارد؛ بدون نیاز به ورود به صفحات مدیریتی.
               </p>
 
@@ -248,9 +248,9 @@ export default async function GameGuidePage() {
                 </div>
               ) : (
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3">
-                    <p className="text-2xl font-black text-cyan-700 dark:text-cyan-300">{roles.length}</p>
-                    <p className="mt-1 text-[10px] font-black text-cyan-700/70 dark:text-cyan-300/70">نقش ثبت‌شده</p>
+                  <div className="rounded-2xl border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3">
+                    <p className="text-2xl font-black text-[var(--pm-primary)]">{roles.length}</p>
+                    <p className="mt-1 text-[10px] font-black text-cyan-700/70 dark:text-[var(--pm-primary)]/70">نقش ثبت‌شده</p>
                   </div>
                   <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-3">
                     <p className="text-2xl font-black text-violet-700 dark:text-violet-300">{scenarios.length}</p>
@@ -267,24 +267,24 @@ export default async function GameGuidePage() {
             </div>
 
             <div className="grid gap-0 lg:grid-cols-2 xl:min-h-[620px]">
-              <div className="border-b border-zinc-200 p-4 dark:border-white/10 lg:border-b-0 lg:border-l">
+              <div className="border-b border-[var(--pm-line)] p-4 dark:border-[var(--pm-line)] lg:border-b-0 lg:border-l">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[11px] font-black text-cyan-700 dark:text-cyan-300">راهنمای نقش‌ها</p>
+                    <p className="text-[11px] font-black text-[var(--pm-primary)]">راهنمای نقش‌ها</p>
                     <h3 className="mt-1 text-lg font-black">نقش‌ها بر اساس جبهه</h3>
                   </div>
-                  <span className="material-symbols-outlined grid size-10 place-items-center rounded-2xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-300">theater_comedy</span>
+                  <span className="material-symbols-outlined grid size-10 place-items-center rounded-2xl bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]">theater_comedy</span>
                 </div>
 
                 <div className="custom-scrollbar mt-4 max-h-[560px] space-y-4 overflow-y-auto pr-1">
                   {roleGroups.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-zinc-200 p-5 text-center text-sm font-bold text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+                    <div className="rounded-2xl border border-dashed border-[var(--pm-line)] p-5 text-center text-sm font-bold text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:text-[var(--pm-muted)]">
                       نقشی برای نمایش پیدا نشد.
                     </div>
                   ) : (
                     roleGroups.map((group) => (
-                      <section key={group.alignment} className="overflow-hidden rounded-2xl border border-zinc-200 bg-white/62 dark:border-white/10 dark:bg-black/18">
-                        <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/80 px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.035]">
+                      <section key={group.alignment} className="overflow-hidden rounded-2xl border border-[var(--pm-line)] bg-white/62 dark:border-[var(--pm-line)] dark:bg-black/18">
+                        <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-line)] bg-zinc-50/80 px-3 py-2.5 dark:border-[var(--pm-line)] dark:bg-white/[0.035]">
                           <div className="flex items-center gap-2">
                             <span className={`material-symbols-outlined grid size-9 place-items-center rounded-xl border text-lg ${alignmentClass(group.alignment)}`}>
                               {alignmentIcon(group.alignment)}
@@ -297,14 +297,14 @@ export default async function GameGuidePage() {
                         </div>
                         <div className="grid gap-2 p-2">
                           {group.roles.map((role) => (
-                            <article key={role.id} className="rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/55">
+                            <article key={role.id} className="rounded-2xl border border-[var(--pm-line)] bg-white p-3 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/55">
                               <div className="flex items-start justify-between gap-3">
-                                <h4 className="break-words text-sm font-black leading-6 text-zinc-950 dark:text-white">{role.name}</h4>
+                                <h4 className="break-words text-sm font-black leading-6 text-[var(--pm-text)]">{role.name}</h4>
                                 <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
                                   {alignmentLabel(role.alignment)}
                                 </span>
                               </div>
-                              <p className="mt-2 line-clamp-4 text-xs font-bold leading-6 text-zinc-600 dark:text-white/58">
+                              <p className="mt-2 line-clamp-4 text-xs font-bold leading-6 text-[var(--pm-muted)] dark:text-white/58">
                                 {role.description || "توضیحی برای این نقش ثبت نشده است."}
                               </p>
                             </article>
@@ -327,7 +327,7 @@ export default async function GameGuidePage() {
 
                 <div className="custom-scrollbar mt-4 max-h-[560px] space-y-3 overflow-y-auto pr-1">
                   {scenarios.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-zinc-200 p-5 text-center text-sm font-bold text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+                    <div className="rounded-2xl border border-dashed border-[var(--pm-line)] p-5 text-center text-sm font-bold text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:text-[var(--pm-muted)]">
                       سناریویی برای نمایش پیدا نشد.
                     </div>
                   ) : (
@@ -342,15 +342,15 @@ export default async function GameGuidePage() {
                         });
 
                       return (
-                        <article key={scenario.id} className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/55">
-                          <div className="border-b border-zinc-200 bg-zinc-50/80 p-3 dark:border-white/10 dark:bg-white/[0.035]">
+                        <article key={scenario.id} className="overflow-hidden rounded-2xl border border-[var(--pm-line)] bg-white shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/55">
+                          <div className="border-b border-[var(--pm-line)] bg-zinc-50/80 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.035]">
                             <div className="flex items-start justify-between gap-3">
-                              <h4 className="break-words text-base font-black leading-7 text-zinc-950 dark:text-white">{scenario.name}</h4>
+                              <h4 className="break-words text-base font-black leading-7 text-[var(--pm-text)]">{scenario.name}</h4>
                               <span className="shrink-0 rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-[10px] font-black text-violet-700 dark:text-violet-300">
                                 {totalPlayers || "؟"} نفر
                               </span>
                             </div>
-                            <p className="mt-2 line-clamp-3 text-xs font-bold leading-6 text-zinc-600 dark:text-white/58">
+                            <p className="mt-2 line-clamp-3 text-xs font-bold leading-6 text-[var(--pm-muted)] dark:text-white/58">
                               {scenario.description || "توضیحی برای این سناریو ثبت نشده است."}
                             </p>
                           </div>
@@ -362,7 +362,7 @@ export default async function GameGuidePage() {
                                 </span>
                               ))
                             ) : (
-                              <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                              <span className="rounded-full border border-[var(--pm-line)] bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]">
                                 ترکیب نقش ثبت نشده
                               </span>
                             )}
@@ -384,13 +384,13 @@ export default async function GameGuidePage() {
             <div>
               <p className="pm-kicker">نکات مهم اجرای سالم</p>
               <h2 className="mt-2 text-2xl font-black">چیزهایی که وسط بازی نباید گم شوند</h2>
-              <p className="mt-3 text-sm font-bold leading-7 text-zinc-600 dark:text-white/54">
+              <p className="mt-3 text-sm font-bold leading-7 text-[var(--pm-muted)] dark:text-white/54">
                 این قواعد کمک می‌کند گزارش نهایی هم خوانا باشد، هم نتیجه و وضعیت بازیکنان را درست حساب کند.
               </p>
             </div>
             <div className="grid gap-2">
               {quickRules.map((rule) => (
-                <div key={rule} className="rounded-2xl border border-zinc-200 bg-white/70 p-3 text-sm font-bold leading-7 text-zinc-700 dark:border-white/10 dark:bg-black/18 dark:text-white/68">
+                <div key={rule} className="rounded-2xl border border-[var(--pm-line)] bg-white/70 p-3 text-sm font-bold leading-7 text-zinc-700 dark:border-[var(--pm-line)] dark:bg-black/18 dark:text-white/68">
                   {rule}
                 </div>
               ))}

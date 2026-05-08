@@ -144,7 +144,7 @@ function alignmentClass(alignment?: Alignment | null) {
   if (alignment === "CITIZEN") return "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-300";
   if (alignment === "MAFIA") return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
   if (alignment === "NEUTRAL") return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300";
-  return "border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400";
+  return "border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]";
 }
 
 function alignmentIcon(alignment?: Alignment | null) {
@@ -305,7 +305,7 @@ function SpeechTimer({
   const audioContextRef = useRef<AudioContext | null>(null);
   const progress = duration > 0 ? Math.max(0, Math.min(100, (remaining / duration) * 100)) : 0;
   const toneClass = tone === "cyan"
-    ? "border-cyan-500/25 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
+    ? "border-cyan-500/25 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]"
     : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300";
 
   useEffect(() => {
@@ -374,27 +374,27 @@ function SpeechTimer({
             {icon}
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-black text-zinc-950 dark:text-white">{title}</p>
+            <p className="text-sm font-black text-[var(--pm-text)]">{title}</p>
             <p className="mt-1 text-[10px] font-bold leading-5 opacity-80">{subtitle}</p>
           </div>
         </div>
-        <p className="font-mono text-2xl font-black tabular-nums text-zinc-950 dark:text-white">{formatTimer(remaining)}</p>
+        <p className="font-mono text-2xl font-black tabular-nums text-[var(--pm-text)]">{formatTimer(remaining)}</p>
       </div>
 
       <div className="px-3 pb-3">
         <div className="h-2 overflow-hidden rounded-full bg-white/70 dark:bg-zinc-950/50">
-          <div className={tone === "cyan" ? "h-full rounded-full bg-cyan-500 transition-[width]" : "h-full rounded-full bg-amber-500 transition-[width]"} style={{ width: `${progress}%` }} />
+          <div className={tone === "cyan" ? "h-full rounded-full bg-[var(--pm-primary)] transition-[width]" : "h-full rounded-full bg-amber-500 transition-[width]"} style={{ width: `${progress}%` }} />
         </div>
         <div className="mt-3 grid grid-cols-[1fr_44px_96px] gap-2">
-          <button type="button" onClick={toggleRunning} className="ui-button-primary min-h-10 px-3 text-xs">
+          <button type="button" onClick={toggleRunning} className="pm-button-primary min-h-10 px-3 text-xs">
             <span className="material-symbols-outlined text-base">{running ? "pause" : "play_arrow"}</span>
             {running ? "مکث" : remaining > 0 && remaining < duration ? "ادامه" : "شروع"}
           </button>
-          <button type="button" onClick={reset} className="ui-button-secondary min-h-10 px-0" aria-label="بازنشانی">
+          <button type="button" onClick={reset} className="pm-button-secondary min-h-10 px-0" aria-label="بازنشانی">
             <span className="material-symbols-outlined text-base">replay</span>
           </button>
           <label className="relative">
-            <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-400">ثانیه</span>
+            <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-[var(--pm-muted)]">ثانیه</span>
             <input
               type="number"
               inputMode="numeric"
@@ -414,7 +414,7 @@ function SpeechTimer({
               key={delta}
               type="button"
               onClick={() => updateDuration(duration + delta)}
-              className="rounded-lg border border-zinc-200 bg-white/60 py-1.5 text-[10px] font-black text-zinc-600 transition-all hover:bg-white dark:border-white/10 dark:bg-zinc-950/30 dark:text-zinc-300"
+              className="rounded-lg border border-[var(--pm-line)] bg-white/60 py-1.5 text-[10px] font-black text-[var(--pm-muted)] transition-all hover:bg-white dark:border-[var(--pm-line)] dark:bg-zinc-950/30 dark:text-zinc-300"
             >
               {delta > 0 ? `+${delta}` : delta}
             </button>
@@ -427,11 +427,11 @@ function SpeechTimer({
 
 function ModeratorTimerBoard() {
   return (
-    <section className="ui-card overflow-hidden">
-      <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-        <p className="ui-kicker">تایمر صحبت</p>
-        <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">نوبت و چالش</h2>
-        <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+    <section className="pm-card overflow-hidden">
+      <div className="border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+        <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">تایمر صحبت</p>
+        <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">نوبت و چالش</h2>
+        <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">
           هنگام شروع صحبت بازیکن یا چالش، تایمر مناسب را بزنید؛ پایان زمان با صدا اعلام می‌شود.
         </p>
       </div>
@@ -896,14 +896,14 @@ export default function ModeratorGamePage() {
     const selectedPlayer = playerById(value);
     const image = selectedPlayer ? playerImage(selectedPlayer) : null;
     return (
-      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
+      <div className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-2 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
         <div className="mb-2 flex items-center justify-between gap-2">
-          <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">{label}</span>
+          <span className="text-xs font-black text-[var(--pm-muted)]">{label}</span>
           {!required && value && (
             <button
               type="button"
               onClick={() => clearPlayerSlot(slot, index)}
-              className="text-[10px] font-black text-zinc-400 transition-colors hover:text-red-500"
+              className="text-[10px] font-black text-[var(--pm-muted)] transition-colors hover:text-red-500"
             >
               پاک کردن
             </button>
@@ -913,22 +913,22 @@ export default function ModeratorGamePage() {
           type="button"
           onClick={() => openPlayerPicker({ slot, title: label, options, index })}
           disabled={disabled}
-          className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-2 text-right transition-all hover:border-cyan-500/40 hover:bg-cyan-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950/60"
+          className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-[var(--pm-line)] bg-white p-2 text-right transition-all hover:border-cyan-500/40 hover:bg-[var(--pm-primary)]/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[var(--pm-line)] dark:bg-zinc-950/60"
         >
           <span className="flex min-w-0 items-center gap-2">
             <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-xs font-black text-white dark:bg-white dark:text-zinc-950">
               {selectedPlayer ? image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(selectedPlayer.name) : <span className="material-symbols-outlined text-lg">person_search</span>}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-black text-zinc-950 dark:text-white">
+              <span className="block truncate text-sm font-black text-[var(--pm-text)]">
                 {selectedPlayer?.name || "انتخاب بازیکن"}
               </span>
-              <span className="block truncate text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
+              <span className="block truncate text-[10px] font-bold text-[var(--pm-muted)]">
                 {selectedPlayer?.role?.name || "پنجره انتخاب باز می‌شود"}
               </span>
             </span>
           </span>
-          <span className="material-symbols-outlined text-lg text-zinc-400">open_in_new</span>
+          <span className="material-symbols-outlined text-lg text-[var(--pm-muted)]">open_in_new</span>
         </button>
       </div>
     );
@@ -1184,14 +1184,14 @@ export default function ModeratorGamePage() {
   if (loading) {
     return (
       <div className="flex min-h-[560px] items-center justify-center" dir="rtl">
-        <div className="ui-card w-full max-w-xl overflow-hidden text-center">
+        <div className="pm-card w-full max-w-xl overflow-hidden text-center">
           <div className="h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-300" />
           <div className="p-8 sm:p-10">
             <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-amber-300 text-amber-950 shadow-lg shadow-amber-500/20">
               <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
             </div>
-            <p className="mt-5 text-lg font-black text-zinc-950 dark:text-white">در حال آماده‌سازی اتاق گرداننده</p>
-            <p className="mt-2 text-sm font-bold leading-6 text-zinc-500 dark:text-zinc-400">
+            <p className="mt-5 text-lg font-black text-[var(--pm-text)]">در حال آماده‌سازی اتاق گرداننده</p>
+            <p className="mt-2 text-sm font-bold leading-6 text-[var(--pm-muted)]">
               نقش‌ها، تایمرها و دفترچه گزارش بازی برای اجرای دقیق هماهنگ می‌شوند.
             </p>
           </div>
@@ -1202,26 +1202,26 @@ export default function ModeratorGamePage() {
 
   return (
     <div className="flex flex-col gap-5 pb-20" dir="rtl">
-      <header className="ui-card overflow-hidden">
-        <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
+      <header className="pm-card overflow-hidden">
+        <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-zinc-50/80 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="ui-icon-accent size-11">
+            <div className="pm-icon-primary size-11">
               <span className="material-symbols-outlined text-2xl">shield_person</span>
             </div>
             <div className="min-w-0">
-              <p className="ui-kicker">اتاق گرداننده</p>
-              <h1 className="mt-1 truncate text-xl font-black text-zinc-950 dark:text-white sm:text-2xl">{game?.name || "بازی مافیا"}</h1>
+              <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">اتاق گرداننده</p>
+              <h1 className="mt-1 truncate text-xl font-black text-[var(--pm-text)] sm:text-2xl">{game?.name || "بازی مافیا"}</h1>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs font-black text-zinc-600 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300">
+            <span className="rounded-lg border border-[var(--pm-line)] bg-white px-3 py-2 font-mono text-xs font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-300">
               #{game?.code || gameId.slice(0, 6).toUpperCase()}
             </span>
-            <span className={`rounded-lg border px-3 py-2 text-xs font-black ${game?.status === "FINISHED" ? "border-zinc-500/20 bg-zinc-500/10 text-zinc-500" : "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"}`}>
+            <span className={`rounded-lg border px-3 py-2 text-xs font-black ${game?.status === "FINISHED" ? "border-zinc-500/20 bg-zinc-500/10 text-[var(--pm-muted)]" : "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]"}`}>
               {game?.status === "FINISHED" ? "پایان یافته" : "در جریان"}
             </span>
-            <Link href="/dashboard/moderator" className="ui-button-secondary min-h-10 px-3 text-xs">
+            <Link href="/dashboard/moderator" className="pm-button-secondary min-h-10 px-3 text-xs">
               <span className="material-symbols-outlined text-base">arrow_forward</span>
               بازگشت
             </Link>
@@ -1230,18 +1230,18 @@ export default function ModeratorGamePage() {
 
         <div className="flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[
-            ["سناریو", game?.scenario?.name || "نامشخص", "account_tree", "text-cyan-500"],
+            ["سناریو", game?.scenario?.name || "نامشخص", "account_tree", "text-[var(--pm-primary)]"],
             ["فعال", `${alivePlayers.length}/${players.length}`, "sensors", "text-emerald-500"],
             ["حذف‌شده", `${eliminatedPlayers.length}`, "person_off", "text-red-500"],
             ["گزارش‌ها", `${nightEvents.length}`, "edit_note", "text-sky-500"],
           ].map(([label, value, icon, color]) => (
             <div
               key={label}
-              className="flex min-w-max items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60"
+              className="flex min-w-max items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-white px-3 py-2 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/60"
             >
               <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-              <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">{label}</span>
-              <span className="max-w-44 truncate text-sm font-black text-zinc-950 dark:text-white">{value}</span>
+              <span className="text-xs font-black text-[var(--pm-muted)]">{label}</span>
+              <span className="max-w-44 truncate text-sm font-black text-[var(--pm-text)]">{value}</span>
             </div>
           ))}
         </div>
@@ -1249,13 +1249,13 @@ export default function ModeratorGamePage() {
 
       <main className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_410px]">
         <section className="space-y-5">
-          <div className="ui-card overflow-hidden">
-            <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+          <div className="pm-card overflow-hidden">
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
               <div>
-                <p className="ui-kicker">وضعیت بازیکنان</p>
-                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">بازیکنان و نقش‌ها</h2>
+                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">وضعیت بازیکنان</p>
+                <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">بازیکنان و نقش‌ها</h2>
               </div>
-              <span className="rounded-lg border border-zinc-200 bg-white px-3 py-1 text-xs font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
+              <span className="rounded-lg border border-[var(--pm-line)] bg-white px-3 py-1 text-xs font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-[var(--pm-muted)]">
                 {players.length} نفر
               </span>
             </div>
@@ -1263,48 +1263,48 @@ export default function ModeratorGamePage() {
             <div className="p-4">
               <div className="mb-4 grid gap-2 sm:grid-cols-3">
                 {[
-                  ["کل بازیکنان", players.length, "groups", "text-zinc-500"],
-                  ["فعال", alivePlayers.length, "sensors", "text-cyan-600 dark:text-cyan-300"],
+                  ["کل بازیکنان", players.length, "groups", "text-[var(--pm-muted)]"],
+                  ["فعال", alivePlayers.length, "sensors", "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]"],
                   ["حذف‌شده", eliminatedPlayers.length, "person_off", "text-red-600 dark:text-red-300"],
                 ].map(([label, value, icon, color]) => (
-                  <div key={String(label)} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                  <div key={String(label)} className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
                     <div className="flex items-center justify-between gap-3">
                       <span className={`material-symbols-outlined text-xl ${color}`}>{icon}</span>
-                      <span className="text-lg font-black text-zinc-950 dark:text-white">{value}</span>
+                      <span className="text-lg font-black text-[var(--pm-text)]">{value}</span>
                     </div>
-                    <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                    <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">{label}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/60">
+              <div className="overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/60">
               {displayPlayers.map((player, index) => {
                 const alive = player.isAlive !== false;
                 const image = playerImage(player);
                 return (
                   <article
                     key={player.id}
-                    className={`relative overflow-hidden border-b border-zinc-200 p-3 transition-all last:border-b-0 dark:border-white/10 ${
+                    className={`relative overflow-hidden border-b border-[var(--pm-line)] p-3 transition-all last:border-b-0 dark:border-[var(--pm-line)] ${
                       alive
-                        ? "bg-white hover:bg-cyan-500/[0.04] dark:bg-transparent dark:hover:bg-white/[0.04]"
+                        ? "bg-white hover:bg-[var(--pm-primary)]/[0.04] dark:bg-transparent dark:hover:bg-white/[0.04]"
                         : "bg-red-500/10"
                     }`}
                   >
-                    <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${alive ? "bg-cyan-500" : "bg-red-500"}`} />
+                    <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${alive ? "bg-[var(--pm-primary)]" : "bg-red-500"}`} />
                     <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)_118px] lg:items-center">
                       <div className="flex min-w-0 items-center gap-3 pr-1">
                         <div className={`relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg text-base font-black shadow-sm shadow-zinc-950/10 ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
                           {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
-                          <span className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white dark:border-zinc-950 ${alive ? "bg-cyan-500" : "bg-red-500"}`} />
+                          <span className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white dark:border-zinc-950 ${alive ? "bg-[var(--pm-primary)]" : "bg-red-500"}`} />
                         </div>
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="truncate text-base font-black text-zinc-950 dark:text-white">{player.name}</p>
-                            <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${alive ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300" : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300"}`}>
+                            <p className="truncate text-base font-black text-[var(--pm-text)]">{player.name}</p>
+                            <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${alive ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]" : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300"}`}>
                               {alive ? "فعال" : "حذف‌شده"}
                             </span>
                           </div>
-                          <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">ردیف ورود #{index + 1}</p>
+                          <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">ردیف ورود #{index + 1}</p>
                         </div>
                       </div>
 
@@ -1321,7 +1321,7 @@ export default function ModeratorGamePage() {
                       <button
                         onClick={() => handleTogglePlayer(player)}
                         disabled={busy}
-                        className={alive ? "ui-button-secondary min-h-10 w-full text-red-600 dark:text-red-300" : "ui-button-secondary min-h-10 w-full text-cyan-700 dark:text-cyan-300"}
+                        className={alive ? "pm-button-secondary min-h-10 w-full text-red-600 dark:text-red-300" : "pm-button-secondary min-h-10 w-full text-[var(--pm-primary)]"}
                       >
                         <span className="material-symbols-outlined text-lg">{alive ? "person_off" : "person_add"}</span>
                         {alive ? "ثبت حذف" : "بازگرداندن"}
@@ -1339,17 +1339,17 @@ export default function ModeratorGamePage() {
             title="ثبت گزارش بازی در PWA موبایل فعال است"
             description="روی گوشی داخل مرورگر، گزارش روز و شب قفل می‌شود تا انتخاب بازیکن، پنجره‌ها و ذخیره رکوردها پایدار و تمام‌صفحه باشند."
           >
-          <div className="ui-card overflow-hidden">
-            <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
+          <div className="pm-card overflow-hidden">
+            <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="ui-kicker">دفترچه گرداننده</p>
-                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">گزارش مرحله‌ای بازی</h2>
+                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">دفترچه گرداننده</p>
+                <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">گزارش مرحله‌ای بازی</h2>
               </div>
               {game?.status === "FINISHED" && nightEvents.length > 0 && (
                 <button
                   onClick={handlePublishNightRecords}
                   disabled={busy || game?.nightRecordsPublic}
-                  className={game?.nightRecordsPublic ? "ui-button-secondary min-h-10 px-3 text-xs text-cyan-700 dark:text-cyan-300" : "ui-button-primary min-h-10 px-3 text-xs"}
+                  className={game?.nightRecordsPublic ? "pm-button-secondary min-h-10 px-3 text-xs text-[var(--pm-primary)]" : "pm-button-primary min-h-10 px-3 text-xs"}
                 >
                   <span className="material-symbols-outlined text-base">{game?.nightRecordsPublic ? "public" : "publish"}</span>
                   {game?.nightRecordsPublic ? "گزارش منتشر شده" : "انتشار گزارش برای بازیکنان"}
@@ -1358,24 +1358,24 @@ export default function ModeratorGamePage() {
             </div>
 
             <div className="grid gap-5 p-5 lg:grid-cols-[360px_minmax(0,1fr)]">
-              <aside className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+              <aside className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
                 <div>
-                  <p className="text-sm font-black text-zinc-950 dark:text-white">خط زمانی بازی</p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                  <p className="text-sm font-black text-[var(--pm-text)]">خط زمانی بازی</p>
+                  <p className="mt-1 text-xs leading-5 text-[var(--pm-muted)]">
                     هر اتفاق با زبان گزارش نهایی ثبت می‌شود: چه کسی اقدام کرد، هدف چه کسی بود و نتیجه چه شد.
                   </p>
                 </div>
 
-                <div className={`mt-4 rounded-lg border p-3 ${reportMode === "DAY" ? "border-amber-500/25 bg-amber-500/10" : "border-cyan-500/25 bg-cyan-500/10"}`}>
+                <div className={`mt-4 rounded-lg border p-3 ${reportMode === "DAY" ? "border-amber-500/25 bg-amber-500/10" : "border-cyan-500/25 bg-[var(--pm-primary)]/10"}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">مرحله در حال ثبت</p>
-                      <p className="mt-1 text-lg font-black text-zinc-950 dark:text-white">{activePhaseLabel}</p>
-                      <p className="mt-1 text-[10px] font-bold leading-5 text-zinc-500 dark:text-zinc-400">
+                      <p className="text-xs font-black text-[var(--pm-muted)]">مرحله در حال ثبت</p>
+                      <p className="mt-1 text-lg font-black text-[var(--pm-text)]">{activePhaseLabel}</p>
+                      <p className="mt-1 text-[10px] font-bold leading-5 text-[var(--pm-muted)]">
                         {reportMode === "DAY" ? `دفاع‌ها، رای نهایی یا حذف روز ${dayNumber} را ثبت کنید؛ بعد شب ${dayNumber} فعال می‌شود.` : `اکشن‌ها، شات، نجات یا تبدیل شب ${nightNumber} را ثبت کنید؛ بعد روز ${nightNumber + 1} فعال می‌شود.`}
                       </p>
                     </div>
-                    <span className={`material-symbols-outlined text-2xl ${reportMode === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-cyan-600 dark:text-cyan-300"}`}>
+                    <span className={`material-symbols-outlined text-2xl ${reportMode === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]"}`}>
                       {reportMode === "DAY" ? "wb_sunny" : "dark_mode"}
                     </span>
                   </div>
@@ -1383,16 +1383,16 @@ export default function ModeratorGamePage() {
                     type="button"
                     onClick={finishCurrentPhase}
                     disabled={busy}
-                    className="mt-3 min-h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-xs font-black text-zinc-700 transition-all hover:bg-zinc-50 disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950/60 dark:text-zinc-200 dark:hover:bg-white/10"
+                    className="mt-3 min-h-10 w-full rounded-lg border border-[var(--pm-line)] bg-white px-3 text-xs font-black text-zinc-700 transition-all hover:bg-zinc-50 disabled:opacity-50 dark:border-[var(--pm-line)] dark:bg-zinc-950/60 dark:text-zinc-200 dark:hover:bg-white/10"
                   >
                     پایان {activePhaseLabel} و شروع {nextPhaseLabel}
                   </button>
                 </div>
 
-                <div className="mt-4 rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-zinc-950/60">
+                <div className="mt-4 rounded-lg border border-[var(--pm-line)] bg-white p-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/60">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-black text-zinc-950 dark:text-white">ترتیب مرحله‌ها</p>
-                    <span className="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-black text-zinc-500 dark:bg-white/10 dark:text-zinc-300">
+                    <p className="text-xs font-black text-[var(--pm-text)]">ترتیب مرحله‌ها</p>
+                    <span className="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-black text-[var(--pm-muted)] dark:bg-white/10 dark:text-zinc-300">
                       مرحله بعد: {nextPhaseLabel}
                     </span>
                   </div>
@@ -1404,23 +1404,23 @@ export default function ModeratorGamePage() {
                           phase.active
                             ? phase.type === "DAY"
                               ? "border-amber-500/35 bg-amber-500/10 shadow-sm shadow-amber-500/10"
-                              : "border-cyan-500/35 bg-cyan-500/10 shadow-sm shadow-cyan-500/10"
-                            : "border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-white/[0.03]"
+                              : "border-[var(--pm-primary)]/35 bg-[var(--pm-primary)]/10 shadow-sm shadow-[var(--pm-primary)]/10"
+                            : "border-[var(--pm-line)] bg-zinc-50/80 dark:border-[var(--pm-line)] dark:bg-white/[0.03]"
                         }`}
                       >
-                        <span className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-black ${phase.active ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-white text-zinc-500 dark:bg-zinc-950/70 dark:text-zinc-300"}`}>
+                        <span className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-black ${phase.active ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-white text-[var(--pm-muted)] dark:bg-zinc-950/70 dark:text-zinc-300"}`}>
                           {index + 1}
                         </span>
-                        <span className={`material-symbols-outlined text-lg ${phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-cyan-600 dark:text-cyan-300"}`}>
+                        <span className={`material-symbols-outlined text-lg ${phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]"}`}>
                           {phase.icon}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-black text-zinc-950 dark:text-white">{phase.label}</p>
-                          <p className="truncate text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
+                          <p className="truncate text-xs font-black text-[var(--pm-text)]">{phase.label}</p>
+                          <p className="truncate text-[10px] font-bold text-[var(--pm-muted)]">
                             {phase.active ? "اکنون در حال ثبت همین مرحله هستید" : phase.nextLabel}
                           </p>
                         </div>
-                        <span className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-black ${phase.events.length ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-zinc-100 text-zinc-400 dark:bg-white/5 dark:text-zinc-500"}`}>
+                        <span className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-black ${phase.events.length ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-zinc-100 text-[var(--pm-muted)] dark:bg-white/5 dark:text-[var(--pm-muted)]"}`}>
                           {phase.events.length} اتفاق
                         </span>
                       </div>
@@ -1432,7 +1432,7 @@ export default function ModeratorGamePage() {
                   {reportMode === "DAY" ? (
                   <div className="rounded-lg border border-amber-500/20 bg-white p-3 dark:border-amber-500/20 dark:bg-zinc-950/50">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-black text-zinc-950 dark:text-white">حذف یا اتفاق روز</p>
+                      <p className="text-xs font-black text-[var(--pm-text)]">حذف یا اتفاق روز</p>
                       <span className="rounded-md bg-amber-500/15 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300">روز {dayNumber}</span>
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-1">
@@ -1458,14 +1458,14 @@ export default function ModeratorGamePage() {
                             type="button"
                             onClick={() => openDayRecord(dayMethodKey, player.id)}
                             disabled={busy}
-                            className="flex min-h-12 items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-right transition-all hover:border-amber-500/40 hover:bg-amber-500/10 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03]"
+                            className="flex min-h-12 items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-2 text-right transition-all hover:border-amber-500/40 hover:bg-amber-500/10 disabled:opacity-50 dark:border-[var(--pm-line)] dark:bg-white/[0.03]"
                           >
                             <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-xs font-black text-white dark:bg-white dark:text-zinc-950">
                               {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
                             </span>
                             <span className="min-w-0">
-                              <span className="block truncate text-xs font-black text-zinc-950 dark:text-white">{player.name}</span>
-                              <span className="block truncate text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{player.role?.name || "بدون نقش"}</span>
+                              <span className="block truncate text-xs font-black text-[var(--pm-text)]">{player.name}</span>
+                              <span className="block truncate text-[10px] font-bold text-[var(--pm-muted)]">{player.role?.name || "بدون نقش"}</span>
                             </span>
                           </button>
                         );
@@ -1473,13 +1473,13 @@ export default function ModeratorGamePage() {
                     </div>
                   </div>
                   ) : (
-                  <div className="rounded-xl border border-cyan-500/20 bg-white p-4 shadow-sm shadow-cyan-500/5 dark:border-cyan-500/20 dark:bg-zinc-950/50">
+                  <div className="rounded-xl border border-[var(--pm-primary)]/20 bg-white p-4 shadow-sm shadow-cyan-500/5 dark:border-[var(--pm-primary)]/20 dark:bg-zinc-950/50">
                     <div className="flex items-center justify-between gap-2">
                       <div>
-                        <p className="text-sm font-black text-zinc-950 dark:text-white">اتفاقات شب</p>
-                        <p className="mt-1 text-[10px] font-bold leading-5 text-zinc-500 dark:text-zinc-400">روی نام کوچک بازیکن زیر هر نقش بزنید تا پنجره ثبت اتفاق همان نقش باز شود.</p>
+                        <p className="text-sm font-black text-[var(--pm-text)]">اتفاقات شب</p>
+                        <p className="mt-1 text-[10px] font-bold leading-5 text-[var(--pm-muted)]">روی نام کوچک بازیکن زیر هر نقش بزنید تا پنجره ثبت اتفاق همان نقش باز شود.</p>
                       </div>
-                      <span className="rounded-md bg-cyan-500/15 px-2 py-1 text-[10px] font-black text-cyan-700 dark:text-cyan-300">شب {nightNumber}</span>
+                      <span className="rounded-md bg-[var(--pm-primary)]/15 px-2 py-1 text-[10px] font-black text-[var(--pm-primary)]">شب {nightNumber}</span>
                     </div>
                     {mafiaShotAction && (
                       <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
@@ -1514,7 +1514,7 @@ export default function ModeratorGamePage() {
                     )}
                     <div className="mt-4 grid max-h-[440px] gap-3 overflow-y-auto pr-1">
                       {roleActionOptions.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-4 text-xs font-bold text-zinc-400 dark:border-white/10 dark:bg-white/[0.03]">
+                        <div className="rounded-xl border border-dashed border-[var(--pm-line)] bg-zinc-50 p-4 text-xs font-bold text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
                           برای نقش‌های این بازی توانایی شب فعال نشده است.
                         </div>
                       ) : (
@@ -1542,7 +1542,7 @@ export default function ModeratorGamePage() {
                                     type="button"
                                     onClick={() => openNightAction(option, player, true)}
                                     disabled={busy}
-                                    className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-white/70 bg-white/75 px-2.5 text-right text-[11px] font-black text-zinc-800 transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md hover:shadow-zinc-950/10 disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950/35 dark:text-white"
+                                    className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-white/70 bg-white/75 px-2.5 text-right text-[11px] font-black text-zinc-800 transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md hover:shadow-zinc-950/10 disabled:opacity-50 dark:border-[var(--pm-line)] dark:bg-zinc-950/35 dark:text-white"
                                   >
                                     <span className="flex min-w-0 items-center gap-2">
                                       <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-zinc-950 text-[10px] text-white dark:bg-white dark:text-zinc-950">
@@ -1576,13 +1576,13 @@ export default function ModeratorGamePage() {
                     }}
                   >
                     <section
-                      className="flex max-h-[calc(100dvh-7rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-950/25 dark:border-white/10 dark:bg-zinc-950"
+                      className="flex max-h-[calc(100dvh-7rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[var(--pm-line)] bg-white shadow-2xl shadow-zinc-950/25 dark:border-[var(--pm-line)] dark:bg-zinc-950"
                       onClick={(event) => event.stopPropagation()}
                     >
-                      <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/90 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                      <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-line)] bg-zinc-50/90 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
                         <div className="min-w-0">
-                          <p className="ui-kicker">{reportMode === "NIGHT" ? `شب ${nightNumber}` : `روز ${dayNumber}`}</p>
-                          <h3 className="mt-1 truncate text-lg font-black text-zinc-950 dark:text-white">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">{reportMode === "NIGHT" ? `شب ${nightNumber}` : `روز ${dayNumber}`}</p>
+                          <h3 className="mt-1 truncate text-lg font-black text-[var(--pm-text)]">
                             {editingEventId
                               ? reportMode === "NIGHT" ? "ویرایش اتفاق شب" : "ویرایش اتفاق روز"
                               : reportMode === "NIGHT" ? "جزئیات اتفاق شب" : "جزئیات اتفاق روز"}
@@ -1595,7 +1595,7 @@ export default function ModeratorGamePage() {
                             setEditingEventId(null);
                             setPlayerPicker(null);
                           }}
-                          className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition-all hover:bg-zinc-100 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
+                          className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-white text-[var(--pm-muted)] transition-all hover:bg-zinc-100 dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
                           aria-label="بستن"
                         >
                           <span className="material-symbols-outlined text-xl">close</span>
@@ -1604,11 +1604,11 @@ export default function ModeratorGamePage() {
                       <div className="custom-scrollbar flex-1 space-y-3 overflow-y-auto p-4">
                   {reportMode === "NIGHT" ? (
                     <>
-                  <div className={`rounded-lg border p-3 ${selectedAction?.source === "side" ? "border-red-500/20 bg-red-500/10" : selectedAction?.className || "border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.03]"}`}>
+                  <div className={`rounded-lg border p-3 ${selectedAction?.source === "side" ? "border-red-500/20 bg-red-500/10" : selectedAction?.className || "border-[var(--pm-line)] bg-[var(--pm-surface-soft)]"}`}>
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">{selectedAction?.source === "side" ? "جبهه مافیا" : selectedAction?.sourceLabel}</p>
-                        <p className="mt-1 truncate text-base font-black text-zinc-950 dark:text-white">{selectedAction?.label || "اتفاق شب"}</p>
+                        <p className="text-xs font-black text-[var(--pm-muted)]">{selectedAction?.source === "side" ? "جبهه مافیا" : selectedAction?.sourceLabel}</p>
+                        <p className="mt-1 truncate text-base font-black text-[var(--pm-text)]">{selectedAction?.label || "اتفاق شب"}</p>
                       </div>
                       <span className="material-symbols-outlined text-xl">{selectedAction?.source === "side" ? "target" : "auto_fix_high"}</span>
                     </div>
@@ -1618,8 +1618,8 @@ export default function ModeratorGamePage() {
                   </div>
 
                   {selectedAction?.choices.length > 0 && !usesTargetSlotChoices && (
-                    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
-                      <p className="mb-2 text-xs font-black text-zinc-500 dark:text-zinc-400">نوع استفاده</p>
+                    <div className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-2 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                      <p className="mb-2 text-xs font-black text-[var(--pm-muted)]">نوع استفاده</p>
                       <div className="grid gap-1.5 sm:grid-cols-2">
                         {selectedAction.choices.map((choice) => (
                           <button
@@ -1628,8 +1628,8 @@ export default function ModeratorGamePage() {
                             onClick={() => setSelectedChoiceKey(choice.id)}
                             className={`min-h-10 rounded-lg border px-3 text-right text-xs font-black transition-all ${
                               selectedChoiceKey === choice.id
-                                ? "border-cyan-500/40 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300"
-                                : "border-zinc-200 bg-white text-zinc-600 hover:border-cyan-500/30 dark:border-white/10 dark:bg-zinc-950/60 dark:text-zinc-300"
+                                ? "border-cyan-500/40 bg-[var(--pm-primary)]/15 text-[var(--pm-primary)]"
+                                : "border-[var(--pm-line)] bg-white text-[var(--pm-muted)] hover:border-[var(--pm-primary)]/30 dark:border-[var(--pm-line)] dark:bg-zinc-950/60 dark:text-zinc-300"
                             }`}
                           >
                             {choice.label}
@@ -1642,7 +1642,7 @@ export default function ModeratorGamePage() {
 
                   {canChooseReportEffect ? (
                     <label className="flex flex-col gap-2">
-                      <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نوع ثبت این اتفاق</span>
+                      <span className="text-xs font-black text-[var(--pm-muted)]">نوع ثبت این اتفاق</span>
                       <select
                         value={reportEffectType}
                         onChange={(event) => {
@@ -1665,7 +1665,7 @@ export default function ModeratorGamePage() {
                   ) : null}
 
                   {selectedAction?.source === "side" && (
-                    <div className="grid grid-cols-2 gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-white/10 dark:bg-zinc-950">
+                    <div className="grid grid-cols-2 gap-1 rounded-lg border border-[var(--pm-line)] bg-white p-1 dark:border-[var(--pm-line)] dark:bg-zinc-950">
                       {[
                         { value: true, label: "شات", icon: "target" },
                         { value: false, label: "بدون شات", icon: "block" },
@@ -1684,7 +1684,7 @@ export default function ModeratorGamePage() {
                           className={`flex min-h-10 items-center justify-center gap-2 rounded-lg text-xs font-black transition-all ${
                             eventWasUsed === item.value
                               ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
-                              : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/[0.06]"
+                              : "text-[var(--pm-muted)] hover:bg-zinc-100 dark:text-[var(--pm-muted)] dark:hover:bg-white/[0.06]"
                           }`}
                         >
                           <span className="material-symbols-outlined text-base">{item.icon}</span>
@@ -1695,9 +1695,9 @@ export default function ModeratorGamePage() {
                   )}
 
                   {selectedAction?.source === "role" && actorPlayerId && (
-                    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                      <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">انجام‌دهنده</p>
-                      <p className="mt-1 text-sm font-black text-zinc-950 dark:text-white">
+                    <div className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                      <p className="text-xs font-black text-[var(--pm-muted)]">انجام‌دهنده</p>
+                      <p className="mt-1 text-sm font-black text-[var(--pm-text)]">
                         {playerById(actorPlayerId)?.name || "بازیکن انتخاب‌شده"} | {playerById(actorPlayerId)?.role?.name || selectedAction.sourceLabel}
                       </p>
                     </div>
@@ -1752,7 +1752,7 @@ export default function ModeratorGamePage() {
 
                   {needsConversionRole && (
                     <label className="flex flex-col gap-2">
-                      <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">نقش مافیایی بعد از خریداری</span>
+                      <span className="text-xs font-black text-[var(--pm-muted)]">نقش مافیایی بعد از خریداری</span>
                       <select value={convertedRoleId} onChange={(event) => setConvertedRoleId(event.target.value)} disabled={!eventWasUsed}>
                         <option value="">انتخاب نقش مافیا</option>
                         {mafiaConversionRoles.map((role) => (
@@ -1765,13 +1765,13 @@ export default function ModeratorGamePage() {
                   )}
 
                   {selectedEffectType !== "NONE" && (
-                    <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs font-bold leading-6 text-cyan-700 dark:text-cyan-300">
+                    <div className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3 text-xs font-bold leading-6 text-[var(--pm-primary)]">
                       رفتار ثبت‌شده: {effectLabel(selectedEffectType)}
                     </div>
                   )}
 
                   <label className="flex flex-col gap-2">
-                    <span className="text-xs font-black text-zinc-500 dark:text-zinc-400">یادداشت اختیاری</span>
+                    <span className="text-xs font-black text-[var(--pm-muted)]">یادداشت اختیاری</span>
                     <textarea
                       value={nightNote}
                       onChange={(event) => setNightNote(event.target.value.slice(0, 500))}
@@ -1783,7 +1783,7 @@ export default function ModeratorGamePage() {
                   <button
                     onClick={handleRecordNightEvent}
                     disabled={busy}
-                    className="ui-button-primary min-h-11 w-full"
+                    className="pm-button-primary min-h-11 w-full"
                   >
                     <span className="material-symbols-outlined text-xl">add_notes</span>
                     {editingEventId ? `ذخیره ویرایش شب ${nightNumber}` : `ثبت در شب ${nightNumber}`}
@@ -1794,7 +1794,7 @@ export default function ModeratorGamePage() {
                     <div className="flex items-start gap-3">
                       <span className="material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500 text-xl text-zinc-950">wb_sunny</span>
                       <div>
-                        <p className="text-sm font-black text-zinc-950 dark:text-white">ثبت حذف روز</p>
+                        <p className="text-sm font-black text-[var(--pm-text)]">ثبت حذف روز</p>
                         <p className="mt-1 text-xs leading-5 text-amber-700 dark:text-amber-300">رای‌گیری، شلیک روز، بازپرسی یا هر روش سناریویی.</p>
                       </div>
                     </div>
@@ -1845,7 +1845,7 @@ export default function ModeratorGamePage() {
                             type="button"
                             onClick={() => openPlayerPicker({ slot: "defense", title: "بازیکنان دفاع", options: alivePlayers, multi: true })}
                             disabled={busy}
-                            className="ui-button-secondary min-h-9 shrink-0 px-3 text-xs"
+                            className="pm-button-secondary min-h-9 shrink-0 px-3 text-xs"
                           >
                             <span className="material-symbols-outlined text-base">groups</span>
                             انتخاب
@@ -1912,13 +1912,13 @@ export default function ModeratorGamePage() {
                 )}
                 {shotResolution && (
                   <div className="fixed inset-0 z-[140] flex items-end justify-center bg-zinc-950/70 p-3 pb-24 backdrop-blur-sm sm:items-center sm:pb-3">
-                    <section className="w-full max-w-lg overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-950/30 dark:border-white/10 dark:bg-zinc-950">
+                    <section className="w-full max-w-lg overflow-hidden rounded-xl border border-[var(--pm-line)] bg-white shadow-2xl shadow-zinc-950/30 dark:border-[var(--pm-line)] dark:bg-zinc-950">
                       <div className="border-b border-red-500/20 bg-red-500/10 p-4">
                         <div className="flex items-start gap-3">
                           <span className="material-symbols-outlined flex size-12 shrink-0 items-center justify-center rounded-xl bg-red-500 text-2xl text-white">target</span>
                           <div className="min-w-0">
-                            <p className="ui-kicker text-red-700 dark:text-red-300">پایان شب {nightNumber}</p>
-                            <h3 className="mt-1 text-xl font-black text-zinc-950 dark:text-white">نتیجه شلیک مافیا</h3>
+                            <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)] text-red-700 dark:text-red-300">پایان شب {nightNumber}</p>
+                            <h3 className="mt-1 text-xl font-black text-[var(--pm-text)]">نتیجه شلیک مافیا</h3>
                             <p className="mt-2 text-sm font-bold leading-6 text-red-700/85 dark:text-red-300/85">
                               {shotResolution.player.name} هدف شلیک مافیا بود. آیا بعد از نجات دکتر یا اثر نقش‌ها کشته شد؟
                             </p>
@@ -1940,7 +1940,7 @@ export default function ModeratorGamePage() {
                           type="button"
                           onClick={() => resolveMafiaShot(false)}
                           disabled={busy}
-                          className="ui-button-secondary min-h-12 text-sm text-cyan-700 dark:text-cyan-300"
+                          className="pm-button-secondary min-h-12 text-sm text-[var(--pm-primary)]"
                         >
                           <span className="material-symbols-outlined text-xl">health_and_safety</span>
                           زنده ماند
@@ -1955,18 +1955,18 @@ export default function ModeratorGamePage() {
                     onClick={() => setPlayerPicker(null)}
                   >
                     <section
-                      className="flex max-h-[calc(100dvh-7rem)] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-950/30 dark:border-white/10 dark:bg-zinc-950"
+                      className="flex max-h-[calc(100dvh-7rem)] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-[var(--pm-line)] bg-white shadow-2xl shadow-zinc-950/30 dark:border-[var(--pm-line)] dark:bg-zinc-950"
                       onClick={(event) => event.stopPropagation()}
                     >
-                      <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/90 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                      <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-line)] bg-zinc-50/90 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
                         <div>
-                          <p className="ui-kicker">انتخاب بازیکن</p>
-                          <h3 className="mt-1 text-lg font-black text-zinc-950 dark:text-white">{playerPicker.title}</h3>
+                          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">انتخاب بازیکن</p>
+                          <h3 className="mt-1 text-lg font-black text-[var(--pm-text)]">{playerPicker.title}</h3>
                         </div>
                         <button
                           type="button"
                           onClick={() => setPlayerPicker(null)}
-                          className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 transition-all hover:bg-zinc-100 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
+                          className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-white text-[var(--pm-muted)] transition-all hover:bg-zinc-100 dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
                           aria-label="بستن انتخاب بازیکن"
                         >
                           <span className="material-symbols-outlined text-xl">close</span>
@@ -1986,17 +1986,17 @@ export default function ModeratorGamePage() {
                                 selected
                                   ? "border-amber-500/35 bg-amber-500/15"
                                   : alive
-                                  ? "border-zinc-200 bg-zinc-50 hover:border-cyan-500/40 hover:bg-cyan-500/10 dark:border-white/10 dark:bg-white/[0.03]"
+                                  ? "border-[var(--pm-line)] bg-zinc-50 hover:border-cyan-500/40 hover:bg-[var(--pm-primary)]/10 dark:border-[var(--pm-line)] dark:bg-white/[0.03]"
                                   : "border-red-500/20 bg-red-500/10"
                               }`}
                             >
                               <span className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-sm font-black text-white dark:bg-white dark:text-zinc-950">
                                 {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
-                                <span className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white dark:border-zinc-950 ${alive ? "bg-cyan-500" : "bg-red-500"}`} />
+                                <span className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white dark:border-zinc-950 ${alive ? "bg-[var(--pm-primary)]" : "bg-red-500"}`} />
                               </span>
                               <span className="min-w-0">
-                                <span className="block truncate text-sm font-black text-zinc-950 dark:text-white">{player.name}</span>
-                                <span className="mt-0.5 block truncate text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                                <span className="block truncate text-sm font-black text-[var(--pm-text)]">{player.name}</span>
+                                <span className="mt-0.5 block truncate text-xs font-bold text-[var(--pm-muted)]">
                                   {selected ? "انتخاب شده برای دفاع" : `${player.role?.name || "بدون نقش"} | ${alive ? "فعال" : "حذف‌شده"}`}
                                 </span>
                               </span>
@@ -2006,8 +2006,8 @@ export default function ModeratorGamePage() {
                         })}
                       </div>
                       {playerPicker.multi && (
-                        <div className="border-t border-zinc-200 bg-zinc-50/90 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                          <button type="button" onClick={() => setPlayerPicker(null)} className="ui-button-primary min-h-10 w-full text-xs">
+                        <div className="border-t border-[var(--pm-line)] bg-zinc-50/90 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                          <button type="button" onClick={() => setPlayerPicker(null)} className="pm-button-primary min-h-10 w-full text-xs">
                             تایید انتخاب‌ها ({dayDefensePlayerIds.length})
                           </button>
                         </div>
@@ -2045,11 +2045,11 @@ export default function ModeratorGamePage() {
             </MobilePwaFeatureLock>
           )}
 
-          <section className="ui-card overflow-hidden">
-            <div className="border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
-              <p className="ui-kicker">اتاق نتیجه</p>
-              <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">انتخاب برنده</h2>
-              <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+          <section className="pm-card overflow-hidden">
+            <div className="border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">اتاق نتیجه</p>
+              <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">انتخاب برنده</h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">
                 اگر بازی بعد از ۸ ساعت بسته نشود، سیستم آن را با برنده نامشخص می‌بندد.
               </p>
             </div>
@@ -2059,7 +2059,7 @@ export default function ModeratorGamePage() {
                 { key: "CITIZEN" as const, label: "پیروزی شهروندان", icon: "verified_user", className: "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300" },
                 { key: "MAFIA" as const, label: "پیروزی مافیا", icon: "local_police", className: "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300" },
                 { key: "NEUTRAL" as const, label: "پیروزی مستقل‌ها", icon: "casino", className: "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
-                { key: "UNKNOWN" as const, label: "برنده نامشخص", icon: "help", className: "border-zinc-300 bg-zinc-100 text-zinc-600 dark:border-white/10 dark:bg-white/[0.05] dark:text-zinc-300" },
+                { key: "UNKNOWN" as const, label: "برنده نامشخص", icon: "help", className: "border-zinc-300 bg-zinc-100 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.05] dark:text-zinc-300" },
               ].map((item) => (
                 <button
                   key={item.key}
@@ -2077,19 +2077,19 @@ export default function ModeratorGamePage() {
             </div>
           </section>
 
-          <section className="ui-card p-5">
-            <p className="ui-kicker">راهنمای اجرای سریع</p>
+          <section className="pm-card p-5">
+            <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">راهنمای اجرای سریع</p>
             <div className="mt-4 space-y-3">
               {[
                 ["person_off", "حذف‌شده‌ها", "بازیکن حذف‌شده در صفحه بازی برای بقیه هم مشخص می‌شود."],
                 ["dark_mode", "دفترچه شب", "ثبت اتفاق شب اختیاری است و تا وقتی عمومی نشود فقط برای گرداننده می‌ماند."],
                 ["timer", "بستن خودکار", "بازی‌های باز بعد از ۸ ساعت با نتیجه نامشخص بسته می‌شوند."],
               ].map(([icon, title, text]) => (
-                <div key={title} className="flex gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                  <span className="material-symbols-outlined text-xl text-cyan-500">{icon}</span>
+                <div key={title} className="flex gap-3 rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                  <span className="material-symbols-outlined text-xl text-[var(--pm-primary)]">{icon}</span>
                   <div>
-                    <p className="text-sm font-black text-zinc-950 dark:text-white">{title}</p>
-                    <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">{text}</p>
+                    <p className="text-sm font-black text-[var(--pm-text)]">{title}</p>
+                    <p className="mt-1 text-xs leading-5 text-[var(--pm-muted)]">{text}</p>
                   </div>
                 </div>
               ))}

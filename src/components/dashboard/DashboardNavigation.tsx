@@ -250,7 +250,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
               <p className="truncate text-[11px] font-black text-[var(--pm-primary)]">{panelDate.shamsi}</p>
               <p className="mt-0.5 truncate text-[10px] font-bold text-[var(--pm-muted)]" dir="ltr">{panelDate.miladi}</p>
             </div>
-            <span className="ui-icon text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-base">
+            <span className="pm-icon text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-base">
               calendar_month
             </span>
           </div>

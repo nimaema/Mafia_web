@@ -209,7 +209,7 @@
   }
 
   /* Components */
-  .ui-card, .pm-card {
+  .pm-card {
     position: relative;
     border: 1px solid var(--pm-line);
     border-radius: var(--radius-md);
@@ -219,7 +219,7 @@
     transition: all var(--motion-medium) var(--ease-fluid);
   }
 
-  .ui-muted, .pm-muted-card {
+  .pm-muted-card {
     border: 1px solid var(--pm-line);
     border-radius: var(--radius-sm);
     background: var(--pm-surface-soft);
@@ -227,7 +227,7 @@
     transition: all var(--motion-medium) var(--ease-fluid);
   }
 
-  .ui-icon, .pm-icon {
+  .pm-icon {
     display: inline-flex;
     width: 2.5rem;
     height: 2.5rem;
@@ -242,7 +242,7 @@
     transition: all var(--motion-medium) var(--ease-fluid);
   }
 
-  .ui-icon-accent, .pm-icon-primary {
+  .pm-icon-primary {
     display: inline-flex;
     width: 2.75rem;
     height: 2.75rem;
@@ -256,7 +256,7 @@
     transition: all var(--motion-medium) var(--ease-snappy);
   }
 
-  .ui-button, .ui-button-primary, .ui-button-secondary, .ui-button-danger, .pm-button {
+  .pm-button {
     display: inline-flex;
     min-height: 2.75rem;
     align-items: center;
@@ -269,27 +269,27 @@
     transition: all var(--motion-medium) var(--ease-fluid);
   }
 
-  .ui-button-primary, .pm-button-primary {
+  .pm-button-primary {
     border: 1px solid rgba(0, 229, 200, 0.45);
     background: linear-gradient(135deg, var(--pm-primary), #62f4bd);
     color: #002d27;
     box-shadow: 0 14px 36px var(--color-noir-cyan-glow);
   }
 
-  .ui-button-secondary, .pm-button-secondary {
+  .pm-button-secondary {
     border: 1px solid var(--pm-line);
     background: var(--pm-surface);
     color: var(--pm-text);
     box-shadow: var(--pm-shadow-soft);
   }
 
-  .ui-button-danger, .pm-button-danger {
+  .pm-button-danger {
     border: 1px solid rgba(224, 59, 90, 0.24);
     background: rgba(224, 59, 90, 0.12);
     color: var(--pm-danger);
   }
 
-  .ui-button:disabled, .ui-button-primary:disabled, .ui-button-secondary:disabled, .ui-button-danger:disabled, .pm-button:disabled {
+  .pm-button:disabled {
     pointer-events: none;
     opacity: 0.58;
   }
@@ -384,18 +384,12 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .ui-button:hover:not(:disabled),
-  .ui-button-primary:hover:not(:disabled),
-  .ui-button-secondary:hover:not(:disabled),
-  .ui-button-danger:hover:not(:disabled),
+  
   .pm-button:hover:not(:disabled) {
     transform: translateY(-1px);
   }
 
-  .ui-button:active:not(:disabled),
-  .ui-button-primary:active:not(:disabled),
-  .ui-button-secondary:active:not(:disabled),
-  .ui-button-danger:active:not(:disabled),
+  
   .pm-button:active:not(:disabled) {
     transform: translateY(0) scale(0.985);
   }

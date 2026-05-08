@@ -66,7 +66,7 @@ function resultMeta(result: HistoryItem["result"]) {
     return {
       label: "پیروزی",
       icon: "emoji_events",
-      className: "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300",
+      className: "pm-chip pm-chip-primary",
     };
   }
 
@@ -74,14 +74,14 @@ function resultMeta(result: HistoryItem["result"]) {
     return {
       label: "شکست",
       icon: "close",
-      className: "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300",
+      className: "pm-chip pm-chip-danger",
     };
   }
 
   return {
     label: "نامشخص",
     icon: "pending",
-    className: "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+    className: "pm-chip pm-chip-warning",
   };
 }
 
@@ -92,9 +92,9 @@ function alignmentLabel(alignment: string) {
 }
 
 function alignmentClass(alignment: string) {
-  if (alignment === "CITIZEN") return "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-300";
-  if (alignment === "MAFIA") return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
-  return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300";
+  if (alignment === "CITIZEN") return "pm-chip pm-chip-primary";
+  if (alignment === "MAFIA") return "pm-chip pm-chip-danger";
+  return "pm-chip pm-chip-warning";
 }
 
 export function HistoryClient({ initialData }: { initialData: HistoryPageData }) {
@@ -116,16 +116,16 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
 
   return (
     <div className="space-y-6" dir="rtl">
-      <section className="ui-card overflow-hidden">
+      <section className="pm-card overflow-hidden">
         <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="ui-kicker">بایگانی بازی‌ها</p>
-            <h1 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">تاریخچه بازی‌های من</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+            <p className="text-[10px] font-bold tracking-widest text-[var(--pm-primary)] uppercase">بایگانی بازی‌ها</p>
+            <h1 className="mt-1 text-3xl font-black text-[var(--pm-text)]">تاریخچه بازی‌های من</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--pm-muted)]">
               هر صفحه ۱۰ بازی را با سناریو، نقش، نتیجه، گرداننده و ترکیب بازیکنان نشان می‌دهد.
             </p>
           </div>
-          <Link href="/dashboard/user" className="ui-button-secondary min-h-11 px-4">
+          <Link href="/dashboard/user" className="pm-button pm-button-secondary min-h-11 px-4">
             <span className="material-symbols-outlined text-xl">arrow_forward</span>
             بازگشت به داشبورد
           </Link>
@@ -133,13 +133,13 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
       </section>
 
       {data.items.length === 0 ? (
-        <section className="ui-card flex min-h-[420px] flex-col items-center justify-center gap-4 p-10 text-center">
-          <div className="ui-icon size-16">
-            <span className="material-symbols-outlined text-4xl text-zinc-400">history</span>
+        <section className="pm-card flex min-h-[420px] flex-col items-center justify-center gap-4 p-10 text-center">
+          <div className="flex size-16 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-surface-strong)] text-[var(--pm-muted)] shadow-[var(--pm-shadow-soft)]">
+            <span className="material-symbols-outlined text-4xl">history</span>
           </div>
           <div>
-            <p className="font-black text-zinc-950 dark:text-white">هنوز هیچ بازی ثبت نشده است</p>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">بعد از پایان بازی‌ها، جزئیاتشان اینجا نمایش داده می‌شود.</p>
+            <p className="font-black text-[var(--pm-text)]">هنوز هیچ بازی ثبت نشده است</p>
+            <p className="mt-1 text-sm text-[var(--pm-muted)]">بعد از پایان بازی‌ها، جزئیاتشان اینجا نمایش داده می‌شود.</p>
           </div>
         </section>
       ) : (
@@ -151,23 +151,23 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
               const extraPlayers = Math.max(0, game.players.length - previewPlayers.length);
 
               return (
-                <article key={game.id} className="ui-card overflow-hidden transition-all hover:border-cyan-500/25 hover:shadow-lg hover:shadow-zinc-950/5 dark:hover:shadow-black/20">
-                  <div className="border-b border-zinc-200 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+                <article key={game.id} className="pm-card overflow-hidden transition-all hover:border-[var(--pm-primary)]/50 hover:shadow-[0_0_20px_var(--color-noir-cyan-glow)]">
+                  <div className="border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="truncate text-lg font-black text-zinc-950 dark:text-white">{game.scenarioName}</h2>
+                          <h2 className="truncate text-lg font-black text-[var(--pm-text)]">{game.scenarioName}</h2>
                           {game.gameCode && (
-                            <span className="rounded-lg border border-zinc-200 bg-white px-2 py-1 font-mono text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
+                            <span className="pm-chip bg-[var(--pm-surface)]">
                               #{game.gameCode}
                             </span>
                           )}
                         </div>
-                        <p className="mt-2 line-clamp-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                        <p className="mt-2 line-clamp-2 text-xs leading-5 text-[var(--pm-muted)]">
                           {game.scenarioDescription || game.gameName}
                         </p>
                       </div>
-                      <span className={`inline-flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-black ${result.className}`}>
+                      <span className={`${result.className} inline-flex shrink-0 items-center gap-1`}>
                         <span className="material-symbols-outlined text-base">{result.icon}</span>
                         {result.label}
                       </span>
@@ -176,40 +176,40 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
 
                   <div className="space-y-4 p-4">
                     <div className="grid gap-2 sm:grid-cols-3">
-                      <div className="ui-muted p-3">
-                        <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">نقش شما</p>
-                        <p className="mt-2 truncate font-black text-zinc-950 dark:text-white">{game.roleName}</p>
+                      <div className="pm-muted-card p-3">
+                        <p className="text-[10px] font-bold text-[var(--pm-muted)]">نقش شما</p>
+                        <p className="mt-2 truncate font-black text-[var(--pm-text)]">{game.roleName}</p>
                       </div>
-                      <div className="ui-muted p-3">
-                        <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">گرداننده</p>
-                        <p className="mt-2 truncate font-black text-zinc-950 dark:text-white">{game.moderatorName}</p>
+                      <div className="pm-muted-card p-3">
+                        <p className="text-[10px] font-bold text-[var(--pm-muted)]">گرداننده</p>
+                        <p className="mt-2 truncate font-black text-[var(--pm-text)]">{game.moderatorName}</p>
                       </div>
-                      <div className="ui-muted p-3">
-                        <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">تاریخ</p>
-                        <p className="mt-2 truncate font-black text-zinc-950 dark:text-white">{game.date}</p>
+                      <div className="pm-muted-card p-3">
+                        <p className="text-[10px] font-bold text-[var(--pm-muted)]">تاریخ</p>
+                        <p className="mt-2 truncate font-black text-[var(--pm-text)]">{game.date}</p>
                       </div>
                     </div>
 
-                    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                    <div className="pm-muted-card p-3">
                       <div className="mb-3 flex items-center justify-between gap-3">
-                        <p className="text-xs font-black text-zinc-500 dark:text-zinc-400">ترکیب بازیکنان</p>
-                        <span className="text-xs font-black text-zinc-950 dark:text-white">{game.playerCount} نفر</span>
+                        <p className="text-xs font-black text-[var(--pm-muted)]">ترکیب بازیکنان</p>
+                        <span className="text-xs font-black text-[var(--pm-text)]">{game.playerCount} نفر</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {previewPlayers.map((player, index) => (
-                          <span key={`${game.id}-${player.name}-${index}`} className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(player.alignment)}`}>
+                          <span key={`${game.id}-${player.name}-${index}`} className={`${alignmentClass(player.alignment)}`}>
                             {player.name}: {player.roleName}{player.isAlive === false ? "، حذف‌شده" : ""}
                           </span>
                         ))}
                         {extraPlayers > 0 && (
-                          <span className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-400">
+                          <span className="pm-chip bg-[var(--pm-surface)]">
                             +{extraPlayers} بازیکن دیگر
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <button onClick={() => setSelectedGame(game)} className="ui-button-secondary min-h-10 w-full">
+                    <button onClick={() => setSelectedGame(game)} className="pm-button pm-button-secondary min-h-10 w-full">
                       <span className="material-symbols-outlined text-lg">visibility</span>
                       جزئیات کامل بازی
                     </button>
@@ -219,17 +219,17 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
             })}
           </section>
 
-          <section className="ui-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm font-bold text-zinc-500 dark:text-zinc-400">
-              نمایش <span className="font-black text-zinc-950 dark:text-white">{start}</span> تا{" "}
-              <span className="font-black text-zinc-950 dark:text-white">{end}</span> از{" "}
-              <span className="font-black text-zinc-950 dark:text-white">{data.total}</span> بازی
+          <section className="pm-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm font-bold text-[var(--pm-muted)]">
+              نمایش <span className="font-black text-[var(--pm-text)]">{start}</span> تا{" "}
+              <span className="font-black text-[var(--pm-text)]">{end}</span> از{" "}
+              <span className="font-black text-[var(--pm-text)]">{data.total}</span> بازی
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => loadPage(data.page - 1)}
                 disabled={!data.hasPrevious || isPending}
-                className="ui-button-secondary min-h-10 px-4"
+                className="pm-button pm-button-secondary min-h-10 px-4"
               >
                 <span className="material-symbols-outlined text-lg">arrow_forward</span>
                 ۱۰ بازی قبلی
@@ -237,10 +237,10 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
               <button
                 onClick={() => loadPage(data.page + 1)}
                 disabled={!data.hasNext || isPending}
-                className="ui-button-primary min-h-10 px-4"
+                className="pm-button pm-button-primary min-h-10 px-4"
               >
                 {isPending ? (
-                  <span className="size-4 animate-spin rounded-full border-2 border-zinc-950/30 border-t-zinc-950" />
+                  <span className="size-4 animate-spin rounded-full border-2 border-[var(--pm-surface-strong)] border-t-[var(--pm-text)]" />
                 ) : (
                   <span className="material-symbols-outlined text-lg">arrow_back</span>
                 )}
@@ -256,16 +256,16 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
           className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center"
           onClick={() => setSelectedGame(null)}
         >
-          <section className="ui-card pm-safe-modal w-full max-w-3xl overflow-hidden" onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+          <section className="pm-card pm-safe-modal w-full max-w-3xl overflow-hidden" onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-5">
               <div className="min-w-0">
-                <p className="ui-kicker">جزئیات بازی</p>
-                <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">{selectedGame.scenarioName}</h2>
-                <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                <p className="text-[10px] font-bold tracking-widest text-[var(--pm-primary)] uppercase">جزئیات بازی</p>
+                <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">{selectedGame.scenarioName}</h2>
+                <p className="mt-2 text-sm text-[var(--pm-muted)]">
                   {selectedGame.date} | گرداننده: {selectedGame.moderatorName}
                 </p>
               </div>
-              <button onClick={() => setSelectedGame(null)} className="ui-button-secondary size-10 p-0">
+              <button onClick={() => setSelectedGame(null)} className="pm-button pm-button-secondary size-10 p-0">
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>
             </div>
@@ -278,24 +278,24 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
                   ["تعداد بازیکن", selectedGame.playerCount, "groups"],
                   ["کد بازی", selectedGame.gameCode ? `#${selectedGame.gameCode}` : "-", "tag"],
                 ].map(([label, value, icon]) => (
-                  <div key={label} className="ui-muted p-3">
-                    <span className="material-symbols-outlined text-lg text-zinc-400">{icon}</span>
-                    <p className="mt-2 truncate text-sm font-black text-zinc-950 dark:text-white">{value}</p>
-                    <p className="mt-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{label}</p>
+                  <div key={label} className="pm-muted-card p-3">
+                    <span className="material-symbols-outlined text-lg text-[var(--pm-muted)]">{icon as string}</span>
+                    <p className="mt-2 truncate text-sm font-black text-[var(--pm-text)]">{value}</p>
+                    <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">{label}</p>
                   </div>
                 ))}
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {selectedGame.players.map((player, index) => (
-                  <div key={`${selectedGame.id}-${player.name}-${index}`} className="ui-muted flex items-center justify-between gap-3 p-3">
+                  <div key={`${selectedGame.id}-${player.name}-${index}`} className="pm-muted-card flex items-center justify-between gap-3 p-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-black text-zinc-950 dark:text-white">{player.name}</p>
-                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      <p className="truncate text-sm font-black text-[var(--pm-text)]">{player.name}</p>
+                      <p className="mt-1 text-xs text-[var(--pm-muted)]">
                         {player.roleName}{player.isAlive === false ? "، حذف‌شده" : ""}
                       </p>
                     </div>
-                    <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(player.alignment)}`}>
+                    <span className={`${alignmentClass(player.alignment)}`}>
                       {alignmentLabel(player.alignment)}
                     </span>
                   </div>

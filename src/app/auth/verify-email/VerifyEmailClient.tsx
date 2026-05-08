@@ -33,7 +33,7 @@ export function VerifyEmailClient({ email, verified, error }: { email?: string; 
   };
 
   return (
-    <div className="app-page min-h-screen overflow-hidden p-4 text-zinc-950 dark:text-white" dir="rtl">
+    <div className="app-page min-h-screen overflow-hidden p-4 text-[var(--pm-text)]" dir="rtl">
       <main className="mx-auto grid min-h-[calc(100vh-2rem)] w-full max-w-6xl items-center gap-6 lg:grid-cols-[minmax(0,1fr)_460px]">
         <section className="hidden lg:block">
           <div className="pm-chip pm-chip-primary">
@@ -50,16 +50,16 @@ export function VerifyEmailClient({ email, verified, error }: { email?: string; 
               ["timer", "ارسال هر ۲ دقیقه"],
               ["sports_esports", "آماده بازی"],
             ].map(([icon, text]) => (
-              <div key={text} className="ui-muted p-4">
-                <span className="material-symbols-outlined text-xl text-cyan-200">{icon}</span>
+              <div key={text} className="pm-muted-card p-4">
+                <span className="material-symbols-outlined text-xl text-[var(--pm-primary)]">{icon}</span>
                 <p className="mt-3 text-sm font-black text-white">{text}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="ui-card overflow-hidden">
-          <div className="border-b border-white/10 bg-black/20 p-6 text-center">
+        <section className="pm-card overflow-hidden">
+          <div className="border-b border-[var(--pm-line)] bg-black/20 p-6 text-center">
             <div className={`mx-auto flex size-16 items-center justify-center rounded-2xl ${verified ? "bg-cyan-300" : error ? "bg-amber-400" : "bg-sky-400"} text-zinc-950`}>
               <span className="material-symbols-outlined text-3xl">{verified ? "verified" : error ? "warning" : "outgoing_mail"}</span>
             </div>
@@ -83,17 +83,17 @@ export function VerifyEmailClient({ email, verified, error }: { email?: string; 
             )}
 
             {verified ? (
-              <Link href="/auth/login" className="ui-button-primary min-h-12 w-full">
+              <Link href="/auth/login" className="pm-button-primary min-h-12 w-full">
                 <span className="material-symbols-outlined text-xl">login</span>
                 ورود به حساب
               </Link>
             ) : (
               <>
-                <button onClick={resend} disabled={secondsLeft > 0 || isPending} className="ui-button-primary min-h-12 w-full">
+                <button onClick={resend} disabled={secondsLeft > 0 || isPending} className="pm-button-primary min-h-12 w-full">
                   <span className={`material-symbols-outlined text-xl ${isPending ? "animate-spin" : ""}`}>{isPending ? "refresh" : "send"}</span>
                   {secondsLeft > 0 ? `ارسال دوباره تا ${secondsLeft} ثانیه دیگر` : "ارسال دوباره ایمیل تایید"}
                 </button>
-                <Link href="/auth/login" className="ui-button-secondary min-h-12 w-full">
+                <Link href="/auth/login" className="pm-button-secondary min-h-12 w-full">
                   بازگشت به ورود
                 </Link>
               </>

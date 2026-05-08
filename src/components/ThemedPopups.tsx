@@ -23,7 +23,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
           orb: 'bg-[var(--pm-danger)]/10',
           iconBox: 'text-[var(--pm-danger)] border-[var(--pm-danger)]/20 bg-[var(--pm-danger)]/10',
           icon: 'error',
-          confirmBtn: 'ui-button-danger',
+          confirmBtn: 'pm-button-danger',
         }
       : type === 'warning'
         ? {
@@ -31,7 +31,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
             orb: 'bg-[var(--pm-warning)]/10',
             iconBox: 'text-[var(--pm-warning)] border-[var(--pm-warning)]/20 bg-[var(--pm-warning)]/10',
             icon: 'warning',
-            confirmBtn: 'ui-button-primary',
+            confirmBtn: 'pm-button-primary',
           }
         : type === 'success'
           ? {
@@ -39,14 +39,14 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
               orb: 'bg-[var(--pm-success)]/10',
               iconBox: 'text-[var(--pm-success)] border-[var(--pm-success)]/20 bg-[var(--pm-success)]/10',
               icon: 'check_circle',
-              confirmBtn: 'ui-button-primary',
+              confirmBtn: 'pm-button-primary',
             }
           : {
               accent: 'bg-[var(--pm-primary)]',
               orb: 'bg-[var(--pm-primary)]/10',
               iconBox: 'text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10',
               icon: 'info',
-              confirmBtn: 'ui-button-primary',
+              confirmBtn: 'pm-button-primary',
             };
 
   return (
@@ -55,7 +55,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
         className="absolute inset-0 bg-black/40 backdrop-blur-sm dark:bg-black/60 dark:backdrop-blur-xl transition-opacity"
         onClick={onClose}
       />
-      <div className="pm-safe-modal motion-pop ui-card relative flex w-full max-w-md flex-col overflow-hidden !rounded-[var(--radius-lg)] shadow-2xl">
+      <div className="pm-safe-modal motion-pop pm-card relative flex w-full max-w-md flex-col overflow-hidden !rounded-[var(--radius-lg)] shadow-2xl">
         <div className={`pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full blur-[60px] ${palette.orb}`}></div>
         <button
           type="button"
@@ -79,7 +79,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
             </div>
           </div>
           
-          <p className="ui-muted p-4 text-sm font-bold leading-7 text-[var(--pm-text)] opacity-90">
+          <p className="pm-muted-card p-4 text-sm font-bold leading-7 text-[var(--pm-text)] opacity-90">
             {message}
           </p>
           
@@ -94,7 +94,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
             )}
             <button 
               onClick={onClose}
-              className={onConfirm ? 'ui-button-secondary' : palette.confirmBtn}
+              className={onConfirm ? 'pm-button-secondary' : palette.confirmBtn}
             >
               {onConfirm ? cancelText : confirmText}
             </button>

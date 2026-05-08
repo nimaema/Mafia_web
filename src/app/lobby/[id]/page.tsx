@@ -192,14 +192,14 @@ export default function UserLobbyPage() {
       <div className="app-page min-h-screen py-8" dir="rtl">
         <div className="app-container">
           <div className="flex min-h-[560px] items-center justify-center">
-            <div className="ui-card w-full max-w-xl overflow-hidden text-center">
+            <div className="pm-card w-full max-w-xl overflow-hidden text-center">
               <div className="h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-300" />
               <div className="p-8 sm:p-10">
                 <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-sky-400 text-sky-950 shadow-lg shadow-sky-500/20">
                   <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
                 </div>
-                <p className="mt-5 text-lg font-black text-zinc-950 dark:text-white">در حال بازسازی نمای لابی</p>
-                <p className="mt-2 text-sm font-bold leading-6 text-zinc-500 dark:text-zinc-400">
+                <p className="mt-5 text-lg font-black text-[var(--pm-text)]">در حال بازسازی نمای لابی</p>
+                <p className="mt-2 text-sm font-bold leading-6 text-[var(--pm-muted)]">
                   وضعیت بازیکنان، ظرفیت سناریو و امکان ورود به بازی در حال بررسی است.
                 </p>
               </div>
@@ -230,11 +230,11 @@ export default function UserLobbyPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-black">
                   {[
-                    { icon: "login", label: "ورود", className: "bg-cyan-500 text-zinc-950" },
-                    { icon: "groups", label: "انتظار", className: "bg-white text-zinc-600 dark:bg-white/10 dark:text-zinc-300" },
-                    { icon: "play_arrow", label: "شروع", className: "bg-white text-zinc-600 dark:bg-white/10 dark:text-zinc-300" },
+                    { icon: "login", label: "ورود", className: "bg-[var(--pm-primary)] text-[var(--pm-text-inverse)]" },
+                    { icon: "groups", label: "انتظار", className: "bg-white text-[var(--pm-muted)] dark:bg-white/10 dark:text-zinc-300" },
+                    { icon: "play_arrow", label: "شروع", className: "bg-white text-[var(--pm-muted)] dark:bg-white/10 dark:text-zinc-300" },
                   ].map((step) => (
-                    <div key={step.label} className={`rounded-lg border border-zinc-200 px-2 py-2 dark:border-white/10 ${step.className}`}>
+                    <div key={step.label} className={`rounded-lg border border-[var(--pm-line)] px-2 py-2 dark:border-[var(--pm-line)] ${step.className}`}>
                       <span className="material-symbols-outlined block text-lg">{step.icon}</span>
                       <span className="mt-1 block">{step.label}</span>
                     </div>
@@ -243,7 +243,7 @@ export default function UserLobbyPage() {
 
                 {game?.hasPassword && (
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-black text-zinc-500 dark:text-zinc-400">رمز ورود به لابی</label>
+                    <label className="text-xs font-black text-[var(--pm-muted)]">رمز ورود به لابی</label>
                     <input
                       type="password"
                       value={joinPassword}
@@ -265,14 +265,14 @@ export default function UserLobbyPage() {
                   </div>
                 )}
 
-                <button onClick={handleJoin} disabled={loading || lobbyIsFull || blocked} className="ui-button-primary min-h-12 w-full text-base disabled:opacity-50">
+                <button onClick={handleJoin} disabled={loading || lobbyIsFull || blocked} className="pm-button-primary min-h-12 w-full text-base disabled:opacity-50">
                   <span className="material-symbols-outlined text-xl">login</span>
                   پیوستن به بازی
                 </button>
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-4 text-cyan-700 dark:text-cyan-300">
+                <div className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-4 text-[var(--pm-primary)]">
                   <div className="flex items-center gap-2 font-black">
                     <span className="material-symbols-outlined">check_circle</span>
                     شما در لابی هستید
@@ -280,9 +280,9 @@ export default function UserLobbyPage() {
                   <p className="mt-2 text-sm font-bold leading-6">با شروع بازی توسط گرداننده، صفحه نقش به صورت خودکار باز می‌شود.</p>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-black">
-                  <span className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-2 text-cyan-700 dark:text-cyan-300">ورود انجام شد</span>
+                  <span className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 py-2 text-[var(--pm-primary)]">ورود انجام شد</span>
                   <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-2 text-sky-700 dark:text-sky-300">انتظار شروع</span>
-                  <span className="rounded-lg border border-zinc-200 bg-white px-2 py-2 text-zinc-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-400">صفحه نقش</span>
+                  <span className="rounded-lg border border-[var(--pm-line)] bg-white px-2 py-2 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.04] dark:text-[var(--pm-muted)]">صفحه نقش</span>
                 </div>
               </div>
             )
@@ -290,7 +290,7 @@ export default function UserLobbyPage() {
           footer={
             <button
               onClick={() => router.push("/dashboard/user")}
-              className="inline-flex items-center gap-2 text-sm font-bold text-zinc-500 transition-colors hover:text-zinc-950 dark:hover:text-white"
+              className="inline-flex items-center gap-2 text-sm font-bold text-[var(--pm-muted)] transition-colors hover:text-zinc-950 dark:hover:text-white"
             >
               <span className="material-symbols-outlined text-lg">arrow_forward</span>
               بازگشت به پیشخوان

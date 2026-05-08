@@ -18,7 +18,7 @@ interface Props {
 export default function WinLossBarChart({ data }: Props) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-zinc-500 text-sm">
+      <div className="flex items-center justify-center h-48 text-[var(--pm-muted)] text-sm">
         داده‌ای برای نمایش وجود ندارد
       </div>
     );
