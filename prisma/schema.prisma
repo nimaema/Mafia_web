@@ -62,9 +62,10 @@ model User {
   gamesHosted         Game[]               @relation("HostedGames")
   gameHistories       GameHistory[]
   gamePlayers         GamePlayer[]
+  gameBlocks          GameBlockedUser[]
   passwordResetTokens PasswordResetToken[]
-  suggestionRequests  SuggestionRequest[] @relation("SuggestionRequester")
-  reviewedSuggestions SuggestionRequest[] @relation("SuggestionReviewer")
+  suggestionRequests  SuggestionRequest[]  @relation("SuggestionRequester")
+  reviewedSuggestions SuggestionRequest[]  @relation("SuggestionReviewer")
 }
 
 model Account {
@@ -120,9 +121,9 @@ model MafiaRole {
   is_permanent   Boolean   @default(false)
   nightAbilities Json?
 
-  scenarios     ScenarioRole[]
-  gameHistories GameHistory[]
-  gamePlayers   GamePlayer[]
+  scenarios                 ScenarioRole[]
+  gameHistories             GameHistory[]
+  gamePlayers               GamePlayer[]
   targetSuggestionRequests  SuggestionRequest[] @relation("SuggestionTargetRole")
   createdSuggestionRequests SuggestionRequest[] @relation("SuggestionCreatedRole")
 }
@@ -135,9 +136,9 @@ model Scenario {
   creator     User?          @relation(fields: [createdBy], references: [id])
   roles       ScenarioRole[]
 
-  games     Game[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  games                     Game[]
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
   targetSuggestionRequests  SuggestionRequest[] @relation("SuggestionTargetScenario")
   createdSuggestionRequests SuggestionRequest[] @relation("SuggestionCreatedScenario")
 }
@@ -154,24 +155,25 @@ model ScenarioRole {
 }
 
 model Game {
-  id                 String     @id @default(cuid())
-  name               String?
-  code               String?    @unique
-  moderatorId        String
-  moderator          User       @relation("HostedGames", fields: [moderatorId], references: [id])
-  password           String?
-  status             GameStatus @default(WAITING)
-  scenarioId         String?
-  scenario           Scenario?  @relation(fields: [scenarioId], references: [id])
-  winningAlignment   Alignment?
-  nightRecordsPublic Boolean    @default(false)
+  id                  String     @id @default(cuid())
+  name                String?
+  code                String?    @unique
+  moderatorId         String
+  moderator           User       @relation("HostedGames", fields: [moderatorId], references: [id])
+  password            String?
+  status              GameStatus @default(WAITING)
+  scenarioId          String?
+  scenario            Scenario?  @relation(fields: [scenarioId], references: [id])
+  winningAlignment    Alignment?
+  nightRecordsPublic  Boolean    @default(false)
   activeRoleAbilities Json?
 
-  histories   GameHistory[]
-  players     GamePlayer[]
-  nightEvents NightEvent[]
-  createdAt   DateTime      @default(now())
-  endedAt     DateTime?
+  histories    GameHistory[]
+  players      GamePlayer[]
+  blockedUsers GameBlockedUser[]
+  nightEvents  NightEvent[]
+  createdAt    DateTime          @default(now())
+  endedAt      DateTime?
 }
 
 model GameHistory {
@@ -218,6 +220,18 @@ model GamePlayer {
   nightEventsAsTarget NightEvent[] @relation("NightEventTarget")
 
   @@unique([gameId, name])
+}
+
+model GameBlockedUser {
+  id        String   @id @default(cuid())
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([gameId, userId])
+  @@index([userId])
 }
 
 model NightEvent {

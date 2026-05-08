@@ -27,6 +27,7 @@ export default function UserLobbyPage() {
   const [game, setGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [joined, setJoined] = useState(false);
+  const [blocked, setBlocked] = useState(false);
   const [joinPassword, setJoinPassword] = useState("");
 
   useEffect(() => {
@@ -57,6 +58,7 @@ export default function UserLobbyPage() {
           isAlive: player.isAlive,
         }));
         const userIsInLobby = Boolean(session?.user?.id && nextPlayers.some((player: Player) => player.userId === session.user.id));
+        const userIsBlocked = Boolean(result.currentUserBlocked);
 
         if (result.status === "IN_PROGRESS" && (userIsInLobby || joined)) {
           redirected = true;
@@ -67,6 +69,7 @@ export default function UserLobbyPage() {
         setGame(result);
         setPlayers(nextPlayers);
         setJoined(userIsInLobby);
+        setBlocked(userIsBlocked && !userIsInLobby);
         setLoading(false);
       } catch (error) {
         console.error("Lobby status sync failed:", error);
@@ -95,12 +98,27 @@ export default function UserLobbyPage() {
       syncGameStatus();
     });
 
+    channel.bind("player-removed", (data: { playerId: string; userId?: string | null; blocked?: boolean }) => {
+      setPlayers((previous) => previous.filter((player) => player.id !== data.playerId));
+      if (session?.user?.id && data.userId === session.user.id) {
+        setJoined(false);
+        setBlocked(Boolean(data.blocked));
+        showAlert(
+          data.blocked ? "ورود به این لابی محدود شد" : "از لابی خارج شدید",
+          data.blocked
+            ? "گرداننده شما را از این لابی حذف و ورود دوباره به همین بازی را محدود کرد."
+            : "گرداننده شما را از لابی خارج کرد. اگر محدود نشده باشید می‌توانید دوباره وارد شوید.",
+          data.blocked ? "error" : "warning"
+        );
+      }
+    });
+
     return () => {
       mounted = false;
       window.clearInterval(statusInterval);
       pusher.unsubscribe(`game-${gameId}`);
     };
-  }, [gameId, joined, router, session?.user?.id]);
+  }, [gameId, joined, router, session?.user?.id, showAlert]);
 
   const handleJoin = async () => {
     const playerName = (session?.user?.name || session?.user?.email || "").trim();
@@ -235,13 +253,19 @@ export default function UserLobbyPage() {
                   </div>
                 )}
 
-                {lobbyIsFull && (
+                {blocked && (
+                  <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm font-bold leading-6 text-red-600 dark:text-red-300">
+                    ورود شما به این لابی توسط گرداننده محدود شده است.
+                  </div>
+                )}
+
+                {lobbyIsFull && !blocked && (
                   <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm font-bold leading-6 text-amber-700 dark:text-amber-300">
                     ظرفیت این سناریو تکمیل شده و ورود بازیکن جدید ممکن نیست.
                   </div>
                 )}
 
-                <button onClick={handleJoin} disabled={loading || lobbyIsFull} className="ui-button-primary min-h-12 w-full text-base disabled:opacity-50">
+                <button onClick={handleJoin} disabled={loading || lobbyIsFull || blocked} className="ui-button-primary min-h-12 w-full text-base disabled:opacity-50">
                   <span className="material-symbols-outlined text-xl">login</span>
                   پیوستن به بازی
                 </button>

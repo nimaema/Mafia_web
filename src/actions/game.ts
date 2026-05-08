@@ -304,6 +304,20 @@ export async function joinGame(code: string, playerName: string, password?: stri
       return { error: "بازی قبلاً شروع شده است" };
     }
 
+    const blocked = await prisma.gameBlockedUser.findUnique({
+      where: {
+        gameId_userId: {
+          gameId: game.id,
+          userId: session.user.id,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (blocked) {
+      return { error: "گرداننده ورود شما را برای همین لابی محدود کرده است." };
+    }
+
     if (game.password && game.password !== password) {
       return { error: "رمز عبور اشتباه است" };
     }
@@ -514,12 +528,23 @@ export async function getGameStatus(gameId: string) {
 
   if (!game) return null;
 
-  const currentUser = session?.user?.id
-    ? await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { role: true, isBanned: true },
-      })
-    : null;
+  const [currentUser, currentUserBlock] = session?.user?.id
+    ? await Promise.all([
+        prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { role: true, isBanned: true },
+        }),
+        prisma.gameBlockedUser.findUnique({
+          where: {
+            gameId_userId: {
+              gameId,
+              userId: session.user.id,
+            },
+          },
+          select: { id: true },
+        }),
+      ])
+    : [null, null];
   const canManageThisGame =
     !currentUser?.isBanned &&
     (currentUser?.role === "ADMIN" || currentUser?.role === "MODERATOR") &&
@@ -559,6 +584,7 @@ export async function getGameStatus(gameId: string) {
     players: visiblePlayers,
     nightEvents: sanitizeNightEvents(visibleNightEvents),
     mafiaConversionRoles,
+    currentUserBlocked: Boolean(currentUserBlock),
     hasPassword: !!password
   };
 }
@@ -1614,7 +1640,7 @@ export async function endGame(gameId: string, winningAlignment: WinningAlignment
 
 export async function cancelGame(gameId: string) {
   try {
-    await checkModerator();
+    await checkModeratorForGame(gameId);
 
     const game = await prisma.game.findUnique({
       where: { id: gameId }
@@ -1638,5 +1664,66 @@ export async function cancelGame(gameId: string) {
   } catch (error: any) {
     console.error("Cancel game error:", error);
     return { error: "خطا در لغو بازی" };
+  }
+}
+
+export async function removeWaitingLobbyPlayer(gameId: string, playerId: string, blockFromGame = false) {
+  try {
+    const { game } = await checkModeratorForGame(gameId);
+    if (game.status !== "WAITING") {
+      throw new Error("بازیکن فقط قبل از شروع بازی از لابی قابل حذف است.");
+    }
+
+    const player = await prisma.gamePlayer.findUnique({
+      where: { id: playerId },
+      select: { id: true, gameId: true, userId: true, name: true },
+    });
+
+    if (!player || player.gameId !== gameId) {
+      throw new Error("بازیکن در این لابی پیدا نشد.");
+    }
+
+    await prisma.$transaction(async (tx) => {
+      if (blockFromGame && player.userId) {
+        await tx.gameBlockedUser.upsert({
+          where: {
+            gameId_userId: {
+              gameId,
+              userId: player.userId,
+            },
+          },
+          update: {},
+          create: {
+            gameId,
+            userId: player.userId,
+          },
+        });
+      }
+
+      await tx.gamePlayer.delete({
+        where: { id: player.id },
+      });
+    });
+
+    await pusherServer.trigger(`game-${gameId}`, "player-removed", {
+      playerId: player.id,
+      userId: player.userId,
+      playerName: player.name,
+      blocked: Boolean(blockFromGame && player.userId),
+    });
+    await pusherServer.trigger(`game-${gameId}`, "player-left", {
+      playerId: player.id,
+    });
+    await broadcastLobbyUpdated(blockFromGame ? "player-blocked" : "player-removed", gameId);
+
+    revalidatePath("/dashboard/user");
+    revalidatePath("/dashboard/moderator");
+    revalidatePath(`/dashboard/moderator/lobby/${gameId}`);
+    revalidatePath(`/lobby/${gameId}`);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Remove lobby player error:", error);
+    return { error: error.message || "حذف بازیکن از لابی انجام نشد." };
   }
 }

@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "راهنمای بازی مافیا | مافیا بورد",
@@ -72,7 +75,80 @@ const quickRules = [
   "گزارش خوب باید اتفاقات استفاده‌شده را واضح نشان دهد، اما استفاده‌نشدن هر گزینه را بی‌دلیل شلوغ نکند.",
 ];
 
-export default function GameGuidePage() {
+type GuideAlignment = "CITIZEN" | "MAFIA" | "NEUTRAL";
+
+function alignmentLabel(alignment?: string | null) {
+  if (alignment === "CITIZEN") return "شهروند";
+  if (alignment === "MAFIA") return "مافیا";
+  return "مستقل";
+}
+
+function alignmentClass(alignment?: string | null) {
+  if (alignment === "CITIZEN") return "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300";
+  if (alignment === "MAFIA") return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
+  return "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300";
+}
+
+function alignmentIcon(alignment?: string | null) {
+  if (alignment === "CITIZEN") return "verified_user";
+  if (alignment === "MAFIA") return "local_police";
+  return "casino";
+}
+
+function roleCountLabel(count: number) {
+  return count > 1 ? `${count} نفر` : "۱ نفر";
+}
+
+async function getGuideLibrary() {
+  try {
+    const [roles, scenarios] = await Promise.all([
+      prisma.mafiaRole.findMany({
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          alignment: true,
+        },
+        orderBy: [{ alignment: "asc" }, { name: "asc" }],
+      }),
+      prisma.scenario.findMany({
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          roles: {
+            select: {
+              count: true,
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                  alignment: true,
+                  description: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { name: "asc" },
+      }),
+    ]);
+
+    return { roles, scenarios, unavailable: false };
+  } catch {
+    return { roles: [], scenarios: [], unavailable: true };
+  }
+}
+
+export default async function GameGuidePage() {
+  const { roles, scenarios, unavailable } = await getGuideLibrary();
+  const roleGroups = (["CITIZEN", "MAFIA", "NEUTRAL"] as GuideAlignment[])
+    .map((alignment) => ({
+      alignment,
+      roles: roles.filter((role) => role.alignment === alignment),
+    }))
+    .filter((group) => group.roles.length > 0);
+
   return (
     <main className="app-page min-h-screen overflow-hidden text-zinc-950 dark:text-white" dir="rtl">
       <header className="app-container relative z-10 flex items-center justify-between gap-3 py-5">
@@ -153,6 +229,152 @@ export default function GameGuidePage() {
               </div>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="app-container pb-12">
+        <div className="pm-command overflow-hidden p-0">
+          <div className="grid gap-0 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+            <div className="border-b border-zinc-200 p-5 dark:border-white/10 xl:border-b-0 xl:border-l">
+              <p className="pm-kicker">کتابخانه عمومی بازی</p>
+              <h2 className="mt-2 text-2xl font-black">نقش‌ها و سناریوها برای بازیکنان</h2>
+              <p className="mt-3 text-sm font-bold leading-7 text-zinc-600 dark:text-white/54">
+                این بخش همان اطلاعاتی را نشان می‌دهد که بازیکن عادی برای شناخت سناریوها، تعداد نقش‌ها و توضیح کلی هر نقش لازم دارد؛ بدون نیاز به ورود به صفحات مدیریتی.
+              </p>
+
+              {unavailable ? (
+                <div className="mt-5 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm font-bold leading-7 text-amber-700 dark:text-amber-300">
+                  کتابخانه نقش‌ها و سناریوها فعلاً قابل بارگذاری نیست. بعد از اتصال دیتابیس، همین بخش به‌صورت خودکار از اطلاعات فعلی سایت پر می‌شود.
+                </div>
+              ) : (
+                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3">
+                    <p className="text-2xl font-black text-cyan-700 dark:text-cyan-300">{roles.length}</p>
+                    <p className="mt-1 text-[10px] font-black text-cyan-700/70 dark:text-cyan-300/70">نقش ثبت‌شده</p>
+                  </div>
+                  <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-3">
+                    <p className="text-2xl font-black text-violet-700 dark:text-violet-300">{scenarios.length}</p>
+                    <p className="mt-1 text-[10px] font-black text-violet-700/70 dark:text-violet-300/70">سناریو</p>
+                  </div>
+                  <div className="col-span-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 sm:col-span-1">
+                    <p className="text-2xl font-black text-emerald-700 dark:text-emerald-300">
+                      {scenarios.reduce((max, scenario) => Math.max(max, scenario.roles.reduce((sum, item) => sum + item.count, 0)), 0)}
+                    </p>
+                    <p className="mt-1 text-[10px] font-black text-emerald-700/70 dark:text-emerald-300/70">بیشترین ظرفیت</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="grid gap-0 lg:grid-cols-2 xl:min-h-[620px]">
+              <div className="border-b border-zinc-200 p-4 dark:border-white/10 lg:border-b-0 lg:border-l">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-black text-cyan-700 dark:text-cyan-300">راهنمای نقش‌ها</p>
+                    <h3 className="mt-1 text-lg font-black">نقش‌ها بر اساس جبهه</h3>
+                  </div>
+                  <span className="material-symbols-outlined grid size-10 place-items-center rounded-2xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-300">theater_comedy</span>
+                </div>
+
+                <div className="custom-scrollbar mt-4 max-h-[560px] space-y-4 overflow-y-auto pr-1">
+                  {roleGroups.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-zinc-200 p-5 text-center text-sm font-bold text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+                      نقشی برای نمایش پیدا نشد.
+                    </div>
+                  ) : (
+                    roleGroups.map((group) => (
+                      <section key={group.alignment} className="overflow-hidden rounded-2xl border border-zinc-200 bg-white/62 dark:border-white/10 dark:bg-black/18">
+                        <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/80 px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.035]">
+                          <div className="flex items-center gap-2">
+                            <span className={`material-symbols-outlined grid size-9 place-items-center rounded-xl border text-lg ${alignmentClass(group.alignment)}`}>
+                              {alignmentIcon(group.alignment)}
+                            </span>
+                            <p className="font-black">{alignmentLabel(group.alignment)}</p>
+                          </div>
+                          <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black ${alignmentClass(group.alignment)}`}>
+                            {group.roles.length} نقش
+                          </span>
+                        </div>
+                        <div className="grid gap-2 p-2">
+                          {group.roles.map((role) => (
+                            <article key={role.id} className="rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/55">
+                              <div className="flex items-start justify-between gap-3">
+                                <h4 className="break-words text-sm font-black leading-6 text-zinc-950 dark:text-white">{role.name}</h4>
+                                <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
+                                  {alignmentLabel(role.alignment)}
+                                </span>
+                              </div>
+                              <p className="mt-2 line-clamp-4 text-xs font-bold leading-6 text-zinc-600 dark:text-white/58">
+                                {role.description || "توضیحی برای این نقش ثبت نشده است."}
+                              </p>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-black text-violet-700 dark:text-violet-300">راهنمای سناریوها</p>
+                    <h3 className="mt-1 text-lg font-black">ترکیب و توضیح سناریو</h3>
+                  </div>
+                  <span className="material-symbols-outlined grid size-10 place-items-center rounded-2xl bg-violet-500/10 text-violet-700 dark:text-violet-300">account_tree</span>
+                </div>
+
+                <div className="custom-scrollbar mt-4 max-h-[560px] space-y-3 overflow-y-auto pr-1">
+                  {scenarios.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-zinc-200 p-5 text-center text-sm font-bold text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+                      سناریویی برای نمایش پیدا نشد.
+                    </div>
+                  ) : (
+                    scenarios.map((scenario) => {
+                      const totalPlayers = scenario.roles.reduce((sum, item) => sum + item.count, 0);
+                      const roleSummary = scenario.roles
+                        .slice()
+                        .sort((left, right) => {
+                          const leftAlignment = left.role?.alignment || "NEUTRAL";
+                          const rightAlignment = right.role?.alignment || "NEUTRAL";
+                          return leftAlignment.localeCompare(rightAlignment, "fa") || left.role.name.localeCompare(right.role.name, "fa");
+                        });
+
+                      return (
+                        <article key={scenario.id} className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm shadow-zinc-950/5 dark:border-white/10 dark:bg-zinc-950/55">
+                          <div className="border-b border-zinc-200 bg-zinc-50/80 p-3 dark:border-white/10 dark:bg-white/[0.035]">
+                            <div className="flex items-start justify-between gap-3">
+                              <h4 className="break-words text-base font-black leading-7 text-zinc-950 dark:text-white">{scenario.name}</h4>
+                              <span className="shrink-0 rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-[10px] font-black text-violet-700 dark:text-violet-300">
+                                {totalPlayers || "؟"} نفر
+                              </span>
+                            </div>
+                            <p className="mt-2 line-clamp-3 text-xs font-bold leading-6 text-zinc-600 dark:text-white/58">
+                              {scenario.description || "توضیحی برای این سناریو ثبت نشده است."}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 p-3">
+                            {roleSummary.length ? (
+                              roleSummary.map((item) => (
+                                <span key={`${scenario.id}-${item.role.id}`} className={`rounded-full border px-2.5 py-1 text-[10px] font-black ${alignmentClass(item.role.alignment)}`}>
+                                  {item.role.name} · {roleCountLabel(item.count)}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                                ترکیب نقش ثبت نشده
+                              </span>
+                            )}
+                          </div>
+                        </article>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getPusherClient } from "@/lib/pusher-client";
-import { createCustomGameScenario, getGameStatus, setGameRoleAbilities, setGameScenario, startGame } from "@/actions/game";
+import { cancelGame, createCustomGameScenario, getGameStatus, removeWaitingLobbyPlayer, setGameRoleAbilities, setGameScenario, startGame } from "@/actions/game";
 import { getScenarios } from "@/actions/admin";
 import { getRoles } from "@/actions/role";
 import { usePopup } from "@/components/PopupProvider";
@@ -14,6 +15,7 @@ import { MobilePwaFeatureLock } from "@/components/MobilePwaFeatureLock";
 type Player = {
   id: string;
   name: string;
+  userId?: string | null;
   image?: string | null;
   isAlive?: boolean;
 };
@@ -165,7 +167,7 @@ export default function GameLobbyPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
-  const { showAlert, showToast } = usePopup();
+  const { showAlert, showConfirm, showToast } = usePopup();
   const gameId = params.id as string;
   const [players, setPlayers] = useState<Player[]>([]);
   const [game, setGame] = useState<any>(null);
@@ -180,6 +182,8 @@ export default function GameLobbyPage() {
   const [customScenarioName, setCustomScenarioName] = useState("");
   const [abilityConfig, setAbilityConfig] = useState<ActiveRoleAbilityConfig>({});
   const [savingAbilities, setSavingAbilities] = useState(false);
+  const [busyPlayerId, setBusyPlayerId] = useState<string | null>(null);
+  const [deletingLobby, setDeletingLobby] = useState(false);
 
   useEffect(() => {
     if (sessionStatus === "loading") return;
@@ -213,7 +217,7 @@ export default function GameLobbyPage() {
 
         setGame(gameRes);
         setAbilityConfig(abilityConfigForGame(gameRes));
-        setPlayers((gameRes.players || []).map((player: any) => ({ id: player.id, name: player.name, image: player.image || player.user?.image || null, isAlive: player.isAlive })));
+        setPlayers((gameRes.players || []).map((player: any) => ({ id: player.id, name: player.name, userId: player.userId, image: player.image || player.user?.image || null, isAlive: player.isAlive })));
         setScenarios(scenariosRes);
         setRoles(rolesRes);
         setLoading(false);
@@ -229,6 +233,10 @@ export default function GameLobbyPage() {
         });
 
         channel.bind("player-left", (data: { playerId: string }) => {
+          setPlayers((prev) => prev.filter((player) => player.id !== data.playerId));
+        });
+
+        channel.bind("player-removed", (data: { playerId: string }) => {
           setPlayers((prev) => prev.filter((player) => player.id !== data.playerId));
         });
 
@@ -309,6 +317,7 @@ export default function GameLobbyPage() {
       players.map((player) => ({
         id: player.id,
         name: player.name,
+        userId: player.userId,
         image: player.image || null,
         isAlive: player.isAlive,
       })),
@@ -386,6 +395,51 @@ export default function GameLobbyPage() {
       showAlert("خطا در شروع بازی", res.error || "خطای نامشخص", "error");
       setLoading(false);
     }
+  };
+
+  const handleDeleteLobby = () => {
+    showConfirm(
+      "حذف لابی",
+      "این لابی قبل از شروع بازی حذف می‌شود و همه بازیکنان از اتاق انتظار خارج می‌شوند. ادامه می‌دهید؟",
+      async () => {
+        setDeletingLobby(true);
+        const res = await cancelGame(gameId);
+        if (res.success) {
+          showToast("لابی حذف شد", "success");
+          router.replace("/dashboard/moderator");
+        } else {
+          showAlert("حذف لابی انجام نشد", res.error || "لطفاً دوباره تلاش کنید.", "error");
+          setDeletingLobby(false);
+        }
+      },
+      "error"
+    );
+  };
+
+  const handleRemovePlayer = (player: Player, blockFromGame: boolean) => {
+    if (blockFromGame && player.userId === session?.user?.id) {
+      showAlert("محدودسازی ممکن نیست", "نمی‌توانید حساب خودتان را از همین لابی مسدود کنید.", "warning");
+      return;
+    }
+
+    showConfirm(
+      blockFromGame ? "حذف و محدودسازی بازیکن" : "حذف بازیکن از لابی",
+      blockFromGame
+        ? `${player.name} از لابی حذف می‌شود و دیگر نمی‌تواند به همین بازی برگردد.`
+        : `${player.name} از لابی حذف می‌شود، اما در صورت نیاز می‌تواند دوباره وارد همین بازی شود.`,
+      async () => {
+        setBusyPlayerId(player.id);
+        const res = await removeWaitingLobbyPlayer(gameId, player.id, blockFromGame);
+        if (res.success) {
+          setPlayers((previous) => previous.filter((item) => item.id !== player.id));
+          showToast(blockFromGame ? "بازیکن حذف و برای این بازی محدود شد" : "بازیکن از لابی حذف شد", "success");
+        } else {
+          showAlert("حذف بازیکن انجام نشد", res.error || "لطفاً دوباره تلاش کنید.", "error");
+        }
+        setBusyPlayerId(null);
+      },
+      blockFromGame ? "error" : "warning"
+    );
   };
 
   const handleCustomRoleChange = (roleId: string, delta: number) => {
@@ -519,6 +573,14 @@ export default function GameLobbyPage() {
                 <span className="material-symbols-outlined text-base">content_copy</span>
                 کپی لینک
               </button>
+              <button
+                onClick={handleDeleteLobby}
+                disabled={deletingLobby}
+                className="ui-button-danger min-h-10 px-3 text-xs"
+              >
+                <span className={`material-symbols-outlined text-base ${deletingLobby ? "animate-spin" : ""}`}>{deletingLobby ? "progress_activity" : "delete"}</span>
+                حذف لابی
+              </button>
               <button onClick={() => router.push("/dashboard/moderator")} className="ui-button-secondary min-h-10 border-zinc-200 bg-white/82 px-3 text-xs text-zinc-700 shadow-sm shadow-zinc-950/5 hover:border-cyan-500/30 hover:bg-cyan-50 hover:text-zinc-950 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white dark:hover:text-zinc-950">
                 <span className="material-symbols-outlined text-base">arrow_forward</span>
                 بازگشت
@@ -586,13 +648,33 @@ export default function GameLobbyPage() {
                           }`}>
                             {player ? image ? <img src={image} alt="" className="size-full object-cover" /> : player.name.slice(0, 1) : <span className="material-symbols-outlined text-xl">person_add</span>}
                           </span>
-                          <span className="min-w-0">
+                          <span className="min-w-0 flex-1">
                             <span className={`block truncate text-sm font-black ${player ? "text-zinc-950 dark:text-white" : "text-zinc-400"}`}>
                               {player?.name || `جای خالی ${index + 1}`}
                             </span>
                             <span className="mt-0.5 block truncate text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
                               {player ? "وارد لابی شده" : requiredPlayers ? "در انتظار بازیکن" : "بعد از انتخاب سناریو فعال می‌شود"}
                             </span>
+                            {player && (
+                              <span className="mt-2 grid grid-cols-2 gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemovePlayer(player, false)}
+                                  disabled={busyPlayerId === player.id}
+                                  className="min-h-8 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 text-[10px] font-black text-amber-700 transition-all hover:bg-amber-500/18 disabled:opacity-50 dark:text-amber-300"
+                                >
+                                  حذف
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemovePlayer(player, true)}
+                                  disabled={busyPlayerId === player.id || player.userId === session?.user?.id}
+                                  className="min-h-8 rounded-lg border border-red-500/20 bg-red-500/10 px-2 text-[10px] font-black text-red-600 transition-all hover:bg-red-500/18 disabled:opacity-50 dark:text-red-300"
+                                >
+                                  حذف و بستن
+                                </button>
+                              </span>
+                            )}
                           </span>
                         </div>
                       );
@@ -887,9 +969,9 @@ export default function GameLobbyPage() {
         roleBreakdown={scenarioRoles}
       />
 
-      {showCustomModal && (
-        <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/70 backdrop-blur-xl sm:items-center">
-          <div className="ui-card pm-safe-modal flex w-full flex-col overflow-hidden rounded-lg sm:max-w-6xl">
+      {showCustomModal && typeof document !== "undefined" && createPortal(
+        <div className="pm-modal-layer fixed inset-0 z-[520] flex items-end justify-center bg-black/70 p-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] backdrop-blur-xl md:items-center md:pb-3">
+          <div className="ui-card pm-safe-modal flex max-h-[calc(100dvh-7rem)] w-full flex-col overflow-hidden rounded-lg md:max-h-[calc(100dvh-1.5rem)] md:max-w-6xl">
             <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/90 p-4 dark:border-white/10 dark:bg-white/[0.03] sm:p-5">
               <div className="min-w-0">
                 <p className="ui-kicker">سناریوی سفارشی</p>
@@ -1027,7 +1109,8 @@ export default function GameLobbyPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

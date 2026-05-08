@@ -3,6 +3,7 @@
 import { GameStatus, Role } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { banUser, deleteUser, getAllUsersSafe, sendEmailToUser, updateUserRole, verifyUserEmail } from "@/actions/admin";
 import { usePopup } from "@/components/PopupProvider";
 import { usePresenceSnapshot } from "@/hooks/usePresenceSnapshot";
@@ -892,13 +893,13 @@ export function UserManagementPanel() {
         </aside>
       </main>
 
-      {emailComposerUser && (
+      {emailComposerUser && typeof document !== "undefined" && createPortal(
         <div
-          className="fixed inset-0 z-[210] flex items-end justify-center bg-zinc-950/70 p-4 pb-28 backdrop-blur-sm sm:items-center sm:pb-4"
+          className="fixed inset-0 z-[520] flex items-end justify-center bg-zinc-950/70 p-4 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] backdrop-blur-sm md:items-center md:pb-4"
           onClick={() => setEmailComposerUser(null)}
         >
           <section
-            className="ui-card flex max-h-[calc(100dvh-8rem)] w-full max-w-5xl flex-col overflow-hidden"
+            className="ui-card flex max-h-[calc(100dvh-7rem)] w-full max-w-5xl flex-col overflow-hidden md:max-h-[calc(100dvh-2rem)]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50/80 p-5 dark:border-white/10 dark:bg-white/[0.03]">
@@ -1104,7 +1105,8 @@ export function UserManagementPanel() {
               </button>
             </div>
           </section>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

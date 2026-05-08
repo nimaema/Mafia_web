@@ -54,7 +54,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
             };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-end justify-center p-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-[520] flex items-end justify-center p-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:items-center sm:p-4">
       <div 
         className="absolute inset-0 bg-zinc-950/78 backdrop-blur-xl transition-opacity"
         onClick={onClose}
