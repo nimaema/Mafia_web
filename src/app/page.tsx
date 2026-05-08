@@ -7,10 +7,10 @@ const lobbyPreviewPlayers = ["نیما", "سارا", "آرش", "مینا"];
 export default function Home() {
   return (
     <main className="app-page min-h-screen overflow-hidden" dir="rtl">
-      {/* Background orbs */}
+      {/* Background texture */}
       <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute left-1/2 top-20 size-[30rem] -translate-x-1/2 rounded-full bg-[var(--color-noir-cyan-glow)] blur-[100px] opacity-40 dark:opacity-20" />
-        <div className="absolute bottom-8 right-8 size-[24rem] rounded-full bg-[var(--color-noir-violet)] blur-[120px] opacity-10 dark:opacity-5" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,229,200,0.08),transparent_18rem),linear-gradient(90deg,rgba(16,19,23,0.045)_1px,transparent_1px),linear-gradient(180deg,rgba(16,19,23,0.045)_1px,transparent_1px)] bg-[size:auto,3.5rem_3.5rem,3.5rem_3.5rem] opacity-80 dark:bg-[linear-gradient(180deg,rgba(0,229,200,0.06),transparent_18rem),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.035)_1px,transparent_1px)]" />
+        <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(0,229,200,0.55),transparent)]" />
       </div>
 
       {/* Mobile Landing */}
@@ -23,7 +23,7 @@ export default function Home() {
         </div>
 
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center pb-8 text-center">
-          <div className="motion-pop relative grid size-32 place-items-center rounded-[2.25rem] border border-[var(--pm-line)] bg-[var(--pm-surface)] shadow-[var(--pm-shadow-soft)]">
+          <div className="motion-pop relative grid size-32 place-items-center rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface)] shadow-[var(--pm-shadow-soft)]">
             <span className="material-symbols-outlined relative text-[4rem] text-[var(--pm-primary)] drop-shadow-[0_0_15px_var(--color-noir-cyan-glow)]">theater_comedy</span>
           </div>
 
@@ -52,7 +52,8 @@ export default function Home() {
             <span className="material-symbols-outlined text-xl">login</span>
             ورود به اپ
           </Link>
-          <Link href="/auth/register" className="mt-3 flex min-h-[3rem] items-center justify-center rounded-[var(--radius-sm)] text-[0.85rem] font-black text-[var(--pm-muted)] transition-colors hover:text-[var(--pm-text)]">
+          <Link href="/auth/register" className="pm-button pm-button-secondary mt-3 min-h-[3rem] w-full text-[0.85rem] shadow-none">
+            <span className="material-symbols-outlined text-lg">person_add</span>
             ساخت حساب جدید
           </Link>
         </div>
@@ -82,7 +83,7 @@ export default function Home() {
       <section className="app-container relative z-10 hidden min-h-[calc(100dvh-6.5rem)] items-center justify-center pb-16 md:flex">
         <div className="mx-auto grid w-full max-w-[70rem] items-center gap-12 lg:grid-cols-[minmax(0,1fr)_420px]">
           <div className="grid gap-10 text-center lg:text-right">
-            <div className="motion-pop mx-auto grid size-32 place-items-center rounded-[2.25rem] border border-[var(--pm-line)] bg-[var(--pm-surface)] shadow-[var(--pm-shadow)] lg:mx-0">
+            <div className="motion-pop mx-auto grid size-32 place-items-center rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface)] shadow-[var(--pm-shadow)] lg:mx-0">
               <span className="material-symbols-outlined text-[4rem] text-[var(--pm-primary)] drop-shadow-[0_0_20px_var(--color-noir-cyan-glow)]">theater_comedy</span>
             </div>
 
@@ -104,6 +105,7 @@ export default function Home() {
                 ورود
               </Link>
               <Link href="/auth/register" className="pm-button pm-button-secondary min-h-[3.5rem] flex-1 text-[1.1rem]">
+                <span className="material-symbols-outlined text-2xl">person_add</span>
                 ثبت نام
               </Link>
             </div>
@@ -117,7 +119,7 @@ export default function Home() {
             </div>
           </div>
 
-          <aside className="motion-pop pm-card relative overflow-hidden p-6 text-right shadow-[var(--pm-shadow)] lg:rounded-[2rem]">
+          <aside className="motion-pop pm-card relative overflow-hidden p-6 text-right shadow-[var(--pm-shadow)]">
             <div className="absolute inset-x-0 top-0 h-1 bg-[var(--pm-primary)] opacity-80 shadow-[0_0_15px_var(--pm-primary)]" />
             <div className="flex items-start justify-between gap-4 pt-4">
               <div>
@@ -141,7 +143,7 @@ export default function Home() {
               <div className="mt-5 grid grid-cols-2 gap-3">
                 {lobbyPreviewPlayers.map((player) => (
                   <div key={player} className="flex min-h-[3.5rem] items-center gap-3 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-3 shadow-[var(--pm-shadow-soft)] transition-colors hover:border-[var(--pm-primary)]">
-                    <span className="grid size-9 place-items-center rounded-md bg-[var(--pm-surface-strong)] text-[0.8rem] font-black text-[var(--pm-text)]">
+                    <span className="grid size-9 place-items-center rounded-[var(--radius-xs)] bg-[var(--pm-surface-strong)] text-[0.8rem] font-black text-[var(--pm-text)]">
                       {player[0]}
                     </span>
                     <span className="min-w-0 truncate text-[0.95rem] font-black">{player}</span>
@@ -168,4 +170,3 @@ export default function Home() {
     </main>
   );
 }
-

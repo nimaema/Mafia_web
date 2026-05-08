@@ -24,7 +24,7 @@ export default auth((req: AuthenticatedRequest) => {
   const isPublicRoute =
     ["/", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/auth/verify-email"].includes(
       nextUrl.pathname
-    ) || nextUrl.pathname.startsWith("/public");
+    ) || nextUrl.pathname.startsWith("/public") || nextUrl.pathname.startsWith("/fonts/");
   const isAuthRoute = ["/auth/login", "/auth/register"].includes(nextUrl.pathname);
 
   if (isApiAuthRoute) return NextResponse.next();
@@ -53,5 +53,5 @@ export default auth((req: AuthenticatedRequest) => {
 
 // Middleware config remains valid in proxy mode
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|manifest.json|manifest.webmanifest|icon|apple-icon|sw.js|icons/).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|manifest.json|manifest.webmanifest|icon|apple-icon|sw.js|icons/|fonts/).*)"],
 };

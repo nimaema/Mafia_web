@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
         )}
 
         {message && (
-          <div className="rounded-2xl border border-[var(--pm-primary)]/30/24 bg-cyan-300/10 px-4 py-3 text-sm text-cyan-100">
+          <div className="rounded-2xl border border-[var(--pm-primary)]/30 bg-cyan-300/10 px-4 py-3 text-sm text-cyan-100">
             <div className="flex items-center gap-2 font-medium">
               <span className="material-symbols-outlined text-lg">mark_email_read</span>
               <span>{message}</span>

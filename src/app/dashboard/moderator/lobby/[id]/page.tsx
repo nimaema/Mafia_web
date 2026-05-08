@@ -565,7 +565,7 @@ export default function GameLobbyPage() {
               <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black">
                 <span className="rounded-lg border border-[var(--pm-line)] bg-white/82 px-2.5 py-1 text-[var(--pm-muted)] shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-white/10 dark:text-zinc-200">{players.length} بازیکن حاضر</span>
                 <span className="rounded-lg border border-[var(--pm-line)] bg-white/82 px-2.5 py-1 text-[var(--pm-muted)] shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-white/10 dark:text-zinc-200">{requiredPlayers || "بدون"} ظرفیت سناریو</span>
-                <span className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2.5 py-1 text-cyan-700 shadow-sm shadow-[var(--pm-primary)]/10 dark:border-[var(--pm-primary)]/30/20 dark:bg-cyan-300/10 dark:text-[var(--pm-primary)]">کد #{game?.code || "------"}</span>
+                <span className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2.5 py-1 text-cyan-700 shadow-sm shadow-[var(--pm-primary)]/10 dark:border-[var(--pm-primary)]/30 dark:bg-cyan-300/10 dark:text-[var(--pm-primary)]">کد #{game?.code || "------"}</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">

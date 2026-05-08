@@ -239,7 +239,7 @@ export default function UserDashboard() {
     <div className="space-y-5 font-sans text-[var(--pm-text)]">
       {/* Hero Stats Card */}
       <section className="pm-card p-5 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-noir-cyan-glow)] blur-[80px] rounded-full pointer-events-none opacity-50" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(0,229,200,0.08),transparent_34%),linear-gradient(90deg,rgba(16,19,23,0.04)_1px,transparent_1px)] bg-[size:auto,2.5rem_2.5rem] opacity-70 dark:bg-[linear-gradient(135deg,rgba(0,229,200,0.07),transparent_34%),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)]" />
         <div className="relative z-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div className="flex min-w-0 items-center gap-4">
             <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-strong)] text-xl font-black shadow-[var(--pm-shadow-soft)]">
@@ -485,4 +485,3 @@ export default function UserDashboard() {
     </div>
   );
 }
-

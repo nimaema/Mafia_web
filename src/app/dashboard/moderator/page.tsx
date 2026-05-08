@@ -136,7 +136,7 @@ export default function ModeratorDashboard() {
   return (
     <div className="flex flex-col gap-5 font-sans" dir="rtl">
       <section className="pm-contrast-surface relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-zinc-950 text-white shadow-xl shadow-zinc-950/10 dark:border-[var(--pm-line)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.28),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.18),transparent_20rem)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,229,200,0.18),transparent_38%),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem,2.75rem_2.75rem]" />
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" />
         <div className="relative p-4 sm:p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -216,7 +216,7 @@ export default function ModeratorDashboard() {
         <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/75 backdrop-blur-xl sm:items-center">
           <div className="pm-safe-modal relative flex w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white shadow-2xl shadow-black/30 dark:border-[var(--pm-line)] dark:bg-zinc-950">
             <div className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-zinc-950 p-4 text-white sm:p-5">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.3),transparent_22rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.16),transparent_18rem)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,229,200,0.18),transparent_40%),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:auto,2.5rem_2.5rem,2.5rem_2.5rem]" />
               <div className="relative flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--pm-primary)]">راه‌اندازی لابی</p>

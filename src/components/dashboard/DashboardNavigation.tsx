@@ -179,7 +179,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         href={item.href}
         aria-current={active ? "page" : undefined}
         className={cx(
-          "motion-nav-item group relative grid min-h-[3.35rem] grid-cols-[2.35rem_minmax(0,1fr)_1rem] items-center gap-2.5 overflow-hidden rounded-[var(--radius-md)] border px-2.5 text-right transition-all",
+          "motion-nav-item group relative grid min-h-[3.35rem] grid-cols-[2.35rem_minmax(0,1fr)_1rem] items-center gap-2.5 overflow-hidden rounded-[var(--radius-sm)] border px-2.5 text-right",
           toneClasses(item.tone, active)
         )}
       >
@@ -209,7 +209,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         href={item.href}
         aria-current={active ? "page" : undefined}
         className={cx(
-          "motion-nav-item relative flex min-w-[3.65rem] flex-col items-center justify-center gap-1 rounded-[var(--radius-md)] px-2 py-1.5 text-center transition-all",
+          "motion-nav-item relative flex min-w-[3.65rem] flex-col items-center justify-center gap-1 rounded-[var(--radius-sm)] px-2 py-1.5 text-center",
           active ? "bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]" : "text-[var(--pm-muted)] hover:bg-[var(--pm-surface-soft)] hover:text-[var(--pm-text)]"
         )}
       >
@@ -226,8 +226,8 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
 
   return (
     <>
-      <aside className="sticky top-0 z-30 hidden h-screen w-[19rem] shrink-0 border-l border-[var(--pm-line)] bg-[var(--pm-surface)] p-3 shadow-2xl md:flex md:flex-col">
-        <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-3 shadow-2xl">
+      <aside className="sticky top-0 z-30 hidden h-screen w-[19rem] shrink-0 border-l border-[var(--pm-line)] bg-[var(--pm-surface)]/96 p-3 shadow-[var(--pm-shadow-soft)] backdrop-blur-xl md:flex md:flex-col">
+        <div className="relative overflow-hidden rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-3 shadow-[var(--pm-shadow-soft)]">
           <div className="relative z-10 flex items-center gap-3">
             <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-base font-black text-[var(--pm-text)]">
               {user.image ? (
@@ -245,7 +245,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
               </div>
             </div>
           </div>
-          <div className="relative z-10 mt-3 grid grid-cols-[1fr_auto] items-center gap-2 rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-3 py-2">
+          <div className="relative z-10 mt-3 grid grid-cols-[1fr_auto] items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-3 py-2">
             <div className="min-w-0">
               <p className="truncate text-[11px] font-black text-[var(--pm-primary)]">{panelDate.shamsi}</p>
               <p className="mt-0.5 truncate text-[10px] font-bold text-[var(--pm-muted)]" dir="ltr">{panelDate.miladi}</p>
@@ -256,7 +256,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
           </div>
         </div>
 
-        <nav className="custom-scrollbar mt-3 flex flex-1 flex-col gap-3 overflow-y-auto rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-2.5">
+        <nav className="custom-scrollbar mt-3 flex flex-1 flex-col gap-3 overflow-y-auto rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-2.5">
           {navGroups.map((group) => (
             <section key={group.key} className="motion-list">
               <div className="mb-1.5 flex items-center gap-2 px-2">
@@ -270,12 +270,12 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
           ))}
         </nav>
 
-        <div className="mt-3 grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-2 rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-2">
+        <div className="mt-3 grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-2 rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-2">
           <ThemeToggle nav />
           <form action={logoutAction} className="shrink-0">
             <button
               type="submit"
-              className="motion-nav-item grid size-11 place-items-center rounded-[var(--radius-full)] border border-[var(--pm-danger)]/20 bg-[var(--pm-danger)]/10 text-[var(--pm-danger)] shadow-sm transition-all hover:bg-[var(--pm-danger)] hover:text-white"
+              className="pm-icon-button motion-nav-item border-[var(--pm-danger)]/25 bg-[var(--pm-danger)]/10 text-[var(--pm-danger)] shadow-none hover:border-[var(--pm-danger)]/40 hover:bg-[var(--pm-danger)] hover:text-white"
               aria-label="خروج"
               title="خروج"
             >
@@ -286,16 +286,16 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         </div>
       </aside>
 
-      <nav className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-50 rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface)]/95 p-2 text-[var(--pm-text)] shadow-2xl backdrop-blur-2xl md:hidden">
+      <nav className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-50 rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface)]/95 p-2 text-[var(--pm-text)] shadow-[var(--pm-shadow)] backdrop-blur-2xl md:hidden">
         <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
           <ThemeToggle nav />
-          <div className="custom-scrollbar flex h-[4.05rem] items-stretch gap-1 overflow-x-auto rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-1">
+          <div className="custom-scrollbar flex h-[4.05rem] items-stretch gap-1 overflow-x-auto rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-1">
             {items.map(renderMobileLink)}
           </div>
           <form action={logoutAction} className="shrink-0">
             <button
               type="submit"
-              className="grid size-11 place-items-center rounded-[var(--radius-full)] border border-[var(--pm-danger)]/20 bg-[var(--pm-danger)]/10 text-[var(--pm-danger)] transition-all hover:bg-[var(--pm-danger)] hover:text-white"
+              className="pm-icon-button border-[var(--pm-danger)]/25 bg-[var(--pm-danger)]/10 text-[var(--pm-danger)] shadow-none hover:border-[var(--pm-danger)]/40 hover:bg-[var(--pm-danger)] hover:text-white"
               aria-label="خروج"
               title="خروج"
             >

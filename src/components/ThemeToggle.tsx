@@ -26,7 +26,7 @@ export function ThemeToggle({ compact = false, nav = false }: ThemeToggleProps) 
         type="button"
         disabled={!mounted}
         onClick={() => setTheme(isDark ? "light" : "dark")}
-        className="group grid size-11 shrink-0 place-items-center rounded-full border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-surface)] hover:text-[var(--pm-primary)] disabled:opacity-60"
+        className="pm-icon-button group disabled:opacity-60"
         aria-label={isDark ? "تغییر به تم روشن" : "تغییر به تم تاریک"}
         title={isDark ? "تغییر به تم روشن" : "تغییر به تم تاریک"}
       >
@@ -42,8 +42,8 @@ export function ThemeToggle({ compact = false, nav = false }: ThemeToggleProps) 
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className={
         compact
-          ? "group inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] px-2 text-xs font-black text-[var(--pm-text)] transition-all hover:border-[var(--pm-primary)]/35 hover:bg-[var(--pm-surface)] disabled:opacity-60"
-          : "group inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] px-3 text-xs font-black text-[var(--pm-text)] transition-all hover:border-[var(--pm-primary)]/35 hover:bg-[var(--pm-surface)] disabled:opacity-60"
+          ? "pm-button-secondary group min-h-10 gap-2 rounded-[var(--radius-full)] px-2 text-xs disabled:opacity-60"
+          : "pm-button-secondary group min-h-11 gap-2 rounded-[var(--radius-full)] px-3 text-xs disabled:opacity-60"
       }
       aria-label={isDark ? "تغییر به تم روشن" : "تغییر به تم تاریک"}
       title={isDark ? "تغییر به تم روشن" : "تغییر به تم تاریک"}
