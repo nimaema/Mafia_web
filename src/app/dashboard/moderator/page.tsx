@@ -424,14 +424,14 @@ export default function ModeratorDashboard() {
                     <div className="mt-4 grid grid-cols-[44px_minmax(0,1fr)] gap-2">
                       <button
                         onClick={() => handleCancelGame(game.id)}
-                        className="pm-button-danger min-h-11 px-0"
+                        className="pm-button-danger min-h-11 px-0 w-full"
                         title="لغو لابی"
                       >
                         <span className="material-symbols-outlined text-lg">delete</span>
                       </button>
                       <Link
                         href={game.status === "WAITING" ? `/dashboard/moderator/lobby/${game.id}` : `/dashboard/moderator/game/${game.id}`}
-                        className="pm-button-primary min-h-11"
+                        className="pm-button-primary min-h-11 w-full"
                       >
                         <span className="material-symbols-outlined text-xl">{isInProgress ? "play_arrow" : "tune"}</span>
                         {isInProgress ? "ادامه اتاق بازی" : "مدیریت لابی"}
