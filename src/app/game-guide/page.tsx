@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { TEMP_SCENARIO_DESCRIPTION_PREFIX } from "@/lib/gameDisplay";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -169,6 +170,12 @@ async function getGuideLibrary() {
         },
       }),
       prisma.scenario.findMany({
+        where: {
+          NOT: [
+            { description: { startsWith: TEMP_SCENARIO_DESCRIPTION_PREFIX } },
+            { description: "سناریو ساخته شده در لحظه" },
+          ],
+        },
         select: {
           id: true,
           name: true,
