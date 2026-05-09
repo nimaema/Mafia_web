@@ -338,7 +338,7 @@ export function DatabaseBackupPanel() {
       <section className="overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface)]/70">
         <div className="grid lg:grid-cols-[minmax(0,1fr)_330px]">
           <div className="relative p-5 sm:p-6">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" />
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
             <div className="flex items-start gap-4">
               <div className="pm-icon-primary size-12">
                 <span className="material-symbols-outlined text-2xl">restore_page</span>
@@ -353,7 +353,7 @@ export function DatabaseBackupPanel() {
             </div>
           </div>
 
-          <aside className="border-t border-[var(--pm-line)] bg-[linear-gradient(135deg,#f8fafc,#ffffff_55%,#ecfeff)] p-5 text-zinc-950 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.035))] dark:text-white lg:border-r lg:border-t-0">
+          <aside className="border-t border-[var(--pm-line)] bg-[linear-gradient(135deg,#f8fafc,#ffffff_55%,#edf4e6)] p-5 text-zinc-950 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.035))] dark:text-white lg:border-r lg:border-t-0">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-bold text-[var(--pm-muted)]">آخرین نقطه بازیابی</p>

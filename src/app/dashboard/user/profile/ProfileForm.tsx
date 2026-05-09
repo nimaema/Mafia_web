@@ -171,7 +171,7 @@ export default function ProfileForm({
       <input type="hidden" name="profileImage" value={imageValue} />
       <input type="hidden" name="removeProfileImage" value={removeProfileImage ? "true" : "false"} />
       <div className="mb-5 flex items-start gap-3">
-        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-primary)] text-xl text-[#002d27] shadow-[0_0_15px_var(--color-noir-cyan-glow)]">manage_accounts</span>
+        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-primary)] text-xl text-[var(--pm-text-inverse)] shadow-[0_0_15px_var(--pm-primary-glow)]">manage_accounts</span>
         <div>
           <h3 className="text-xl font-black text-[var(--pm-text)]">اطلاعات پروفایل</h3>
           <p className="mt-1 text-sm leading-6 text-[var(--pm-muted)]">نام نمایشی و ایمیل حساب را مدیریت کنید.</p>

@@ -60,7 +60,7 @@ export function VerifyEmailClient({ email, verified, error }: { email?: string; 
 
         <section className="pm-card overflow-hidden">
           <div className="border-b border-[var(--pm-line)] bg-black/20 p-6 text-center">
-            <div className={`mx-auto flex size-16 items-center justify-center rounded-2xl ${verified ? "bg-cyan-300" : error ? "bg-amber-400" : "bg-sky-400"} text-zinc-950`}>
+            <div className={`mx-auto flex size-16 items-center justify-center rounded-2xl ${verified ? "bg-[var(--pm-primary)]" : error ? "bg-amber-400" : "bg-sky-400"} text-zinc-950`}>
               <span className="material-symbols-outlined text-3xl">{verified ? "verified" : error ? "warning" : "outgoing_mail"}</span>
             </div>
             <h2 className="mt-4 text-3xl font-black text-white">

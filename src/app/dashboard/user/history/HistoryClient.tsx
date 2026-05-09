@@ -151,7 +151,7 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
               const extraPlayers = Math.max(0, game.players.length - previewPlayers.length);
 
               return (
-                <article key={game.id} className="pm-card overflow-hidden transition-all hover:border-[var(--pm-primary)]/50 hover:shadow-[0_0_20px_var(--color-noir-cyan-glow)]">
+                <article key={game.id} className="pm-card overflow-hidden transition-all hover:border-[var(--pm-primary)]/50 hover:shadow-[0_0_20px_var(--pm-primary-glow)]">
                   <div className="border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">

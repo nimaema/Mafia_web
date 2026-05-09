@@ -13,7 +13,7 @@ const vazirmatn = Vazirmatn({
 import type { Metadata, Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#15171b",
+  themeColor: "#111417",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

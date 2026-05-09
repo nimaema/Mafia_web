@@ -112,12 +112,12 @@ function LiveLobbyCard({ game, active = false }: { game: any; active?: boolean }
       <span className="absolute inset-y-0 right-0 w-1 bg-[var(--pm-primary)] opacity-80" />
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <span className={`material-symbols-outlined grid size-11 place-items-center rounded-[var(--radius-sm)] text-xl ${active ? "bg-[var(--pm-primary)] text-[#002d27] shadow-[0_0_15px_var(--color-noir-cyan-glow)]" : "bg-[var(--pm-surface-soft)] text-[var(--pm-primary)]"}`}>
+          <span className={`material-symbols-outlined grid size-11 place-items-center rounded-[var(--radius-sm)] text-xl ${active ? "bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-[0_0_15px_var(--pm-primary-glow)]" : "bg-[var(--pm-surface-soft)] text-[var(--pm-primary)]"}`}>
             {active ? "sports_esports" : "groups"}
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap gap-2">
-              <span className={active ? "pm-chip pm-chip-primary shadow-[0_0_10px_var(--color-noir-cyan-glow)]" : isFull ? "pm-chip pm-chip-warning" : "pm-chip pm-chip-success"}>
+              <span className={active ? "pm-chip pm-chip-primary shadow-[0_0_10px_var(--pm-primary-glow)]" : isFull ? "pm-chip pm-chip-warning" : "pm-chip pm-chip-success"}>
                 {active ? "بازی فعال" : isFull ? "تکمیل" : "قابل ورود"}
               </span>
               {!active && game.code && <span className="pm-chip font-mono" dir="ltr">#{game.code}</span>}
@@ -239,7 +239,7 @@ export default function UserDashboard() {
     <div className="space-y-5 font-sans text-[var(--pm-text)]">
       {/* Hero Stats Card */}
       <section className="pm-card p-5 overflow-hidden relative">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(0,229,200,0.08),transparent_34%),linear-gradient(90deg,rgba(16,19,23,0.04)_1px,transparent_1px)] bg-[size:auto,2.5rem_2.5rem] opacity-70 dark:bg-[linear-gradient(135deg,rgba(0,229,200,0.07),transparent_34%),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.08),transparent_34%),linear-gradient(90deg,rgba(16,19,23,0.04)_1px,transparent_1px)] bg-[size:auto,2.5rem_2.5rem] opacity-70 dark:bg-[linear-gradient(135deg,rgba(190,242,100,0.07),transparent_34%),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)]" />
         <div className="relative z-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div className="flex min-w-0 items-center gap-4">
             <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-strong)] text-xl font-black shadow-[var(--pm-shadow-soft)]">
@@ -250,7 +250,7 @@ export default function UserDashboard() {
               <p className="text-[0.7rem] font-black uppercase tracking-[0.2em] text-[var(--pm-primary)]">PLAYER DECK</p>
               <h1 className="mt-1 truncate text-3xl font-black">{displayName}</h1>
               <div className="mt-3 flex flex-wrap gap-2">
-                <span className="pm-chip pm-chip-primary shadow-[0_0_10px_var(--color-noir-cyan-glow)]">{data?.currentActiveGame ? "بازی فعال دارید" : primaryLobby ? "لابی آماده است" : "در انتظار لابی"}</span>
+                <span className="pm-chip pm-chip-primary shadow-[0_0_10px_var(--pm-primary-glow)]">{data?.currentActiveGame ? "بازی فعال دارید" : primaryLobby ? "لابی آماده است" : "در انتظار لابی"}</span>
                 <span className="pm-chip">{totalGames} بازی</span>
                 <span className="pm-chip pm-chip-success">{winRate}% برد</span>
               </div>
@@ -260,12 +260,12 @@ export default function UserDashboard() {
           <div className="flex flex-wrap items-center gap-4 lg:justify-end">
             <PresenceFaces presence={presence} />
             {data?.currentActiveGame ? (
-              <Link href={`/game/${data.currentActiveGame.id}`} className="pm-button pm-button-primary shadow-[0_0_15px_var(--color-noir-cyan-glow)]">
+              <Link href={`/game/${data.currentActiveGame.id}`} className="pm-button pm-button-primary shadow-[0_0_15px_var(--pm-primary-glow)]">
                 ادامه بازی
                 <span className="material-symbols-outlined text-xl">play_arrow</span>
               </Link>
             ) : primaryLobby ? (
-              <Link href={`/lobby/${primaryLobby.id}`} className="pm-button pm-button-primary shadow-[0_0_15px_var(--color-noir-cyan-glow)]">
+              <Link href={`/lobby/${primaryLobby.id}`} className="pm-button pm-button-primary shadow-[0_0_15px_var(--pm-primary-glow)]">
                 ورود به لابی
                 <span className="material-symbols-outlined text-xl">login</span>
               </Link>

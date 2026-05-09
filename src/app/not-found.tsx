@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <main className="app-page pm-force-dark flex min-h-screen items-center overflow-hidden bg-[#15171b] px-4 py-10 text-white" dir="rtl">
+    <main className="app-page pm-force-dark flex min-h-screen items-center overflow-hidden bg-[#111417] px-4 py-10 text-white" dir="rtl">
       <section className="app-container">
         <div className="pm-command pm-aurora mx-auto grid max-w-5xl gap-6 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="relative z-10 flex flex-col justify-center">

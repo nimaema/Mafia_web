@@ -209,9 +209,9 @@ function reportPhases(events: GameReportEvent[]) {
     .filter(Boolean) as { key: string; type: "DAY" | "NIGHT"; round: number; events: GameReportEvent[] }[];
 }
 
-function DetailChip({ label, value, tone = "zinc" }: { label: string; value: string; tone?: "zinc" | "cyan" | "amber" | "red" }) {
+function DetailChip({ label, value, tone = "zinc" }: { label: string; value: string; tone?: "zinc" | "primary" | "amber" | "red" }) {
   const toneClass =
-    tone === "cyan"
+    tone === "primary"
       ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]"
       : tone === "amber"
         ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
@@ -272,11 +272,11 @@ function ReportEventCard({
 
           <div className="mt-3 flex flex-wrap gap-2">
             <DetailChip label="عامل" value={actor} />
-            {target && <DetailChip label="هدف" value={target} tone={isDayReportEvent(event) ? "amber" : "cyan"} />}
+            {target && <DetailChip label="هدف" value={target} tone={isDayReportEvent(event) ? "amber" : "primary"} />}
             {defenses.length > 0 && <DetailChip label="دفاع" value={defenses.join("، ")} tone="amber" />}
-            {labels && <DetailChip label="انتخاب‌ها" value={labels} tone="cyan" />}
-            {event.details?.secondaryTargetName && <DetailChip label={event.details.effectType === "YAKUZA" ? "قربانی" : "هدف دوم"} value={event.details.secondaryTargetName} tone={event.details.effectType === "YAKUZA" ? "red" : "cyan"} />}
-            {extras.length > 0 && <DetailChip label="هدف‌های اضافه" value={extras.join("، ")} tone="cyan" />}
+            {labels && <DetailChip label="انتخاب‌ها" value={labels} tone="primary" />}
+            {event.details?.secondaryTargetName && <DetailChip label={event.details.effectType === "YAKUZA" ? "قربانی" : "هدف دوم"} value={event.details.secondaryTargetName} tone={event.details.effectType === "YAKUZA" ? "red" : "primary"} />}
+            {extras.length > 0 && <DetailChip label="هدف‌های اضافه" value={extras.join("، ")} tone="primary" />}
             {event.details?.convertedRoleName && <DetailChip label="تبدیل" value={`${event.details.previousRoleName || "قبلی"} ← ${event.details.convertedRoleName}`} tone="red" />}
           </div>
 
@@ -340,7 +340,7 @@ export function GameReportTimeline({
       <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-zinc-50/86 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="material-symbols-outlined text-xl text-cyan-700 dark:text-cyan-100">receipt_long</span>
+            <span className="material-symbols-outlined text-xl text-[var(--pm-primary-strong)] dark:text-[var(--pm-primary)]">receipt_long</span>
             <h3 className="text-base font-black text-[var(--pm-text)]">{title}</h3>
           </div>
           <p className="mt-1 text-xs font-bold leading-6 text-[var(--pm-muted)]">{subtitle}</p>

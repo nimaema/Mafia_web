@@ -134,7 +134,7 @@ export default function UserGamePage() {
     return (
       <div className="flex min-h-[70vh] items-center justify-center p-4" dir="rtl">
         <div className="pm-card w-full max-w-lg overflow-hidden text-center">
-          <div className="h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-300" />
+          <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
           <div className="p-8">
             <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-lg shadow-[var(--pm-primary)]/20">
               <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>

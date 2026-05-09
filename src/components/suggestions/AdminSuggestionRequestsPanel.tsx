@@ -32,7 +32,7 @@ const REQUEST_TYPES: Record<SuggestionType, { label: string; icon: string; tone:
   NEW_ROLE: {
     label: "نقش جدید",
     icon: "theater_comedy",
-    tone: "from-cyan-400 to-sky-500",
+    tone: "from-lime-400 to-blue-500",
     approval: "با تایید، یک نقش جدید در کتابخانه نقش‌ها ساخته می‌شود.",
   },
   NEW_SCENARIO: {
@@ -44,7 +44,7 @@ const REQUEST_TYPES: Record<SuggestionType, { label: string; icon: string; tone:
   CHANGE_ROLE: {
     label: "اصلاح نقش",
     icon: "edit_note",
-    tone: "from-emerald-400 to-teal-500",
+    tone: "from-emerald-400 to-lime-500",
     approval: "با تایید، تغییرهای پیشنهادی روی نقش انتخاب‌شده اعمال می‌شود.",
   },
   CHANGE_SCENARIO: {
@@ -184,7 +184,7 @@ export function AdminSuggestionRequestsPanel() {
             </div>
             <div className="rounded-xl border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3">
               <p className="text-xl font-black text-[var(--pm-primary)]">{stats.approved}</p>
-              <p className="mt-1 text-[10px] font-black text-cyan-700/70 dark:text-[var(--pm-primary)]/70">تایید</p>
+              <p className="mt-1 text-[10px] font-black text-[var(--pm-primary-strong)]/70 dark:text-[var(--pm-primary)]/70">تایید</p>
             </div>
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3">
               <p className="text-xl font-black text-red-600 dark:text-red-300">{stats.rejected}</p>
@@ -290,7 +290,7 @@ export function AdminSuggestionRequestsPanel() {
                         {rows.map((row) => (
                           <div key={row.label} className="rounded-xl border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3">
                             <p className="text-[10px] font-black text-[var(--pm-primary)]">{row.label}</p>
-                            <p className="mt-1 whitespace-pre-line text-sm font-bold leading-7 text-cyan-950 dark:text-cyan-100">{row.value}</p>
+                            <p className="mt-1 whitespace-pre-line text-sm font-bold leading-7 text-[var(--pm-blue)] dark:text-[var(--pm-primary)]">{row.value}</p>
                           </div>
                         ))}
                       </div>

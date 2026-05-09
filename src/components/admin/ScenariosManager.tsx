@@ -533,7 +533,7 @@ export function ScenariosManager({
                         event.stopPropagation();
                         openDuplicateForm(scenario);
                       }}
-                      className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-cyan-700 dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)] dark:hover:text-[var(--pm-primary)]"
+                      className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-[var(--pm-primary-strong)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)] dark:hover:text-[var(--pm-primary)]"
                       title="کپی سناریو"
                     >
                       <span className="material-symbols-outlined text-base">content_copy</span>

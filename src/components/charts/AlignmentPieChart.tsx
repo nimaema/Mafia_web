@@ -56,8 +56,8 @@ export default function AlignmentPieChart({ data }: Props) {
         <Tooltip
           formatter={(value: any) => [value, "بازی"]}
           contentStyle={{
-            background: "#18181b",
-            border: "1px solid #3f3f46",
+            background: "#181d22",
+            border: "1px solid #3d4b56",
             borderRadius: "12px",
             fontFamily: "Vazirmatn, sans-serif",
             direction: "rtl",

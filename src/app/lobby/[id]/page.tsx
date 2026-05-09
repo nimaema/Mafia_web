@@ -193,7 +193,7 @@ export default function UserLobbyPage() {
         <div className="app-container">
           <div className="flex min-h-[560px] items-center justify-center">
             <div className="pm-card w-full max-w-xl overflow-hidden text-center">
-              <div className="h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-300" />
+              <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
               <div className="p-8 sm:p-10">
                 <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-sky-400 text-sky-950 shadow-lg shadow-sky-500/20">
                   <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>

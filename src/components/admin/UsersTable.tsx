@@ -68,7 +68,7 @@ export function UsersTable({ users, currentUserId }: { users: any[], currentUser
                   disabled={loadingId === user.id || user.id === currentUserId}
                   className={`text-xs px-2 py-1.5 rounded-md font-bold cursor-pointer border-0 ring-1 focus:ring-2 focus:outline-none transition-all ${
                     user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-600 dark:text-purple-400 dark:ring-purple-800' :
-                    user.role === 'MODERATOR' ? 'bg-[var(--pm-primary)]/20 text-cyan-700 ring-cyan-200 dark:bg-cyan-900/30 dark:text-[var(--pm-primary)] dark:ring-cyan-800' :
+                    user.role === 'MODERATOR' ? 'bg-[var(--pm-primary)]/20 text-[var(--pm-primary-strong)] ring-lime-200 dark:bg-[var(--pm-primary)]/15 dark:text-[var(--pm-primary)] dark:ring-lime-800' :
                     'bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-zinc-800 dark:text-[var(--pm-muted)] dark:ring-zinc-700'
                   }`}
                 >

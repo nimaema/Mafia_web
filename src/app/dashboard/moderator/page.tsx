@@ -136,8 +136,8 @@ export default function ModeratorDashboard() {
   return (
     <div className="flex flex-col gap-5 font-sans" dir="rtl">
       <section className="pm-contrast-surface relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-zinc-950 text-white shadow-xl shadow-zinc-950/10 dark:border-[var(--pm-line)]">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,229,200,0.18),transparent_38%),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem,2.75rem_2.75rem]" />
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.18),transparent_38%),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem,2.75rem_2.75rem]" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
         <div className="relative p-4 sm:p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 items-start gap-3">
@@ -190,7 +190,7 @@ export default function ModeratorDashboard() {
                   </div>
                   <Link
                     href={featuredGame.status === "WAITING" ? `/dashboard/moderator/lobby/${featuredGame.id}` : `/dashboard/moderator/game/${featuredGame.id}`}
-                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 rounded-lg bg-white px-3 text-xs font-black text-zinc-950 transition-colors hover:bg-cyan-300"
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 rounded-lg bg-white px-3 text-xs font-black text-zinc-950 transition-colors hover:bg-[var(--pm-primary)]"
                   >
                     ورود
                     <span className="material-symbols-outlined text-base">arrow_back</span>
@@ -216,7 +216,7 @@ export default function ModeratorDashboard() {
         <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/75 backdrop-blur-xl sm:items-center">
           <div className="pm-safe-modal relative flex w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white shadow-2xl shadow-black/30 dark:border-[var(--pm-line)] dark:bg-zinc-950">
             <div className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-zinc-950 p-4 text-white sm:p-5">
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,229,200,0.18),transparent_40%),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:auto,2.5rem_2.5rem,2.5rem_2.5rem]" />
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.18),transparent_40%),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:auto,2.5rem_2.5rem,2.5rem_2.5rem]" />
               <div className="relative flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--pm-primary)]">راه‌اندازی لابی</p>
@@ -254,7 +254,7 @@ export default function ModeratorDashboard() {
                       onClick={() => setIsPrivate(false)}
                       className={`relative overflow-hidden rounded-lg border p-4 text-right transition-all ${
                         !isPrivate
-                          ? "border-cyan-500/40 bg-[var(--pm-primary)]/10 text-zinc-950 shadow-sm shadow-cyan-500/15 dark:text-white"
+                          ? "border-[var(--pm-primary)]/40 bg-[var(--pm-primary)]/10 text-zinc-950 shadow-sm shadow-lime-500/15 dark:text-white"
                           : "border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] hover:bg-white dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]"
                       }`}
                     >
@@ -294,7 +294,7 @@ export default function ModeratorDashboard() {
                 )}
               </div>
 
-              <aside className="h-fit rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_60%,#ecfeff_100%)] p-4 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.9)_0%,rgba(9,9,11,0.96)_60%,rgba(0,168,150,0.18)_100%)]">
+              <aside className="h-fit rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_60%,#edf4e6_100%)] p-4 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(17,20,23,0.9)_0%,rgba(21,24,27,0.96)_60%,rgba(190,242,100,0.18)_100%)]">
                 <p className="font-black text-[var(--pm-text)]">جریان بعد از ساخت</p>
                 <div className="mt-4 grid gap-2">
                   {[
@@ -323,8 +323,8 @@ export default function ModeratorDashboard() {
         </div>
       )}
 
-      <section className="relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_56%,#eff6ff_100%)] shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.9)_0%,rgba(9,9,11,0.96)_60%,rgba(12,74,110,0.18)_100%)]">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-sky-400 via-cyan-400 to-amber-400" />
+      <section className="relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_56%,#edf4e6_100%)] shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(17,20,23,0.9)_0%,rgba(21,24,27,0.96)_60%,rgba(96,165,250,0.18)_100%)]">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-sky-400 via-lime-400 to-amber-400" />
         <div className="flex flex-col gap-3 border-b border-[var(--pm-line)]/80 p-4 dark:border-[var(--pm-line)] sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div className="min-w-0">
             <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">اتاق‌های فعال</p>
@@ -417,7 +417,7 @@ export default function ModeratorDashboard() {
                         <span className={isReady ? "text-amber-700 dark:text-amber-300" : "text-[var(--pm-muted)]"}>{progressText}</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-zinc-200 ring-1 ring-zinc-950/5 dark:bg-white/10 dark:ring-white/10">
-                        <div className={`h-full rounded-full transition-[width] ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-gradient-to-l from-cyan-400 to-sky-400"}`} style={{ width: `${progress}%` }} />
+                        <div className={`h-full rounded-full transition-[width] ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-gradient-to-l from-lime-400 to-sky-400"}`} style={{ width: `${progress}%` }} />
                       </div>
                     </div>
 

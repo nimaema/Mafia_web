@@ -43,7 +43,7 @@ export default function JoinGamePage() {
   };
 
   return (
-    <div className="app-page pm-force-dark min-h-screen bg-[#15171b] p-4 text-white" dir="rtl">
+    <div className="app-page pm-force-dark min-h-screen bg-[#111417] p-4 text-white" dir="rtl">
       <main className="mx-auto grid min-h-[calc(100vh-2rem)] w-full max-w-6xl items-center gap-6 lg:grid-cols-[minmax(0,1fr)_460px]">
         <section className="hidden lg:block">
           <div className="max-w-xl">
@@ -72,7 +72,7 @@ export default function JoinGamePage() {
 
         <section className="pm-command w-full overflow-hidden">
           <header className="border-b border-[var(--pm-line)] bg-black/18 p-6 text-center">
-            <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-cyan-300 text-zinc-950">
+            <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-[var(--pm-primary)] text-zinc-950">
               <span className="material-symbols-outlined text-3xl">stadia_controller</span>
             </div>
             <h2 className="mt-4 text-3xl font-black">پیوستن به بازی</h2>

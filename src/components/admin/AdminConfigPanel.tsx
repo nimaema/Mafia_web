@@ -1360,7 +1360,7 @@ export default function AdminDashboard() {
               {!editingScenarioId && isAdmin && (
                 <div className="mt-4 rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3">
                   <div className="flex items-start gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--pm-primary)]/20 bg-white text-cyan-700 dark:bg-zinc-950 dark:text-[var(--pm-primary)]">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--pm-primary)]/20 bg-white text-[var(--pm-primary-strong)] dark:bg-zinc-950 dark:text-[var(--pm-primary)]">
                       <span className="material-symbols-outlined text-lg">cloud_done</span>
                     </div>
                     <div className="min-w-0 flex-1">
@@ -1493,8 +1493,8 @@ export default function AdminDashboard() {
                               >
                                 <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg border transition-all ${
                                   selected
-                                    ? "border-cyan-400 bg-gradient-to-br from-cyan-300 to-cyan-500 text-zinc-950 shadow-sm shadow-[var(--pm-primary)]/30"
-                                    : "border-zinc-300 bg-white text-zinc-300 group-hover/role-option:border-cyan-400 group-hover/role-option:text-[var(--pm-primary)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-700"
+                                    ? "border-[var(--pm-primary)] bg-gradient-to-br from-lime-300 to-lime-500 text-zinc-950 shadow-sm shadow-[var(--pm-primary)]/30"
+                                    : "border-zinc-300 bg-white text-zinc-300 group-hover/role-option:border-[var(--pm-primary)] group-hover/role-option:text-[var(--pm-primary)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-700"
                                 }`}>
                                   <span className="material-symbols-outlined text-lg">{selected ? "check" : "add"}</span>
                                 </div>
@@ -1622,7 +1622,7 @@ export default function AdminDashboard() {
                                     event.stopPropagation();
                                     handleDuplicateScenario(scenario);
                                   }}
-                                  className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-cyan-700 dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)] dark:hover:text-[var(--pm-primary)]"
+                                  className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-[var(--pm-primary-strong)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)] dark:hover:text-[var(--pm-primary)]"
                                   title="کپی سناریو"
                                 >
                                   <span className="material-symbols-outlined text-base">content_copy</span>

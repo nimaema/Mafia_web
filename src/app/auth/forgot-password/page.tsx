@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
       title="بازیابی رمز عبور"
       subtitle="ایمیل حساب خود را وارد کنید تا لینک تنظیم رمز تازه برای شما آماده شود."
       footer={
-        <Link href="/auth/login" className="text-center text-sm font-bold text-[var(--pm-primary)] transition-colors hover:text-cyan-100">
+        <Link href="/auth/login" className="text-center text-sm font-bold text-[var(--pm-primary)] transition-colors hover:text-[var(--pm-primary)]">
           بازگشت به ورود
         </Link>
       }
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
         )}
 
         {message && (
-          <div className="rounded-2xl border border-[var(--pm-primary)]/30 bg-cyan-300/10 px-4 py-3 text-sm text-cyan-100">
+          <div className="rounded-2xl border border-[var(--pm-primary)]/30 bg-[var(--pm-primary)]/10 px-4 py-3 text-sm text-[var(--pm-primary)]">
             <div className="flex items-center gap-2 font-medium">
               <span className="material-symbols-outlined text-lg">mark_email_read</span>
               <span>{message}</span>

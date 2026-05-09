@@ -296,7 +296,7 @@ function SpeechTimer({
   subtitle: string;
   icon: string;
   defaultSeconds: number;
-  tone: "cyan" | "amber";
+  tone: "primary" | "amber";
 }) {
   const [duration, setDuration] = useState(defaultSeconds);
   const [remaining, setRemaining] = useState(defaultSeconds);
@@ -304,8 +304,8 @@ function SpeechTimer({
   const alarmedRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const progress = duration > 0 ? Math.max(0, Math.min(100, (remaining / duration) * 100)) : 0;
-  const toneClass = tone === "cyan"
-    ? "border-cyan-500/25 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]"
+  const toneClass = tone === "primary"
+    ? "border-[var(--pm-primary)]/25 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]"
     : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300";
 
   useEffect(() => {
@@ -383,7 +383,7 @@ function SpeechTimer({
 
       <div className="px-3 pb-3">
         <div className="h-2 overflow-hidden rounded-full bg-white/70 dark:bg-zinc-950/50">
-          <div className={tone === "cyan" ? "h-full rounded-full bg-[var(--pm-primary)] transition-[width]" : "h-full rounded-full bg-amber-500 transition-[width]"} style={{ width: `${progress}%` }} />
+          <div className={tone === "primary" ? "h-full rounded-full bg-[var(--pm-primary)] transition-[width]" : "h-full rounded-full bg-amber-500 transition-[width]"} style={{ width: `${progress}%` }} />
         </div>
         <div className="mt-3 grid grid-cols-[1fr_44px_96px] gap-2">
           <button type="button" onClick={toggleRunning} className="pm-button-primary min-h-10 px-3 text-xs">
@@ -436,7 +436,7 @@ function ModeratorTimerBoard() {
         </p>
       </div>
       <div className="grid gap-3 p-4">
-        <SpeechTimer title="نوبت اصلی" subtitle="برای صحبت معمول بازیکن" icon="record_voice_over" defaultSeconds={60} tone="cyan" />
+        <SpeechTimer title="نوبت اصلی" subtitle="برای صحبت معمول بازیکن" icon="record_voice_over" defaultSeconds={60} tone="primary" />
         <SpeechTimer title="چالش" subtitle="زمان کوتاه برای پاسخ یا دفاع" icon="forum" defaultSeconds={30} tone="amber" />
       </div>
     </section>
@@ -913,7 +913,7 @@ export default function ModeratorGamePage() {
           type="button"
           onClick={() => openPlayerPicker({ slot, title: label, options, index })}
           disabled={disabled}
-          className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-[var(--pm-line)] bg-white p-2 text-right transition-all hover:border-cyan-500/40 hover:bg-[var(--pm-primary)]/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[var(--pm-line)] dark:bg-zinc-950/60"
+          className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-[var(--pm-line)] bg-white p-2 text-right transition-all hover:border-[var(--pm-primary)]/40 hover:bg-[var(--pm-primary)]/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[var(--pm-line)] dark:bg-zinc-950/60"
         >
           <span className="flex min-w-0 items-center gap-2">
             <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-xs font-black text-white dark:bg-white dark:text-zinc-950">
@@ -1185,7 +1185,7 @@ export default function ModeratorGamePage() {
     return (
       <div className="flex min-h-[560px] items-center justify-center" dir="rtl">
         <div className="pm-card w-full max-w-xl overflow-hidden text-center">
-          <div className="h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-300" />
+          <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
           <div className="p-8 sm:p-10">
             <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-amber-300 text-amber-950 shadow-lg shadow-amber-500/20">
               <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
@@ -1366,7 +1366,7 @@ export default function ModeratorGamePage() {
                   </p>
                 </div>
 
-                <div className={`mt-4 rounded-lg border p-3 ${reportMode === "DAY" ? "border-amber-500/25 bg-amber-500/10" : "border-cyan-500/25 bg-[var(--pm-primary)]/10"}`}>
+                <div className={`mt-4 rounded-lg border p-3 ${reportMode === "DAY" ? "border-amber-500/25 bg-amber-500/10" : "border-[var(--pm-primary)]/25 bg-[var(--pm-primary)]/10"}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-xs font-black text-[var(--pm-muted)]">مرحله در حال ثبت</p>
@@ -1473,7 +1473,7 @@ export default function ModeratorGamePage() {
                     </div>
                   </div>
                   ) : (
-                  <div className="rounded-xl border border-[var(--pm-primary)]/20 bg-white p-4 shadow-sm shadow-cyan-500/5 dark:border-[var(--pm-primary)]/20 dark:bg-zinc-950/50">
+                  <div className="rounded-xl border border-[var(--pm-primary)]/20 bg-white p-4 shadow-sm shadow-lime-500/10 dark:border-[var(--pm-primary)]/20 dark:bg-zinc-950/50">
                     <div className="flex items-center justify-between gap-2">
                       <div>
                         <p className="text-sm font-black text-[var(--pm-text)]">اتفاقات شب</p>
@@ -1628,7 +1628,7 @@ export default function ModeratorGamePage() {
                             onClick={() => setSelectedChoiceKey(choice.id)}
                             className={`min-h-10 rounded-lg border px-3 text-right text-xs font-black transition-all ${
                               selectedChoiceKey === choice.id
-                                ? "border-cyan-500/40 bg-[var(--pm-primary)]/15 text-[var(--pm-primary)]"
+                                ? "border-[var(--pm-primary)]/40 bg-[var(--pm-primary)]/15 text-[var(--pm-primary)]"
                                 : "border-[var(--pm-line)] bg-white text-[var(--pm-muted)] hover:border-[var(--pm-primary)]/30 dark:border-[var(--pm-line)] dark:bg-zinc-950/60 dark:text-zinc-300"
                             }`}
                           >
@@ -1986,7 +1986,7 @@ export default function ModeratorGamePage() {
                                 selected
                                   ? "border-amber-500/35 bg-amber-500/15"
                                   : alive
-                                  ? "border-[var(--pm-line)] bg-zinc-50 hover:border-cyan-500/40 hover:bg-[var(--pm-primary)]/10 dark:border-[var(--pm-line)] dark:bg-white/[0.03]"
+                                  ? "border-[var(--pm-line)] bg-zinc-50 hover:border-[var(--pm-primary)]/40 hover:bg-[var(--pm-primary)]/10 dark:border-[var(--pm-line)] dark:bg-white/[0.03]"
                                   : "border-red-500/20 bg-red-500/10"
                               }`}
                             >

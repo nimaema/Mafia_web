@@ -106,7 +106,7 @@ export function ScenarioRoleComposition({ roles, compact = false }: ScenarioRole
               return (
                 <article
                   key={item.roleId || item.id || roleName(item)}
-                  className="motion-surface relative overflow-hidden rounded-2xl border border-[var(--pm-line)] bg-[#15171b]/72 p-3 shadow-sm shadow-black/10"
+                  className="motion-surface relative overflow-hidden rounded-2xl border border-[var(--pm-line)] bg-[#111417]/72 p-3 shadow-sm shadow-black/10"
                 >
                   <span className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${alignmentBar(alignment)}`} />
                   <div className="flex items-start justify-between gap-3 pr-1">

@@ -246,7 +246,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         className={cx(
           "motion-nav-item group relative flex min-w-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-[var(--radius-sm)] px-1 py-1.5 text-center transition-all duration-200",
           active
-            ? "bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-[0_12px_28px_rgba(0,229,200,0.22)]"
+            ? "bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-[0_12px_28px_var(--pm-primary-glow)]"
             : "text-[var(--pm-muted)] hover:bg-[var(--pm-surface-soft)] hover:text-[var(--pm-text)]"
         )}
       >
@@ -276,7 +276,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         className={cx(
           "motion-nav-item group grid min-h-[4.35rem] grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[var(--radius-sm)] border p-2.5 text-right transition-all duration-200",
           active
-            ? "border-[var(--pm-primary)]/40 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)] shadow-[0_12px_28px_rgba(0,229,200,0.12)]"
+            ? "border-[var(--pm-primary)]/40 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)] shadow-[0_12px_28px_var(--pm-primary-glow)]"
             : "border-[var(--pm-line)] bg-[var(--pm-surface-soft)]/75 text-[var(--pm-text)] hover:border-[var(--pm-primary)]/25 hover:bg-[var(--pm-surface)]"
         )}
       >
@@ -445,7 +445,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
             className={cx(
               "motion-nav-item group relative flex min-w-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-[var(--radius-sm)] px-1 py-1.5 text-center transition-all duration-200",
               mobileMenuOpen || moreActive
-                ? "bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-[0_12px_28px_rgba(0,229,200,0.22)]"
+                ? "bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-[0_12px_28px_var(--pm-primary-glow)]"
                 : "text-[var(--pm-muted)] hover:bg-[var(--pm-surface-soft)] hover:text-[var(--pm-text)]"
             )}
             aria-controls="dashboard-mobile-menu"

@@ -67,7 +67,7 @@ function ResetPasswordForm() {
       title="رمز عبور جدید"
       subtitle="برای ادامه، رمز تازه‌ای با حداقل ۸ کاراکتر، یک حرف بزرگ و یک عدد تنظیم کنید."
       footer={
-        <Link href="/auth/login" className="text-center text-sm font-bold text-[var(--pm-primary)] transition-colors hover:text-cyan-100">
+        <Link href="/auth/login" className="text-center text-sm font-bold text-[var(--pm-primary)] transition-colors hover:text-[var(--pm-primary)]">
           بازگشت به ورود
         </Link>
       }

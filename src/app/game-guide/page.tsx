@@ -256,7 +256,7 @@ export default async function GameGuidePage() {
           </div>
           <div>
             <p className="text-lg font-black">مافیا بورد</p>
-            <p className="text-[11px] font-black text-cyan-700 dark:text-[var(--pm-primary)]">راهنمای بازی</p>
+            <p className="text-[11px] font-black text-[var(--pm-primary-strong)] dark:text-[var(--pm-primary)]">راهنمای بازی</p>
           </div>
         </Link>
         <div className="flex items-center gap-2">

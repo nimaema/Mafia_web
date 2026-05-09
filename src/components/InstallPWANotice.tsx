@@ -86,7 +86,7 @@ export function InstallPWANotice() {
           className="pm-contrast-surface group flex min-h-32 w-11 flex-col items-center justify-center gap-2 rounded-l-2xl border border-r-0 border-[var(--pm-primary)]/30 bg-zinc-950/95 py-3 text-white shadow-2xl shadow-zinc-950/25 backdrop-blur-xl transition-all active:scale-[0.98]"
           aria-label="باز کردن راهنمای نصب برنامه"
         >
-          <span className="flex size-8 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-sm shadow-cyan-500/25">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-sm shadow-lime-500/20">
             <span className="material-symbols-outlined text-xl">{pwa.guide.icon}</span>
           </span>
           <span className="grid place-items-center text-[10px] font-black leading-4 [writing-mode:vertical-rl]">
@@ -104,7 +104,7 @@ export function InstallPWANotice() {
         <header className="pm-contrast-surface shrink-0 border-b border-[var(--pm-line)] bg-zinc-950 px-4 py-3 text-white">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="relative flex size-11 shrink-0 items-center justify-center rounded-xl bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-lg shadow-cyan-500/25">
+              <span className="relative flex size-11 shrink-0 items-center justify-center rounded-xl bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-lg shadow-lime-500/20">
                 <span className="material-symbols-outlined text-2xl">{pwa.guide.platformIcon}</span>
                 <span className="absolute -bottom-1 -left-1 flex size-5 items-center justify-center rounded-md border border-zinc-950 bg-white text-zinc-950">
                   <span className="material-symbols-outlined text-sm">{pwa.guide.icon}</span>
@@ -141,7 +141,7 @@ export function InstallPWANotice() {
         </header>
 
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-3 py-3">
-          <section className="overflow-hidden rounded-xl border border-cyan-500/25 bg-[var(--pm-primary)]/10">
+          <section className="overflow-hidden rounded-xl border border-[var(--pm-primary)]/25 bg-[var(--pm-primary)]/10">
             <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-primary)]/20 bg-white/80 p-2.5 dark:bg-zinc-950/55">
               <div className="flex min-w-0 items-center gap-2">
                 <span className="material-symbols-outlined flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-lg text-zinc-950">

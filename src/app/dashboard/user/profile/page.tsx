@@ -40,7 +40,7 @@ export default async function ProfilePage() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 text-[var(--pm-text)]">
       <section className="pm-card overflow-hidden">
         <div className="relative border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-5 overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--color-noir-cyan-glow),transparent_34rem)] opacity-20" />
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,var(--pm-primary-soft),transparent_44%),linear-gradient(90deg,rgba(37,99,235,0.04)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem] opacity-70 dark:bg-[linear-gradient(135deg,var(--pm-primary-soft),transparent_44%),linear-gradient(90deg,rgba(96,165,250,0.07)_1px,transparent_1px)]" />
           <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex min-w-0 items-center gap-4">
               <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-3xl font-black shadow-[var(--pm-shadow-soft)]">
@@ -102,4 +102,3 @@ export default async function ProfilePage() {
     </div>
   );
 }
-

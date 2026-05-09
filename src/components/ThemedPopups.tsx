@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { useEffect } from 'react';
 
 type ModalProps = {
   isOpen: boolean;
@@ -20,7 +20,6 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
     type === 'error'
       ? {
           accent: 'bg-[var(--pm-danger)]',
-          orb: 'bg-[var(--pm-danger)]/10',
           iconBox: 'text-[var(--pm-danger)] border-[var(--pm-danger)]/20 bg-[var(--pm-danger)]/10',
           icon: 'error',
           confirmBtn: 'pm-button-danger',
@@ -28,7 +27,6 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
       : type === 'warning'
         ? {
             accent: 'bg-[var(--pm-warning)]',
-            orb: 'bg-[var(--pm-warning)]/10',
             iconBox: 'text-[var(--pm-warning)] border-[var(--pm-warning)]/20 bg-[var(--pm-warning)]/10',
             icon: 'warning',
             confirmBtn: 'pm-button-primary',
@@ -36,14 +34,12 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
         : type === 'success'
           ? {
               accent: 'bg-[var(--pm-success)]',
-              orb: 'bg-[var(--pm-success)]/10',
               iconBox: 'text-[var(--pm-success)] border-[var(--pm-success)]/20 bg-[var(--pm-success)]/10',
               icon: 'check_circle',
               confirmBtn: 'pm-button-primary',
             }
           : {
               accent: 'bg-[var(--pm-primary)]',
-              orb: 'bg-[var(--pm-primary)]/10',
               iconBox: 'text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10',
               icon: 'info',
               confirmBtn: 'pm-button-primary',
@@ -56,7 +52,6 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
         onClick={onClose}
       />
       <div className="pm-safe-modal motion-pop pm-card relative flex w-full max-w-md flex-col overflow-hidden !rounded-[var(--radius-lg)] shadow-2xl">
-        <div className={`pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full blur-[60px] ${palette.orb}`}></div>
         <button
           type="button"
           onClick={onClose}

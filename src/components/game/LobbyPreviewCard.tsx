@@ -232,11 +232,11 @@ export function LobbyPreviewCard({
   }
 
   return (
-    <article className="relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_52%,#ecfeff_100%)] shadow-xl shadow-zinc-950/10 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.94)_0%,rgba(9,9,11,0.98)_58%,rgba(0,168,150,0.22)_100%)] dark:shadow-black/35">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400" />
+    <article className="relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_52%,#edf4e6_100%)] shadow-xl shadow-zinc-950/10 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(17,20,23,0.94)_0%,rgba(21,24,27,0.98)_58%,rgba(190,242,100,0.22)_100%)] dark:shadow-black/35">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
 
       <header className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-zinc-950 p-4 text-white dark:border-[var(--pm-line)] sm:p-5">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.32),transparent_24rem),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.18),transparent_20rem)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.16),transparent_42%),linear-gradient(90deg,rgba(96,165,250,0.08)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem]" />
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-start gap-3 sm:gap-4">
             <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-zinc-950 shadow-sm shadow-[var(--pm-primary)]/30 sm:size-14">
@@ -293,7 +293,7 @@ export function LobbyPreviewCard({
                 </span>
               </div>
               <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-zinc-200/80 ring-1 ring-zinc-950/5 dark:bg-white/10 dark:ring-white/10">
-                <div className="h-full rounded-full bg-gradient-to-l from-cyan-400 via-sky-400 to-amber-400 transition-[width]" style={{ width: `${progress}%` }} />
+                <div className="h-full rounded-full bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400 transition-[width]" style={{ width: `${progress}%` }} />
               </div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="font-bold text-[var(--pm-muted)]">{progressLabel}</span>
@@ -377,7 +377,7 @@ export function LobbyPreviewCard({
         <aside className="order-1 flex flex-col bg-white/70 dark:bg-zinc-950/20 xl:order-2">
           {actionArea && <div className="border-b border-[var(--pm-line)] p-4 dark:border-[var(--pm-line)] sm:p-5">{actionArea}</div>}
           <div className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-zinc-950 p-5 text-white dark:border-[var(--pm-line)]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,212,0.28),transparent_28rem)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.14),transparent_44%),linear-gradient(90deg,rgba(96,165,250,0.08)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem]" />
             <div className="relative">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">

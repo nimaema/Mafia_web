@@ -15,22 +15,34 @@ const config: Config = {
         vazir: ["var(--font-vazirmatn)", "sans-serif"],
       },
       colors: {
-        // Design system lime accent
+        // Lime/azure command palette
         lime: {
+          300: "#d9f99d",
           400: "#a3e635",
           500: "#84cc16",
           600: "#65a30d",
+          700: "#4d7c0f",
         },
-        // Dark theme surfaces
-        zinc: {
-          900: "#18181b",
-          950: "#09090b",
+        azure: {
+          50: "#f4f8fb",
+          100: "#dbeafe",
+          400: "#60a5fa",
+          500: "#3b82f6",
+          600: "#2563eb",
+        },
+        graphite: {
+          600: "#3d4b56",
+          700: "#2b333b",
+          800: "#20272d",
+          850: "#181d22",
+          900: "#15181b",
+          950: "#111417",
         },
         // Role colors
         role: {
           citizen: "#2563eb",   // blue-600
           mafia: "#b91c1c",     // red-700
-          neutral: "#09090b",   // zinc-950
+          neutral: "#111417",   // graphite-950
         },
       },
       borderRadius: {
@@ -53,8 +65,8 @@ const config: Config = {
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         glow: {
-          "0%": { boxShadow: "0 0 5px rgba(163, 230, 53, 0.3)" },
-          "100%": { boxShadow: "0 0 20px rgba(163, 230, 53, 0.7)" },
+          "0%": { boxShadow: "0 0 5px rgba(132, 204, 22, 0.3)" },
+          "100%": { boxShadow: "0 0 20px rgba(190, 242, 100, 0.65)" },
         },
       },
       // RTL logical spacing utilities
