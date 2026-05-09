@@ -1,19 +1,9 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { MobileLandingLogin } from "@/components/auth/MobileLandingLogin";
 
 const quietMarks = ["لابی زنده", "گزارش دقیق", "سناریوی پویا"];
 const lobbyPreviewPlayers = ["نیما", "سارا", "آرش", "مینا"];
-const mobileQuickActions = [
-  { href: "/auth/login", icon: "dashboard", label: "داشبورد", value: "ورود" },
-  { href: "/auth/login", icon: "groups", label: "لابی", value: "۴/۱۰" },
-  { href: "/auth/login", icon: "timer", label: "تایمر", value: "۱۲:۰۰" },
-  { href: "/auth/register", icon: "person_add", label: "عضویت", value: "جدید" },
-];
-const mobileStatusRows = [
-  { icon: "verified", label: "سناریو", value: "کلاسیک ۱۰ نفره" },
-  { icon: "radio_button_checked", label: "وضعیت", value: "آماده شروع" },
-  { icon: "summarize", label: "گزارش", value: "ثبت خودکار" },
-];
 
 export default function Home() {
   return (
@@ -24,105 +14,7 @@ export default function Home() {
         <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(190,242,100,0.62),transparent)]" />
       </div>
 
-      {/* Mobile Landing */}
-      <section className="pm-mobile-app-landing relative z-10 flex min-h-[100dvh] flex-col overflow-hidden px-4 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)] md:hidden">
-        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
-          <header className="motion-reveal flex items-center justify-between gap-3">
-            <Link href="/auth/login" className="flex min-w-0 items-center gap-3">
-              <span className="grid size-12 shrink-0 place-items-center rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface)] shadow-[var(--pm-shadow-soft)]">
-                <span className="material-symbols-outlined text-2xl text-[var(--pm-primary)]">theater_comedy</span>
-              </span>
-              <span className="min-w-0">
-                <span className="block text-lg font-black leading-6">مافیا بورد</span>
-                <span className="block text-[0.7rem] font-black text-[var(--pm-muted)]">اتاق بازی</span>
-              </span>
-            </Link>
-            <ThemeToggle nav />
-          </header>
-
-          <div className="motion-reveal mt-5 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[0.7rem] font-black text-[var(--pm-muted)]">امشب</p>
-              <h1 className="mt-1 text-3xl font-black leading-tight">جمعه شب</h1>
-            </div>
-            <span className="pm-chip pm-chip-primary font-mono text-xs">#482913</span>
-          </div>
-
-          <section className="motion-pop pm-command pm-aurora mt-4 overflow-hidden p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[0.7rem] font-black text-[var(--pm-primary)]">لابی فعال</p>
-                <h2 className="mt-1 text-xl font-black">سناریوی کلاسیک</h2>
-                <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">۴ بازیکن از ۱۰ نفر</p>
-              </div>
-              <span className="grid size-12 shrink-0 place-items-center rounded-[var(--radius-md)] bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-[var(--pm-shadow-glow)]">
-                <span className="material-symbols-outlined text-2xl">play_arrow</span>
-              </span>
-            </div>
-
-            <div className="mt-5 h-2 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
-              <span className="block h-full w-2/5 rounded-full bg-[var(--pm-primary)] shadow-[0_0_16px_var(--pm-primary)]" />
-            </div>
-
-            <div className="mt-5 flex items-center justify-between gap-3">
-              <div className="flex -space-x-2 space-x-reverse">
-                {lobbyPreviewPlayers.map((player) => (
-                  <span key={player} className="grid size-10 place-items-center rounded-[var(--radius-sm)] border-2 border-[var(--pm-surface)] bg-[var(--pm-surface-strong)] text-xs font-black shadow-sm">
-                    {player[0]}
-                  </span>
-                ))}
-              </div>
-              <Link href="/auth/login" className="pm-button-primary min-h-10 px-4 text-sm">
-                ورود
-                <span className="material-symbols-outlined text-lg">arrow_back</span>
-              </Link>
-            </div>
-          </section>
-
-          <section className="motion-reveal mt-4 grid grid-cols-2 gap-3">
-            {mobileQuickActions.map((item) => (
-              <Link key={item.label} href={item.href} className="motion-surface min-h-[5.25rem] rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-white/92 p-3 shadow-[var(--pm-shadow-soft)] dark:bg-[#181d22]">
-                <span className="flex items-center justify-between gap-3">
-                  <span className="grid size-9 place-items-center rounded-[var(--radius-sm)] bg-[#eaf3f8] text-[var(--pm-primary)] dark:bg-[#20272d]">
-                    <span className="material-symbols-outlined text-xl">{item.icon}</span>
-                  </span>
-                  <span className="text-xs font-black text-[var(--pm-muted)]">{item.label}</span>
-                </span>
-                <span className="mt-3 block text-lg font-black text-[var(--pm-text)]">{item.value}</span>
-              </Link>
-            ))}
-          </section>
-
-          <section className="motion-reveal mt-4 grid gap-2">
-            {mobileStatusRows.map((item) => (
-              <Link key={item.label} href="/auth/login" className="motion-surface flex min-h-14 items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-white/70 px-3 shadow-[var(--pm-shadow-soft)] dark:bg-[#20272d]/88">
-                <span className="flex min-w-0 items-center gap-3">
-                  <span className="material-symbols-outlined text-xl text-[var(--pm-blue)]">{item.icon}</span>
-                  <span className="text-xs font-black text-[var(--pm-muted)]">{item.label}</span>
-                </span>
-                <span className="truncate text-sm font-black">{item.value}</span>
-              </Link>
-            ))}
-          </section>
-        </div>
-
-        <nav className="motion-reveal fixed inset-x-0 bottom-0 z-20 border-t border-[var(--pm-line)] bg-white/92 px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-3 shadow-[0_-18px_45px_rgba(16,32,51,0.12)] backdrop-blur-2xl dark:bg-[#15181b]/94 dark:shadow-black/30">
-          <div className="mx-auto grid w-full max-w-sm grid-cols-[1fr_1.35fr_1fr] items-center gap-2">
-            <Link href="/auth/register" className="grid min-h-12 place-items-center rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[#eaf3f8] text-center text-[0.68rem] font-black text-[var(--pm-muted)] dark:bg-[#20272d]">
-              <span className="material-symbols-outlined text-xl">person_add</span>
-              عضویت
-            </Link>
-            <Link href="/auth/login" className="pm-button-primary min-h-14 text-base">
-              <span className="material-symbols-outlined text-xl">login</span>
-              ورود به اپ
-            </Link>
-            <Link href="/join" className="grid min-h-12 place-items-center rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[#eaf3f8] text-center text-[0.68rem] font-black text-[var(--pm-muted)] dark:bg-[#20272d]">
-              <span className="material-symbols-outlined text-xl">tag</span>
-              کد لابی
-            </Link>
-          </div>
-        </nav>
-      </section>
+      <MobileLandingLogin />
 
       {/* Desktop Header */}
       <header className="app-container relative z-10 hidden items-center justify-between py-6 md:flex">
