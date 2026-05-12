@@ -32,6 +32,16 @@ enum GameResult {
   LOSS
 }
 
+enum JoinSource {
+  WEB
+  TELEGRAM
+}
+
+enum TelegramBotMode {
+  AWAITING_GAME_CODE
+  AWAITING_GAME_PASSWORD
+}
+
 enum SuggestionType {
   NEW_ROLE
   NEW_SCENARIO
@@ -64,8 +74,50 @@ model User {
   gamePlayers         GamePlayer[]
   gameBlocks          GameBlockedUser[]
   passwordResetTokens PasswordResetToken[]
+  telegramAccount     TelegramAccount?
+  telegramLinkTokens  TelegramLinkToken[]
   suggestionRequests  SuggestionRequest[]  @relation("SuggestionRequester")
   reviewedSuggestions SuggestionRequest[]  @relation("SuggestionReviewer")
+}
+
+model TelegramAccount {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  telegramUserId String   @unique
+  chatId         String
+  username       String?
+  firstName      String?
+  lastName       String?
+  linkedAt       DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+}
+
+model TelegramLinkToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model TelegramBotState {
+  telegramUserId String          @id
+  chatId         String
+  mode           TelegramBotMode
+  gameCode       String?
+  expiresAt      DateTime
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([expiresAt])
 }
 
 model Account {
@@ -166,6 +218,7 @@ model Game {
   scenario            Scenario?  @relation(fields: [scenarioId], references: [id])
   winningAlignment    Alignment?
   nightRecordsPublic  Boolean    @default(false)
+  telegramJoinEnabled Boolean    @default(true)
   activeRoleAbilities Json?
 
   histories    GameHistory[]
@@ -212,6 +265,7 @@ model GamePlayer {
   name         String
   roleId       String?
   role         MafiaRole? @relation(fields: [roleId], references: [id])
+  joinSource   JoinSource @default(WEB)
   isAlive      Boolean    @default(true)
   eliminatedAt DateTime?
   createdAt    DateTime   @default(now())

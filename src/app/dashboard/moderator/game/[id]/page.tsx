@@ -43,6 +43,7 @@ type PlayerRecord = {
   name: string;
   user?: { image?: string | null } | null;
   image?: string | null;
+  joinSource?: "WEB" | "TELEGRAM";
   isAlive?: boolean;
   eliminatedAt?: Date | string | null;
   role?: {
@@ -1281,28 +1282,39 @@ export default function ModeratorGamePage() {
               {displayPlayers.map((player, index) => {
                 const alive = player.isAlive !== false;
                 const image = playerImage(player);
+                const joinedViaTelegram = player.joinSource === "TELEGRAM";
                 return (
                   <article
                     key={player.id}
                     className={`relative overflow-hidden border-b border-[var(--pm-line)] p-3 transition-all last:border-b-0 dark:border-[var(--pm-line)] ${
-                      alive
+                      joinedViaTelegram && alive
+                        ? "bg-sky-500/10 hover:bg-sky-500/[0.14]"
+                        : alive
                         ? "bg-white hover:bg-[var(--pm-primary)]/[0.04] dark:bg-transparent dark:hover:bg-white/[0.04]"
                         : "bg-red-500/10"
                     }`}
                   >
-                    <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${alive ? "bg-[var(--pm-primary)]" : "bg-red-500"}`} />
+                    <div className={`absolute inset-y-3 right-0 w-1 rounded-l-full ${joinedViaTelegram && alive ? "bg-sky-500" : alive ? "bg-[var(--pm-primary)]" : "bg-red-500"}`} />
                     <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)_118px] lg:items-center">
                       <div className="flex min-w-0 items-center gap-3 pr-1">
-                        <div className={`relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg text-base font-black shadow-sm shadow-zinc-950/10 ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
+                        <div className={`relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg text-base font-black shadow-sm shadow-zinc-950/10 ${alive ? joinedViaTelegram ? "bg-sky-500 text-white" : "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
                           {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
-                          <span className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white dark:border-zinc-950 ${alive ? "bg-[var(--pm-primary)]" : "bg-red-500"}`} />
+                          <span className={`absolute -bottom-1 -right-1 grid size-5 place-items-center rounded-full border-2 border-white text-[10px] dark:border-zinc-950 ${joinedViaTelegram && alive ? "bg-sky-500 text-white" : alive ? "bg-[var(--pm-primary)]" : "bg-red-500"}`}>
+                            {joinedViaTelegram && alive ? <span className="material-symbols-outlined text-[12px]">send</span> : null}
+                          </span>
                         </div>
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="truncate text-base font-black text-[var(--pm-text)]">{player.name}</p>
+                            <p className={`truncate text-base font-black ${joinedViaTelegram ? "text-sky-700 dark:text-sky-300" : "text-[var(--pm-text)]"}`}>{player.name}</p>
                             <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-black ${alive ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]" : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300"}`}>
                               {alive ? "فعال" : "حذف‌شده"}
                             </span>
+                            {joinedViaTelegram && (
+                              <span className="inline-flex items-center gap-1 rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
+                                <span className="material-symbols-outlined text-xs">send</span>
+                                تلگرام
+                              </span>
+                            )}
                           </div>
                           <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">ردیف ورود #{index + 1}</p>
                         </div>

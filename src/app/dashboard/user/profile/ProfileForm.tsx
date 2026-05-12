@@ -2,7 +2,9 @@
 
 import { useActionState, useRef, useState } from "react";
 import { updateProfile, changePassword } from "@/actions/user";
+import { createTelegramAccountLink, unlinkTelegramAccount } from "@/actions/telegram";
 import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { usePopup } from "@/components/PopupProvider";
 import { useEffect } from "react";
 
@@ -75,13 +77,16 @@ export default function ProfileForm({
   user,
   hasGoogleProvider,
   hasPassword,
+  telegramAccount,
 }: {
   user: { name: string, email: string, image?: string | null },
   hasGoogleProvider?: boolean,
   hasPassword?: boolean,
+  telegramAccount?: { username?: string | null, firstName?: string | null, lastName?: string | null, linkedAt?: string | null } | null,
 }) {
+  const router = useRouter();
   const { update } = useSession();
-  const { showToast, showAlert } = usePopup();
+  const { showToast, showAlert, showConfirm } = usePopup();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [nameValue, setNameValue] = useState(user.name || "");
   const [nameWarning, setNameWarning] = useState("");
@@ -90,6 +95,10 @@ export default function ProfileForm({
   const [removeProfileImage, setRemoveProfileImage] = useState(false);
   const [imageWarning, setImageWarning] = useState("");
   const [imageProcessing, setImageProcessing] = useState(false);
+  const [telegramPending, setTelegramPending] = useState(false);
+  const telegramName = telegramAccount?.username
+    ? `@${telegramAccount.username}`
+    : [telegramAccount?.firstName, telegramAccount?.lastName].filter(Boolean).join(" ") || "تلگرام";
 
   const checkName = (value: string) => {
     const longPart = value.trim().split(/\s+/).find((part) => part.length > 25);
@@ -149,6 +158,44 @@ export default function ProfileForm({
       setImageProcessing(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const handleLinkTelegram = async () => {
+    setTelegramPending(true);
+    try {
+      const result = await createTelegramAccountLink();
+      if (result.success && result.link) {
+        window.open(result.link, "_blank", "noopener,noreferrer");
+        showToast("تلگرام باز شد؛ دکمه Start ربات را بزنید.", "success");
+      } else {
+        showAlert("اتصال تلگرام", result.error || "لینک اتصال ساخته نشد.", "error");
+      }
+    } catch (error) {
+      console.error(error);
+      showAlert("اتصال تلگرام", "اتصال به سرور انجام نشد.", "error");
+    } finally {
+      setTelegramPending(false);
+    }
+  };
+
+  const handleUnlinkTelegram = () => {
+    showConfirm("قطع اتصال تلگرام", "ربات دیگر حساب شما را نمی‌شناسد تا دوباره از پروفایل لینک کنید. ادامه می‌دهید؟", async () => {
+      setTelegramPending(true);
+      try {
+        const result = await unlinkTelegramAccount();
+        if (result.success) {
+          showToast("تلگرام از حساب جدا شد", "success");
+          router.refresh();
+        } else {
+          showAlert("قطع اتصال تلگرام", result.error || "قطع اتصال انجام نشد.", "error");
+        }
+      } catch (error) {
+        console.error(error);
+        showAlert("قطع اتصال تلگرام", "ارتباط با سرور انجام نشد.", "error");
+      } finally {
+        setTelegramPending(false);
+      }
+    }, "warning");
   };
 
   return (
@@ -405,9 +452,43 @@ export default function ProfileForm({
           <span>اتصال به حساب گوگل</span>
         </button>
       )}
+
+      <div className="mt-3 rounded-[var(--radius-sm)] border border-sky-500/20 bg-sky-500/10 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-sky-500 text-xl text-white shadow-[var(--pm-shadow-soft)]">send</span>
+            <div className="min-w-0">
+              <span className="font-black text-[var(--pm-text)]">ربات تلگرام</span>
+              <p className="mt-1 text-xs font-bold leading-5 text-sky-700 dark:text-sky-300">
+                {telegramAccount ? `متصل به ${telegramName}` : "برای ورود به لابی از تلگرام و دیدن نقش، حساب را یک‌بار لینک کنید."}
+              </p>
+            </div>
+          </div>
+          {telegramAccount ? (
+            <button
+              type="button"
+              onClick={handleUnlinkTelegram}
+              disabled={telegramPending}
+              className="pm-button pm-button-secondary min-h-10 px-3 text-xs text-sky-700 dark:text-sky-300"
+            >
+              <span className={`material-symbols-outlined text-base ${telegramPending ? "animate-spin" : ""}`}>{telegramPending ? "progress_activity" : "link_off"}</span>
+              قطع اتصال
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleLinkTelegram}
+              disabled={telegramPending}
+              className="pm-button pm-button-primary min-h-10 px-3 text-xs"
+            >
+              <span className={`material-symbols-outlined text-base ${telegramPending ? "animate-spin" : ""}`}>{telegramPending ? "progress_activity" : "send"}</span>
+              لینک تلگرام
+            </button>
+          )}
+        </div>
+      </div>
     </div>
 
     </div>
   );
 }
-

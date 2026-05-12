@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getPusherClient } from "@/lib/pusher-client";
-import { cancelGame, createCustomGameScenario, getGameStatus, removeWaitingLobbyPlayer, setGameRoleAbilities, setGameScenario, startGame } from "@/actions/game";
+import { cancelGame, createCustomGameScenario, getGameStatus, removeWaitingLobbyPlayer, setGameRoleAbilities, setGameScenario, setTelegramJoinEnabled, startGame } from "@/actions/game";
 import { getScenarios } from "@/actions/admin";
 import { getRoles } from "@/actions/role";
 import { usePopup } from "@/components/PopupProvider";
@@ -18,6 +18,7 @@ type Player = {
   userId?: string | null;
   image?: string | null;
   isAlive?: boolean;
+  joinSource?: "WEB" | "TELEGRAM";
 };
 
 type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
@@ -184,6 +185,7 @@ export default function GameLobbyPage() {
   const [savingAbilities, setSavingAbilities] = useState(false);
   const [busyPlayerId, setBusyPlayerId] = useState<string | null>(null);
   const [deletingLobby, setDeletingLobby] = useState(false);
+  const [savingTelegramJoin, setSavingTelegramJoin] = useState(false);
 
   useEffect(() => {
     if (sessionStatus === "loading") return;
@@ -217,7 +219,7 @@ export default function GameLobbyPage() {
 
         setGame(gameRes);
         setAbilityConfig(abilityConfigForGame(gameRes));
-        setPlayers((gameRes.players || []).map((player: any) => ({ id: player.id, name: player.name, userId: player.userId, image: player.image || player.user?.image || null, isAlive: player.isAlive })));
+        setPlayers((gameRes.players || []).map((player: any) => ({ id: player.id, name: player.name, userId: player.userId, image: player.image || player.user?.image || null, isAlive: player.isAlive, joinSource: player.joinSource })));
         setScenarios(scenariosRes);
         setRoles(rolesRes);
         setLoading(false);
@@ -252,6 +254,10 @@ export default function GameLobbyPage() {
         channel.bind("ability-config-updated", (data: { activeRoleAbilities?: unknown }) => {
           setGame((prev: any) => (prev ? { ...prev, activeRoleAbilities: data.activeRoleAbilities ?? null } : prev));
           setAbilityConfig(normalizeActiveRoleAbilityConfig(data.activeRoleAbilities));
+        });
+
+        channel.bind("telegram-join-updated", (data: { telegramJoinEnabled: boolean }) => {
+          setGame((prev: any) => (prev ? { ...prev, telegramJoinEnabled: data.telegramJoinEnabled } : prev));
         });
       } catch (error) {
         console.error(error);
@@ -442,6 +448,19 @@ export default function GameLobbyPage() {
     );
   };
 
+  const handleToggleTelegramJoin = async () => {
+    const nextValue = !game?.telegramJoinEnabled;
+    setSavingTelegramJoin(true);
+    const res = await setTelegramJoinEnabled(gameId, nextValue);
+    if (res.success) {
+      setGame((previous: any) => (previous ? { ...previous, telegramJoinEnabled: res.telegramJoinEnabled } : previous));
+      showToast(nextValue ? "ورود از تلگرام فعال شد" : "ورود از تلگرام غیرفعال شد", "success");
+    } else {
+      showAlert("ورود از تلگرام", res.error || "تغییر وضعیت انجام نشد.", "error");
+    }
+    setSavingTelegramJoin(false);
+  };
+
   const handleCustomRoleChange = (roleId: string, delta: number) => {
     setCustomRoles((prev) => {
       const existing = prev.find((role) => role.roleId === roleId);
@@ -566,6 +585,9 @@ export default function GameLobbyPage() {
                 <span className="rounded-lg border border-[var(--pm-line)] bg-white/82 px-2.5 py-1 text-[var(--pm-muted)] shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-white/10 dark:text-zinc-200">{players.length} بازیکن حاضر</span>
                 <span className="rounded-lg border border-[var(--pm-line)] bg-white/82 px-2.5 py-1 text-[var(--pm-muted)] shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-white/10 dark:text-zinc-200">{requiredPlayers || "بدون"} ظرفیت سناریو</span>
                 <span className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2.5 py-1 text-[var(--pm-primary-strong)] shadow-sm shadow-[var(--pm-primary)]/10 dark:border-[var(--pm-primary)]/30 dark:bg-[var(--pm-primary)]/10 dark:text-[var(--pm-primary)]">کد #{game?.code || "------"}</span>
+                <span className={game?.telegramJoinEnabled ? "rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-sky-700 shadow-sm shadow-sky-500/10 dark:text-sky-300" : "rounded-lg border border-zinc-500/20 bg-zinc-500/10 px-2.5 py-1 text-[var(--pm-muted)]"}>
+                  تلگرام {game?.telegramJoinEnabled ? "فعال" : "خاموش"}
+                </span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
@@ -634,26 +656,33 @@ export default function GameLobbyPage() {
                   <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                     {lobbySlots.map((player, index) => {
                       const image = player?.image || null;
+                      const joinedViaTelegram = player?.joinSource === "TELEGRAM";
                       return (
                         <div
                           key={player?.id || `slot-${index}`}
                           className={`flex min-h-14 items-center gap-3 rounded-lg border p-2.5 transition-all ${
                             player
-                              ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 shadow-sm shadow-lime-500/10"
+                              ? joinedViaTelegram
+                                ? "border-sky-500/25 bg-sky-500/10 shadow-sm shadow-sky-500/10"
+                                : "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 shadow-sm shadow-lime-500/10"
                               : "border-dashed border-[var(--pm-line)] bg-zinc-50/70 dark:border-[var(--pm-line)] dark:bg-white/[0.03]"
                           }`}
                         >
-                          <span className={`flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg text-sm font-black ${
-                            player ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-white text-zinc-300 dark:bg-zinc-950 dark:text-[var(--pm-muted)]"
+                          <span className={`relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg text-sm font-black ${
+                            player ? joinedViaTelegram ? "bg-sky-500 text-white" : "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-white text-zinc-300 dark:bg-zinc-950 dark:text-[var(--pm-muted)]"
                           }`}>
                             {player ? image ? <img src={image} alt="" className="size-full object-cover" /> : player.name.slice(0, 1) : <span className="material-symbols-outlined text-xl">person_add</span>}
+                            {joinedViaTelegram && <span className="material-symbols-outlined absolute -bottom-1 -right-1 rounded-full bg-white text-[13px] text-sky-600">send</span>}
                           </span>
                           <span className="min-w-0 flex-1">
-                            <span className={`block truncate text-sm font-black ${player ? "text-[var(--pm-text)]" : "text-[var(--pm-muted)]"}`}>
-                              {player?.name || `جای خالی ${index + 1}`}
+                            <span className="flex min-w-0 items-center gap-1">
+                              <span className={`block truncate text-sm font-black ${player ? joinedViaTelegram ? "text-sky-700 dark:text-sky-300" : "text-[var(--pm-text)]" : "text-[var(--pm-muted)]"}`}>
+                                {player?.name || `جای خالی ${index + 1}`}
+                              </span>
+                              {joinedViaTelegram && <span className="rounded-md bg-sky-500 px-1.5 py-0.5 text-[9px] font-black text-white">TG</span>}
                             </span>
                             <span className="mt-0.5 block truncate text-[10px] font-bold text-[var(--pm-muted)]">
-                              {player ? "وارد لابی شده" : requiredPlayers ? "در انتظار بازیکن" : "بعد از انتخاب سناریو فعال می‌شود"}
+                              {player ? joinedViaTelegram ? "ورود از تلگرام" : "وارد لابی شده" : requiredPlayers ? "در انتظار بازیکن" : "بعد از انتخاب سناریو فعال می‌شود"}
                             </span>
                             {player && (
                               <span className="mt-2 grid grid-cols-2 gap-1">
@@ -699,6 +728,32 @@ export default function GameLobbyPage() {
                     <button type="button" onClick={copyJoinLink} className="pm-button-secondary min-h-10 px-3 text-xs">
                       <span className="material-symbols-outlined text-base">content_copy</span>
                       لینک
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-3 rounded-lg border border-sky-500/20 bg-sky-500/10 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black text-[var(--pm-text)]">ورود از تلگرام</p>
+                      <p className="mt-1 text-[10px] font-bold leading-5 text-sky-700 dark:text-sky-300">
+                        فقط کاربران لینک‌شده می‌توانند از ربات وارد شوند.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleToggleTelegramJoin}
+                      disabled={savingTelegramJoin}
+                      className={`min-h-10 shrink-0 rounded-lg border px-3 text-[10px] font-black transition-all disabled:opacity-60 ${
+                        game?.telegramJoinEnabled
+                          ? "border-sky-500/30 bg-sky-500 text-white"
+                          : "border-[var(--pm-line)] bg-white text-[var(--pm-muted)] dark:bg-zinc-950"
+                      }`}
+                    >
+                      <span className={`material-symbols-outlined align-middle text-base ${savingTelegramJoin ? "animate-spin" : ""}`}>
+                        {savingTelegramJoin ? "progress_activity" : game?.telegramJoinEnabled ? "toggle_on" : "toggle_off"}
+                      </span>
+                      {game?.telegramJoinEnabled ? "فعال" : "خاموش"}
                     </button>
                   </div>
                 </div>

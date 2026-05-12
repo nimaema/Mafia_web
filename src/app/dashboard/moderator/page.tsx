@@ -40,6 +40,7 @@ export default function ModeratorDashboard() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
+  const [telegramJoinEnabled, setTelegramJoinEnabled] = useState(true);
 
   useEffect(() => {
     refreshGames();
@@ -82,12 +83,13 @@ export default function ModeratorDashboard() {
 
     setLoading(true);
     try {
-      const res = await createGame(lobbyName, lobbyPassword);
+      const res = await createGame(lobbyName, lobbyPassword, telegramJoinEnabled);
       if (res.success) {
         setShowCreateModal(false);
         setName("");
         setPassword("");
         setIsPrivate(false);
+        setTelegramJoinEnabled(true);
         router.push(`/dashboard/moderator/lobby/${res.gameId}`);
       } else {
         showAlert("خطا", res.error || "خطا در ایجاد بازی", "error");
@@ -292,6 +294,29 @@ export default function ModeratorDashboard() {
                     />
                   </label>
                 )}
+
+                <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-black text-[var(--pm-text)]">ورود از تلگرام</p>
+                      <p className="mt-1 text-xs font-bold leading-5 text-sky-700 dark:text-sky-300">
+                        بازیکنان لینک‌شده می‌توانند با ربات و کد لابی وارد شوند.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTelegramJoinEnabled((value) => !value)}
+                      className={`min-h-10 shrink-0 rounded-lg border px-3 text-xs font-black transition-all ${
+                        telegramJoinEnabled
+                          ? "border-sky-500/30 bg-sky-500 text-white"
+                          : "border-[var(--pm-line)] bg-white text-[var(--pm-muted)] dark:bg-zinc-950"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined align-middle text-base">{telegramJoinEnabled ? "toggle_on" : "toggle_off"}</span>
+                      {telegramJoinEnabled ? "فعال" : "غیرفعال"}
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <aside className="h-fit rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_60%,#edf4e6_100%)] p-4 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(17,20,23,0.9)_0%,rgba(21,24,27,0.96)_60%,rgba(190,242,100,0.18)_100%)]">
@@ -398,11 +423,12 @@ export default function ModeratorDashboard() {
                       </span>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-3 gap-2">
+                    <div className="mt-4 grid grid-cols-4 gap-2">
                       {[
                         { label: statusLabel(game.status), icon: statusIcon(game.status), className: tone },
                         { label: `${players}${capacity ? `/${capacity}` : ""}`, icon: "group", className: "border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.04] dark:text-zinc-300" },
                         { label: game.password ? "خصوصی" : "باز", icon: game.password ? "lock" : "lock_open", className: game.password ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.04] dark:text-zinc-300" },
+                        { label: game.telegramJoinEnabled ? "تلگرام" : "بدون تلگرام", icon: "send", className: game.telegramJoinEnabled ? "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300" : "border-zinc-500/20 bg-zinc-500/10 text-[var(--pm-muted)]" },
                       ].map((item) => (
                         <div key={item.label} className={`rounded-lg border px-2 py-2 text-center text-[10px] font-black ${item.className}`}>
                           <span className="material-symbols-outlined block text-base">{item.icon}</span>

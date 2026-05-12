@@ -14,6 +14,15 @@ export default async function ProfilePage() {
   const googleAccount = await prisma.account.findFirst({
     where: { userId: session.user.id, provider: "google" }
   });
+  const telegramAccount = await prisma.telegramAccount.findUnique({
+    where: { userId: session.user.id },
+    select: {
+      username: true,
+      firstName: true,
+      lastName: true,
+      linkedAt: true,
+    },
+  });
 
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -79,6 +88,7 @@ export default async function ProfilePage() {
               ["alternate_email", "وضعیت ایمیل", dbUser?.emailVerified ? "تایید شده" : "نیاز به تایید", dbUser?.emailVerified ? "text-[var(--pm-success)]" : "text-[var(--pm-warning)]"],
               ["vpn_key", "ورود با رمز", hasPassword ? "فعال" : "تنظیم نشده", hasPassword ? "text-[var(--pm-primary)]" : "text-[var(--pm-muted)]"],
               ["hub", "حساب گوگل", googleAccount ? "متصل" : "متصل نیست", googleAccount ? "text-[var(--pm-primary)]" : "text-[var(--pm-muted)]"],
+              ["send", "ربات تلگرام", telegramAccount ? "متصل" : "متصل نیست", telegramAccount ? "text-sky-500" : "text-[var(--pm-muted)]"],
             ].map(([icon, label, value, color]) => (
               <div key={label} className="pm-muted-card border border-[var(--pm-line)] flex items-center gap-3 p-3">
                 <span className={`material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-surface)] text-xl shadow-[var(--pm-shadow-soft)] ${color}`}>
@@ -96,6 +106,12 @@ export default async function ProfilePage() {
             user={userData}
             hasGoogleProvider={!!googleAccount}
             hasPassword={hasPassword}
+            telegramAccount={telegramAccount ? {
+              username: telegramAccount.username,
+              firstName: telegramAccount.firstName,
+              lastName: telegramAccount.lastName,
+              linkedAt: telegramAccount.linkedAt.toISOString(),
+            } : null}
           />
         </div>
       </section>

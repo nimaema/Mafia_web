@@ -7,7 +7,8 @@ import { revalidatePath } from "next/cache";
 import { TEMP_SCENARIO_DESCRIPTION_PREFIX, withGameDisplayName, withScenarioDisplayName } from "@/lib/gameDisplay";
 import { buildGameHistoryRows } from "@/lib/gameHistorySnapshot";
 import { profileImageUrl } from "@/lib/profileImage";
-import { Alignment, Prisma } from "@prisma/client";
+import { notifyTelegramGameStarted } from "@/lib/telegramBot";
+import { Alignment, JoinSource, Prisma } from "@prisma/client";
 import { randomInt } from "crypto";
 
 import { unstable_noStore as noStore } from "next/cache";
@@ -15,6 +16,10 @@ import { unstable_noStore as noStore } from "next/cache";
 const STALE_GAME_HOURS = 8;
 
 type WinningAlignmentInput = Alignment | "UNKNOWN" | null;
+
+type JoinGameResult =
+  | { success: true; gameId: string; playerId: string }
+  | { success: false; error: string };
 
 type NightEventInput = {
   nightNumber: number;
@@ -275,96 +280,126 @@ async function expireStaleGames() {
   revalidatePath("/dashboard/admin/history");
 }
 
-export async function joinGame(code: string, playerName: string, password?: string) {
+async function joinGameForUser({
+  code,
+  playerName,
+  password,
+  userId,
+  joinSource,
+  requireTelegramJoinEnabled = false,
+}: {
+  code: string;
+  playerName: string;
+  password?: string;
+  userId: string;
+  joinSource: JoinSource;
+  requireTelegramJoinEnabled?: boolean;
+}): Promise<JoinGameResult> {
   if (!code || !playerName) {
-    return { error: "فیلدهای اجباری ناقص است" };
+    return { success: false, error: "فیلدهای اجباری ناقص است" };
   }
 
-  try {
-    await expireStaleGames();
+  await expireStaleGames();
 
+  const game = await prisma.game.findUnique({
+    where: { code },
+    include: {
+      scenario: { include: { roles: true } },
+      _count: { select: { players: true } },
+    },
+  });
+
+  if (!game) return { success: false, error: "بازی یافت نشد" };
+  if (game.status !== "WAITING") return { success: false, error: "بازی قبلاً شروع شده است" };
+  if (requireTelegramJoinEnabled && !game.telegramJoinEnabled) {
+    return { success: false, error: "ورود از تلگرام برای این لابی غیرفعال است. از سایت وارد شوید." };
+  }
+
+  const blocked = await prisma.gameBlockedUser.findUnique({
+    where: {
+      gameId_userId: {
+        gameId: game.id,
+        userId,
+      },
+    },
+    select: { id: true },
+  });
+
+  if (blocked) {
+    return { success: false, error: "گرداننده ورود شما را برای همین لابی محدود کرده است." };
+  }
+
+  if (game.password && game.password !== password) {
+    return { success: false, error: "رمز عبور اشتباه است" };
+  }
+
+  const existingPlayer = await prisma.gamePlayer.findFirst({
+    where: { gameId: game.id, userId },
+    select: { id: true },
+  });
+  if (existingPlayer) {
+    return { success: true, gameId: game.id, playerId: existingPlayer.id };
+  }
+
+  const capacity = game.scenario?.roles.reduce((sum, role) => sum + role.count, 0) || 0;
+  if (capacity > 0 && game._count.players >= capacity) {
+    return { success: false, error: "ظرفیت این لابی تکمیل شده است. از گرداننده بخواهید سناریوی بزرگ‌تر انتخاب کند یا لابی جدید بسازد." };
+  }
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, email: true, image: true }
+  });
+  const finalPlayerName = dbUser?.name || playerName.trim() || dbUser?.email || "بازیکن";
+
+  const player = await prisma.gamePlayer.create({
+    data: {
+      gameId: game.id,
+      name: finalPlayerName,
+      userId,
+      joinSource,
+    }
+  });
+
+  await pusherServer.trigger(`game-${game.id}`, 'player-joined', {
+    player: {
+      id: player.id,
+      name: finalPlayerName,
+      image: realtimeSafeImage(userId, dbUser?.image),
+      userId,
+      isAlive: player.isAlive,
+      joinSource: player.joinSource,
+    }
+  });
+  await broadcastLobbyUpdated(joinSource === JoinSource.TELEGRAM ? "telegram-player-joined" : "player-joined", game.id);
+
+  return { success: true, gameId: game.id, playerId: player.id };
+}
+
+export async function joinGame(code: string, playerName: string, password?: string): Promise<JoinGameResult> {
+  try {
     const session = await auth();
     if (!session?.user?.id) {
-      return { error: "برای پیوستن به بازی ابتدا وارد حساب خود شوید یا ثبت‌نام کنید." };
+      return { success: false, error: "برای پیوستن به بازی ابتدا وارد حساب خود شوید یا ثبت‌نام کنید." };
     }
 
-    const game = await prisma.game.findUnique({
-      where: { code: code },
-      include: {
-        scenario: { include: { roles: true } },
-        _count: { select: { players: true } },
-      },
+    return await joinGameForUser({
+      code,
+      playerName,
+      password,
+      userId: session.user.id,
+      joinSource: JoinSource.WEB,
     });
-
-    if (!game) {
-      return { error: "بازی یافت نشد" };
-    }
-
-    if (game.status !== "WAITING") {
-      return { error: "بازی قبلاً شروع شده است" };
-    }
-
-    const blocked = await prisma.gameBlockedUser.findUnique({
-      where: {
-        gameId_userId: {
-          gameId: game.id,
-          userId: session.user.id,
-        },
-      },
-      select: { id: true },
-    });
-
-    if (blocked) {
-      return { error: "گرداننده ورود شما را برای همین لابی محدود کرده است." };
-    }
-
-    if (game.password && game.password !== password) {
-      return { error: "رمز عبور اشتباه است" };
-    }
-
-    const capacity = game.scenario?.roles.reduce((sum, role) => sum + role.count, 0) || 0;
-    if (capacity > 0 && game._count.players >= capacity) {
-      return { error: "ظرفیت این لابی تکمیل شده است. از گرداننده بخواهید سناریوی بزرگ‌تر انتخاب کند یا لابی جدید بسازد." };
-    }
-
-    const dbUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { name: true, email: true, image: true }
-    });
-    const finalPlayerName = dbUser?.name || playerName.trim() || dbUser?.email || "بازیکن";
-
-    // Save to DB
-    const player = await prisma.gamePlayer.create({
-      data: {
-        gameId: game.id,
-        name: finalPlayerName,
-        userId: session.user.id,
-      }
-    });
-
-    // Trigger Pusher event
-    await pusherServer.trigger(`game-${game.id}`, 'player-joined', {
-      player: {
-        id: player.id,
-        name: finalPlayerName,
-        image: realtimeSafeImage(session.user.id, dbUser?.image),
-        userId: session.user.id,
-        isAlive: player.isAlive,
-      }
-    });
-    await broadcastLobbyUpdated("player-joined", game.id);
-
-    return { success: true, gameId: game.id, playerId: player.id };
   } catch (error: any) {
     console.error("Join game error:", error);
     if (error.code === 'P2002') {
-       return { error: "شما قبلا با این نام وارد شده‌اید" };
+       return { success: false, error: "شما قبلا با این نام وارد شده‌اید" };
     }
-    return { error: "خطا در پیوستن به بازی" };
+    return { success: false, error: "خطا در پیوستن به بازی" };
   }
 }
 
-export async function createGame(name?: string, password?: string) {
+export async function createGame(name?: string, password?: string, telegramJoinEnabled = true) {
   try {
     const moderatorId = await checkModerator();
     
@@ -378,6 +413,7 @@ export async function createGame(name?: string, password?: string) {
         code: gameCode,
         password: password || null,
         status: "WAITING",
+        telegramJoinEnabled,
       }
     });
 
@@ -395,6 +431,33 @@ export async function createGame(name?: string, password?: string) {
   } catch (error: any) {
     console.error("Create game error:", error);
     return { error: error.message || "خطا در ایجاد بازی" };
+  }
+}
+
+export async function setTelegramJoinEnabled(gameId: string, enabled: boolean) {
+  try {
+    const { game } = await checkModeratorForGame(gameId);
+    if (game.status !== "WAITING") {
+      throw new Error("ورود از تلگرام فقط قبل از شروع بازی قابل تغییر است.");
+    }
+
+    const updatedGame = await prisma.game.update({
+      where: { id: gameId },
+      data: { telegramJoinEnabled: enabled },
+      select: { telegramJoinEnabled: true },
+    });
+
+    await pusherServer.trigger(`game-${gameId}`, "telegram-join-updated", {
+      telegramJoinEnabled: updatedGame.telegramJoinEnabled,
+    });
+    await broadcastLobbyUpdated("telegram-join-updated", gameId);
+    revalidatePath(`/dashboard/moderator/lobby/${gameId}`);
+    revalidatePath(`/lobby/${gameId}`);
+
+    return { success: true, telegramJoinEnabled: updatedGame.telegramJoinEnabled };
+  } catch (error: any) {
+    console.error("Set Telegram join error:", error);
+    return { error: error.message || "تغییر وضعیت ورود تلگرام انجام نشد" };
   }
 }
 
@@ -568,6 +631,7 @@ export async function getGameStatus(gameId: string) {
         ...player,
         roleId: null,
         role: null,
+        joinSource: undefined,
       }));
   const mafiaConversionRoles = canSeePrivateNightEvents
     ? await prisma.mafiaRole.findMany({
@@ -715,6 +779,9 @@ export async function startGame(gameId: string) {
 
     await pusherServer.trigger(`game-${gameId}`, 'game-started', {});
     await broadcastLobbyUpdated("game-started", gameId);
+    await notifyTelegramGameStarted(gameId).catch((error) => {
+      console.error("Failed to send Telegram game start notifications:", error);
+    });
     
     revalidatePath("/dashboard/user");
     revalidatePath("/dashboard/moderator");
