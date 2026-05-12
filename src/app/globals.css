@@ -91,7 +91,7 @@
     --pm-primary: #84cc16;
     --pm-primary-strong: var(--color-command-lime-deep);
     --pm-primary-soft: rgba(132, 204, 22, 0.12);
-    --pm-primary-glow: rgba(132, 204, 22, 0.22);
+    --pm-primary-glow: rgba(132, 204, 22, 0.12);
     --pm-blue: var(--color-light-blue);
     --pm-blue-soft: var(--color-command-blue-soft);
     --pm-danger: var(--color-noir-crimson);
@@ -106,7 +106,7 @@
     --pm-radius-lg: var(--radius-lg);
     --pm-shadow: 0 18px 48px rgba(37, 99, 235, 0.12);
     --pm-shadow-soft: 0 10px 28px rgba(16, 32, 51, 0.08);
-    --pm-shadow-glow: 0 18px 45px var(--pm-primary-glow);
+    --pm-shadow-glow: 0 10px 26px var(--pm-primary-glow);
   }
 
   .dark {
@@ -124,7 +124,7 @@
     --pm-primary: var(--color-command-lime);
     --pm-primary-strong: var(--color-command-lime-strong);
     --pm-primary-soft: rgba(190, 242, 100, 0.12);
-    --pm-primary-glow: var(--color-command-lime-glow);
+    --pm-primary-glow: rgba(190, 242, 100, 0.14);
     --pm-blue: var(--color-command-blue);
     --pm-blue-soft: var(--color-command-blue-deep);
     --pm-danger: var(--color-noir-crimson);
@@ -137,7 +137,7 @@
 
     --pm-shadow: 0 24px 58px rgba(0, 0, 0, 0.36);
     --pm-shadow-soft: 0 14px 34px rgba(0, 0, 0, 0.24);
-    --pm-shadow-glow: 0 18px 48px var(--pm-primary-glow);
+    --pm-shadow-glow: 0 12px 30px var(--pm-primary-glow);
   }
 
   * {
@@ -260,13 +260,13 @@
     --pm-primary: var(--color-command-lime);
     --pm-primary-strong: var(--color-command-lime-strong);
     --pm-primary-soft: rgba(190, 242, 100, 0.12);
-    --pm-primary-glow: var(--color-command-lime-glow);
+    --pm-primary-glow: rgba(190, 242, 100, 0.14);
     --pm-blue: var(--color-command-blue);
     --pm-blue-soft: var(--color-command-blue-deep);
     --pm-texture-line: rgba(96, 165, 250, 0.052);
     --pm-texture-wash: rgba(190, 242, 100, 0.045);
     --pm-texture-blue: rgba(96, 165, 250, 0.07);
-    --pm-shadow-glow: 0 18px 48px var(--pm-primary-glow);
+    --pm-shadow-glow: 0 12px 30px var(--pm-primary-glow);
     color: var(--pm-text);
     background:
       linear-gradient(135deg, var(--pm-texture-wash), transparent 22rem),
@@ -387,9 +387,9 @@
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-sm);
-    background: linear-gradient(135deg, var(--pm-primary), var(--pm-primary-strong));
+    background: linear-gradient(180deg, color-mix(in oklab, var(--pm-primary) 72%, white), color-mix(in oklab, var(--pm-primary) 82%, var(--pm-blue)));
     color: var(--pm-text-inverse);
-    box-shadow: 0 16px 35px var(--pm-primary-glow);
+    box-shadow: 0 10px 24px var(--pm-primary-glow);
     transition: all var(--motion-medium) var(--ease-snappy);
   }
 
@@ -417,10 +417,11 @@
   }
 
   .pm-button-primary {
-    border: 1px solid color-mix(in oklab, var(--pm-primary) 60%, transparent);
-    background: linear-gradient(135deg, var(--pm-primary-strong) 0%, var(--pm-primary) 54%, #d9f99d 100%);
+    border: 1px solid color-mix(in oklab, var(--pm-primary) 42%, var(--pm-line));
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--pm-primary) 70%, white) 0%, color-mix(in oklab, var(--pm-primary) 78%, var(--pm-blue-soft)) 100%);
     color: var(--pm-text-inverse);
-    box-shadow: var(--pm-shadow-glow), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 22px color-mix(in oklab, var(--pm-primary-glow) 70%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.42);
   }
 
   .pm-button-secondary {
@@ -440,9 +441,9 @@
   }
 
   .pm-button-primary:hover:not(:disabled) {
-    border-color: color-mix(in oklab, var(--pm-primary) 74%, white);
-    filter: saturate(1.04);
-    box-shadow: 0 20px 52px var(--pm-primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+    border-color: color-mix(in oklab, var(--pm-primary) 48%, var(--pm-blue));
+    filter: saturate(0.98);
+    box-shadow: 0 12px 30px color-mix(in oklab, var(--pm-primary-glow) 75%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.58);
   }
 
   .pm-button-secondary:hover:not(:disabled) {

@@ -489,6 +489,7 @@ export default function ModeratorGamePage() {
   const [customDayMethod, setCustomDayMethod] = useState("");
   const [dayNote, setDayNote] = useState("");
   const [reportMode, setReportMode] = useState<"NIGHT" | "DAY">("DAY");
+  const [reportChooserOpen, setReportChooserOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [playerPicker, setPlayerPicker] = useState<PlayerPickerRequest | null>(null);
@@ -709,6 +710,7 @@ export default function ModeratorGamePage() {
   const recordedReportPhases = chronologicalPhases.filter((phase) => phase.events.length > 0);
   const activePhaseLabel = reportMode === "DAY" ? `روز ${dayNumber}` : `شب ${nightNumber}`;
   const nextPhaseLabel = reportMode === "DAY" ? `شب ${dayNumber}` : `روز ${nightNumber + 1}`;
+  const chooserPhaseLabel = reportMode === "DAY" ? `روز ${dayNumber}` : `شب ${nightNumber}`;
 
   const resetNightTargets = () => {
     setTargetPlayerId("");
@@ -718,6 +720,7 @@ export default function ModeratorGamePage() {
 
   const openNightAction = (option: NightActionOption, actor?: PlayerRecord | null, wasUsed = true) => {
     setEditingEventId(null);
+    setReportChooserOpen(false);
     setReportMode("NIGHT");
     setSelectedActionKey(option.key);
     setSelectedChoiceKey(option.choices[0]?.id || "");
@@ -730,11 +733,20 @@ export default function ModeratorGamePage() {
 
   const openDayRecord = (methodKey = dayMethodKey, targetId = "") => {
     setEditingEventId(null);
+    setReportChooserOpen(false);
     setReportMode("DAY");
     setDayMethodKey(methodKey);
     if (methodKey !== "vote") setDayDefensePlayerIds([]);
     setDayTargetPlayerId(targetId);
     setReportModalOpen(true);
+  };
+
+  const openReportChooser = (mode: "DAY" | "NIGHT" = reportMode) => {
+    setEditingEventId(null);
+    setPlayerPicker(null);
+    setReportModalOpen(false);
+    setReportMode(mode);
+    setReportChooserOpen(true);
   };
 
   const openPlayerPicker = (request: PlayerPickerRequest) => {
@@ -780,6 +792,7 @@ export default function ModeratorGamePage() {
 
   const openEditReportEvent = (event: NightEventRecord) => {
     setEditingEventId(event.id);
+    setReportChooserOpen(false);
     setPlayerPicker(null);
     setReportModalOpen(true);
 
@@ -819,6 +832,7 @@ export default function ModeratorGamePage() {
   };
 
   const advanceToNextDay = (nextRound: number) => {
+    setReportChooserOpen(false);
     setReportMode("DAY");
     setDayNumber((current) => Math.max(current, nextRound));
     setNightNumber(nextRound);
@@ -829,6 +843,7 @@ export default function ModeratorGamePage() {
   };
 
   const finishCurrentPhase = () => {
+    setReportChooserOpen(false);
     if (reportMode === "DAY") {
       setReportMode("NIGHT");
       setNightNumber((current) => Math.max(current, dayNumber));
@@ -1202,7 +1217,7 @@ export default function ModeratorGamePage() {
   }
 
   return (
-    <div className="flex flex-col gap-5 pb-20" dir="rtl">
+    <div className="flex flex-col gap-5 pb-40 md:pb-20" dir="rtl">
       <header className="pm-card overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-zinc-50/80 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
@@ -1247,6 +1262,46 @@ export default function ModeratorGamePage() {
           ))}
         </div>
       </header>
+
+      {game?.status !== "FINISHED" && (
+        <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+5.85rem)] z-40 grid grid-cols-[1fr_1fr_44px] gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={() => openReportChooser("DAY")}
+            disabled={busy}
+            className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-black shadow-lg backdrop-blur transition-all disabled:opacity-50 ${
+              reportMode === "DAY"
+                ? "border-amber-500/30 bg-amber-400 text-zinc-950 shadow-amber-500/15"
+                : "border-[var(--pm-line)] bg-[var(--pm-surface)]/94 text-[var(--pm-text)] shadow-zinc-950/10"
+            }`}
+          >
+            <span className="material-symbols-outlined text-lg">wb_sunny</span>
+            روز
+          </button>
+          <button
+            type="button"
+            onClick={() => openReportChooser("NIGHT")}
+            disabled={busy}
+            className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-black shadow-lg backdrop-blur transition-all disabled:opacity-50 ${
+              reportMode === "NIGHT"
+                ? "border-sky-500/30 bg-sky-500 text-white shadow-sky-500/15"
+                : "border-[var(--pm-line)] bg-[var(--pm-surface)]/94 text-[var(--pm-text)] shadow-zinc-950/10"
+            }`}
+          >
+            <span className="material-symbols-outlined text-lg">dark_mode</span>
+            شب
+          </button>
+          <button
+            type="button"
+            onClick={finishCurrentPhase}
+            disabled={busy}
+            className="flex min-h-11 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface)]/94 text-[var(--pm-text)] shadow-lg shadow-zinc-950/10 backdrop-blur transition-all hover:bg-[var(--pm-surface-soft)] disabled:opacity-50"
+            aria-label={`پایان ${activePhaseLabel}`}
+          >
+            <span className="material-symbols-outlined text-xl">skip_next</span>
+          </button>
+        </div>
+      )}
 
       <main className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_410px]">
         <section className="space-y-5">
@@ -1357,16 +1412,29 @@ export default function ModeratorGamePage() {
                 <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">دفترچه گرداننده</p>
                 <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">گزارش مرحله‌ای بازی</h2>
               </div>
-              {game?.status === "FINISHED" && nightEvents.length > 0 && (
-                <button
-                  onClick={handlePublishNightRecords}
-                  disabled={busy || game?.nightRecordsPublic}
-                  className={game?.nightRecordsPublic ? "pm-button-secondary min-h-10 px-3 text-xs text-[var(--pm-primary)]" : "pm-button-primary min-h-10 px-3 text-xs"}
-                >
-                  <span className="material-symbols-outlined text-base">{game?.nightRecordsPublic ? "public" : "publish"}</span>
-                  {game?.nightRecordsPublic ? "گزارش منتشر شده" : "انتشار گزارش برای بازیکنان"}
-                </button>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {game?.status !== "FINISHED" && (
+                  <button
+                    type="button"
+                    onClick={() => openReportChooser(reportMode)}
+                    disabled={busy}
+                    className="pm-button-primary min-h-10 px-3 text-xs"
+                  >
+                    <span className="material-symbols-outlined text-base">add_notes</span>
+                    ثبت اتفاق
+                  </button>
+                )}
+                {game?.status === "FINISHED" && nightEvents.length > 0 && (
+                  <button
+                    onClick={handlePublishNightRecords}
+                    disabled={busy || game?.nightRecordsPublic}
+                    className={game?.nightRecordsPublic ? "pm-button-secondary min-h-10 px-3 text-xs text-[var(--pm-primary)]" : "pm-button-primary min-h-10 px-3 text-xs"}
+                  >
+                    <span className="material-symbols-outlined text-base">{game?.nightRecordsPublic ? "public" : "publish"}</span>
+                    {game?.nightRecordsPublic ? "گزارش منتشر شده" : "انتشار گزارش برای بازیکنان"}
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="grid gap-5 p-5 lg:grid-cols-[360px_minmax(0,1fr)]">
@@ -1378,7 +1446,7 @@ export default function ModeratorGamePage() {
                   </p>
                 </div>
 
-                <div className={`mt-4 rounded-lg border p-3 ${reportMode === "DAY" ? "border-amber-500/25 bg-amber-500/10" : "border-[var(--pm-primary)]/25 bg-[var(--pm-primary)]/10"}`}>
+                <div className={`mt-4 rounded-lg border p-3 ${reportMode === "DAY" ? "border-amber-500/25 bg-amber-500/10" : "border-sky-500/25 bg-sky-500/10"}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-xs font-black text-[var(--pm-muted)]">مرحله در حال ثبت</p>
@@ -1387,7 +1455,7 @@ export default function ModeratorGamePage() {
                         {reportMode === "DAY" ? `دفاع‌ها، رای نهایی یا حذف روز ${dayNumber} را ثبت کنید؛ بعد شب ${dayNumber} فعال می‌شود.` : `اکشن‌ها، شات، نجات یا تبدیل شب ${nightNumber} را ثبت کنید؛ بعد روز ${nightNumber + 1} فعال می‌شود.`}
                       </p>
                     </div>
-                    <span className={`material-symbols-outlined text-2xl ${reportMode === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]"}`}>
+                    <span className={`material-symbols-outlined text-2xl ${reportMode === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-sky-600 dark:text-sky-300"}`}>
                       {reportMode === "DAY" ? "wb_sunny" : "dark_mode"}
                     </span>
                   </div>
@@ -1416,14 +1484,14 @@ export default function ModeratorGamePage() {
                           phase.active
                             ? phase.type === "DAY"
                               ? "border-amber-500/35 bg-amber-500/10 shadow-sm shadow-amber-500/10"
-                              : "border-[var(--pm-primary)]/35 bg-[var(--pm-primary)]/10 shadow-sm shadow-[var(--pm-primary)]/10"
+                              : "border-sky-500/30 bg-sky-500/10 shadow-sm shadow-sky-500/10"
                             : "border-[var(--pm-line)] bg-zinc-50/80 dark:border-[var(--pm-line)] dark:bg-white/[0.03]"
                         }`}
                       >
                         <span className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-black ${phase.active ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-white text-[var(--pm-muted)] dark:bg-zinc-950/70 dark:text-zinc-300"}`}>
                           {index + 1}
                         </span>
-                        <span className={`material-symbols-outlined text-lg ${phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]"}`}>
+                        <span className={`material-symbols-outlined text-lg ${phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-sky-600 dark:text-sky-300"}`}>
                           {phase.icon}
                         </span>
                         <div className="min-w-0 flex-1">
@@ -1447,14 +1515,14 @@ export default function ModeratorGamePage() {
                       <p className="text-xs font-black text-[var(--pm-text)]">حذف یا اتفاق روز</p>
                       <span className="rounded-md bg-amber-500/15 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300">روز {dayNumber}</span>
                     </div>
-                    <div className="mt-3 grid grid-cols-2 gap-1">
+                    <div className="mt-3 grid grid-cols-2 gap-2">
                       {DAY_ELIMINATION_METHODS.map((method) => (
                         <button
                           key={method.key}
                           type="button"
                           onClick={() => openDayRecord(method.key)}
                           disabled={busy}
-                          className="flex min-h-9 items-center justify-center gap-1 rounded-lg border border-amber-500/15 bg-amber-500/10 px-2 text-[10px] font-black text-amber-700 transition-all hover:bg-amber-500/20 disabled:opacity-50 dark:text-amber-300"
+                          className="flex min-h-11 items-center justify-center gap-1 rounded-lg border border-amber-500/15 bg-amber-500/10 px-2 text-[10px] font-black text-amber-700 transition-all hover:bg-amber-500/20 disabled:opacity-50 dark:text-amber-300"
                         >
                           <span className="material-symbols-outlined text-sm">{method.icon}</span>
                           {method.label}
@@ -1485,13 +1553,13 @@ export default function ModeratorGamePage() {
                     </div>
                   </div>
                   ) : (
-                  <div className="rounded-xl border border-[var(--pm-primary)]/20 bg-white p-4 shadow-sm shadow-lime-500/10 dark:border-[var(--pm-primary)]/20 dark:bg-zinc-950/50">
+                  <div className="rounded-xl border border-sky-500/20 bg-white p-4 shadow-sm shadow-sky-500/10 dark:border-sky-500/20 dark:bg-zinc-950/50">
                     <div className="flex items-center justify-between gap-2">
                       <div>
                         <p className="text-sm font-black text-[var(--pm-text)]">اتفاقات شب</p>
                         <p className="mt-1 text-[10px] font-bold leading-5 text-[var(--pm-muted)]">روی نام کوچک بازیکن زیر هر نقش بزنید تا پنجره ثبت اتفاق همان نقش باز شود.</p>
                       </div>
-                      <span className="rounded-md bg-[var(--pm-primary)]/15 px-2 py-1 text-[10px] font-black text-[var(--pm-primary)]">شب {nightNumber}</span>
+                      <span className="rounded-md bg-sky-500/15 px-2 py-1 text-[10px] font-black text-sky-700 dark:text-sky-300">شب {nightNumber}</span>
                     </div>
                     {mafiaShotAction && (
                       <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
@@ -1578,9 +1646,229 @@ export default function ModeratorGamePage() {
                   )}
                 </div>
 
+                {reportChooserOpen && (
+                  <div
+                    className="fixed inset-0 z-[115] flex items-end justify-center bg-zinc-950/65 p-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] backdrop-blur-sm md:items-center md:pb-3"
+                    onClick={() => setReportChooserOpen(false)}
+                  >
+                    <section
+                      className="flex max-h-[calc(100dvh-8rem)] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-[var(--pm-line)] bg-white shadow-2xl shadow-zinc-950/30 dark:border-[var(--pm-line)] dark:bg-zinc-950 md:max-h-[calc(100dvh-2rem)]"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-line)] bg-zinc-50/90 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">ثبت سریع گزارش</p>
+                          <h3 className="mt-1 truncate text-lg font-black text-[var(--pm-text)]">انتخاب اتفاق برای {chooserPhaseLabel}</h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setReportChooserOpen(false)}
+                          className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-white text-[var(--pm-muted)] transition-all hover:bg-zinc-100 dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
+                          aria-label="بستن انتخاب اتفاق"
+                        >
+                          <span className="material-symbols-outlined text-xl">close</span>
+                        </button>
+                      </div>
+
+                      <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4">
+                        <div className="grid grid-cols-2 gap-1 rounded-lg border border-[var(--pm-line)] bg-zinc-100 p-1 dark:border-[var(--pm-line)] dark:bg-white/[0.04]">
+                          {[
+                            { mode: "DAY" as const, label: `روز ${dayNumber}`, icon: "wb_sunny" },
+                            { mode: "NIGHT" as const, label: `شب ${nightNumber}`, icon: "dark_mode" },
+                          ].map((item) => (
+                            <button
+                              key={item.mode}
+                              type="button"
+                              onClick={() => setReportMode(item.mode)}
+                              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg text-xs font-black transition-all ${
+                                reportMode === item.mode
+                                  ? item.mode === "DAY"
+                                    ? "bg-amber-400 text-zinc-950 shadow-sm shadow-amber-500/20"
+                                    : "bg-sky-500 text-white shadow-sm shadow-sky-500/20"
+                                  : "text-[var(--pm-muted)] hover:bg-white/70 dark:hover:bg-zinc-950/50"
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-lg">{item.icon}</span>
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {reportMode === "DAY" ? (
+                          <>
+                            <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3">
+                              <div className="flex items-start gap-3">
+                                <span className="material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-400 text-xl text-zinc-950">how_to_vote</span>
+                                <div>
+                                  <p className="text-sm font-black text-[var(--pm-text)]">اول نوع اتفاق روز را انتخاب کنید</p>
+                                  <p className="mt-1 text-xs font-bold leading-5 text-amber-700 dark:text-amber-300">
+                                    بعد از انتخاب، پنجره جزئیات باز می‌شود تا دفاع‌ها، حذف‌شده یا یادداشت را تکمیل کنید.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              {DAY_ELIMINATION_METHODS.map((method) => (
+                                <button
+                                  key={`chooser-day-method-${method.key}`}
+                                  type="button"
+                                  onClick={() => openDayRecord(method.key)}
+                                  disabled={busy}
+                                  className="flex min-h-16 items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-white p-3 text-right transition-all hover:-translate-y-0.5 hover:border-amber-500/35 hover:bg-amber-500/10 disabled:opacity-50 dark:bg-zinc-950/50"
+                                >
+                                  <span className="flex min-w-0 items-center gap-3">
+                                    <span className="material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-xl text-amber-700 dark:text-amber-300">{method.icon}</span>
+                                    <span className="min-w-0">
+                                      <span className="block truncate text-sm font-black text-[var(--pm-text)]">{method.label}</span>
+                                      <span className="mt-0.5 block truncate text-[10px] font-bold text-[var(--pm-muted)]">باز کردن فرم {method.label}</span>
+                                    </span>
+                                  </span>
+                                  <span className="material-symbols-outlined text-lg text-[var(--pm-muted)]">arrow_back</span>
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                              <div className="flex items-center justify-between gap-2">
+                                <div>
+                                  <p className="text-xs font-black text-[var(--pm-text)]">انتخاب مستقیم حذف‌شده</p>
+                                  <p className="mt-1 text-[10px] font-bold leading-5 text-[var(--pm-muted)]">با روش فعلی: {DAY_ELIMINATION_METHODS.find((method) => method.key === dayMethodKey)?.label || "روش سناریویی"}</p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => openDayRecord("vote")}
+                                  disabled={busy}
+                                  className="pm-button-secondary min-h-9 shrink-0 px-3 text-[10px]"
+                                >
+                                  <span className="material-symbols-outlined text-base">groups</span>
+                                  دفاع
+                                </button>
+                              </div>
+                              <div className="mt-3 grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+                                {alivePlayers.map((player) => {
+                                  const image = playerImage(player);
+                                  return (
+                                    <button
+                                      key={`chooser-day-player-${player.id}`}
+                                      type="button"
+                                      onClick={() => openDayRecord(dayMethodKey, player.id)}
+                                      disabled={busy}
+                                      className="flex min-h-14 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-white p-2 text-right transition-all hover:border-amber-500/35 hover:bg-amber-500/10 disabled:opacity-50 dark:border-[var(--pm-line)] dark:bg-zinc-950/55"
+                                    >
+                                      <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-xs font-black text-white dark:bg-white dark:text-zinc-950">
+                                        {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
+                                      </span>
+                                      <span className="min-w-0">
+                                        <span className="block truncate text-sm font-black text-[var(--pm-text)]">{player.name}</span>
+                                        <span className="block truncate text-[10px] font-bold text-[var(--pm-muted)]">{player.role?.name || "بدون نقش"}</span>
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 p-3">
+                              <div className="flex items-start gap-3">
+                                <span className="material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-lg bg-sky-500 text-xl text-white">dark_mode</span>
+                                <div>
+                                  <p className="text-sm font-black text-[var(--pm-text)]">اقدام شب را از روی نقش یا جبهه انتخاب کنید</p>
+                                  <p className="mt-1 text-xs font-bold leading-5 text-sky-700 dark:text-sky-300">
+                                    بعد از انتخاب بازیکن انجام‌دهنده، پنجره جزئیات برای هدف‌ها و نتیجه باز می‌شود.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {mafiaShotAction && (
+                              <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div>
+                                    <p className="text-sm font-black text-red-700 dark:text-red-300">تصمیم جبهه مافیا</p>
+                                    <p className="mt-1 text-[10px] font-bold leading-5 text-red-700/80 dark:text-red-300/80">برای شلیک عادی یا شب بدون شات ثبت کنید.</p>
+                                  </div>
+                                  <span className="material-symbols-outlined text-2xl text-red-600 dark:text-red-300">target</span>
+                                </div>
+                                <div className="mt-3 grid grid-cols-2 gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => openNightAction(mafiaShotAction, null, true)}
+                                    disabled={busy}
+                                    className="flex min-h-12 items-center justify-center gap-2 rounded-lg bg-red-500 px-3 text-xs font-black text-white shadow-sm shadow-red-500/20 transition-all hover:bg-red-600 disabled:opacity-50"
+                                  >
+                                    <span className="material-symbols-outlined text-lg">target</span>
+                                    شلیک
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => openNightAction(mafiaShotAction, null, false)}
+                                    disabled={busy}
+                                    className="flex min-h-12 items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-white px-3 text-xs font-black text-red-700 transition-all hover:bg-red-50 disabled:opacity-50 dark:bg-zinc-950/50 dark:text-red-300 dark:hover:bg-red-500/10"
+                                  >
+                                    <span className="material-symbols-outlined text-lg">block</span>
+                                    بدون شات
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="grid gap-3">
+                              {roleActionOptions.length === 0 ? (
+                                <div className="rounded-lg border border-dashed border-[var(--pm-line)] bg-zinc-50 p-4 text-xs font-bold text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                                  برای نقش‌های این بازی توانایی شب فعال نشده است.
+                                </div>
+                              ) : (
+                                roleActionOptions.map((option) => (
+                                  <div key={`chooser-${option.key}`} className={`overflow-hidden rounded-lg border ${option.className}`}>
+                                    <div className="flex items-start justify-between gap-3 border-b border-current/10 p-3">
+                                      <div className="min-w-0">
+                                        <p className="truncate text-sm font-black">{option.sourceLabel}</p>
+                                        <p className="mt-1 text-xs font-bold opacity-85">{option.label} | {abilityCompactLabel(option)}</p>
+                                      </div>
+                                      <span className="material-symbols-outlined flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/60 text-lg dark:bg-zinc-950/35">{option.effectType === "NONE" ? "auto_fix_high" : "hub"}</span>
+                                    </div>
+                                    <div className="grid gap-2 p-3 sm:grid-cols-2">
+                                      {option.candidates.map((player) => {
+                                        const image = playerImage(player);
+                                        return (
+                                          <button
+                                            key={`chooser-${option.key}-${player.id}`}
+                                            type="button"
+                                            onClick={() => openNightAction(option, player, true)}
+                                            disabled={busy}
+                                            className="flex min-h-14 items-center justify-between gap-2 rounded-lg border border-white/70 bg-white/75 p-2.5 text-right text-xs font-black text-zinc-800 transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md hover:shadow-zinc-950/10 disabled:opacity-50 dark:border-[var(--pm-line)] dark:bg-zinc-950/35 dark:text-white"
+                                          >
+                                            <span className="flex min-w-0 items-center gap-2">
+                                              <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-950 text-xs text-white dark:bg-white dark:text-zinc-950">
+                                                {image ? <img src={image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
+                                              </span>
+                                              <span className="min-w-0">
+                                                <span className="block truncate">{player.name}</span>
+                                                <span className="block truncate text-[10px] font-bold opacity-70">انتخاب و تکمیل جزئیات</span>
+                                              </span>
+                                            </span>
+                                            <span className="material-symbols-outlined text-base opacity-70">arrow_back</span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </section>
+                  </div>
+                )}
+
                 {reportModalOpen && (
                   <div
-                    className="fixed inset-0 z-[120] flex items-end justify-center bg-zinc-950/60 p-3 pb-24 backdrop-blur-sm sm:items-center sm:pb-3"
+                    className="fixed inset-0 z-[120] flex items-end justify-center bg-zinc-950/60 p-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] backdrop-blur-sm md:items-center md:pb-3"
                     onClick={() => {
                       setReportModalOpen(false);
                       setEditingEventId(null);
@@ -1588,7 +1876,7 @@ export default function ModeratorGamePage() {
                     }}
                   >
                     <section
-                      className="flex max-h-[calc(100dvh-7rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[var(--pm-line)] bg-white shadow-2xl shadow-zinc-950/25 dark:border-[var(--pm-line)] dark:bg-zinc-950"
+                      className="flex max-h-[calc(100dvh-8rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[var(--pm-line)] bg-white shadow-2xl shadow-zinc-950/25 dark:border-[var(--pm-line)] dark:bg-zinc-950 md:max-h-[calc(100dvh-2rem)]"
                       onClick={(event) => event.stopPropagation()}
                     >
                       <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-line)] bg-zinc-50/90 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
@@ -1923,7 +2211,7 @@ export default function ModeratorGamePage() {
                   </div>
                 )}
                 {shotResolution && (
-                  <div className="fixed inset-0 z-[140] flex items-end justify-center bg-zinc-950/70 p-3 pb-24 backdrop-blur-sm sm:items-center sm:pb-3">
+                  <div className="fixed inset-0 z-[140] flex items-end justify-center bg-zinc-950/70 p-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] backdrop-blur-sm md:items-center md:pb-3">
                     <section className="w-full max-w-lg overflow-hidden rounded-xl border border-[var(--pm-line)] bg-white shadow-2xl shadow-zinc-950/30 dark:border-[var(--pm-line)] dark:bg-zinc-950">
                       <div className="border-b border-red-500/20 bg-red-500/10 p-4">
                         <div className="flex items-start gap-3">
@@ -1963,11 +2251,11 @@ export default function ModeratorGamePage() {
                 )}
                 {playerPicker && (
                   <div
-                    className="fixed inset-0 z-[150] flex items-end justify-center bg-zinc-950/65 p-3 pb-24 backdrop-blur-sm sm:items-center sm:pb-3"
+                    className="fixed inset-0 z-[150] flex items-end justify-center bg-zinc-950/65 p-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] backdrop-blur-sm md:items-center md:pb-3"
                     onClick={() => setPlayerPicker(null)}
                   >
                     <section
-                      className="flex max-h-[calc(100dvh-7rem)] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-[var(--pm-line)] bg-white shadow-2xl shadow-zinc-950/30 dark:border-[var(--pm-line)] dark:bg-zinc-950"
+                      className="flex max-h-[calc(100dvh-8rem)] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-[var(--pm-line)] bg-white shadow-2xl shadow-zinc-950/30 dark:border-[var(--pm-line)] dark:bg-zinc-950 md:max-h-[calc(100dvh-2rem)]"
                       onClick={(event) => event.stopPropagation()}
                     >
                       <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-line)] bg-zinc-50/90 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
