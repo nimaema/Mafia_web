@@ -31,15 +31,7 @@ export default auth((req: AuthenticatedRequest) => {
 
   if (isAuthRoute) {
     if (isLoggedIn) {
-      const role = req.auth?.user?.role;
-      const target =
-        role === "ADMIN"
-          ? "/dashboard/admin/users"
-          : role === "MODERATOR"
-            ? "/dashboard/moderator"
-            : "/dashboard/user";
-
-      return NextResponse.redirect(requestUrl(req, target));
+      return NextResponse.redirect(requestUrl(req, "/dashboard/user"));
     }
     return NextResponse.next();
   }

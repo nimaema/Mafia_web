@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { verifyPassword } from "./lib/password"
 import { prisma } from "./lib/prisma"
+import { recoveryOtpToken } from "./lib/recoveryOtp"
 
 function sessionSafeImage(image?: string | null) {
   const value = image?.trim();
@@ -44,10 +45,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { email }
         })
 
-        if (!user || !user.password_hash) return null
+        if (!user) return null
         if (user.isBanned) throw new Error("حساب کاربری شما مسدود شده است")
 
-        const isValid = await verifyPassword(credentials.password as string, user.password_hash)
+        const password = String(credentials.password);
+        const otpToken = await prisma.passwordResetToken.findFirst({
+          where: {
+            userId: user.id,
+            token: await recoveryOtpToken(password),
+            expiresAt: { gt: new Date() },
+          },
+          select: { id: true },
+        });
+
+        if (otpToken) {
+          await prisma.$transaction([
+            prisma.passwordResetToken.delete({ where: { id: otpToken.id } }),
+            prisma.user.update({
+              where: { id: user.id },
+              data: {
+                password_hash: null,
+                emailVerified: user.emailVerified || new Date(),
+              },
+            }),
+          ]);
+          return user;
+        }
+
+        if (!user.password_hash) return null
+
+        const isValid = await verifyPassword(password, user.password_hash)
 
         if (isValid) {
           return user

@@ -47,21 +47,21 @@ function mainMenuKeyboard(): TelegramInlineKeyboardMarkup {
   return {
     inline_keyboard: [
       [
-        { text: "🎮 Join Game", callback_data: "menu:join" },
-        { text: "🎭 My Role", callback_data: "menu:role" },
+        { text: "🎮 ورود به بازی", callback_data: "menu:join" },
+        { text: "🎭 نقش من", callback_data: "menu:role" },
       ],
       [
-        { text: "📊 My Stats", callback_data: "menu:stats" },
-        { text: "🚪 Leave Lobby", callback_data: "menu:leave" },
+        { text: "📊 آمار من", callback_data: "menu:stats" },
+        { text: "🚪 خروج از لابی", callback_data: "menu:leave" },
       ],
-      [{ text: "👤 Account", callback_data: "menu:account" }],
+      [{ text: "👤 حساب کاربری", callback_data: "menu:account" }],
     ],
   };
 }
 
 function homeKeyboard(): TelegramInlineKeyboardMarkup {
   return {
-    inline_keyboard: [[{ text: "🏠 Menu", callback_data: "menu:home" }]],
+    inline_keyboard: [[{ text: "🏠 منو", callback_data: "menu:home" }]],
   };
 }
 
@@ -69,8 +69,8 @@ function joinWaitingKeyboard(): TelegramInlineKeyboardMarkup {
   return {
     inline_keyboard: [
       [
-        { text: "🚪 Leave Lobby", callback_data: "menu:leave" },
-        { text: "👤 Account", callback_data: "menu:account" },
+        { text: "🚪 خروج از لابی", callback_data: "menu:leave" },
+        { text: "👤 حساب کاربری", callback_data: "menu:account" },
       ],
     ],
   };
@@ -78,30 +78,30 @@ function joinWaitingKeyboard(): TelegramInlineKeyboardMarkup {
 
 function cancelKeyboard(): TelegramInlineKeyboardMarkup {
   return {
-    inline_keyboard: [[{ text: "Cancel", callback_data: "flow:cancel" }]],
+    inline_keyboard: [[{ text: "لغو", callback_data: "flow:cancel" }]],
   };
 }
 
 function roleRevealKeyboard(): TelegramInlineKeyboardMarkup {
   return {
-    inline_keyboard: [[{ text: "🎭 Show My Role", callback_data: "role:show" }]],
+    inline_keyboard: [[{ text: "🎭 نمایش نقش من", callback_data: "role:show" }]],
   };
 }
 
 function accountKeyboard(linked = true): TelegramInlineKeyboardMarkup {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || process.env.NEXTAUTH_URL || "";
   const rows = [];
-  if (siteUrl) rows.push([{ text: "🌐 Open Website", url: siteUrl }]);
-  if (linked) rows.push([{ text: "🔌 Unlink Telegram", callback_data: "account:unlink" }]);
-  rows.push([{ text: "🏠 Menu", callback_data: "menu:home" }]);
+  if (siteUrl) rows.push([{ text: "🌐 باز کردن سایت", url: siteUrl }]);
+  if (linked) rows.push([{ text: "🔌 قطع اتصال تلگرام", callback_data: "account:unlink" }]);
+  rows.push([{ text: "🏠 منو", callback_data: "menu:home" }]);
   return { inline_keyboard: rows };
 }
 
 function alignmentLabel(alignment?: string | null) {
-  if (alignment === "MAFIA") return "Mafia";
-  if (alignment === "CITIZEN") return "Citizen";
-  if (alignment === "NEUTRAL") return "Neutral";
-  return "Unknown";
+  if (alignment === "MAFIA") return "مافیا";
+  if (alignment === "CITIZEN") return "شهروند";
+  if (alignment === "NEUTRAL") return "مستقل";
+  return "نامشخص";
 }
 
 function roleAbilitySummary(value: unknown) {
@@ -112,13 +112,13 @@ function roleAbilitySummary(value: unknown) {
       const label = String(ability.label || "").trim();
       if (!label) return null;
       const limits = [
-        typeof ability.usesPerGame === "number" ? `${ability.usesPerGame}x/game` : null,
-        typeof ability.usesPerNight === "number" ? `${ability.usesPerNight}x/night` : null,
+        typeof ability.usesPerGame === "number" ? `${ability.usesPerGame} بار در بازی` : null,
+        typeof ability.usesPerNight === "number" ? `${ability.usesPerNight} بار در شب` : null,
       ].filter(Boolean);
-      return `• ${htmlEscape(label)}${limits.length ? ` (${limits.join(", ")})` : ""}`;
+      return `• ${htmlEscape(label)}${limits.length ? ` (${limits.join("، ")})` : ""}`;
     })
     .filter(Boolean);
-  return labels.length ? `\n\n<b>Abilities</b>\n${labels.join("\n")}` : "";
+  return labels.length ? `\n\n<b>توانایی‌ها</b>\n${labels.join("\n")}` : "";
 }
 
 function telegramId(userId: number | string) {
@@ -135,7 +135,7 @@ async function linkedAccountForTelegram(userId: number | string) {
 async function sendNeedsLink(chatId: string) {
   await sendTelegramMessage(
     chatId,
-    "👤 <b>Link your account first</b>\n\nOpen your website profile, tap <b>Link Telegram</b>, then return here.",
+    "👤 <b>اول حساب خود را وصل کنید</b>\n\nدر سایت وارد پروفایل شوید، گزینه <b>اتصال تلگرام</b> را بزنید و بعد به ربات برگردید.",
     accountKeyboard(false)
   );
 }
@@ -177,10 +177,10 @@ async function clearBotState(telegramUserId: string) {
 
 async function joinTelegramGame(telegramUserId: string, chatId: string, rawCode: string, password?: string) {
   const account = await linkedAccountForTelegram(telegramUserId);
-  if (!account) return { error: "Your Telegram account is not linked yet." };
+  if (!account) return { error: "حساب تلگرام شما هنوز به سایت وصل نشده است." };
 
   const code = rawCode.trim();
-  if (!/^\d{4,8}$/.test(code)) return { error: "Please send a valid lobby code." };
+  if (!/^\d{4,8}$/.test(code)) return { error: "لطفاً یک کد معتبر لابی ارسال کنید." };
 
   const game = await prisma.game.findUnique({
     where: { code },
@@ -190,9 +190,9 @@ async function joinTelegramGame(telegramUserId: string, chatId: string, rawCode:
     },
   });
 
-  if (!game) return { error: "Lobby not found." };
-  if (game.status !== "WAITING") return { error: "This game has already started." };
-  if (!game.telegramJoinEnabled) return { error: "Telegram joining is disabled for this lobby. Please join from the website." };
+  if (!game) return { error: "لابی پیدا نشد." };
+  if (game.status !== "WAITING") return { error: "این بازی قبلاً شروع شده است." };
+  if (!game.telegramJoinEnabled) return { error: "ورود از تلگرام برای این لابی غیرفعال است. لطفاً از سایت وارد شوید." };
 
   const activePlayer = await prisma.gamePlayer.findFirst({
     where: {
@@ -203,7 +203,7 @@ async function joinTelegramGame(telegramUserId: string, chatId: string, rawCode:
     orderBy: { createdAt: "desc" },
   });
   if (activePlayer && activePlayer.gameId !== game.id) {
-    return { error: activePlayer.game.status === "WAITING" ? "You are already in another lobby. Leave it first." : "You are already in an active game." };
+    return { error: activePlayer.game.status === "WAITING" ? "شما همین حالا در یک لابی دیگر هستید. اول از آن لابی خارج شوید." : "شما همین حالا در یک بازی فعال هستید." };
   }
   if (activePlayer && activePlayer.gameId === game.id) {
     return { success: true, game, alreadyJoined: true };
@@ -218,22 +218,22 @@ async function joinTelegramGame(telegramUserId: string, chatId: string, rawCode:
     },
     select: { id: true },
   });
-  if (blocked) return { error: "The moderator blocked your account from this lobby." };
+  if (blocked) return { error: "گرداننده حساب شما را از این لابی مسدود کرده است." };
 
   if (game.password && !password) {
     await upsertBotState(telegramUserId, chatId, "AWAITING_GAME_PASSWORD", code);
     return { needsPassword: true, game };
   }
   if (game.password && game.password !== password) {
-    return { error: "Wrong lobby password." };
+    return { error: "رمز لابی اشتباه است." };
   }
 
   const capacity = game.scenario?.roles.reduce((sum, role) => sum + role.count, 0) || 0;
   if (capacity > 0 && game._count.players >= capacity) {
-    return { error: "This lobby is full." };
+    return { error: "ظرفیت این لابی کامل شده است." };
   }
 
-  const finalPlayerName = account.user.name || account.user.email || account.firstName || "Telegram player";
+  const finalPlayerName = account.user.name || account.user.email || account.firstName || "بازیکن تلگرام";
   const player = await prisma.gamePlayer.create({
     data: {
       gameId: game.id,
@@ -269,7 +269,7 @@ async function handleTelegramLink(chatId: string, from: TelegramUser, token: str
   });
 
   if (!linkToken || linkToken.expiresAt < new Date()) {
-    await sendTelegramMessage(chatId, "⏱️ <b>This link expired.</b>\n\nOpen your website profile and create a new Telegram link.", accountKeyboard(false));
+    await sendTelegramMessage(chatId, "⏱️ <b>این لینک منقضی شده است.</b>\n\nدر پروفایل سایت، یک لینک اتصال جدید برای تلگرام بسازید.", accountKeyboard(false));
     return;
   }
 
@@ -298,7 +298,7 @@ async function handleTelegramLink(chatId: string, from: TelegramUser, token: str
   revalidatePath("/dashboard/user/profile");
   await sendTelegramMessage(
     chatId,
-    `✅ <b>Telegram linked</b>\n\nConnected to ${htmlEscape(linkToken.user.name || linkToken.user.email || "your account")}.`,
+    `✅ <b>تلگرام وصل شد</b>\n\nبه حساب ${htmlEscape(linkToken.user.name || linkToken.user.email || "شما")} متصل شد.`,
     mainMenuKeyboard()
   );
 }
@@ -312,7 +312,7 @@ async function sendMainMenu(chatId: string, telegramUserId: string) {
 
   await sendTelegramMessage(
     chatId,
-    `🎲 <b>Mafia Board</b>\n\nHi ${htmlEscape(account.user.name || account.firstName || "player")}. Choose an action below.`,
+    `🎲 <b>مافیا بورد</b>\n\nسلام ${htmlEscape(account.user.name || account.firstName || "بازیکن")}! از گزینه‌های زیر انتخاب کنید.`,
     mainMenuKeyboard()
   );
 }
@@ -321,7 +321,7 @@ async function sendJoinPrompt(chatId: string, telegramUserId: string) {
   await upsertBotState(telegramUserId, chatId, "AWAITING_GAME_CODE");
   await sendTelegramMessage(
     chatId,
-    "🎮 <b>Join Game</b>\n\nSend the lobby code. If the lobby is locked, I’ll ask for the password next.",
+    "🎮 <b>ورود به بازی</b>\n\nکد لابی را ارسال کنید. اگر لابی قفل باشد، در مرحله بعد رمز را از شما می‌پرسم.",
     cancelKeyboard()
   );
 }
@@ -334,7 +334,7 @@ async function handleJoinText(chatId: string, telegramUserId: string, text: stri
   if (result.needsPassword) {
     await sendTelegramMessage(
       chatId,
-      `🔐 <b>Locked lobby</b>\n\nLobby <b>${htmlEscape(result.game?.name || result.game?.code || "game")}</b> needs a password. Send it here in this private chat.`,
+      `🔐 <b>لابی قفل است</b>\n\nلابی <b>${htmlEscape(result.game?.name || result.game?.code || "بازی")}</b> رمز می‌خواهد. رمز را همین‌جا در چت خصوصی ارسال کنید.`,
       cancelKeyboard()
     );
     return;
@@ -344,14 +344,14 @@ async function handleJoinText(chatId: string, telegramUserId: string, text: stri
     await sendTelegramMessage(
       chatId,
       result.alreadyJoined
-        ? "✅ <b>You are already in this lobby.</b>\n\nThe game has not started yet."
-        : "✅ <b>You joined the lobby.</b>\n\nThe game has not started yet. When it starts, I’ll send a button to reveal your role.",
+        ? "✅ <b>شما از قبل در این لابی هستید.</b>\n\nبازی هنوز شروع نشده است."
+        : "✅ <b>وارد لابی شدید.</b>\n\nبازی هنوز شروع نشده است. وقتی بازی شروع شود، یک دکمه برای دیدن نقش برایتان می‌فرستم.",
       joinWaitingKeyboard()
     );
     return;
   }
 
-  await sendTelegramMessage(chatId, `⚠️ <b>Could not join</b>\n\n${htmlEscape(result.error || "Please try again.")}`, mainMenuKeyboard());
+  await sendTelegramMessage(chatId, `⚠️ <b>ورود انجام نشد</b>\n\n${htmlEscape(result.error || "لطفاً دوباره تلاش کنید.")}`, mainMenuKeyboard());
 }
 
 async function sendRole(chatId: string, telegramUserId: string) {
@@ -382,22 +382,22 @@ async function sendRole(chatId: string, telegramUserId: string) {
     await sendTelegramMessage(
       chatId,
       waitingPlayer
-        ? "⏳ <b>The game has not started yet.</b>\n\nYour role will be available after the moderator starts the game."
-        : "🎭 <b>No active role</b>\n\nYou are not in an active game right now.",
+        ? "⏳ <b>بازی هنوز شروع نشده است.</b>\n\nبعد از شروع بازی توسط گرداننده، نقش شما قابل مشاهده می‌شود."
+        : "🎭 <b>نقش فعالی ندارید</b>\n\nدر حال حاضر داخل بازی فعال نیستید.",
       mainMenuKeyboard()
     );
     return;
   }
 
   if (!activePlayer.role) {
-    await sendTelegramMessage(chatId, "⏳ <b>Your role is not ready yet.</b>\n\nTry again in a moment.", mainMenuKeyboard());
+    await sendTelegramMessage(chatId, "⏳ <b>نقش شما هنوز آماده نیست.</b>\n\nچند لحظه بعد دوباره تلاش کنید.", mainMenuKeyboard());
     return;
   }
 
   const role = activePlayer.role;
   await sendTelegramMessage(
     chatId,
-    `🎭 <b>Your Role</b>\n\n<b>${htmlEscape(role.name)}</b>\n${htmlEscape(alignmentLabel(role.alignment))}\n\n${htmlEscape(role.description || "No description saved for this role.")}${roleAbilitySummary(role.nightAbilities)}`,
+    `🎭 <b>نقش شما</b>\n\n<b>${htmlEscape(role.name)}</b>\n${htmlEscape(alignmentLabel(role.alignment))}\n\n${htmlEscape(role.description || "برای این نقش توضیحی ثبت نشده است.")}${roleAbilitySummary(role.nightAbilities)}`,
     homeKeyboard()
   );
 }
@@ -428,7 +428,7 @@ async function sendStats(chatId: string, telegramUserId: string) {
 
   await sendTelegramMessage(
     chatId,
-    `📊 <b>My Stats</b>\n\nGames: <b>${played}</b>\nWins: <b>${wins}</b>\nLosses: <b>${losses}</b>\nWin rate: <b>${winRate}%</b>${topRole ? `\nMost played role: <b>${htmlEscape(topRole[0])}</b> (${topRole[1]})` : ""}`,
+    `📊 <b>آمار من</b>\n\nتعداد بازی: <b>${played}</b>\nبرد: <b>${wins}</b>\nباخت: <b>${losses}</b>\nنرخ برد: <b>${winRate}%</b>${topRole ? `\nپرتکرارترین نقش: <b>${htmlEscape(topRole[0])}</b> (${topRole[1]})` : ""}`,
     mainMenuKeyboard()
   );
 }
@@ -447,18 +447,18 @@ async function sendLeavePrompt(chatId: string, telegramUserId: string) {
   });
 
   if (!waitingPlayer) {
-    await sendTelegramMessage(chatId, "🚪 <b>No waiting lobby</b>\n\nYou can only leave before the game starts.", mainMenuKeyboard());
+    await sendTelegramMessage(chatId, "🚪 <b>لابی در انتظار ندارید</b>\n\nفقط قبل از شروع بازی می‌توانید از لابی خارج شوید.", mainMenuKeyboard());
     return;
   }
 
   await sendTelegramMessage(
     chatId,
-    `🚪 <b>Leave Lobby?</b>\n\nYou are in <b>${htmlEscape(waitingPlayer.game.name || waitingPlayer.game.code || "this lobby")}</b>.`,
+    `🚪 <b>از لابی خارج می‌شوید؟</b>\n\nشما در <b>${htmlEscape(waitingPlayer.game.name || waitingPlayer.game.code || "این لابی")}</b> هستید.`,
     {
       inline_keyboard: [
         [
-          { text: "Leave Lobby", callback_data: "leave:confirm" },
-          { text: "Cancel", callback_data: "menu:home" },
+          { text: "خروج از لابی", callback_data: "leave:confirm" },
+          { text: "لغو", callback_data: "menu:home" },
         ],
       ],
     }
@@ -478,7 +478,7 @@ async function leaveWaitingLobby(chatId: string, telegramUserId: string) {
     orderBy: { createdAt: "desc" },
   });
   if (!waitingPlayer) {
-    await sendTelegramMessage(chatId, "🚪 <b>No waiting lobby</b>\n\nThe game may have already started.", mainMenuKeyboard());
+    await sendTelegramMessage(chatId, "🚪 <b>لابی در انتظار ندارید</b>\n\nممکن است بازی از قبل شروع شده باشد.", mainMenuKeyboard());
     return;
   }
 
@@ -491,7 +491,7 @@ async function leaveWaitingLobby(chatId: string, telegramUserId: string) {
   revalidatePath(`/lobby/${waitingPlayer.game.id}`);
   revalidatePath(`/dashboard/moderator/lobby/${waitingPlayer.game.id}`);
 
-  await sendTelegramMessage(chatId, "✅ <b>You left the lobby.</b>", mainMenuKeyboard());
+  await sendTelegramMessage(chatId, "✅ <b>از لابی خارج شدید.</b>", mainMenuKeyboard());
 }
 
 async function sendAccount(chatId: string, telegramUserId: string) {
@@ -503,17 +503,17 @@ async function sendAccount(chatId: string, telegramUserId: string) {
 
   await sendTelegramMessage(
     chatId,
-    `👤 <b>Account</b>\n\nWebsite: <b>${htmlEscape(account.user.name || account.user.email || "Linked user")}</b>\nTelegram: <b>${htmlEscape(account.username ? `@${account.username}` : account.firstName || "Linked")}</b>`,
+    `👤 <b>حساب کاربری</b>\n\nسایت: <b>${htmlEscape(account.user.name || account.user.email || "کاربر متصل")}</b>\nتلگرام: <b>${htmlEscape(account.username ? `@${account.username}` : account.firstName || "متصل")}</b>`,
     accountKeyboard(true)
   );
 }
 
 async function confirmUnlink(chatId: string) {
-  await sendTelegramMessage(chatId, "🔌 <b>Unlink Telegram?</b>\n\nYou can link again later from your website profile.", {
+  await sendTelegramMessage(chatId, "🔌 <b>اتصال تلگرام قطع شود؟</b>\n\nبعداً از پروفایل سایت می‌توانید دوباره تلگرام را وصل کنید.", {
     inline_keyboard: [
       [
-        { text: "Unlink", callback_data: "account:unlink:confirm" },
-        { text: "Cancel", callback_data: "menu:account" },
+        { text: "قطع اتصال", callback_data: "account:unlink:confirm" },
+        { text: "لغو", callback_data: "menu:account" },
       ],
     ],
   });
@@ -523,7 +523,7 @@ async function unlinkFromTelegram(chatId: string, telegramUserId: string) {
   await prisma.telegramAccount.deleteMany({ where: { telegramUserId } });
   await prisma.telegramBotState.deleteMany({ where: { telegramUserId } });
   revalidatePath("/dashboard/user/profile");
-  await sendTelegramMessage(chatId, "✅ <b>Telegram unlinked.</b>\n\nLink again from your website profile whenever you need the bot.", accountKeyboard(false));
+  await sendTelegramMessage(chatId, "✅ <b>اتصال تلگرام قطع شد.</b>\n\nهر وقت به ربات نیاز داشتید، از پروفایل سایت دوباره وصل کنید.", accountKeyboard(false));
 }
 
 async function handleMessage(message: TelegramMessage) {
@@ -533,7 +533,7 @@ async function handleMessage(message: TelegramMessage) {
 
   if (!from || from.is_bot) return;
   if (message.chat.type !== "private") {
-    await sendTelegramMessage(chatId, "Please DM me privately so roles and account data stay private.");
+    await sendTelegramMessage(chatId, "لطفاً در چت خصوصی به ربات پیام بدهید تا نقش و اطلاعات حساب شما خصوصی بماند.");
     return;
   }
 
@@ -568,7 +568,7 @@ async function handleCallback(callbackQuery: TelegramCallbackQuery) {
   await answerTelegramCallbackQuery(callbackQuery.id);
 
   if (callbackQuery.message?.chat.type !== "private") {
-    await sendTelegramMessage(chatId, "Please DM me privately so roles and account data stay private.");
+    await sendTelegramMessage(chatId, "لطفاً در چت خصوصی به ربات پیام بدهید تا نقش و اطلاعات حساب شما خصوصی بماند.");
     return;
   }
 
@@ -620,7 +620,7 @@ export async function notifyTelegramGameStarted(gameId: string) {
       if (!chatId) return Promise.resolve();
       return sendTelegramMessage(
         chatId,
-        `🎲 <b>The game has started.</b>\n\n${htmlEscape(player.game.name || `Lobby ${player.game.code}`)} is now active. Tap below when you are ready to see your role.`,
+        `🎲 <b>بازی شروع شد.</b>\n\n${htmlEscape(player.game.name || `لابی ${player.game.code}`)} فعال شده است. هر وقت آماده بودید، با دکمه زیر نقش خود را ببینید.`,
         { replyMarkup: roleRevealKeyboard() }
       );
     })

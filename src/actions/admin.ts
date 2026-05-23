@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { gameDisplayName, TEMP_SCENARIO_DESCRIPTION_PREFIX } from "@/lib/gameDisplay";
 import { profileImageUrl } from "@/lib/profileImage";
 import { sendAdminUserEmail } from "@/lib/email";
+import { generateRecoveryOtp, recoveryOtpToken, RECOVERY_OTP_TTL_MS } from "@/lib/recoveryOtp";
 import {
   mergeRoleDefinitions,
   STANDARD_ROLE_DEFINITIONS,
@@ -368,6 +369,73 @@ export async function sendEmailToUser(userId: string, data: { subject: string; b
     throw new Error("ارسال ایمیل انجام نشد. تنظیمات سرویس ایمیل را بررسی کنید.");
   }
 
+  return { success: true };
+}
+
+export async function sendRecoveryOtpToUser(userId: string) {
+  await checkAdmin();
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      emailVerified: true,
+    },
+  });
+
+  if (!user) throw new Error("کاربر پیدا نشد.");
+  if (!user.email) throw new Error("این کاربر ایمیل قابل ارسال ندارد.");
+
+  const recoveryOtp = generateRecoveryOtp();
+  const token = await recoveryOtpToken(recoveryOtp);
+  const previousEmailVerified = user.emailVerified;
+
+  await prisma.$transaction([
+    prisma.passwordResetToken.deleteMany({ where: { userId: user.id } }),
+    prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt: new Date(Date.now() + RECOVERY_OTP_TTL_MS),
+      },
+    }),
+    prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: user.emailVerified || new Date(),
+      },
+    }),
+  ]);
+
+  const result = await sendAdminUserEmail(
+    user.email,
+    "رمز یک‌بارمصرف بازیابی حساب مافیا بورد",
+    [
+      "# بازیابی حساب",
+      `برای حساب ${user.name || user.email} یک رمز یک‌بارمصرف ساخته شده است.`,
+      "",
+      `رمز یک‌بارمصرف: **${recoveryOtp}**`,
+      "",
+      "- این رمز فقط یک‌بار قابل استفاده است و تا ۳۰ دقیقه اعتبار دارد.",
+      "- بعد از ورود، از پروفایل رمز عبور جدید تنظیم کنید.",
+      "- با اولین ورود از طریق این رمز، رمز قبلی حساب پاک می‌شود تا بتوانید رمز تازه بسازید.",
+    ].join("\n")
+  );
+
+  if (!result.delivered) {
+    await prisma.$transaction([
+      prisma.passwordResetToken.deleteMany({ where: { token } }),
+      prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: previousEmailVerified },
+      }),
+    ]);
+    throw new Error("ارسال ایمیل بازیابی انجام نشد. رمز یک‌بارمصرف فعال نشد.");
+  }
+
+  revalidatePath("/dashboard/admin/users");
   return { success: true };
 }
 

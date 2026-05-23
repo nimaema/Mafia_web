@@ -6,6 +6,7 @@ import { gameDisplayName, scenarioDisplayDescription, scenarioDisplayName } from
 import { serializeNightEventsForHistory, serializePlayersForHistory, snapshotDataForPlayer } from "@/lib/gameHistorySnapshot";
 import { profileImageUrl } from "@/lib/profileImage";
 import { revalidatePath, unstable_noStore as noStore } from "next/cache";
+import type { Alignment } from "@prisma/client";
 
 async function isCurrentAdmin() {
   const session = await auth();
@@ -16,6 +17,10 @@ async function isCurrentAdmin() {
     select: { role: true, isBanned: true },
   });
   return Boolean(user && !user.isBanned && user.role === "ADMIN");
+}
+
+function isFinalWinningAlignment(value: unknown): value is Alignment {
+  return value === "CITIZEN" || value === "MAFIA" || value === "NEUTRAL";
 }
 
 function formatHistoryRecord(rg: any) {
@@ -385,6 +390,9 @@ export async function getAdminGameHistoryPage(page = 0, pageSize = 10) {
       id: game.id,
       gameName: gameDisplayName(game, "بازی مافیا"),
       gameCode: game.code,
+      status: game.status,
+      winningAlignment: game.winningAlignment,
+      canSetResult: game.status === "FINISHED" && !game.winningAlignment && game.histories.some((history) => !history.result),
       scenarioName: scenarioDisplayName(game.scenario),
       moderatorName: game.moderator?.name || "ناشناس",
       date: game.createdAt.toLocaleDateString("fa-IR"),
@@ -418,4 +426,71 @@ export async function getAdminGameHistoryPage(page = 0, pageSize = 10) {
     hasNext: safePage + 1 < totalPages,
     hasPrevious: safePage > 0,
   };
+}
+
+export async function setExpiredGameResult(gameId: string, winningAlignment: Alignment) {
+  if (!(await isCurrentAdmin())) {
+    return { error: "شما دسترسی لازم برای این عملیات را ندارید." };
+  }
+
+  if (!isFinalWinningAlignment(winningAlignment)) {
+    return { error: "جبهه برنده معتبر نیست." };
+  }
+
+  try {
+    const game = await prisma.game.findUnique({
+      where: { id: gameId },
+      select: {
+        id: true,
+        status: true,
+        winningAlignment: true,
+        histories: {
+          select: {
+            id: true,
+            result: true,
+            roleAlignment: true,
+            role: { select: { alignment: true } },
+          },
+        },
+      },
+    });
+
+    if (!game) return { error: "بازی پیدا نشد." };
+    if (game.status !== "FINISHED" || game.winningAlignment) {
+      return { error: "نتیجه فقط برای بازی‌های پایان‌یافته بی‌نتیجه قابل ثبت است." };
+    }
+    if (game.histories.length === 0) {
+      return { error: "برای این بازی رکورد تاریخچه‌ای وجود ندارد." };
+    }
+    if (game.histories.some((history) => history.result)) {
+      return { error: "برای این بازی قبلاً نتیجه ثبت شده است." };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.game.update({
+        where: { id: gameId },
+        data: { winningAlignment },
+      });
+
+      for (const history of game.histories) {
+        const alignment = history.roleAlignment || history.role.alignment;
+        await tx.gameHistory.update({
+          where: { id: history.id },
+          data: {
+            winningAlignment,
+            result: alignment === winningAlignment ? "WIN" : "LOSS",
+          },
+        });
+      }
+    });
+
+    revalidatePath("/dashboard/admin/history");
+    revalidatePath("/dashboard/user/history");
+    revalidatePath("/dashboard/user");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Set expired game result error:", error);
+    return { error: "ثبت نتیجه بازی انجام نشد." };
+  }
 }

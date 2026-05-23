@@ -4,7 +4,7 @@ import { GameStatus, Role } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { banUser, deleteUser, getAllUsersSafe, sendEmailToUser, updateUserRole, verifyUserEmail } from "@/actions/admin";
+import { banUser, deleteUser, getAllUsersSafe, sendEmailToUser, sendRecoveryOtpToUser, updateUserRole, verifyUserEmail } from "@/actions/admin";
 import { usePopup } from "@/components/PopupProvider";
 import { usePresenceSnapshot } from "@/hooks/usePresenceSnapshot";
 
@@ -432,6 +432,31 @@ export function UserManagementPanel() {
     );
   };
 
+  const handleSendRecoveryOtp = async (user: UserRecord) => {
+    if (!user.email) {
+      showAlert("ایمیل کاربر", "این کاربر ایمیلی برای ارسال رمز یک‌بارمصرف ندارد.", "warning");
+      return;
+    }
+
+    showConfirm(
+      "ارسال رمز یک‌بارمصرف بازیابی",
+      `برای ${user.name || user.email} یک رمز یک‌بارمصرف ساخته و ایمیل شود؟ این رمز فقط یک‌بار و تا ۳۰ دقیقه قابل استفاده است.`,
+      async () => {
+        setBusyUserId(user.id);
+        try {
+          await sendRecoveryOtpToUser(user.id);
+          showToast("رمز یک‌بارمصرف بازیابی برای کاربر ایمیل شد", "success");
+          await refreshUsers();
+        } catch (error: any) {
+          showAlert("خطا در بازیابی حساب", error.message || "ارسال رمز یک‌بارمصرف انجام نشد.", "error");
+        } finally {
+          setBusyUserId(null);
+        }
+      },
+      "warning"
+    );
+  };
+
   const openEmailComposer = (user: UserRecord) => {
     if (!user.email) {
       showAlert("ایمیل کاربر", "این کاربر ایمیلی برای ارسال پیام ندارد.", "warning");
@@ -849,6 +874,14 @@ export function UserManagementPanel() {
                   >
                     <span className="material-symbols-outlined text-lg">outgoing_mail</span>
                     ارسال ایمیل به کاربر
+                  </button>
+                  <button
+                    onClick={() => handleSendRecoveryOtp(selectedUser)}
+                    disabled={busyUserId === selectedUser.id || !selectedUser.email}
+                    className="pm-button-secondary w-full text-amber-700 dark:text-amber-300"
+                  >
+                    <span className="material-symbols-outlined text-lg">vpn_key</span>
+                    ارسال رمز یک‌بارمصرف بازیابی
                   </button>
                   {!selectedUser.emailVerified && (
                     <button

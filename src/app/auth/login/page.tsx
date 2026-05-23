@@ -47,13 +47,7 @@ export default function LoginPage() {
       }
       const result = await loginUser(formData);
       if (result.success) {
-        if (result.role === "ADMIN") {
-          router.push("/dashboard/admin/users");
-        } else if (result.role === "MODERATOR") {
-          router.push("/dashboard/moderator");
-        } else {
-          router.push("/dashboard/user");
-        }
+        router.push("/dashboard/user");
         return null;
       }
 
@@ -133,7 +127,7 @@ export default function LoginPage() {
       </div>
 
       <button 
-        onClick={() => signIn("google")} 
+        onClick={() => signIn("google", { callbackUrl: "/dashboard/user" })}
         type="button" 
         className="group relative flex min-h-12 w-full items-center justify-center gap-3 overflow-hidden rounded-lg border border-[var(--pm-line)] bg-zinc-50/50 px-4 font-bold text-[var(--pm-text)] transition-all hover:border-[var(--pm-line-strong)] hover:bg-zinc-100 dark:bg-white/5 dark:hover:bg-white/10"
       >

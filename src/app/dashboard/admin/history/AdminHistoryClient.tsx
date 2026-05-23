@@ -2,12 +2,13 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { deleteGameHistory, getAdminGameHistoryPage } from "@/actions/dashboard";
+import { deleteGameHistory, getAdminGameHistoryPage, setExpiredGameResult } from "@/actions/dashboard";
 import { publishNightRecords } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
 import { GameReportTimeline } from "@/components/game/GameReportTimeline";
 
 type AdminHistoryData = Awaited<ReturnType<typeof getAdminGameHistoryPage>>;
+type WinningAlignment = "CITIZEN" | "MAFIA" | "NEUTRAL";
 
 type NightReportEvent = {
   id: string;
@@ -122,6 +123,16 @@ const sampleNightReport: NightReportEvent[] = [
   },
 ];
 
+const winnerOptions: { key: WinningAlignment; label: string; icon: string; className: string }[] = [
+  { key: "CITIZEN", label: "شهروندان", icon: "verified_user", className: "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300" },
+  { key: "MAFIA", label: "مافیا", icon: "local_police", className: "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300" },
+  { key: "NEUTRAL", label: "مستقل‌ها", icon: "casino", className: "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
+];
+
+function winnerLabel(alignment?: string | null) {
+  return winnerOptions.find((option) => option.key === alignment)?.label || "بی‌نتیجه";
+}
+
 export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryData }) {
   const [data, setData] = useState(initialData);
   const [isPending, startTransition] = useTransition();
@@ -156,6 +167,19 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
         showAlert("خطا", result.error || "انتشار گزارش انجام نشد", "error");
       }
     });
+  };
+
+  const setFinalResult = (gameId: string, winningAlignment: WinningAlignment) => {
+    const label = winnerLabel(winningAlignment);
+    showConfirm("ثبت نتیجه بازی", `نتیجه این بازی بی‌نتیجه به برد ${label} تغییر کند؟ فقط نتیجه تاریخچه بروزرسانی می‌شود.`, async () => {
+      const result = await setExpiredGameResult(gameId, winningAlignment);
+      if (result.success) {
+        showToast(`برد ${label} ثبت شد`, "success");
+        setData(await getAdminGameHistoryPage(data.page, data.pageSize));
+      } else {
+        showAlert("خطا", result.error || "ثبت نتیجه انجام نشد", "error");
+      }
+    }, winningAlignment === "MAFIA" ? "error" : "warning");
   };
 
   return (
@@ -204,6 +228,37 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
                   <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">رکورد تاریخچه</p>
                 </div>
               </div>
+              <div className={`rounded-lg border p-3 ${game.winningAlignment ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]" : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black">نتیجه ثبت‌شده</p>
+                    <p className="mt-1 text-base font-black">{winnerLabel(game.winningAlignment)}</p>
+                  </div>
+                  <span className="material-symbols-outlined text-2xl">{game.winningAlignment ? "emoji_events" : "pending_actions"}</span>
+                </div>
+              </div>
+              {game.canSetResult && (
+                <div className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                  <p className="text-xs font-black text-[var(--pm-text)]">اصلاح نتیجه بازی بی‌نتیجه</p>
+                  <p className="mt-1 text-[10px] font-bold leading-5 text-[var(--pm-muted)]">
+                    این گزینه فقط نتیجه بازی منقضی‌شده را ثبت می‌کند و به گزارش‌ها یا جزئیات بازی دست نمی‌زند.
+                  </p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                    {winnerOptions.map((option) => (
+                      <button
+                        key={`${game.id}-${option.key}`}
+                        type="button"
+                        onClick={() => setFinalResult(game.id, option.key)}
+                        disabled={isPending}
+                        className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-black transition-all hover:-translate-y-0.5 disabled:opacity-50 ${option.className}`}
+                      >
+                        <span className="material-symbols-outlined text-base">{option.icon}</span>
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex flex-wrap gap-2">
                 {game.histories.slice(0, 6).map((history, index) => (
                   <span key={`${game.id}-${history.userName}-${index}`} className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-zinc-300">

@@ -8,13 +8,5 @@ export default async function DashboardIndexPage() {
     redirect("/auth/login");
   }
 
-  if (session.user.role === "ADMIN") {
-    redirect("/dashboard/admin/users");
-  }
-
-  if (session.user.role === "MODERATOR") {
-    redirect("/dashboard/moderator");
-  }
-
   redirect("/dashboard/user");
 }
