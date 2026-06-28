@@ -4,6 +4,7 @@ import type { Alignment } from "@prisma/client";
 import type { ReactNode } from "react";
 import { MobilePwaFeatureLock } from "@/components/MobilePwaFeatureLock";
 import { ScenarioRoleComposition } from "@/components/ScenarioRoleComposition";
+import { SeatRing } from "@/components/game/SeatRing";
 
 type LobbyPlayer = {
   id: string;
@@ -60,13 +61,13 @@ function PlayerAvatar({ player, alive, size = "md" }: { player: LobbyPlayer; ali
   const sizeClass = size === "sm" ? "size-8 text-xs" : "size-11 text-sm";
 
   return (
-    <div className={`relative flex ${sizeClass} shrink-0 items-center justify-center overflow-hidden rounded-lg font-black shadow-sm shadow-zinc-950/10 ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
+    <div className={`relative flex ${sizeClass} shrink-0 items-center justify-center overflow-hidden rounded-lg border font-black ${alive ? "border-[var(--pm-primary)]/35 bg-[var(--pm-primary)]/15 text-[var(--pm-primary)]" : "border-[var(--pm-danger)]/35 bg-[var(--pm-danger)]/12 text-[var(--pm-danger)]"}`}>
       {player.image ? (
         <img src={player.image} alt="" className="size-full object-cover" />
       ) : (
         getInitial(player.name)
       )}
-      <span className={`absolute -bottom-1 -right-1 size-3.5 rounded-full border-2 border-zinc-50 dark:border-zinc-950 ${alive ? "bg-[var(--pm-primary)]" : "bg-red-500"}`} />
+      <span className={`absolute -bottom-1 -right-1 size-3.5 rounded-full border-2 border-[var(--pm-surface)] ${alive ? "bg-[var(--pm-primary)]" : "bg-[var(--pm-danger)]"}`} />
     </div>
   );
 }
@@ -232,11 +233,11 @@ export function LobbyPreviewCard({
   }
 
   return (
-    <article className="relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_52%,#edf4e6_100%)] shadow-xl shadow-zinc-950/10 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(17,20,23,0.94)_0%,rgba(21,24,27,0.98)_58%,rgba(190,242,100,0.22)_100%)] dark:shadow-black/35">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
+    <article className="relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface)] shadow-[var(--pm-shadow)] dark:border-[var(--pm-line)]">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-[var(--pm-primary)] via-[var(--pm-blue)] to-[var(--pm-primary)]" />
 
-      <header className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-zinc-950 p-4 text-white dark:border-[var(--pm-line)] sm:p-5">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.16),transparent_42%),linear-gradient(90deg,rgba(96,165,250,0.08)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem]" />
+      <header className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-4 text-white dark:border-[var(--pm-line)] sm:p-5">
+        <div className="pm-hero-wash" />
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-start gap-3 sm:gap-4">
             <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-zinc-950 shadow-sm shadow-[var(--pm-primary)]/30 sm:size-14">
@@ -324,6 +325,21 @@ export function LobbyPreviewCard({
                 </div>
               </div>
 
+              {players.length > 0 && (
+                <div className="mb-5 rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-4">
+                  <SeatRing
+                    capacity={capacity}
+                    mode={eliminatedCount > 0 ? "play" : "lobby"}
+                    players={players.map((p) => ({
+                      name: p.name,
+                      image: p.image,
+                      isAlive: p.isAlive !== false,
+                      isYou: Boolean(p.current),
+                    }))}
+                  />
+                </div>
+              )}
+
               <div className="grid gap-2 sm:grid-cols-2 2xl:grid-cols-3">
                 {players.length ? (
                   players.map((player, index) => {
@@ -374,10 +390,10 @@ export function LobbyPreviewCard({
           )}
         </main>
 
-        <aside className="order-1 flex flex-col bg-white/70 dark:bg-zinc-950/20 xl:order-2">
+        <aside className="order-1 flex flex-col bg-[var(--pm-surface-soft)] xl:order-2">
           {actionArea && <div className="border-b border-[var(--pm-line)] p-4 dark:border-[var(--pm-line)] sm:p-5">{actionArea}</div>}
-          <div className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-zinc-950 p-5 text-white dark:border-[var(--pm-line)]">
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.14),transparent_44%),linear-gradient(90deg,rgba(96,165,250,0.08)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem]" />
+          <div className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-5 text-white dark:border-[var(--pm-line)]">
+            <div className="pm-hero-wash" />
             <div className="relative">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">

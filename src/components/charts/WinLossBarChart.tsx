@@ -27,22 +27,22 @@ export default function WinLossBarChart({ data }: Props) {
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#3d4b56" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#4d3a5c" />
         <XAxis
           dataKey="name"
-          tick={{ fill: "#a1a1aa", fontSize: 11, fontFamily: "Vazirmatn" }}
+          tick={{ fill: "#b0a290", fontSize: 11, fontFamily: "Vazirmatn" }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fill: "#a1a1aa", fontSize: 11 }}
+          tick={{ fill: "#b0a290", fontSize: 11 }}
           axisLine={false}
           tickLine={false}
         />
         <Tooltip
           contentStyle={{
-            background: "#181d22",
-            border: "1px solid #3d4b56",
+            background: "#211829",
+            border: "1px solid #4d3a5c",
             borderRadius: "12px",
             fontFamily: "Vazirmatn, sans-serif",
             direction: "rtl",
@@ -56,8 +56,8 @@ export default function WinLossBarChart({ data }: Props) {
             </span>
           )}
         />
-        <Bar dataKey="wins" fill="#bef264" radius={[4, 4, 0, 0]} name="wins" />
-        <Bar dataKey="losses" fill="#b91c1c" radius={[4, 4, 0, 0]} name="losses" />
+        <Bar dataKey="wins" fill="#d4ad55" radius={[4, 4, 0, 0]} name="wins" />
+        <Bar dataKey="losses" fill="#be4750" radius={[4, 4, 0, 0]} name="losses" />
       </BarChart>
     </ResponsiveContainer>
   );

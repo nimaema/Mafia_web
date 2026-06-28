@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import { createGame, getModeratorGamesSafe, cancelGame } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
 import { getPusherClient } from "@/lib/pusher-client";
+import { SeatRing } from "@/components/game/SeatRing";
+
+const toFa = (n: number) => Number(n).toLocaleString("fa-IR");
 
 function statusLabel(status: string) {
   if (status === "WAITING") return "در انتظار";
@@ -41,6 +44,8 @@ export default function ModeratorDashboard() {
   const [password, setPassword] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [telegramJoinEnabled, setTelegramJoinEnabled] = useState(true);
+  const [filter, setFilter] = useState<"all" | "WAITING" | "IN_PROGRESS" | "READY">("all");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     refreshGames();
@@ -135,10 +140,31 @@ export default function ModeratorDashboard() {
     { label: "در جریان", value: inProgressGames, icon: "bolt", tone: "text-violet-300" },
   ];
 
+  const isGameReady = (game: any) => {
+    const capacity = scenarioCapacity(game);
+    return game.status === "WAITING" && capacity > 0 && (game._count?.players || 0) === capacity;
+  };
+  const filterTabs: Array<{ key: typeof filter; label: string; count: number }> = [
+    { key: "all", label: "همه", count: activeGames.length },
+    { key: "WAITING", label: "در انتظار", count: waitingGames },
+    { key: "READY", label: "آماده", count: readyGames },
+    { key: "IN_PROGRESS", label: "در جریان", count: inProgressGames },
+  ];
+  const visibleGames = activeGames.filter((game) => {
+    if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      const hay = `${game.name || ""} ${game.code || ""} ${game.scenario?.name || ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (filter === "all") return true;
+    if (filter === "READY") return isGameReady(game);
+    return game.status === filter;
+  });
+
   return (
     <div className="flex flex-col gap-5 font-sans" dir="rtl">
       <section className="pm-contrast-surface relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-zinc-950 text-white shadow-xl shadow-zinc-950/10 dark:border-[var(--pm-line)]">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.18),transparent_38%),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem,2.75rem_2.75rem]" />
+        <div className="pm-hero-wash" />
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
         <div className="relative p-4 sm:p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -192,7 +218,7 @@ export default function ModeratorDashboard() {
                   </div>
                   <Link
                     href={featuredGame.status === "WAITING" ? `/dashboard/moderator/lobby/${featuredGame.id}` : `/dashboard/moderator/game/${featuredGame.id}`}
-                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 rounded-lg bg-white px-3 text-xs font-black text-zinc-950 transition-colors hover:bg-[var(--pm-primary)]"
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1 rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] px-3 text-xs font-black text-[var(--pm-text)] transition-colors hover:border-[var(--pm-primary)]/40 hover:bg-[var(--pm-primary)]/10 hover:text-[var(--pm-primary)]"
                   >
                     ورود
                     <span className="material-symbols-outlined text-base">arrow_back</span>
@@ -218,7 +244,7 @@ export default function ModeratorDashboard() {
         <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/75 backdrop-blur-xl sm:items-center">
           <div className="pm-safe-modal relative flex w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white shadow-2xl shadow-black/30 dark:border-[var(--pm-line)] dark:bg-zinc-950">
             <div className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-zinc-950 p-4 text-white sm:p-5">
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.18),transparent_40%),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:auto,2.5rem_2.5rem,2.5rem_2.5rem]" />
+              <div className="pm-hero-wash" />
               <div className="relative flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--pm-primary)]">راه‌اندازی لابی</p>
@@ -319,7 +345,7 @@ export default function ModeratorDashboard() {
                 </div>
               </div>
 
-              <aside className="h-fit rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_60%,#edf4e6_100%)] p-4 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(17,20,23,0.9)_0%,rgba(21,24,27,0.96)_60%,rgba(190,242,100,0.18)_100%)]">
+              <aside className="h-fit rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-4 shadow-[var(--pm-shadow-soft)]">
                 <p className="font-black text-[var(--pm-text)]">جریان بعد از ساخت</p>
                 <div className="mt-4 grid gap-2">
                   {[
@@ -348,120 +374,133 @@ export default function ModeratorDashboard() {
         </div>
       )}
 
-      <section className="relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_56%,#edf4e6_100%)] shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(17,20,23,0.9)_0%,rgba(21,24,27,0.96)_60%,rgba(96,165,250,0.18)_100%)]">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-sky-400 via-lime-400 to-amber-400" />
-        <div className="flex flex-col gap-3 border-b border-[var(--pm-line)]/80 p-4 dark:border-[var(--pm-line)] sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <section className="pm-card rounded-[var(--radius-xl)] p-4 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">اتاق‌های فعال</p>
-            <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">لابی‌ها و بازی‌های شما</h2>
-            <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-black">
-              <span className="rounded-lg border border-[var(--pm-line)] bg-white px-2.5 py-1 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.04] dark:text-zinc-300">{waitingGames} در انتظار</span>
-              <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-sky-700 dark:text-sky-300">{inProgressGames} در جریان</span>
-              <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-amber-700 dark:text-amber-300">{protectedGames} خصوصی</span>
-            </div>
+            <span className="pm-eyebrow">اتاق‌های فعال</span>
+            <h2 className="mt-1.5 font-display text-2xl font-bold text-[var(--pm-text)]">لابی‌ها و بازی‌های شما</h2>
           </div>
-          <button onClick={() => setShowCreateModal(true)} className="pm-button-primary min-h-10 px-3 text-xs">
+          <button onClick={() => setShowCreateModal(true)} className="pm-button-primary ms-cta min-h-11 px-4 text-sm">
             <span className="material-symbols-outlined text-lg">add</span>
-            ساخت لابی
+            لابی تازه
           </button>
         </div>
 
-        <div className="p-4 sm:p-5">
+        {/* filter tabs + search */}
+        {activeGames.length > 0 && (
+          <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="custom-scrollbar -mx-1 flex gap-1.5 overflow-x-auto rounded-[var(--radius-pill)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-1">
+              {filterTabs.map((tab) => {
+                const active = filter === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setFilter(tab.key)}
+                    className={`flex shrink-0 items-center gap-1.5 rounded-[var(--radius-pill)] px-3 py-1.5 text-xs font-black transition-all duration-200 ${
+                      active ? "bg-gradient-to-b from-[var(--pm-primary-strong)] to-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-[0_6px_16px_-8px_var(--pm-primary-glow)]" : "text-[var(--pm-muted)] hover:bg-[var(--pm-surface)] hover:text-[var(--pm-text)]"
+                    }`}
+                  >
+                    {tab.label}
+                    <span className={`grid min-w-5 place-items-center rounded-full px-1 text-[10px] ${active ? "bg-black/15 text-[var(--pm-text-inverse)]" : "bg-[var(--pm-surface)] text-[var(--pm-muted)]"}`}>{toFa(tab.count)}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="relative lg:w-64">
+              <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-[var(--pm-muted)]">search</span>
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="جستجوی نام، کد یا سناریو…" className="!min-h-11 !pl-10 text-sm" dir="rtl" />
+            </div>
+          </div>
+        )}
+
+        <div className="mt-5">
           {errorMessage ? (
-            <div className="flex min-h-[360px] flex-col items-center justify-center gap-5 rounded-lg border border-dashed border-red-500/20 bg-red-500/5 p-8 text-center">
-              <div className="flex size-16 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-red-500">
+            <div className="flex min-h-[320px] flex-col items-center justify-center gap-5 rounded-[var(--radius-lg)] border border-dashed border-[var(--pm-danger)]/25 bg-[var(--pm-danger)]/[0.06] p-8 text-center">
+              <span className="grid size-16 place-items-center rounded-[var(--radius-md)] border border-[var(--pm-danger)]/25 bg-[var(--pm-danger)]/10 text-[var(--pm-danger)]">
                 <span className="material-symbols-outlined text-3xl">cloud_off</span>
-              </div>
+              </span>
               <div>
-                <p className="text-xl font-black text-[var(--pm-text)]">بارگذاری لابی‌ها ناموفق بود</p>
-                <p className="mt-2 max-w-md text-sm leading-6 text-[var(--pm-muted)]">{errorMessage}</p>
+                <p className="font-display text-xl font-bold text-[var(--pm-text)]">بارگذاری لابی‌ها ناموفق بود</p>
+                <p className="mt-2 max-w-md text-sm leading-7 text-[var(--pm-muted)]">{errorMessage}</p>
               </div>
-              <button onClick={refreshGames} className="pm-button-primary">
-                <span className="material-symbols-outlined text-xl">refresh</span>
-                تلاش دوباره
-              </button>
+              <button onClick={refreshGames} className="pm-button-primary"><span className="material-symbols-outlined text-xl">refresh</span>تلاش دوباره</button>
             </div>
           ) : activeGames.length === 0 ? (
-            <div className="flex min-h-[360px] flex-col items-center justify-center gap-5 rounded-lg border border-dashed border-[var(--pm-line)] bg-white/70 p-8 text-center dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-              <div className="flex size-20 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 dark:border-[var(--pm-line)] dark:bg-zinc-950">
-                <span className="material-symbols-outlined text-4xl text-[var(--pm-muted)]">videogame_asset_off</span>
-              </div>
+            <div className="flex min-h-[320px] flex-col items-center justify-center gap-5 rounded-[var(--radius-lg)] border border-dashed border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-8 text-center">
+              <span className="grid size-20 place-items-center rounded-full border border-[var(--pm-line)] bg-[var(--pm-surface)] text-[var(--pm-muted)]">
+                <span className="material-symbols-outlined text-4xl">playing_cards</span>
+              </span>
               <div>
-                <p className="text-xl font-black text-[var(--pm-text)]">هنوز لابی فعالی ندارید</p>
-                <p className="mt-2 text-sm text-[var(--pm-muted)]">یک لابی بسازید تا کد ورود و صفحه انتظار آماده شود.</p>
+                <p className="font-display text-xl font-bold text-[var(--pm-text)]">هنوز میزی نچیده‌ای</p>
+                <p className="mt-2 max-w-sm text-sm text-[var(--pm-muted)]">یک لابی بساز تا کدِ ورود و صفحهٔ انتظار آماده شود و بازیکن‌ها سرِ میز بنشینند.</p>
               </div>
-              <button onClick={() => setShowCreateModal(true)} className="pm-button-primary">ایجاد اولین لابی</button>
+              <button onClick={() => setShowCreateModal(true)} className="pm-button-primary ms-cta"><span className="material-symbols-outlined text-xl">add</span>اولین میز را بچین</button>
+            </div>
+          ) : visibleGames.length === 0 ? (
+            <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[var(--radius-lg)] border border-dashed border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-8 text-center">
+              <span className="material-symbols-outlined text-4xl text-[var(--pm-muted)] opacity-50">filter_list_off</span>
+              <p className="font-black text-[var(--pm-text)]">میزی با این فیلتر نیست</p>
+              <button onClick={() => { setFilter("all"); setQuery(""); }} className="pm-button-secondary min-h-10 px-4 text-xs">پاک‌کردن فیلتر</button>
             </div>
           ) : (
-            <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
-              {activeGames.map((game) => {
+            <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+              {visibleGames.map((game) => {
                 const capacity = scenarioCapacity(game);
                 const players = game._count?.players || 0;
-                const progress = capacity > 0 ? Math.min(100, Math.round((players / capacity) * 100)) : 0;
                 const isInProgress = game.status === "IN_PROGRESS";
-                const isReady = game.status === "WAITING" && capacity > 0 && players === capacity;
-                const tone = statusTone(game.status);
-                const progressText = capacity ? (isReady ? "ظرفیت تکمیل" : `${Math.max(capacity - players, 0)} نفر تا تکمیل`) : "سناریو انتخاب نشده";
+                const isReady = isGameReady(game);
+                const seatPlayers = Array.from({ length: Math.min(players, capacity || players) }, () => ({ name: "" }));
+                const accent = isInProgress ? "var(--pm-blue)" : isReady ? "var(--pm-warning)" : "var(--pm-primary)";
+                const statusWord = isInProgress ? "در جریان" : isReady ? "آماده" : "انتظار";
 
                 return (
-                  <article key={game.id} className="group relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white/90 p-4 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-[var(--pm-primary)]/30 hover:shadow-xl hover:shadow-zinc-950/10 dark:border-[var(--pm-line)] dark:bg-zinc-950/70 dark:hover:bg-zinc-950">
-                    <div className={`absolute inset-x-0 top-0 h-1 ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-[var(--pm-primary)]"}`} />
-                    <div className={`absolute inset-y-0 right-0 w-1 ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-[var(--pm-primary)]"}`} />
-                    <div className="flex items-start justify-between gap-4 pt-1">
-                      <div className="flex min-w-0 items-start gap-3">
-                        <div className={`flex size-12 shrink-0 items-center justify-center rounded-lg border ${tone}`}>
-                          <span className="material-symbols-outlined text-2xl">{statusIcon(game.status)}</span>
+                  <article key={game.id} className="group relative overflow-hidden rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface)] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--pm-primary)]/40 hover:shadow-[var(--pm-shadow)]">
+                    <span className="absolute inset-y-0 right-0 w-[3px]" style={{ background: `linear-gradient(180deg, transparent, ${accent}, transparent)` }} />
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border px-2.5 py-1 text-[11px] font-black" style={{ borderColor: `color-mix(in oklab, ${accent} 35%, transparent)`, background: `color-mix(in oklab, ${accent} 12%, transparent)`, color: accent }}>
+                        <span className="material-symbols-outlined text-sm">{statusIcon(game.status)}</span>
+                        {statusWord}
+                      </span>
+                      <span className="rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] px-2.5 py-1 font-mono text-[11px] font-black text-[var(--pm-primary)]" dir="ltr">#{game.code}</span>
+                    </div>
+
+                    <SeatRing
+                      capacity={capacity || undefined}
+                      players={seatPlayers}
+                      className="my-3 !max-w-[8.5rem]"
+                      center={
+                        <div>
+                          <p className="font-display text-2xl font-bold text-[var(--pm-text)]" dir="ltr">{toFa(players)}{capacity ? <span className="text-[var(--pm-muted)]">/{toFa(capacity)}</span> : null}</p>
+                          <p className="text-[10px] font-bold text-[var(--pm-muted)]">{capacity ? (isReady ? "تکمیل" : `${toFa(Math.max(capacity - players, 0))} مانده`) : "بدون سناریو"}</p>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-[10px] font-black text-[var(--pm-muted)]">{isInProgress ? "بازی در جریان" : isReady ? "آماده شروع" : "اتاق انتظار"}</p>
-                          <h2 className="mt-1 line-clamp-2 break-words text-lg font-black leading-6 text-[var(--pm-text)]">{game.name}</h2>
-                          <p className="mt-1 line-clamp-1 text-xs font-bold text-[var(--pm-muted)]">{game.scenario?.name || "سناریو هنوز انتخاب نشده"}</p>
-                        </div>
-                      </div>
-                      <span className="shrink-0 rounded-lg bg-zinc-950 px-2.5 py-1 font-mono text-[10px] font-black text-white dark:bg-white dark:text-zinc-950">
-                        #{game.code}
+                      }
+                    />
+
+                    <h3 className="truncate text-center font-display text-lg font-bold text-[var(--pm-text)]">{game.name}</h3>
+                    <p className="mt-0.5 truncate text-center text-xs font-bold text-[var(--pm-muted)]">{game.scenario?.name || "سناریو هنوز انتخاب نشده"}</p>
+
+                    <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                      <span className={`pm-chip ${game.password ? "pm-chip-warning" : ""} !min-h-7 !py-1 text-[10px]`}>
+                        <span className="material-symbols-outlined text-sm">{game.password ? "lock" : "lock_open"}</span>
+                        {game.password ? "خصوصی" : "باز"}
+                      </span>
+                      <span className={`pm-chip ${game.telegramJoinEnabled ? "pm-chip-primary" : ""} !min-h-7 !py-1 text-[10px]`}>
+                        <span className="material-symbols-outlined text-sm">send</span>
+                        {game.telegramJoinEnabled ? "تلگرام" : "بی‌تلگرام"}
                       </span>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-4 gap-2">
-                      {[
-                        { label: statusLabel(game.status), icon: statusIcon(game.status), className: tone },
-                        { label: `${players}${capacity ? `/${capacity}` : ""}`, icon: "group", className: "border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.04] dark:text-zinc-300" },
-                        { label: game.password ? "خصوصی" : "باز", icon: game.password ? "lock" : "lock_open", className: game.password ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.04] dark:text-zinc-300" },
-                        { label: game.telegramJoinEnabled ? "تلگرام" : "بدون تلگرام", icon: "send", className: game.telegramJoinEnabled ? "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300" : "border-zinc-500/20 bg-zinc-500/10 text-[var(--pm-muted)]" },
-                      ].map((item) => (
-                        <div key={item.label} className={`rounded-lg border px-2 py-2 text-center text-[10px] font-black ${item.className}`}>
-                          <span className="material-symbols-outlined block text-base">{item.icon}</span>
-                          <span className="mt-1 block truncate">{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-4 rounded-lg border border-[var(--pm-line)] bg-zinc-50/80 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-                      <div className="mb-2 flex items-center justify-between gap-2 text-xs font-bold text-[var(--pm-muted)]">
-                        <span>پیشرفت ظرفیت</span>
-                        <span className={isReady ? "text-amber-700 dark:text-amber-300" : "text-[var(--pm-muted)]"}>{progressText}</span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-zinc-200 ring-1 ring-zinc-950/5 dark:bg-white/10 dark:ring-white/10">
-                        <div className={`h-full rounded-full transition-[width] ${isInProgress ? "bg-sky-500" : isReady ? "bg-amber-400" : "bg-gradient-to-l from-lime-400 to-sky-400"}`} style={{ width: `${progress}%` }} />
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-[44px_minmax(0,1fr)] gap-2">
-                      <button
-                        onClick={() => handleCancelGame(game.id)}
-                        className="pm-button-danger min-h-11 px-0 w-full"
-                        title="لغو لابی"
-                      >
-                        <span className="material-symbols-outlined text-lg">delete</span>
-                      </button>
+                    <div className="mt-4 grid grid-cols-[minmax(0,1fr)_2.75rem] gap-2">
                       <Link
                         href={game.status === "WAITING" ? `/dashboard/moderator/lobby/${game.id}` : `/dashboard/moderator/game/${game.id}`}
                         className="pm-button-primary min-h-11 w-full"
                       >
                         <span className="material-symbols-outlined text-xl">{isInProgress ? "play_arrow" : "tune"}</span>
-                        {isInProgress ? "ادامه اتاق بازی" : "مدیریت لابی"}
+                        {isInProgress ? "ادامهٔ اتاق" : "مدیریت میز"}
                       </Link>
+                      <button onClick={() => handleCancelGame(game.id)} className="pm-button-danger min-h-11 w-full px-0" title="لغو لابی" aria-label="لغو لابی">
+                        <span className="material-symbols-outlined text-lg">delete</span>
+                      </button>
                     </div>
                   </article>
                 );

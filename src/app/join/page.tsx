@@ -43,7 +43,7 @@ export default function JoinGamePage() {
   };
 
   return (
-    <div className="app-page pm-force-dark min-h-screen bg-[#111417] p-4 text-white" dir="rtl">
+    <div className="app-page pm-force-dark min-h-screen bg-[#1a1220] p-4 text-white" dir="rtl">
       <main className="mx-auto grid min-h-[calc(100vh-2rem)] w-full max-w-6xl items-center gap-6 lg:grid-cols-[minmax(0,1fr)_460px]">
         <section className="hidden lg:block">
           <div className="max-w-xl">

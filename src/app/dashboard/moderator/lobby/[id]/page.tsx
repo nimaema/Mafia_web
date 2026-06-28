@@ -573,10 +573,10 @@ export default function GameLobbyPage() {
 
   return (
     <div className="flex flex-col gap-5" dir="rtl">
-      <section className="relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_54%,#edf4e6_100%)] shadow-xl shadow-zinc-950/10 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(17,20,23,0.94)_0%,rgba(21,24,27,0.98)_58%,rgba(190,242,100,0.22)_100%)] dark:shadow-black/30">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
-        <header className="relative overflow-hidden border-b border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_58%,#edf4e6_100%)] p-4 text-zinc-950 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(17,20,23,0.96)_0%,rgba(21,24,27,0.98)_58%,rgba(190,242,100,0.2)_100%)] dark:text-white sm:p-5">
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(132,204,22,0.12),transparent_44%),linear-gradient(90deg,rgba(37,99,235,0.06)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem] dark:bg-[linear-gradient(135deg,rgba(190,242,100,0.16),transparent_44%),linear-gradient(90deg,rgba(96,165,250,0.08)_1px,transparent_1px)]" />
+      <section className="relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface)] shadow-[var(--pm-shadow)] dark:border-[var(--pm-line)]">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-[var(--pm-primary)] via-[var(--pm-blue)] to-[var(--pm-primary)]" />
+        <header className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-4 text-white dark:border-[var(--pm-line)] sm:p-5">
+          <div className="pm-hero-wash" />
           <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--pm-primary)]">مدیریت لابی</p>

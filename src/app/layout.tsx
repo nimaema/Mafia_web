@@ -1,30 +1,43 @@
-import { Vazirmatn } from "next/font/google";
+import { Vazirmatn, Markazi_Text } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { InstallPWANotice } from "@/components/InstallPWANotice";
 import { getConfiguredSiteUrl } from "@/lib/site";
 
-const vazirmatn = Vazirmatn({ 
+const vazirmatn = Vazirmatn({
   subsets: ["arabic", "latin"],
   variable: "--font-vazirmatn",
+  display: "swap",
+});
+
+// Markazi Text — an elegant Persian/Arabic serif used as the theatrical
+// display face for headlines ("Midnight Salon" identity).
+const markaziText = Markazi_Text({
+  subsets: ["arabic", "latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-markazi",
   display: "swap",
 });
 
 import type { Metadata, Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#111417",
+  themeColor: "#130d18",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };
 
+const SITE_TITLE = "مافیا بورد — میز شب";
+const SITE_DESC =
+  "اتاق فرمان بازی مافیا: لابی زنده، نقش‌های مخفی، چرخه شب و روز و گزارش کامل بازی. برای موبایل ساخته شده.";
+
 export const metadata: Metadata = {
   metadataBase: new URL(getConfiguredSiteUrl()),
-  title: "مافیا بورد - اتاق فرمان بازی",
-  description: "اتاق فرمان مدرن برای اجرای بازی مافیا، لابی‌ها، سناریوها و گزارش‌ها",
+  title: SITE_TITLE,
+  description: SITE_DESC,
   applicationName: "مافیا بورد",
-  keywords: ["مافیا", "بازی مافیا", "گرداننده مافیا", "سناریو مافیا", "لابی مافیا"],
+  keywords: ["مافیا", "بازی مافیا", "گرداننده", "سناریو", "Mafia", "Persian Mafia"],
   alternates: {
     canonical: "/",
   },
@@ -38,13 +51,13 @@ export const metadata: Metadata = {
     locale: "fa_IR",
     url: "/",
     siteName: "مافیا بورد",
-    title: "مافیا بورد - اتاق فرمان بازی",
-    description: "اتاق فرمان مدرن برای اجرای بازی مافیا، لابی‌ها، سناریوها و گزارش‌ها",
+    title: SITE_TITLE,
+    description: SITE_DESC,
   },
   twitter: {
     card: "summary",
-    title: "مافیا بورد - اتاق فرمان بازی",
-    description: "اتاق فرمان مدرن برای اجرای بازی مافیا، لابی‌ها، سناریوها و گزارش‌ها",
+    title: SITE_TITLE,
+    description: SITE_DESC,
   },
   robots: {
     index: true,
@@ -64,7 +77,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body className={`${vazirmatn.variable} font-sans antialiased`}>
+      <body className={`${vazirmatn.variable} ${markaziText.variable} font-sans antialiased`}>
         <Providers>
           {children}
           <InstallPWANotice />

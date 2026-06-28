@@ -7,6 +7,7 @@ import { getPlayerGameView } from "@/actions/game";
 import { getPusherClient } from "@/lib/pusher-client";
 import Link from "next/link";
 import { usePopup } from "@/components/PopupProvider";
+import { SeatRing } from "@/components/game/SeatRing";
 
 function alignmentLabel(alignment?: string) {
   if (alignment === "CITIZEN") return "شهروند";
@@ -250,15 +251,23 @@ export default function UserGamePage() {
                   {players.filter((player: any) => player.isAlive !== false).length} فعال
                 </span>
               </div>
+              {players.length > 0 && (
+                <div className="mb-4">
+                  <SeatRing
+                    mode="play"
+                    players={players.map((p: any) => ({ name: p.name, image: p.image, isAlive: p.isAlive !== false, isYou: Boolean(p.current || p.isSelf) }))}
+                  />
+                </div>
+              )}
               <div className="grid gap-2">
                 {players.map((player: any) => {
                   const alive = player.isAlive !== false;
                   return (
-                    <div key={player.id} className={alive ? "relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-2 dark:border-[var(--pm-line)] dark:bg-white/[0.03]" : "relative overflow-hidden rounded-lg border border-red-500/20 bg-red-500/10 p-2"}>
-                      <div className={`absolute inset-y-2 right-0 w-1 rounded-l-full ${alive ? "bg-[var(--pm-primary)]" : "bg-red-500"}`} />
+                    <div key={player.id} className={alive ? "relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-2" : "relative overflow-hidden rounded-lg border border-[var(--pm-danger)]/20 bg-[var(--pm-danger)]/10 p-2"}>
+                      <div className={`absolute inset-y-2 right-0 w-1 rounded-l-full ${alive ? "bg-[var(--pm-primary)]" : "bg-[var(--pm-danger)]"}`} />
                       <div className="flex items-center justify-between gap-2 pr-1">
                         <div className="flex min-w-0 items-center gap-2">
-                          <div className={`flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg text-xs font-black ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
+                          <div className={`flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border text-xs font-black ${alive ? "border-[var(--pm-primary)]/35 bg-[var(--pm-primary)]/15 text-[var(--pm-primary)]" : "border-[var(--pm-danger)]/35 bg-[var(--pm-danger)]/12 text-[var(--pm-danger)]"}`}>
                             {player.image ? <img src={player.image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
                           </div>
                           <p className="truncate text-xs font-black text-[var(--pm-text)]">{player.name}</p>

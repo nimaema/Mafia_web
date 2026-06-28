@@ -10,39 +10,42 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        // Vazirmatn as the global RTL Persian font
+        // Vazirmatn as the global RTL Persian font; Markazi Text for display
         sans: ["var(--font-vazirmatn)", "ui-sans-serif", "system-ui", "sans-serif"],
         vazir: ["var(--font-vazirmatn)", "sans-serif"],
+        display: ["var(--font-markazi)", "var(--font-vazirmatn)", "serif"],
       },
       colors: {
-        // Lime/azure command palette
-        lime: {
-          300: "#d9f99d",
-          400: "#a3e635",
-          500: "#84cc16",
-          600: "#65a30d",
-          700: "#4d7c0f",
+        // Midnight Salon palette
+        brass: {
+          soft: "#f1ddaa",
+          DEFAULT: "#d4ad55",
+          bright: "#e7c878",
+          deep: "#9a6f28",
         },
-        azure: {
-          50: "#f4f8fb",
-          100: "#dbeafe",
-          400: "#60a5fa",
-          500: "#3b82f6",
-          600: "#2563eb",
+        oxblood: {
+          DEFAULT: "#be4750",
+          bright: "#d6727a",
+          deep: "#82282f",
         },
-        graphite: {
-          600: "#3d4b56",
-          700: "#2b333b",
-          800: "#20272d",
-          850: "#181d22",
-          900: "#15181b",
-          950: "#111417",
+        steel: {
+          DEFAULT: "#5e86a8",
+          bright: "#8fb0cc",
+          deep: "#38556f",
         },
-        // Role colors
+        ink: {
+          600: "#4d3a5c",
+          700: "#392a45",
+          800: "#291e33",
+          850: "#211829",
+          900: "#1a1220",
+          950: "#130d18",
+        },
+        // Role colors (faction-coded)
         role: {
-          citizen: "#2563eb",   // blue-600
-          mafia: "#b91c1c",     // red-700
-          neutral: "#111417",   // graphite-950
+          citizen: "#5e86a8",   // steel-blue
+          mafia: "#be4750",     // oxblood
+          neutral: "#9173cc",   // amethyst
         },
       },
       borderRadius: {

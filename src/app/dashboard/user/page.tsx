@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import Link from "next/link";
 import { getUserStatsSafe } from "@/actions/dashboard";
 import { getWaitingGamesSafe } from "@/actions/game";
@@ -20,7 +19,7 @@ type DashboardData = {
   userImage?: string | null;
 };
 
-const ROLE_CHART_COLORS = ["var(--pm-primary)", "#8B5CF6", "var(--pm-success)", "var(--pm-warning)", "var(--pm-danger)", "#38BDF8", "var(--pm-muted)"];
+const r2 = (n: number) => Math.round(n * 100) / 100;
 
 function EmptyState({ icon, title, text }: { icon: string; title: string; text: string }) {
   return (
@@ -35,137 +34,308 @@ function EmptyState({ icon, title, text }: { icon: string; title: string; text: 
 }
 
 function resultMeta(result: string) {
-  if (result === "WIN") {
-    return { label: "برد", icon: "emoji_events", className: "pm-chip pm-chip-success" };
-  }
-  if (result === "LOSS") {
-    return { label: "باخت", icon: "close", className: "pm-chip pm-chip-danger" };
-  }
+  if (result === "WIN") return { label: "برد", icon: "emoji_events", className: "pm-chip pm-chip-success" };
+  if (result === "LOSS") return { label: "باخت", icon: "close", className: "pm-chip pm-chip-danger" };
   return { label: "نامشخص", icon: "pending", className: "pm-chip pm-chip-warning" };
 }
 
-function alignmentLabel(alignment: string) {
-  if (alignment === "CITIZEN") return "شهروند";
-  if (alignment === "MAFIA") return "مافیا";
+function alignmentLabel(a: string) {
+  if (a === "CITIZEN") return "شهروند";
+  if (a === "MAFIA") return "مافیا";
   return "مستقل";
 }
-
-function alignmentClass(alignment: string) {
-  if (alignment === "CITIZEN") return "pm-chip pm-chip-primary";
-  if (alignment === "MAFIA") return "pm-chip pm-chip-danger";
+function alignmentClass(a: string) {
+  if (a === "CITIZEN") return "pm-chip pm-chip-primary";
+  if (a === "MAFIA") return "pm-chip pm-chip-danger";
   return "pm-chip pm-chip-warning";
 }
 
 function gameCapacity(game: any) {
-  return game?.scenario?.roles?.reduce((total: number, role: any) => total + role.count, 0) || 0;
+  return game?.scenario?.roles?.reduce((t: number, r: any) => t + r.count, 0) || 0;
 }
-
 function playerCount(game: any) {
   return game?._count?.players || game?.playerCount || 0;
 }
-
 function initials(name?: string | null) {
-  const trimmed = name?.trim();
-  return trimmed ? trimmed.slice(0, 1) : "م";
+  const t = name?.trim();
+  return t ? t.slice(0, 1) : "م";
+}
+function toFa(n: number | string) {
+  return Number(n).toLocaleString("fa-IR");
 }
 
-function buildRoleChartData(roleHistory: any[]) {
-  const sorted = [...roleHistory].sort((a, b) => (b.count || 0) - (a.count || 0));
-  const top = sorted.slice(0, 6);
-  const others = sorted.slice(6).reduce((sum, item) => sum + (item.count || 0), 0);
-  return others > 0 ? [...top, { role: "سایر", count: others }] : top;
+// A derived "rank" gives the player an identity beyond raw numbers.
+function rankTitle(total: number, winRate: number) {
+  if (total < 3) return "تازه‌وارد میز";
+  if (winRate >= 65) return "روباهِ میز";
+  if (winRate >= 50) return "بازیکنِ کاربلد";
+  if (winRate >= 35) return "اهلِ بازی";
+  return "در حالِ یادگیری";
 }
 
-function PresenceFaces({ presence }: { presence: PresenceSnapshot }) {
-  const members = presence.members.slice(0, 4);
+// Leading run of identical results, signed (+win / -loss).
+function computeStreak(games: any[]) {
+  let n = 0;
+  let kind: "WIN" | "LOSS" | null = null;
+  for (const g of games) {
+    if (g.result !== "WIN" && g.result !== "LOSS") break;
+    if (kind === null) kind = g.result;
+    if (g.result !== kind) break;
+    n += 1;
+  }
+  return { n, kind };
+}
+
+/* -------------------------------------------------- the identity card */
+
+function PlayerCard({
+  name, image, winRate, wins, losses, total, streak, presenceCount,
+}: {
+  name: string; image?: string | null; winRate: number; wins: number; losses: number;
+  total: number; streak: { n: number; kind: "WIN" | "LOSS" | null }; presenceCount: number;
+}) {
+  const tiltRef = useRef<HTMLDivElement>(null);
+  const [flipped, setFlipped] = useState(false);
+  const rank = rankTitle(total, winRate);
+
+  const onMove = (e: React.PointerEvent) => {
+    if (e.pointerType === "touch") return;
+    const el = tiltRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    el.style.setProperty("--ry", `${r2(px * 9)}deg`);
+    el.style.setProperty("--rx", `${r2(-py * 9)}deg`);
+  };
+  const reset = () => {
+    const el = tiltRef.current;
+    if (!el) return;
+    el.style.setProperty("--ry", "0deg");
+    el.style.setProperty("--rx", "0deg");
+  };
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="-space-x-2 space-x-reverse">
-        {members.length > 0 ? members.map((member) => (
-          <span key={member.id} className="inline-flex size-8 items-center justify-center overflow-hidden rounded-full border-2 border-[var(--pm-surface)] bg-[var(--pm-surface-strong)] text-xs font-black text-[var(--pm-text)]">
-            {member.image ? <img src={member.image} alt="" className="size-full object-cover" /> : initials(member.name)}
-          </span>
-        )) : (
-          <span className="inline-flex size-8 items-center justify-center rounded-full border-2 border-[var(--pm-surface)] bg-[var(--pm-surface-soft)] text-[var(--pm-primary)]">
-            <span className="material-symbols-outlined text-base">group</span>
-          </span>
-        )}
-      </div>
-      <div>
-        <p className="text-sm font-black text-[var(--pm-text)]">{presence.updatedAt ? presence.count : "..."} آنلاین</p>
-        <p className="mt-0.5 text-[10px] font-bold text-[var(--pm-muted)]">حاضر در اپ</p>
+    <div className="dx-tilt" onPointerMove={onMove} onPointerLeave={reset}>
+      <div ref={tiltRef} className="dx-tilt-inner">
+        <div className="dx-flip" data-flipped={flipped}>
+          <div className="dx-flip-inner h-[19rem] sm:h-[17.5rem]">
+            {/* FRONT — the lit role card */}
+            <div className="dx-flip-face pm-command relative flex h-full flex-col justify-between overflow-hidden rounded-[var(--radius-xl)] p-5">
+              <div className="pm-aurora" />
+              <div className="flex items-start justify-between">
+                <span className="pm-eyebrow">کارتِ تو</span>
+                <button
+                  type="button"
+                  onClick={() => setFlipped(true)}
+                  className="pm-icon-button size-9 shadow-none"
+                  aria-label="چرخاندن کارت"
+                >
+                  <span className="material-symbols-outlined text-lg">flip</span>
+                </button>
+              </div>
+
+              <div className="dx-pop flex items-center gap-4">
+                <div className="relative grid size-[5.5rem] shrink-0 place-items-center">
+                  <div className="dx-ring absolute inset-0" style={{ ["--p" as string]: String(winRate), ["--ring" as string]: "var(--pm-primary)" }} />
+                  <div className="grid size-[4.4rem] place-items-center overflow-hidden rounded-full border border-[var(--pm-line)] bg-[var(--pm-surface-strong)] text-2xl font-black text-[var(--pm-text)]">
+                    {image ? <img src={image} alt="" className="size-full object-cover" /> : initials(name)}
+                  </div>
+                  <span className="absolute -bottom-0.5 right-1 grid size-5 place-items-center rounded-full border-2 border-[var(--pm-surface)] bg-[var(--pm-success)] text-[10px] font-black text-black">
+                    {presenceCount > 0 ? toFa(presenceCount) : ""}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <h1 className="truncate text-2xl font-black leading-tight text-[var(--pm-text)]">{name}</h1>
+                  <span className="mt-1 inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] border border-[var(--pm-primary)]/30 bg-[var(--pm-primary)]/10 px-2.5 py-1 text-xs font-black text-[var(--pm-primary)]">
+                    <span className="material-symbols-outlined text-sm">military_tech</span>
+                    {rank}
+                  </span>
+                </div>
+              </div>
+
+              <div className="dx-pop grid grid-cols-3 gap-2">
+                {[
+                  { k: "بازی", v: toFa(total), tone: "text-[var(--pm-text)]" },
+                  { k: "برد", v: toFa(wins), tone: "text-[var(--pm-success)]" },
+                  { k: "باخت", v: toFa(losses), tone: "text-[var(--pm-danger)]" },
+                ].map((s) => (
+                  <div key={s.k} className="rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] px-3 py-2 text-center">
+                    <p className={`font-display text-2xl font-bold ${s.tone}`} dir="ltr">{s.v}</p>
+                    <p className="text-[10px] font-bold text-[var(--pm-muted)]">{s.k}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* BACK — the dossier */}
+            <div className="dx-flip-face dx-flip-back pm-card relative flex h-full flex-col justify-between overflow-hidden rounded-[var(--radius-xl)] p-5">
+              <div className="flex items-start justify-between">
+                <span className="pm-eyebrow">کارنامه</span>
+                <button type="button" onClick={() => setFlipped(false)} className="pm-icon-button size-9 shadow-none" aria-label="بازگشت کارت">
+                  <span className="material-symbols-outlined text-lg">flip</span>
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-3">
+                  <p className="text-[10px] font-bold text-[var(--pm-muted)]">درصد برد</p>
+                  <p className="font-display text-3xl font-bold text-[var(--pm-primary)]" dir="ltr">{toFa(winRate)}٪</p>
+                </div>
+                <div className="rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-3">
+                  <p className="text-[10px] font-bold text-[var(--pm-muted)]">روند فعلی</p>
+                  <p className={`font-display text-3xl font-bold ${streak.kind === "WIN" ? "text-[var(--pm-success)]" : streak.kind === "LOSS" ? "text-[var(--pm-danger)]" : "text-[var(--pm-muted)]"}`} dir="ltr">
+                    {streak.n > 0 ? `${streak.kind === "WIN" ? "▲" : "▼"} ${toFa(streak.n)}` : "—"}
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs font-bold leading-6 text-[var(--pm-muted)]">
+                {total > 0
+                  ? `از ${toFa(total)} شب پشت میز، ${toFa(wins)} بار برنده شدی. ${streak.n > 1 ? (streak.kind === "WIN" ? "روی موجِ بردی." : "وقتِ جبران است.") : ""}`
+                  : "هنوز کارنامه‌ای نساخته‌ای — اولین شب در انتظارت است."}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function LiveLobbyCard({ game, active = false }: { game: any; active?: boolean }) {
-  const capacity = gameCapacity(game);
-  const joinedPlayers = playerCount(game);
-  const progress = capacity ? Math.min(100, Math.round((joinedPlayers / capacity) * 100)) : 0;
-  const isFull = capacity ? joinedPlayers >= capacity : false;
+/* -------------------------------------------------- lobby as a mini table */
+
+function TableCard({ game, active = false }: { game: any; active?: boolean }) {
+  const capacity = active ? 0 : gameCapacity(game);
+  const joined = playerCount(game);
+  const seats = Math.max(capacity, joined, active ? 8 : 6);
   const href = active ? `/game/${game.id}` : `/lobby/${game.id}`;
+  const title = active ? game.scenarioName || "بازی فعال" : game.name;
+  const sub = active ? `گرداننده: ${game.moderatorName || "نامشخص"}` : game.scenario?.name || "سناریو انتخاب نشده";
+  const full = capacity ? joined >= capacity : false;
 
   return (
-    <Link href={href} className="pm-card group relative overflow-hidden p-4 text-[var(--pm-text)] hover:border-[var(--pm-primary)] transition-colors">
-      <span className="absolute inset-y-0 right-0 w-1 bg-[var(--pm-primary)] opacity-80" />
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className={`material-symbols-outlined grid size-11 place-items-center rounded-[var(--radius-sm)] text-xl ${active ? "bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-[0_0_15px_var(--pm-primary-glow)]" : "bg-[var(--pm-surface-soft)] text-[var(--pm-primary)]"}`}>
-            {active ? "sports_esports" : "groups"}
-          </span>
-          <div className="min-w-0">
-            <div className="flex flex-wrap gap-2">
-              <span className={active ? "pm-chip pm-chip-primary shadow-[0_0_10px_var(--pm-primary-glow)]" : isFull ? "pm-chip pm-chip-warning" : "pm-chip pm-chip-success"}>
-                {active ? "بازی فعال" : isFull ? "تکمیل" : "قابل ورود"}
-              </span>
-              {!active && game.code && <span className="pm-chip font-mono" dir="ltr">#{game.code}</span>}
-            </div>
-            <h3 className="mt-2 line-clamp-2 break-words text-lg font-black leading-7">{active ? game.scenarioName || "بازی مافیا" : game.name}</h3>
-            <p className="mt-1 truncate text-xs font-bold text-[var(--pm-muted)]">{active ? `گرداننده: ${game.moderatorName || "نامشخص"}` : game.scenario?.name || "سناریو انتخاب نشده"}</p>
-          </div>
-        </div>
-        <span className="material-symbols-outlined text-[var(--pm-muted)] transition-transform group-hover:-translate-x-1">arrow_back</span>
+    <Link
+      href={href}
+      className={`group relative w-[16.5rem] overflow-hidden rounded-[var(--radius-lg)] border p-4 transition-all ${
+        active
+          ? "border-[var(--pm-primary)]/45 bg-[var(--pm-surface)] shadow-[0_0_0_1px_var(--pm-primary-glow),var(--pm-shadow)]"
+          : "border-[var(--pm-line)] bg-[var(--pm-surface)] hover:border-[var(--pm-primary)]/40 hover:shadow-[var(--pm-shadow)]"
+      }`}
+    >
+      {active && <span className="pm-spine" />}
+      <div className="flex items-center justify-between">
+        <span className={active ? "pm-chip pm-chip-primary" : full ? "pm-chip pm-chip-warning" : "pm-chip pm-chip-success"}>
+          {active ? (<><span className="size-1.5 animate-pulse-slow rounded-full bg-current" /> در جریان</>) : full ? "تکمیل" : "باز"}
+        </span>
+        {!active && game.code && <span className="pm-chip font-mono text-[10px]" dir="ltr">#{game.code}</span>}
       </div>
 
-      {!active && (
-        <div className="mt-4">
-          <div className="flex items-center justify-between gap-3 text-xs font-black text-[var(--pm-text)]">
-            <span>{joinedPlayers}{capacity ? ` از ${capacity}` : ""} بازیکن</span>
-            <span>{capacity ? `${Math.max(capacity - joinedPlayers, 0)} جای خالی` : "ظرفیت نامشخص"}</span>
-          </div>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--pm-line)]">
-            <div className="h-full rounded-full bg-[var(--pm-primary)] shadow-[0_0_10px_var(--pm-primary)]" style={{ width: `${progress}%` }} />
+      {/* mini seat-ring */}
+      <div className="relative mx-auto my-3 size-28">
+        <div className="absolute inset-[18%] grid place-items-center rounded-full border border-[var(--pm-line)] bg-[radial-gradient(circle,var(--pm-primary-soft),transparent_72%)] text-center">
+          <div>
+            <p className="font-display text-xl font-bold text-[var(--pm-text)]" dir="ltr">{toFa(joined)}{capacity ? `/${toFa(capacity)}` : ""}</p>
+            <p className="text-[9px] font-bold text-[var(--pm-muted)]">نشسته</p>
           </div>
         </div>
-      )}
+        {Array.from({ length: seats }).map((_, i) => {
+          const a = (-90 + (i / seats) * 360) * (Math.PI / 180);
+          const x = r2(50 + 44 * Math.cos(a));
+          const y = r2(50 + 44 * Math.sin(a));
+          return <span key={i} className={`dx-seat ${i < joined ? "dx-seat-on" : "dx-seat-off"}`} style={{ left: `${x}%`, top: `${y}%` }} />;
+        })}
+      </div>
+
+      <h3 className="truncate font-display text-lg font-bold leading-6 text-[var(--pm-text)]">{title}</h3>
+      <p className="mt-0.5 truncate text-xs font-bold text-[var(--pm-muted)]">{sub}</p>
+      <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-black text-[var(--pm-primary)]">
+        {active ? "ادامه بده" : "بگیر صندلیت"}
+        <span className="material-symbols-outlined text-lg transition-transform group-hover:-translate-x-1">arrow_back</span>
+      </span>
     </Link>
   );
 }
 
-function ActionDock() {
-  const actions = [
-    { href: "/dashboard/user/history", icon: "history", title: "تاریخچه", text: "گزارش‌ها و نتیجه‌ها" },
-    { href: "/game-guide", icon: "menu_book", title: "راهنمای بازی", text: "قوانین و روند اجرا" },
-    { href: "/dashboard/user/requests", icon: "rate_review", title: "پیشنهاد بازی", text: "نقش، سناریو یا اصلاح" },
-  ];
+/* -------------------------------------------------- form: streak + roles */
 
+function StreakStrip({ games }: { games: any[] }) {
+  const last = games.slice(0, 8).reverse();
+  if (last.length === 0) return null;
   return (
-    <section className="grid gap-3 md:grid-cols-3">
-      {actions.map((action) => (
-        <Link key={action.href} href={action.href} className="pm-card p-4 hover:border-[var(--pm-primary)] transition-colors">
-          <div className="flex items-center justify-between gap-3">
-            <span className="material-symbols-outlined grid size-11 place-items-center rounded-[var(--radius-sm)] bg-[var(--pm-surface-soft)] text-2xl text-[var(--pm-primary)]">{action.icon}</span>
-            <span className="material-symbols-outlined text-[var(--pm-muted)]">chevron_left</span>
-          </div>
-          <h3 className="mt-4 font-black">{action.title}</h3>
-          <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{action.text}</p>
-        </Link>
-      ))}
-    </section>
+    <div className="flex items-center gap-1.5" dir="ltr">
+      {last.map((g, i) => {
+        const win = g.result === "WIN";
+        const loss = g.result === "LOSS";
+        return (
+          <span
+            key={i}
+            title={resultMeta(g.result).label}
+            className={`dx-streak text-xs ${
+              win ? "bg-[var(--pm-success)]/15 text-[var(--pm-success)] border border-[var(--pm-success)]/30"
+              : loss ? "bg-[var(--pm-danger)]/15 text-[var(--pm-danger)] border border-[var(--pm-danger)]/30"
+              : "bg-[var(--pm-surface-soft)] text-[var(--pm-muted)] border border-[var(--pm-line)]"}`}
+          >
+            {win ? "بُرد".slice(0, 1) : loss ? "بَخ".slice(0, 1) : "—"}
+          </span>
+        );
+      })}
+    </div>
   );
 }
+
+function RoleBars({ roles }: { roles: any[] }) {
+  const top = [...roles].sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 5);
+  const max = Math.max(1, ...top.map((r) => r.count || 0));
+  return (
+    <div className="grid gap-2.5">
+      {top.map((role) => (
+        <div key={role.role} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between">
+              <span className="truncate text-xs font-black text-[var(--pm-text)]">{role.role}</span>
+              <span className="text-xs font-black text-[var(--pm-muted)]" dir="ltr">{toFa(role.count)}</span>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--pm-line)]">
+              <div className="h-full rounded-full bg-gradient-to-l from-[var(--pm-primary)] to-[var(--pm-primary-strong)]" style={{ width: `${r2(((role.count || 0) / max) * 100)}%` }} />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* -------------------------------------------------- recent nights ledger */
+
+function NightsTimeline({ games, onSelect }: { games: any[]; onSelect: (g: any) => void }) {
+  return (
+    <ol className="relative grid gap-2.5">
+      <span className="absolute bottom-3 right-[1.15rem] top-3 w-px bg-[var(--pm-line)]" aria-hidden="true" />
+      {games.slice(0, 8).map((g) => {
+        const r = resultMeta(g.result);
+        const win = g.result === "WIN";
+        return (
+          <li key={g.id}>
+            <button
+              onClick={() => onSelect(g)}
+              className="group grid w-full grid-cols-[2.4rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[var(--radius-md)] border border-transparent p-2 text-right transition-colors hover:border-[var(--pm-line)] hover:bg-[var(--pm-surface-soft)]"
+            >
+              <span className={`relative z-10 grid size-9 place-items-center rounded-full border ${win ? "border-[var(--pm-success)]/40 bg-[var(--pm-success)]/12 text-[var(--pm-success)]" : "border-[var(--pm-danger)]/40 bg-[var(--pm-danger)]/12 text-[var(--pm-danger)]"}`}>
+                <span className="material-symbols-outlined text-lg">{win ? "wb_twilight" : "bedtime"}</span>
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate font-black text-[var(--pm-text)]">{g.scenarioName}</span>
+                <span className="mt-0.5 block truncate text-[11px] font-bold text-[var(--pm-muted)]">{g.roleName} · {g.date}</span>
+              </span>
+              <span className={r.className}>{r.label}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/* ================================================== page */
 
 export default function UserDashboard() {
   const { data: session } = useSession();
@@ -180,12 +350,10 @@ export default function UserDashboard() {
   useEffect(() => {
     setMounted(true);
     refreshData();
-
     const pusher = getPusherClient();
     const channel = pusher.subscribe("lobby");
     channel.bind("game-created", refreshActiveGames);
     channel.bind("lobby-updated", refreshData);
-
     return () => {
       channel.unbind("game-created", refreshActiveGames);
       channel.unbind("lobby-updated", refreshData);
@@ -200,257 +368,180 @@ export default function UserDashboard() {
     });
     refreshActiveGames();
   };
-
   const refreshActiveGames = async () => {
     const result = await getWaitingGamesSafe(Date.now());
     setActiveGames(result.data);
     setActiveGamesError(result.success ? "" : result.error || "لابی‌های باز بارگذاری نشدند.");
   };
 
-  const statsData = data?.statsData || [
-    { name: "پیروزی‌ها", value: 0, color: "var(--pm-success)" },
-    { name: "شکست‌ها", value: 0, color: "var(--pm-danger)" },
-  ];
+  const statsData = data?.statsData || [];
   const roleHistory = data?.roleHistory || [];
   const recentGames = data?.recentGames || [];
-  const wins = statsData.find((item) => item.name.includes("پیروزی"))?.value || 0;
-  const losses = statsData.find((item) => item.name.includes("شکست"))?.value || 0;
+  const wins = statsData.find((i) => i.name?.includes("پیروزی"))?.value || 0;
+  const losses = statsData.find((i) => i.name?.includes("شکست"))?.value || 0;
   const totalGames = wins + losses;
   const winRate = totalGames ? Math.round((wins / totalGames) * 100) : 0;
   const displayName = data?.userName || session?.user?.name || "بازیکن";
   const displayImage = data?.userImage || session?.user?.image;
-  const latestGame = recentGames[0];
-  const primaryLobby = activeGames[0];
-  const roleChartData = useMemo(() => buildRoleChartData(roleHistory), [roleHistory]);
+  const streak = useMemo(() => computeStreak(recentGames), [recentGames]);
+  const activeCount = activeGames.length + (data?.currentActiveGame ? 1 : 0);
 
   if (!mounted) {
     return (
       <div className="grid gap-4">
-        <div className="h-[7rem] animate-pulse rounded-[var(--radius-md)] bg-[var(--pm-line)]" />
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="h-96 animate-pulse rounded-[var(--radius-md)] bg-[var(--pm-line)]" />
-          <div className="h-96 animate-pulse rounded-[var(--radius-md)] bg-[var(--pm-line)]" />
-        </div>
+        <div className="h-[18rem] animate-pulse rounded-[var(--radius-xl)] bg-[var(--pm-line)]" />
+        <div className="h-44 animate-pulse rounded-[var(--radius-lg)] bg-[var(--pm-line)]" />
+        <div className="h-64 animate-pulse rounded-[var(--radius-lg)] bg-[var(--pm-line)]" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-5 font-sans text-[var(--pm-text)]">
-      {/* Hero Stats Card */}
-      <section className="pm-card p-5 overflow-hidden relative">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.08),transparent_34%),linear-gradient(90deg,rgba(16,19,23,0.04)_1px,transparent_1px)] bg-[size:auto,2.5rem_2.5rem] opacity-70 dark:bg-[linear-gradient(135deg,rgba(190,242,100,0.07),transparent_34%),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)]" />
-        <div className="relative z-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-          <div className="flex min-w-0 items-center gap-4">
-            <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-strong)] text-xl font-black shadow-[var(--pm-shadow-soft)]">
-              {displayImage ? <img src={displayImage} alt="" className="size-full object-cover" /> : initials(displayName)}
-              <span className="absolute bottom-1 right-1 size-3 rounded-full border-2 border-[var(--pm-surface)] bg-[var(--pm-success)]" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[0.7rem] font-black uppercase tracking-[0.2em] text-[var(--pm-primary)]">PLAYER DECK</p>
-              <h1 className="mt-1 truncate text-3xl font-black">{displayName}</h1>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="pm-chip pm-chip-primary shadow-[0_0_10px_var(--pm-primary-glow)]">{data?.currentActiveGame ? "بازی فعال دارید" : primaryLobby ? "لابی آماده است" : "در انتظار لابی"}</span>
-                <span className="pm-chip">{totalGames} بازی</span>
-                <span className="pm-chip pm-chip-success">{winRate}% برد</span>
-              </div>
-            </div>
-          </div>
+    <div className="space-y-6 text-[var(--pm-text)]">
+      {/* HERO: identity card + tonight */}
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.74fr)]">
+        <div className="dx-rise"><PlayerCard name={displayName} image={displayImage} winRate={winRate} wins={wins} losses={losses} total={totalGames} streak={streak} presenceCount={presence.count || 0} /></div>
 
-          <div className="flex flex-wrap items-center gap-4 lg:justify-end">
-            <PresenceFaces presence={presence} />
-            {data?.currentActiveGame ? (
-              <Link href={`/game/${data.currentActiveGame.id}`} className="pm-button pm-button-primary shadow-[0_0_15px_var(--pm-primary-glow)]">
-                ادامه بازی
-                <span className="material-symbols-outlined text-xl">play_arrow</span>
-              </Link>
-            ) : primaryLobby ? (
-              <Link href={`/lobby/${primaryLobby.id}`} className="pm-button pm-button-primary shadow-[0_0_15px_var(--pm-primary-glow)]">
-                ورود به لابی
-                <span className="material-symbols-outlined text-xl">login</span>
-              </Link>
-            ) : null}
+        <aside className="dx-rise pm-card flex flex-col justify-between gap-4 rounded-[var(--radius-xl)] p-5">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="pm-eyebrow">امشب</span>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-[var(--pm-success)]">
+                <span className="size-1.5 animate-pulse-slow rounded-full bg-[var(--pm-success)]" />
+                {toFa(presence.count || 0)} آنلاین
+              </span>
+            </div>
+            <h2 className="mt-2 font-display text-2xl font-bold">
+              {data?.currentActiveGame ? "بازی‌ات در جریان است" : activeGames[0] ? "میزی برایت باز است" : "میز هنوز خاموش است"}
+            </h2>
+            <p className="mt-1.5 text-sm font-bold leading-7 text-[var(--pm-muted)]">
+              {data?.currentActiveGame
+                ? "گرداننده منتظر توست؛ به اتاق بازی برگرد."
+                : activeGames[0]
+                  ? "یک لابیِ باز پیدا شد. صندلی‌ات را زود بگیر."
+                  : "تا گرداننده‌ای لابی بسازد، اینجا روشن می‌شود."}
+            </p>
           </div>
-        </div>
+          {data?.currentActiveGame ? (
+            <Link href={`/game/${data.currentActiveGame.id}`} className="pm-button-primary ms-cta min-h-12">
+              <span className="material-symbols-outlined text-xl">sports_esports</span>
+              ادامهٔ بازی
+            </Link>
+          ) : activeGames[0] ? (
+            <Link href={`/lobby/${activeGames[0].id}`} className="pm-button-primary ms-cta min-h-12">
+              <span className="material-symbols-outlined text-xl">meeting_room</span>
+              ورود به لابی
+            </Link>
+          ) : (
+            <Link href="/game-guide" className="pm-button-secondary min-h-12">
+              <span className="material-symbols-outlined text-xl">menu_book</span>
+              تا آن موقع، قوانین را مرور کن
+            </Link>
+          )}
+        </aside>
       </section>
 
       {dashboardError && (
-        <div className="pm-muted-card border-amber-400/25 bg-amber-400/10 p-4 text-sm font-bold leading-7 text-amber-800 dark:text-amber-100">
-          <span className="material-symbols-outlined ml-2 text-xl align-middle">cloud_off</span>
+        <div className="pm-muted-card border-[var(--pm-warning)]/25 bg-[var(--pm-warning)]/10 p-4 text-sm font-bold leading-7 text-[var(--pm-text)]">
+          <span className="material-symbols-outlined ml-2 align-middle text-xl text-[var(--pm-warning)]">cloud_off</span>
           {dashboardError}
         </div>
       )}
 
-      {/* Live Lobbies */}
-      <section className="pm-card p-5">
-        <div className="flex items-end justify-between gap-3">
+      {/* TONIGHT'S TABLES — snap deck of mini tables */}
+      <section className="dx-rise">
+        <div className="mb-3 flex items-end justify-between gap-3">
           <div>
-            <p className="text-[0.7rem] font-black uppercase tracking-widest text-[var(--pm-primary)]">اتاق‌های زنده</p>
-            <h2 className="mt-1 text-2xl font-black">ورود سریع به بازی</h2>
+            <span className="pm-eyebrow">میزهای امشب</span>
+            <h2 className="mt-1.5 font-display text-2xl font-bold">یک صندلی انتخاب کن</h2>
           </div>
-          <span className="pm-chip pm-chip-primary">{activeGames.length + (data?.currentActiveGame ? 1 : 0)} مورد</span>
+          <span className="pm-chip pm-chip-primary">{toFa(activeCount)} میز</span>
         </div>
-
-        <div className="mt-5">
-          {activeGamesError ? (
-            <EmptyState icon="cloud_off" title="لابی‌ها بارگذاری نشدند" text={activeGamesError} />
-          ) : !data?.currentActiveGame && activeGames.length === 0 ? (
-            <EmptyState icon="radar" title="لابی فعالی پیدا نشد" text="وقتی گرداننده‌ای لابی بسازد، کارت ورود همین‌جا ظاهر می‌شود." />
-          ) : (
-            <div className="grid gap-4 lg:grid-cols-2">
-              {data?.currentActiveGame && <LiveLobbyCard game={data.currentActiveGame} active />}
-              {activeGames.slice(0, 5).map((game) => (
-                <LiveLobbyCard key={game.id} game={game} />
-              ))}
-            </div>
-          )}
-        </div>
+        {activeGamesError ? (
+          <EmptyState icon="cloud_off" title="لابی‌ها بارگذاری نشدند" text={activeGamesError} />
+        ) : activeCount === 0 ? (
+          <EmptyState icon="bedtime" title="میزها خاموش‌اند" text="وقتی گرداننده‌ای لابی بسازد، میزش همین‌جا روشن می‌شود." />
+        ) : (
+          <div className="dx-rail pb-2">
+            {data?.currentActiveGame && <TableCard game={data.currentActiveGame} active />}
+            {activeGames.slice(0, 8).map((g) => <TableCard key={g.id} game={g} />)}
+          </div>
+        )}
       </section>
 
-      <ActionDock />
+      {/* FORM + RECENT */}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+        <section className="dx-rise pm-card rounded-[var(--radius-xl)] p-5">
+          <span className="pm-eyebrow">فرمِ تو</span>
+          <h2 className="mt-1.5 font-display text-2xl font-bold">روند و نقش‌ها</h2>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-        {/* Recent Games */}
-        <section className="pm-card p-5">
+          {totalGames === 0 ? (
+            <div className="mt-5"><EmptyState icon="insights" title="هنوز فرمی نساخته‌ای" text="بعد از چند شب، روند برد و نقش‌های پرتکرارت اینجا شکل می‌گیرد." /></div>
+          ) : (
+            <div className="mt-5 grid gap-5">
+              <div className="rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-black text-[var(--pm-muted)]">۸ شبِ اخیر</p>
+                  <p className="text-xs font-black text-[var(--pm-primary)]" dir="ltr">{toFa(winRate)}٪ برد</p>
+                </div>
+                <div className="mt-3"><StreakStrip games={recentGames} /></div>
+              </div>
+              {roleHistory.length > 0 && (
+                <div>
+                  <p className="mb-3 text-xs font-black text-[var(--pm-muted)]">نقش‌هایی که بیشتر گرفته‌ای</p>
+                  <RoleBars roles={roleHistory} />
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
+        <section className="dx-rise pm-card rounded-[var(--radius-xl)] p-5">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <p className="text-[0.7rem] font-black uppercase tracking-widest text-[var(--pm-primary)]">بازی‌های اخیر</p>
-              <h2 className="mt-1 text-2xl font-black">آخرین بازی‌ها</h2>
+              <span className="pm-eyebrow">آخرین شب‌ها</span>
+              <h2 className="mt-1.5 font-display text-2xl font-bold">دفترِ بازی‌ها</h2>
             </div>
-            <Link href="/dashboard/user/history" className="pm-button pm-button-secondary min-h-[2.5rem] px-3 text-xs">
-              همه تاریخچه
-            </Link>
+            <Link href="/dashboard/user/history" className="pm-button-secondary min-h-10 px-3 text-xs">همه</Link>
           </div>
-
-          <div className="mt-5 grid gap-3">
+          <div className="mt-5">
             {recentGames.length === 0 ? (
-              <EmptyState icon="history_toggle_off" title="هنوز بازی ثبت نشده" text="بعد از پایان اولین بازی، خلاصه آن اینجا می‌آید." />
+              <EmptyState icon="history_toggle_off" title="هنوز شبی ثبت نشده" text="بعد از اولین بازی کامل، خلاصه‌اش اینجا می‌آید." />
             ) : (
-              recentGames.slice(0, 10).map((game: any, index: number) => {
-                const result = resultMeta(game.result);
-                return (
-                  <button
-                    key={game.id}
-                    onClick={() => setSelectedHistoryGame(game)}
-                    className="group grid w-full gap-3 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] p-3 text-right shadow-[var(--pm-shadow-soft)] hover:border-[var(--pm-primary)] transition-colors sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-center"
-                  >
-                    <span className="hidden size-[2.5rem] items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-surface-soft)] text-sm font-black text-[var(--pm-muted)] sm:flex">{index + 1}</span>
-                    <span className="min-w-0">
-                      <span className="block truncate font-black text-[var(--pm-text)]">{game.scenarioName}</span>
-                      <span className="mt-2 flex flex-wrap gap-1.5 text-[0.7rem] font-black text-[var(--pm-muted)]">
-                        <span className="pm-chip">{game.roleName}</span>
-                        <span className="pm-chip">{game.moderatorName}</span>
-                        <span className="pm-chip">{game.date}</span>
-                      </span>
-                    </span>
-                    <span className="flex items-center justify-between gap-3 sm:justify-end">
-                      <span className={result.className}>
-                        <span className="material-symbols-outlined text-sm">{result.icon}</span>
-                        {result.label}
-                      </span>
-                      <span className="material-symbols-outlined text-xl text-[var(--pm-muted)] transition-transform group-hover:-translate-x-1">arrow_back</span>
-                    </span>
-                  </button>
-                );
-              })
+              <NightsTimeline games={recentGames} onSelect={setSelectedHistoryGame} />
             )}
           </div>
         </section>
-
-        {/* Stats Summary */}
-        <aside className="grid gap-5">
-          <section className="pm-card p-5">
-            <p className="text-[0.7rem] font-black uppercase tracking-widest text-[var(--pm-primary)]">فرم بازی</p>
-            <h2 className="mt-1 text-2xl font-black">خلاصه عملکرد</h2>
-            <div className="mt-5 grid gap-3">
-              <div className="pm-muted-card p-4 border border-[var(--pm-line)]">
-                <p className="text-xs font-black text-[var(--pm-muted)]">آخرین نتیجه</p>
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <p className="min-w-0 truncate text-lg font-black">{latestGame ? latestGame.scenarioName : "هنوز بازی کامل نشده"}</p>
-                  {latestGame && <span className={resultMeta(latestGame.result).className}>{resultMeta(latestGame.result).label}</span>}
-                </div>
-              </div>
-              <div className="pm-muted-card p-4 border border-[var(--pm-line)]">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs font-black text-[var(--pm-muted)]">درصد برد</p>
-                  <p className="text-xl font-black text-[var(--pm-primary)]">{winRate}%</p>
-                </div>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--pm-line)]">
-                  <div className="h-full rounded-full bg-[var(--pm-primary)] shadow-[0_0_10px_var(--pm-primary)]" style={{ width: `${winRate}%` }} />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="pm-card p-5">
-            <p className="text-[0.7rem] font-black uppercase tracking-widest text-[var(--pm-primary)]">نقش‌ها</p>
-            <h2 className="mt-1 text-2xl font-black">نقشه نقش‌ها</h2>
-            {roleChartData.length === 0 ? (
-              <div className="mt-5">
-                <EmptyState icon="troubleshoot" title="نقشی ثبت نشده" text="بعد از حضور در بازی، نقش‌های دریافتی اینجا دیده می‌شوند." />
-              </div>
-            ) : (
-              <>
-                <div className="mt-5 h-48" dir="ltr">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Tooltip contentStyle={{ backgroundColor: "var(--pm-surface-strong)", borderRadius: "var(--radius-sm)", border: "1px solid var(--pm-line)", fontFamily: "var(--font-sans)", color: "var(--pm-text)" }} />
-                      <Pie data={roleChartData} dataKey="count" nameKey="role" innerRadius={50} outerRadius={80} paddingAngle={3} stroke="none">
-                        {roleChartData.map((entry, index) => (
-                          <Cell key={`role-slice-${entry.role}`} fill={ROLE_CHART_COLORS[index % ROLE_CHART_COLORS.length]} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 grid gap-2">
-                  {roleChartData.map((role, index) => (
-                    <div key={role.role} className="flex items-center justify-between gap-3 text-sm">
-                      <span className="flex min-w-0 items-center gap-3 font-bold text-[var(--pm-text)]">
-                        <span className="size-3 shrink-0 rounded-full" style={{ backgroundColor: ROLE_CHART_COLORS[index % ROLE_CHART_COLORS.length] }} />
-                        <span className="truncate">{role.role}</span>
-                      </span>
-                      <span className="font-black text-[var(--pm-text)]">{role.count}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </section>
-        </aside>
       </div>
 
+      {/* report modal (unchanged behavior) */}
       {selectedHistoryGame && (
         <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/80 backdrop-blur-xl sm:items-center">
           <div className="pm-card pm-safe-modal custom-scrollbar w-full max-w-3xl overflow-y-auto p-6 text-[var(--pm-text)]">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <p className="text-[0.7rem] font-black uppercase tracking-widest text-[var(--pm-primary)]">گزارش بازی</p>
-                <h3 className="mt-2 text-3xl font-black">{selectedHistoryGame.scenarioName}</h3>
+                <span className="pm-eyebrow">گزارش بازی</span>
+                <h3 className="mt-2 font-display text-3xl font-bold">{selectedHistoryGame.scenarioName}</h3>
                 <p className="mt-2 text-sm font-bold text-[var(--pm-muted)]">{selectedHistoryGame.date}</p>
               </div>
-              <button onClick={() => setSelectedHistoryGame(null)} className="pm-button pm-button-secondary size-12 p-0 shadow-none hover:border-[var(--pm-primary)]">
+              <button onClick={() => setSelectedHistoryGame(null)} className="pm-button-secondary size-12 p-0 shadow-none" aria-label="بستن">
                 <span className="material-symbols-outlined text-2xl">close</span>
               </button>
             </div>
-
             <div className="grid gap-4 sm:grid-cols-3">
-              <div className="pm-muted-card p-4 border border-[var(--pm-line)]">
+              <div className="pm-muted-card border border-[var(--pm-line)] p-4">
                 <p className="text-xs font-bold text-[var(--pm-muted)]">نقش شما</p>
-                <p className="mt-2 font-black text-lg">{selectedHistoryGame.roleName}</p>
+                <p className="mt-2 text-lg font-black">{selectedHistoryGame.roleName}</p>
               </div>
-              <div className="pm-muted-card p-4 border border-[var(--pm-line)]">
+              <div className="pm-muted-card border border-[var(--pm-line)] p-4">
                 <p className="text-xs font-bold text-[var(--pm-muted)]">گرداننده</p>
-                <p className="mt-2 font-black text-lg">{selectedHistoryGame.moderatorName}</p>
+                <p className="mt-2 text-lg font-black">{selectedHistoryGame.moderatorName}</p>
               </div>
-              <div className="pm-muted-card p-4 border border-[var(--pm-line)]">
+              <div className="pm-muted-card border border-[var(--pm-line)] p-4">
                 <p className="text-xs font-bold text-[var(--pm-muted)]">نتیجه</p>
-                <div className="mt-2">
-                  <span className={resultMeta(selectedHistoryGame.result).className}>{resultMeta(selectedHistoryGame.result).label}</span>
-                </div>
+                <div className="mt-2"><span className={resultMeta(selectedHistoryGame.result).className}>{resultMeta(selectedHistoryGame.result).label}</span></div>
               </div>
             </div>
-
             <div className="mt-8">
               <h4 className="mb-4 text-sm font-black text-[var(--pm-text)]">نقش‌های بازیکنان</h4>
               <div className="grid max-h-80 gap-3 overflow-y-auto pr-2 sm:grid-cols-2">
@@ -458,23 +549,18 @@ export default function UserDashboard() {
                   <div key={idx} className="flex items-center justify-between rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] p-4 shadow-[var(--pm-shadow-soft)]">
                     <div>
                       <p className="text-[0.95rem] font-black">{player.name}</p>
-                      <p className="mt-1.5 text-[0.8rem] text-[var(--pm-muted)]">
-                        {player.roleName}{player.isAlive === false ? "، حذف‌شده" : ""}
-                      </p>
+                      <p className="mt-1.5 text-[0.8rem] text-[var(--pm-muted)]">{player.roleName}{player.isAlive === false ? "، حذف‌شده" : ""}</p>
                     </div>
-                    <span className={alignmentClass(player.alignment)}>
-                      {alignmentLabel(player.alignment)}
-                    </span>
+                    <span className={alignmentClass(player.alignment)}>{alignmentLabel(player.alignment)}</span>
                   </div>
                 ))}
               </div>
             </div>
-
             {selectedHistoryGame.nightEvents?.length > 0 && (
               <GameReportTimeline
                 events={selectedHistoryGame.nightEvents}
                 title="گزارش منتشرشده بازی"
-                subtitle="روایت خلاصه اتفاقات روز و شب، بدون ردیف‌های مبهم و تکراری."
+                subtitle="روایت خلاصه اتفاقات روز و شب."
                 isPublic={selectedHistoryGame.nightRecordsPublic}
                 className="mt-8"
               />

@@ -18,32 +18,38 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background:
-            'radial-gradient(circle at 28% 18%, #bef264 0, #60a5fa 34%, #111417 72%)',
-          borderRadius: '120px',
           overflow: 'hidden',
           position: 'relative',
+          background:
+            'radial-gradient(120% 90% at 50% 0%, #2a1f33 0%, #160f1d 52%, #0d0811 100%)',
         }}
       >
         <div
           style={{
             position: 'absolute',
-            inset: 46,
-            borderRadius: 96,
-            border: '3px solid rgba(190, 242, 100, 0.34)',
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.1), rgba(96,165,250,0.28))',
+            inset: 52,
+            borderRadius: 46,
+            border: '2px solid rgba(212,173,85,0.42)',
+            background: 'linear-gradient(160deg, rgba(231,200,120,0.16), rgba(190,71,80,0.08))',
+            boxShadow: '0 30px 90px rgba(0,0,0,0.5), inset 0 2px 0 rgba(231,200,120,0.22)',
           }}
         />
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="82%" height="82%">
-          <path d="M256 66 405 150v168c0 70-57 116-149 142-92-26-149-72-149-142V150L256 66Z" fill="#111417" stroke="#bef264" strokeWidth="22" strokeLinejoin="round" />
-          <path d="M154 176c35 26 69 39 102 39s67-13 102-39v101c0 55-38 91-102 113-64-22-102-58-102-113V176Z" fill="#181d22" stroke="#3d4b56" strokeWidth="10" />
-          <rect x="170" y="168" width="76" height="112" rx="16" fill="#f8fafc" transform="rotate(-13 208 224)" />
-          <rect x="266" y="168" width="76" height="112" rx="16" fill="#f8fafc" transform="rotate(13 304 224)" />
-          <rect x="218" y="151" width="76" height="120" rx="16" fill="#bef264" />
-          <circle cx="256" cy="208" r="25" fill="#111417" />
-          <path d="M216 316c22-24 58-24 80 0" fill="none" stroke="#bef264" strokeWidth="22" strokeLinecap="round" />
-          <path d="M184 350h144" stroke="#f8fafc" strokeWidth="18" strokeLinecap="round" opacity=".9" />
-        </svg>
+        <div
+          style={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#e7c878',
+            fontSize: 230,
+            fontWeight: 900,
+            lineHeight: 1,
+            letterSpacing: -6,
+            textShadow: '0 8px 30px rgba(190,71,80,0.4)',
+          }}
+        >
+          M
+        </div>
       </div>
     ),
     { ...size }

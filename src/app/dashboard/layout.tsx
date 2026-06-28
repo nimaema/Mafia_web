@@ -1,6 +1,6 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
-import { DashboardNavigation } from "@/components/dashboard/DashboardNavigation";
+import { ConsoleShell } from "@/components/dashboard/ConsoleShell";
 import { prisma } from "@/lib/prisma";
 import { profileImageUrl } from "@/lib/profileImage";
 import type { Metadata } from "next";
@@ -40,23 +40,17 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="app-page min-h-screen pb-28 md:pb-0 md:flex md:items-start" dir="rtl">
-      <DashboardNavigation
-        isAdmin={isAdmin}
-        isModerator={isModerator}
-        logoutAction={handleLogout}
-        user={{
-          name: dbUser?.name || session.user?.name,
-          image: navigationImage,
-          role: effectiveRole,
-        }}
-      />
-
-      <main className="relative z-10 w-full flex-1 overflow-x-hidden p-4 md:p-8">
-        <div className="motion-page mx-auto max-w-7xl">
-          {children}
-        </div>
-      </main>
-    </div>
+    <ConsoleShell
+      isAdmin={isAdmin}
+      isModerator={isModerator}
+      logoutAction={handleLogout}
+      user={{
+        name: dbUser?.name || session.user?.name,
+        image: navigationImage,
+        role: effectiveRole,
+      }}
+    >
+      {children}
+    </ConsoleShell>
   );
 }

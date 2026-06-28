@@ -69,7 +69,7 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
               </span>
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--pm-primary)] opacity-80">MESSAGE</p>
+              <p className="pm-eyebrow">پیام</p>
               <h3 className="mt-1 break-words text-xl font-black leading-7 text-[var(--pm-text)]">{title}</h3>
             </div>
           </div>

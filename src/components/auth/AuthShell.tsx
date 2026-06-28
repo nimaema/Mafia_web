@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SeatRing } from "@/components/game/SeatRing";
+
+const SEATED_GUESTS = ["آرش", "نگار", "سهراب", "مونا", "بابک", "تینا", "کاوه", "رها"].map((name) => ({ name, isAlive: true }));
 
 type AuthShellProps = {
   icon: string;
@@ -26,7 +29,7 @@ export function AuthShell({ icon, title, subtitle, activeTab, children, footer }
             <span className="material-symbols-outlined text-xl">theater_comedy</span>
           </div>
           <div>
-            <p className="text-lg font-black text-[var(--pm-text)]">مافیا بورد</p>
+            <p className="font-display text-2xl font-bold leading-6 text-[var(--pm-text)]">مافیا بورد</p>
             <p className="text-[11px] font-black tracking-wider text-[var(--pm-primary)] opacity-80">ورود به اتاق فرمان</p>
           </div>
         </Link>
@@ -42,25 +45,41 @@ export function AuthShell({ icon, title, subtitle, activeTab, children, footer }
 
       <main className="app-container relative z-10 grid min-h-[calc(100dvh-5.25rem)] items-center gap-8 pb-10 lg:grid-cols-[minmax(0,1fr)_440px]">
         <section className="motion-reveal hidden lg:block">
-          <div className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-3 py-1.5 text-sm font-black text-[var(--pm-primary)]">
-            <span className="material-symbols-outlined text-base">lock_open</span>
-            دسترسی حساب
-          </div>
-          <h1 className="mt-5 max-w-3xl text-5xl font-black leading-tight text-[var(--pm-text)]">
-            یک ورود کوتاه؛ بعدش مستقیم به لابی، نقش و گزارش بازی.
+          <span className="pm-eyebrow">میز در انتظار</span>
+          <h1 className="mt-4 max-w-2xl font-display text-6xl font-bold leading-[1.04] text-[var(--pm-text)]">
+            یک صندلی سرِ میز، <span className="text-[var(--pm-primary)]">به نامِ توست.</span>
           </h1>
-          <p className="mt-5 max-w-2xl text-base font-bold leading-8 pm-muted-card text-[var(--pm-text)] opacity-90">
-            فرم‌ها جمع‌وجور شده‌اند تا آیکن، فیلد و متن‌ها فاصله اضافه نداشته باشند و روی موبایل مثل یک اپ واقعی حس شوند.
+          <p className="mt-4 max-w-xl text-base font-bold leading-8 text-[var(--pm-muted)]">
+            وارد شو تا بنشینی پشت میز: لابی زنده، نقشِ مخفی و گزارشِ هر شب — همه آمادهٔ توست.
           </p>
 
-          <div className="motion-list mt-8 grid gap-3 xl:grid-cols-3">
-            {highlights.map((item) => (
-              <div key={item.title} className="pm-card p-4">
-                <span className="material-symbols-outlined pm-icon size-11 text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-2xl">{item.icon}</span>
-                <h2 className="mt-4 font-black text-[var(--pm-text)]">{item.title}</h2>
-                <p className="mt-2 text-sm font-bold leading-7 text-[var(--pm-muted)]">{item.text}</p>
-              </div>
-            ))}
+          <div className="mt-7 grid items-center gap-6 xl:grid-cols-[18rem_minmax(0,1fr)]">
+            <div className="pm-card rounded-[var(--radius-xl)] p-5">
+              <SeatRing
+                capacity={SEATED_GUESTS.length + 1}
+                players={SEATED_GUESTS}
+                center={
+                  <div>
+                    <span className="material-symbols-outlined text-2xl text-[var(--pm-primary)]">chair</span>
+                    <p className="mt-1 font-display text-xl font-bold text-[var(--pm-text)]">میزِ شب</p>
+                    <p className="text-[11px] font-bold text-[var(--pm-muted)]">یک جای خالی</p>
+                  </div>
+                }
+              />
+            </div>
+            <div className="motion-list grid gap-2.5">
+              {highlights.map((item) => (
+                <div key={item.title} className="flex items-center gap-3 rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-3">
+                  <span className="pm-icon size-10 shrink-0 border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]">
+                    <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                  </span>
+                  <div className="min-w-0">
+                    <h2 className="font-display text-lg font-bold leading-tight text-[var(--pm-text)]">{item.title}</h2>
+                    <p className="mt-0.5 text-xs font-bold leading-5 text-[var(--pm-muted)]">{item.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -69,7 +88,7 @@ export function AuthShell({ icon, title, subtitle, activeTab, children, footer }
             <div className="mx-auto grid size-16 place-items-center rounded-[var(--radius-md)] border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]">
               <span className="material-symbols-outlined text-3xl">{icon}</span>
             </div>
-            <h2 className="mt-4 text-3xl font-black text-[var(--pm-text)]">{title}</h2>
+            <h2 className="mt-4 font-display text-4xl font-bold text-[var(--pm-text)]">{title}</h2>
             <p className="mt-2 text-sm font-bold leading-6 text-[var(--pm-muted)]">{subtitle}</p>
           </header>
 

@@ -18,6 +18,7 @@ import {
 import { usePopup } from "@/components/PopupProvider";
 import { MobilePwaFeatureLock } from "@/components/MobilePwaFeatureLock";
 import { GameReportTimeline, type GameReportEvent } from "@/components/game/GameReportTimeline";
+import { SeatRing } from "@/components/game/SeatRing";
 
 type Alignment = "CITIZEN" | "MAFIA" | "NEUTRAL";
 type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
@@ -1201,7 +1202,7 @@ export default function ModeratorGamePage() {
     return (
       <div className="flex min-h-[560px] items-center justify-center" dir="rtl">
         <div className="pm-card w-full max-w-xl overflow-hidden text-center">
-          <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
+          <div className="h-1 bg-gradient-to-l from-[var(--pm-primary)] via-[var(--pm-danger)] to-[var(--pm-primary)]" />
           <div className="p-8 sm:p-10">
             <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-amber-300 text-amber-950 shadow-lg shadow-amber-500/20">
               <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
@@ -1217,7 +1218,23 @@ export default function ModeratorGamePage() {
   }
 
   return (
-    <div className="flex flex-col gap-5 pb-40 md:pb-20" dir="rtl">
+    <div className="pm-force-dark fixed inset-0 z-[60] flex flex-col gap-4 overflow-y-auto overflow-x-hidden custom-scrollbar px-3 pb-44 pt-0 md:gap-5 md:px-6" dir="rtl">
+      {/* cinematic act header — the live game breaks out of the console */}
+      <div className="sticky top-0 z-20 -mx-3 flex items-center justify-between gap-3 border-b border-[var(--pm-line)] px-3 py-2.5 backdrop-blur-2xl md:-mx-6 md:px-6" style={{ background: "color-mix(in oklab, var(--pm-bg) 80%, transparent)" }}>
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] text-[var(--pm-primary)]">
+            <span className="material-symbols-outlined text-xl">{reportMode === "DAY" ? "wb_twilight" : "bedtime"}</span>
+          </span>
+          <div className="min-w-0">
+            <p className="pm-eyebrow">اتاق اجرا{game?.code ? ` · #${game.code}` : ""}</p>
+            <h1 className="font-display text-2xl font-bold leading-none text-[var(--pm-text)]">{reportMode === "DAY" ? `روز ${dayNumber.toLocaleString("fa-IR")}` : `شب ${nightNumber.toLocaleString("fa-IR")}`}</h1>
+          </div>
+        </div>
+        <Link href="/dashboard/moderator" className="pm-button-secondary min-h-10 shrink-0 px-3 text-xs">
+          <span className="material-symbols-outlined text-lg">close</span>
+          <span className="hidden sm:inline">خروج به کنسول</span>
+        </Link>
+      </div>
       <header className="pm-card overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-zinc-50/80 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
@@ -1333,7 +1350,16 @@ export default function ModeratorGamePage() {
                 ))}
               </div>
 
-              <div className="overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/60">
+              {players.length > 0 && (
+                <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-4">
+                  <SeatRing
+                    mode="play"
+                    players={players.map((p) => ({ name: p.name, image: playerImage(p), isAlive: p.isAlive !== false }))}
+                  />
+                </div>
+              )}
+
+              <div className="overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface)] shadow-[var(--pm-shadow-soft)] dark:border-[var(--pm-line)]">
               {displayPlayers.map((player, index) => {
                 const alive = player.isAlive !== false;
                 const image = playerImage(player);

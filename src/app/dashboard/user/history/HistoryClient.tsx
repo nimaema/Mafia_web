@@ -113,141 +113,93 @@ export function HistoryClient({ initialData }: { initialData: HistoryPageData })
 
   const start = data.total === 0 ? 0 : data.page * data.pageSize + 1;
   const end = Math.min(data.total, (data.page + 1) * data.pageSize);
+  const toFa = (n: number | string) => Number(n).toLocaleString("fa-IR");
+  const pageWins = data.items.filter((g) => g.result === "WIN").length;
+  const pageLosses = data.items.filter((g) => g.result === "LOSS").length;
 
   return (
-    <div className="space-y-6" dir="rtl">
-      <section className="pm-card overflow-hidden">
-        <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-[10px] font-bold tracking-widest text-[var(--pm-primary)] uppercase">بایگانی بازی‌ها</p>
-            <h1 className="mt-1 text-3xl font-black text-[var(--pm-text)]">تاریخچه بازی‌های من</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--pm-muted)]">
-              هر صفحه ۱۰ بازی را با سناریو، نقش، نتیجه، گرداننده و ترکیب بازیکنان نشان می‌دهد.
-            </p>
-          </div>
-          <Link href="/dashboard/user" className="pm-button pm-button-secondary min-h-11 px-4">
-            <span className="material-symbols-outlined text-xl">arrow_forward</span>
-            بازگشت به داشبورد
-          </Link>
+    <div className="space-y-5" dir="rtl">
+      {/* header */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <span className="pm-eyebrow">بایگانی</span>
+          <h1 className="mt-1.5 font-display text-3xl font-bold text-[var(--pm-text)]">تاریخچهٔ تو</h1>
         </div>
-      </section>
+        {data.total > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <span className="pm-chip">{toFa(data.total)} بازی</span>
+            <span className="pm-chip pm-chip-success">{toFa(pageWins)} برد</span>
+            <span className="pm-chip pm-chip-danger">{toFa(pageLosses)} باخت</span>
+          </div>
+        )}
+      </div>
 
       {data.items.length === 0 ? (
-        <section className="pm-card flex min-h-[420px] flex-col items-center justify-center gap-4 p-10 text-center">
-          <div className="flex size-16 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-surface-strong)] text-[var(--pm-muted)] shadow-[var(--pm-shadow-soft)]">
-            <span className="material-symbols-outlined text-4xl">history</span>
-          </div>
+        <section className="pm-card flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-[var(--radius-xl)] p-10 text-center">
+          <span className="grid size-20 place-items-center rounded-full border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] text-[var(--pm-muted)]">
+            <span className="material-symbols-outlined text-4xl">history_toggle_off</span>
+          </span>
           <div>
-            <p className="font-black text-[var(--pm-text)]">هنوز هیچ بازی ثبت نشده است</p>
-            <p className="mt-1 text-sm text-[var(--pm-muted)]">بعد از پایان بازی‌ها، جزئیاتشان اینجا نمایش داده می‌شود.</p>
+            <p className="font-display text-xl font-bold text-[var(--pm-text)]">هنوز شبی ثبت نشده</p>
+            <p className="mt-1 text-sm text-[var(--pm-muted)]">بعد از اولین بازی کامل، روایتش اینجا بایگانی می‌شود.</p>
           </div>
         </section>
       ) : (
         <>
-          <section className="grid gap-4 xl:grid-cols-2">
+          {/* ledger */}
+          <div className="grid gap-2.5">
             {data.items.map((game) => {
               const result = resultMeta(game.result);
-              const previewPlayers = game.players.slice(0, 4);
-              const extraPlayers = Math.max(0, game.players.length - previewPlayers.length);
-
+              const win = game.result === "WIN";
               return (
-                <article key={game.id} className="pm-card overflow-hidden transition-all hover:border-[var(--pm-primary)]/50 hover:shadow-[0_0_20px_var(--pm-primary-glow)]">
-                  <div className="border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="truncate text-lg font-black text-[var(--pm-text)]">{game.scenarioName}</h2>
-                          {game.gameCode && (
-                            <span className="pm-chip bg-[var(--pm-surface)]">
-                              #{game.gameCode}
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-2 line-clamp-2 text-xs leading-5 text-[var(--pm-muted)]">
-                          {game.scenarioDescription || game.gameName}
-                        </p>
-                      </div>
-                      <span className={`${result.className} inline-flex shrink-0 items-center gap-1`}>
-                        <span className="material-symbols-outlined text-base">{result.icon}</span>
-                        {result.label}
+                <button
+                  key={game.id}
+                  onClick={() => setSelectedGame(game)}
+                  className="group grid w-full grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface)] p-3 text-right transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--pm-primary)]/40 hover:shadow-[var(--pm-shadow-soft)] sm:gap-4 sm:p-4"
+                >
+                  <span className={`grid size-11 place-items-center rounded-full border ${win ? "border-[var(--pm-success)]/40 bg-[var(--pm-success)]/12 text-[var(--pm-success)]" : "border-[var(--pm-danger)]/40 bg-[var(--pm-danger)]/12 text-[var(--pm-danger)]"}`}>
+                    <span className="material-symbols-outlined text-xl">{win ? "wb_twilight" : "bedtime"}</span>
+                  </span>
+                  <span className="min-w-0">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="truncate font-display text-lg font-bold text-[var(--pm-text)]">{game.scenarioName}</span>
+                      {game.gameCode && <span className="rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] px-1.5 py-0.5 font-mono text-[10px] font-black text-[var(--pm-primary)]" dir="ltr">#{game.gameCode}</span>}
+                    </span>
+                    <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] font-bold text-[var(--pm-muted)]">
+                      <span className={`inline-flex items-center gap-1 ${game.roleAlignment === "MAFIA" ? "text-[var(--pm-danger)]" : game.roleAlignment === "CITIZEN" ? "text-[var(--pm-blue)]" : "text-[#a88adf]"}`}>
+                        <span className="material-symbols-outlined text-sm">theater_comedy</span>{game.roleName}
                       </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 p-4">
-                    <div className="grid gap-2 sm:grid-cols-3">
-                      <div className="pm-muted-card p-3">
-                        <p className="text-[10px] font-bold text-[var(--pm-muted)]">نقش شما</p>
-                        <p className="mt-2 truncate font-black text-[var(--pm-text)]">{game.roleName}</p>
-                      </div>
-                      <div className="pm-muted-card p-3">
-                        <p className="text-[10px] font-bold text-[var(--pm-muted)]">گرداننده</p>
-                        <p className="mt-2 truncate font-black text-[var(--pm-text)]">{game.moderatorName}</p>
-                      </div>
-                      <div className="pm-muted-card p-3">
-                        <p className="text-[10px] font-bold text-[var(--pm-muted)]">تاریخ</p>
-                        <p className="mt-2 truncate font-black text-[var(--pm-text)]">{game.date}</p>
-                      </div>
-                    </div>
-
-                    <div className="pm-muted-card p-3">
-                      <div className="mb-3 flex items-center justify-between gap-3">
-                        <p className="text-xs font-black text-[var(--pm-muted)]">ترکیب بازیکنان</p>
-                        <span className="text-xs font-black text-[var(--pm-text)]">{game.playerCount} نفر</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {previewPlayers.map((player, index) => (
-                          <span key={`${game.id}-${player.name}-${index}`} className={`${alignmentClass(player.alignment)}`}>
-                            {player.name}: {player.roleName}{player.isAlive === false ? "، حذف‌شده" : ""}
-                          </span>
-                        ))}
-                        {extraPlayers > 0 && (
-                          <span className="pm-chip bg-[var(--pm-surface)]">
-                            +{extraPlayers} بازیکن دیگر
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <button onClick={() => setSelectedGame(game)} className="pm-button pm-button-secondary min-h-10 w-full">
-                      <span className="material-symbols-outlined text-lg">visibility</span>
-                      جزئیات کامل بازی
-                    </button>
-                  </div>
-                </article>
+                      <span aria-hidden="true">·</span>
+                      <span>{game.moderatorName}</span>
+                      <span aria-hidden="true">·</span>
+                      <span dir="ltr">{game.date}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{toFa(game.playerCount)} نفر</span>
+                    </span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-2">
+                    <span className={result.className}><span className="material-symbols-outlined text-sm">{result.icon}</span>{result.label}</span>
+                    <span className="material-symbols-outlined text-lg text-[var(--pm-muted)] transition-transform group-hover:-translate-x-1">chevron_left</span>
+                  </span>
+                </button>
               );
             })}
-          </section>
+          </div>
 
-          <section className="pm-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm font-bold text-[var(--pm-muted)]">
-              نمایش <span className="font-black text-[var(--pm-text)]">{start}</span> تا{" "}
-              <span className="font-black text-[var(--pm-text)]">{end}</span> از{" "}
-              <span className="font-black text-[var(--pm-text)]">{data.total}</span> بازی
-            </div>
+          {/* pagination */}
+          <div className="flex flex-col items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-3 sm:flex-row">
+            <p className="text-sm font-bold text-[var(--pm-muted)]">
+              <span className="font-black text-[var(--pm-text)]" dir="ltr">{toFa(start)}–{toFa(end)}</span> از {toFa(data.total)}
+            </p>
             <div className="flex gap-2">
-              <button
-                onClick={() => loadPage(data.page - 1)}
-                disabled={!data.hasPrevious || isPending}
-                className="pm-button pm-button-secondary min-h-10 px-4"
-              >
-                <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                ۱۰ بازی قبلی
+              <button onClick={() => loadPage(data.page - 1)} disabled={!data.hasPrevious || isPending} className="pm-button-secondary min-h-10 px-4 text-sm">
+                <span className="material-symbols-outlined text-lg">arrow_forward</span>قبلی
               </button>
-              <button
-                onClick={() => loadPage(data.page + 1)}
-                disabled={!data.hasNext || isPending}
-                className="pm-button pm-button-primary min-h-10 px-4"
-              >
-                {isPending ? (
-                  <span className="size-4 animate-spin rounded-full border-2 border-[var(--pm-surface-strong)] border-t-[var(--pm-text)]" />
-                ) : (
-                  <span className="material-symbols-outlined text-lg">arrow_back</span>
-                )}
-                ۱۰ بازی بعدی
+              <button onClick={() => loadPage(data.page + 1)} disabled={!data.hasNext || isPending} className="pm-button-primary min-h-10 px-4 text-sm">
+                {isPending ? <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <span className="material-symbols-outlined text-lg">arrow_back</span>}بعدی
               </button>
             </div>
-          </section>
+          </div>
         </>
       )}
 

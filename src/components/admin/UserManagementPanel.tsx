@@ -693,8 +693,8 @@ export function UserManagementPanel() {
                       onClick={() => setSelectedUserId(user.id)}
                       className={`group relative grid w-full gap-3 px-4 py-3 text-right transition-all lg:grid-cols-[minmax(220px,1.3fr)_132px_156px_88px] lg:items-center ${
                         isSelected
-                          ? "bg-[var(--pm-primary)]/10 shadow-[inset_0_0_0_1px_rgba(190,242,100,0.18)]"
-                          : "bg-white hover:bg-zinc-50 dark:bg-transparent dark:hover:bg-white/[0.04]"
+                          ? "bg-[var(--pm-primary)]/10 shadow-[inset_0_0_0_1px_var(--pm-primary-glow)]"
+                          : "bg-[var(--pm-surface)] hover:bg-[var(--pm-surface-soft)]"
                       }`}
                     >
                       <span className={`absolute inset-y-3 right-0 w-1 rounded-l-full bg-gradient-to-b ${roleAccentClass(user.role)}`} />
@@ -768,7 +768,7 @@ export function UserManagementPanel() {
             <div>
               <div className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-zinc-950 p-5 text-white dark:border-[var(--pm-line)]">
                 <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${roleAccentClass(selectedUser.role)}`} />
-                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.12),transparent_44%),linear-gradient(90deg,rgba(96,165,250,0.08)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem]" />
+                <div className="pm-hero-wash" />
                 <div className="relative flex items-start gap-4">
                   <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white/10 text-2xl font-black text-white shadow-xl shadow-black/20">
                     {selectedUser.image ? (
@@ -1057,8 +1057,8 @@ export function UserManagementPanel() {
                 </div>
               ) : (
                 <div className="overflow-hidden rounded-[28px] border border-[var(--pm-line)] bg-[#e8edf0] p-3 shadow-inner dark:border-[var(--pm-line)]">
-                  <div className="mx-auto max-w-2xl overflow-hidden rounded-[26px] border border-[var(--pm-line)] bg-white shadow-2xl shadow-zinc-950/10">
-                    <div className="pm-contrast-surface bg-[linear-gradient(135deg,#15181b_0%,#2457d6_48%,#65a30d_100%)] p-6 text-white">
+                  <div className="mx-auto max-w-2xl overflow-hidden rounded-[26px] border border-[var(--pm-line)] bg-[var(--pm-surface)] shadow-[var(--pm-shadow)]">
+                    <div className="pm-contrast-surface bg-[linear-gradient(135deg,#1a1220_0%,#466a89_48%,#9a6f28_100%)] p-6 text-white">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                           <div className="flex size-12 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-xl font-black text-zinc-950">M</div>
@@ -1101,7 +1101,7 @@ export function UserManagementPanel() {
                           return <div key={index} className="h-px bg-zinc-200" />;
                         }
                         return (
-                          <div key={index} className="rounded-lg border border-[var(--pm-line)] bg-white p-4 text-sm font-semibold leading-8 text-zinc-700">
+                          <div key={index} className="rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-4 text-sm font-semibold leading-8 text-[var(--pm-text)]">
                             {block.lines.map((line, lineIndex) => (
                               <span key={`${index}-${lineIndex}`}>
                                 {renderPreviewText(line)}

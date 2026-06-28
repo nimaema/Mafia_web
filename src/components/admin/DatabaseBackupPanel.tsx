@@ -353,7 +353,7 @@ export function DatabaseBackupPanel() {
             </div>
           </div>
 
-          <aside className="border-t border-[var(--pm-line)] bg-[linear-gradient(135deg,#f8fafc,#ffffff_55%,#edf4e6)] p-5 text-zinc-950 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.035))] dark:text-white lg:border-r lg:border-t-0">
+          <aside className="border-t border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-5 text-[var(--pm-text)] dark:border-[var(--pm-line)] lg:border-r lg:border-t-0">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-bold text-[var(--pm-muted)]">آخرین نقطه بازیابی</p>
