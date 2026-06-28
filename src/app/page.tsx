@@ -1,128 +1,167 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { MobileLandingLogin } from "@/components/auth/MobileLandingLogin";
 
-const quietMarks = ["لابی زنده", "گزارش دقیق", "سناریوی پویا"];
-const lobbyPreviewPlayers = ["نیما", "سارا", "آرش", "مینا"];
+const ROLES = [
+  { name: "پدرخوانده", tag: "مافیا", icon: "workspace_premium", tone: "var(--pm-danger)" },
+  { name: "کارآگاه", tag: "شهر", icon: "search", tone: "var(--pm-blue)" },
+  { name: "دکتر", tag: "شهر", icon: "health_and_safety", tone: "var(--pm-success)" },
+  { name: "اسنایپر", tag: "شهر", icon: "gps_fixed", tone: "var(--pm-warning)" },
+  { name: "ماتادور", tag: "مستقل", icon: "casino", tone: "var(--pm-violet)" },
+];
+
+const STEPS = [
+  { k: "۰۱", t: "لابی بساز", d: "یک میز باز کن، کد بده، بازیکن‌ها سرِ میز بنشینند.", icon: "groups" },
+  { k: "۰۲", t: "نقش‌ها را پخش کن", d: "سناریو را انتخاب کن؛ نقش‌ها مخفی و امن تقسیم می‌شوند.", icon: "playing_cards" },
+  { k: "۰۳", t: "شب و روز را بچرخان", d: "شلیک، نجات، استعلام، رأی و اعدام — همه از یک کنسول.", icon: "dark_mode" },
+  { k: "۰۴", t: "گزارش بگیر", d: "روایت کامل هر دور برای بازیکن‌ها منتشر می‌شود.", icon: "summarize" },
+];
 
 export default function Home() {
   return (
-    <main className="app-page min-h-screen overflow-hidden" dir="rtl">
-      {/* Background texture */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(132,204,22,0.09),transparent_18rem),linear-gradient(90deg,rgba(37,99,235,0.055)_1px,transparent_1px),linear-gradient(180deg,rgba(37,99,235,0.055)_1px,transparent_1px)] bg-[size:auto,3.5rem_3.5rem,3.5rem_3.5rem] opacity-80 dark:bg-[linear-gradient(180deg,rgba(190,242,100,0.06),transparent_18rem),linear-gradient(90deg,rgba(96,165,250,0.055)_1px,transparent_1px),linear-gradient(180deg,rgba(96,165,250,0.055)_1px,transparent_1px)]" />
-        <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(190,242,100,0.62),transparent)]" />
-      </div>
-
-      <MobileLandingLogin />
-
-      {/* Desktop Header */}
-      <header className="app-container relative z-10 hidden items-center justify-between py-6 md:flex">
-        <Link href="/" className="motion-reveal flex items-center gap-4">
-          <div className="grid size-12 place-items-center rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] shadow-[var(--pm-shadow-soft)]">
-            <span className="material-symbols-outlined text-3xl text-[var(--pm-primary)]">theater_comedy</span>
-          </div>
-          <div>
-            <p className="text-xl font-black">مافیا بورد</p>
-            <p className="text-xs font-black tracking-widest text-[var(--pm-muted)]">PLAYMAFIA</p>
-          </div>
+    <main className="app-page relative overflow-hidden" dir="rtl">
+      {/* nav */}
+      <header className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
+        <Link href="/" className="group flex items-center gap-3" aria-label="مافیا بورد">
+          <span className="grid size-11 place-items-center rounded-[var(--radius-md)] bg-gradient-to-br from-[var(--pm-primary)] to-[var(--pm-primary-strong)] text-[var(--pm-text-inverse)] shadow-[var(--pm-shadow-glow)]">
+            <span className="material-symbols-outlined text-[1.4rem]">playing_cards</span>
+          </span>
+          <span className="leading-tight">
+            <span className="block font-display text-2xl font-bold text-[var(--pm-text)]">مافیا بورد</span>
+            <span className="block text-[11px] font-bold text-[var(--pm-muted)]">اتاقِ بازی</span>
+          </span>
         </Link>
-
-        <div className="motion-reveal flex items-center gap-4">
+        <div className="flex items-center gap-2.5">
           <ThemeToggle compact />
-          <Link href="/auth/login" className="pm-button pm-button-secondary px-6">
-            ورود
+          <Link href="/auth/login" className="pm-button-secondary min-h-11 px-4 text-sm">
+            <span className="material-symbols-outlined text-xl">login</span>
+            <span className="hidden sm:inline">ورود</span>
           </Link>
         </div>
       </header>
 
-      {/* Desktop Landing */}
-      <section className="app-container relative z-10 hidden min-h-[calc(100dvh-6.5rem)] items-center justify-center pb-16 md:flex">
-        <div className="mx-auto grid w-full max-w-[70rem] items-center gap-12 lg:grid-cols-[minmax(0,1fr)_420px]">
-          <div className="grid gap-10 text-center lg:text-right">
-            <div className="motion-pop mx-auto grid size-32 place-items-center rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface)] shadow-[var(--pm-shadow)] lg:mx-0">
-              <span className="material-symbols-outlined text-[4rem] text-[var(--pm-primary)] drop-shadow-[0_0_20px_var(--pm-primary-glow)]">theater_comedy</span>
-            </div>
+      {/* hero */}
+      <section className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-5 pb-16 pt-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
+        <div className="max-w-2xl">
+          <span className="pm-eyebrow">گردانندهٔ دیجیتالِ بازی مافیا</span>
+          <h1 className="mt-5 font-display text-[clamp(3rem,9vw,6rem)] font-bold leading-[0.95] text-[var(--pm-text)]">
+            بازی را اجرا کن،
+            <br />
+            <span className="bg-gradient-to-l from-[var(--pm-primary)] to-[var(--pm-blue)] bg-clip-text text-transparent">کاغذبازی با ما.</span>
+          </h1>
+          <p className="mt-6 max-w-xl text-lg font-semibold leading-9 text-[var(--pm-muted)]">
+            لابی زنده، پخشِ امنِ نقش‌ها، چرخهٔ شب و روز و گزارشِ کامل هر دور — همه در یک کنسولِ سریع و روان. ساخته‌شده برای گرداننده‌ای که می‌خواهد فقط بازی کند.
+          </p>
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <Link href="/auth/register" className="pm-button-primary min-h-12 px-6 text-base">
+              <span className="material-symbols-outlined text-xl">rocket_launch</span>
+              شروع کن
+            </Link>
+            <Link href="/auth/login" className="pm-button-secondary min-h-12 px-6 text-base">
+              <span className="material-symbols-outlined text-xl">meeting_room</span>
+              ورود به اتاق
+            </Link>
+          </div>
+          <dl className="mt-12 grid max-w-lg grid-cols-3 gap-3">
+            {[
+              { v: "۱۲+", l: "نقشِ آماده" },
+              { v: "∞", l: "لابی هم‌زمان" },
+              { v: "۱۰۰٪", l: "گزارشِ دور" },
+            ].map((s) => (
+              <div key={s.l} className="pm-muted-card p-4">
+                <p className="font-display text-3xl font-bold text-[var(--pm-text)]" dir="ltr">{s.v}</p>
+                <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{s.l}</p>
+              </div>
+            ))}
+          </dl>
+        </div>
 
-            <div className="motion-reveal">
-              <span className="pm-chip mb-6">
-                اپ مدیریت بازی مافیا
+        {/* signature: a glowing role-card fan */}
+        <div className="relative mx-auto flex min-h-[24rem] w-full max-w-sm items-center justify-center">
+          <div className="pm-command relative flex aspect-[4/5] w-full flex-col justify-between overflow-hidden p-6">
+            <div className="pm-aurora" />
+            <div className="flex items-center justify-between">
+              <span className="pm-eyebrow">کارتِ امشب</span>
+              <span className="pm-chip pm-chip-danger">مافیا</span>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <span className="grid size-24 place-items-center rounded-full border border-[var(--pm-danger)]/40 bg-[var(--pm-danger)]/12 text-[var(--pm-danger)] shadow-[0_0_40px_var(--pm-primary-glow)]">
+                <span className="material-symbols-outlined text-[3rem]">local_fire_department</span>
               </span>
-              <h1 className="text-6xl font-black leading-[1.1] sm:text-7xl lg:text-[5.5rem]">
-                مافیا بورد
-              </h1>
-              <p className="mx-auto mt-6 max-w-xl text-lg font-bold leading-relaxed text-[var(--pm-muted)] lg:mx-0">
-                لابی، نقش‌ها، تایمر و گزارش بازی در یک تجربه ساده و شیک. طراحی شده برای گرداننده‌های حرفه‌ای.
-              </p>
+              <p className="font-display text-3xl font-bold text-[var(--pm-text)]">پدرخوانده</p>
+              <p className="text-center text-sm font-semibold leading-6 text-[var(--pm-muted)]">سرِ مافیا؛ در استعلامِ کارآگاه، بی‌گناه دیده می‌شود.</p>
             </div>
-
-            <div className="motion-reveal mx-auto flex w-full max-w-md flex-col gap-4 sm:flex-row lg:mx-0">
-              <Link href="/auth/login" className="pm-button pm-button-primary min-h-[3.5rem] flex-1 text-[1.1rem]">
-                <span className="material-symbols-outlined text-2xl">login</span>
-                ورود
-              </Link>
-              <Link href="/auth/register" className="pm-button pm-button-secondary min-h-[3.5rem] flex-1 text-[1.1rem]">
-                <span className="material-symbols-outlined text-2xl">person_add</span>
-                ثبت نام
-              </Link>
-            </div>
-
-            <div className="motion-reveal mx-auto flex max-w-2xl flex-wrap justify-center gap-3 lg:mx-0 lg:justify-start">
-              {quietMarks.map((item) => (
-                <span key={item} className="pm-chip">
-                  {item}
-                </span>
-              ))}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="pm-muted-card px-3 py-2 text-center">
+                <p className="text-[10px] font-bold text-[var(--pm-muted)]">جبهه</p>
+                <p className="font-black text-[var(--pm-danger)]">بدمن‌ها</p>
+              </div>
+              <div className="pm-muted-card px-3 py-2 text-center">
+                <p className="text-[10px] font-bold text-[var(--pm-muted)]">توانایی</p>
+                <p className="font-black text-[var(--pm-text)]">شلیک شبانه</p>
+              </div>
             </div>
           </div>
-
-          <aside className="motion-pop pm-card relative overflow-hidden p-6 text-right shadow-[var(--pm-shadow)]">
-            <div className="absolute inset-x-0 top-0 h-1 bg-[var(--pm-primary)] opacity-80 shadow-[0_0_15px_var(--pm-primary)]" />
-            <div className="flex items-start justify-between gap-4 pt-4">
-              <div>
-                <p className="text-[0.7rem] font-black uppercase tracking-widest text-[var(--pm-primary)]">نمونه لابی</p>
-                <h2 className="mt-2 text-2xl font-black">جمعه شب</h2>
-                <p className="mt-1 text-sm font-bold text-[var(--pm-muted)]">سناریوی کلاسیک ۱۰ نفره</p>
-              </div>
-              <span className="pm-chip pm-chip-primary font-mono text-sm">
-                #482913
-              </span>
-            </div>
-
-            <div className="mt-8 rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-4">
-              <div className="mb-4 flex items-center justify-between text-sm font-black">
-                <span className="text-[var(--pm-muted)]">بازیکنان حاضر</span>
-                <span className="text-[var(--pm-text)]">۴ / ۱۰</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-[var(--pm-line)]">
-                <span className="block h-full w-2/5 rounded-full bg-[var(--pm-primary)] shadow-[0_0_10px_var(--pm-primary)]" />
-              </div>
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                {lobbyPreviewPlayers.map((player) => (
-                  <div key={player} className="flex min-h-[3.5rem] items-center gap-3 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-3 shadow-[var(--pm-shadow-soft)] transition-colors hover:border-[var(--pm-primary)]">
-                    <span className="grid size-9 place-items-center rounded-[var(--radius-xs)] bg-[var(--pm-surface-strong)] text-[0.8rem] font-black text-[var(--pm-text)]">
-                      {player[0]}
-                    </span>
-                    <span className="min-w-0 truncate text-[0.95rem] font-black">{player}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-5 grid grid-cols-3 gap-3">
-              {[
-                ["timer", "تایمر"],
-                ["theater_comedy", "نقش‌ها"],
-                ["summarize", "گزارش"],
-              ].map(([icon, label]) => (
-                <div key={label} className="rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-3 text-center transition-colors hover:bg-[var(--pm-surface-strong)]">
-                  <span className="material-symbols-outlined text-2xl text-[var(--pm-primary)]">{icon}</span>
-                  <p className="mt-2 text-[0.7rem] font-black tracking-widest text-[var(--pm-muted)]">{label}</p>
-                </div>
-              ))}
-            </div>
-          </aside>
         </div>
+      </section>
+
+      {/* roles strip */}
+      <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-16 sm:px-8">
+        <div className="mb-5 flex items-end justify-between gap-3">
+          <div>
+            <span className="pm-eyebrow">نقش‌ها</span>
+            <h2 className="mt-1.5 font-display text-3xl font-bold text-[var(--pm-text)]">هر کارت، یک سرنوشت</h2>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {ROLES.map((r) => (
+            <div key={r.name} className="pm-card group relative overflow-hidden p-4">
+              <span className="absolute inset-x-0 top-0 h-0.5" style={{ background: r.tone }} />
+              <span className="grid size-11 place-items-center rounded-[var(--radius-sm)] border" style={{ borderColor: `color-mix(in oklab, ${r.tone} 45%, transparent)`, background: `color-mix(in oklab, ${r.tone} 14%, transparent)`, color: r.tone }}>
+                <span className="material-symbols-outlined text-xl">{r.icon}</span>
+              </span>
+              <p className="mt-3 font-display text-xl font-bold text-[var(--pm-text)]">{r.name}</p>
+              <p className="text-xs font-bold" style={{ color: r.tone }}>{r.tag}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* how it works */}
+      <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-16 sm:px-8">
+        <div className="mb-5">
+          <span className="pm-eyebrow">روندِ بازی</span>
+          <h2 className="mt-1.5 font-display text-3xl font-bold text-[var(--pm-text)]">از لابی تا گزارش، در چهار قدم</h2>
+        </div>
+        <ol className="grid gap-3 md:grid-cols-4">
+          {STEPS.map((s) => (
+            <li key={s.k} className="pm-card p-5">
+              <div className="flex items-center justify-between">
+                <span className="pm-icon-primary size-11"><span className="material-symbols-outlined text-xl">{s.icon}</span></span>
+                <span className="font-display text-3xl font-bold text-[var(--pm-primary)]/40" dir="ltr">{s.k}</span>
+              </div>
+              <h3 className="mt-4 font-display text-xl font-bold text-[var(--pm-text)]">{s.t}</h3>
+              <p className="mt-1.5 text-[13px] font-semibold leading-7 text-[var(--pm-muted)]">{s.d}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* final CTA */}
+      <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24 sm:px-8">
+        <div className="pm-command relative overflow-hidden rounded-[var(--radius-xl)] p-8 text-center sm:p-14">
+          <div className="pm-aurora" />
+          <h2 className="mx-auto max-w-2xl font-display text-4xl font-bold leading-tight text-[var(--pm-text)] sm:text-6xl">
+            میزت آماده‌ست. <span className="bg-gradient-to-l from-[var(--pm-primary)] to-[var(--pm-blue)] bg-clip-text text-transparent">شروع کن.</span>
+          </h2>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link href="/auth/register" className="pm-button-primary min-h-12 px-7 text-base">
+              <span className="material-symbols-outlined text-xl">auto_awesome</span>
+              ساخت حساب
+            </Link>
+            <Link href="/auth/login" className="pm-button-secondary min-h-12 px-7 text-base">ورود به حساب</Link>
+          </div>
+        </div>
+        <p className="mt-10 text-center text-xs font-bold text-[var(--pm-muted)]">مافیا بورد · ساخته‌شده برای گرداننده‌های ایرانی</p>
       </section>
     </main>
   );
