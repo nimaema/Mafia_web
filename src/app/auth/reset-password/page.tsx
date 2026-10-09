@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Check } from "@phosphor-icons/react";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { Field } from "@/components/ui/Field";
+import { Notice } from "@/components/ui/Notice";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -18,28 +21,12 @@ function ResetPasswordForm() {
     event.preventDefault();
     setError(null);
 
-    if (!token) {
-      setError("لینک بازیابی نامعتبر است");
-      return;
-    }
-
-    if (!password || !confirmPassword) {
-      setError("رمز عبور و تکرار آن را کامل وارد کنید");
-      return;
-    }
-
-    if (password.length < 8) {
-      setError("رمز عبور باید حداقل ۸ کاراکتر باشد");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("تکرار رمز عبور مطابقت ندارد");
-      return;
-    }
+    if (!token) return setError("این لینک بازیابی معتبر نیست. یک لینک تازه درخواست کنید.");
+    if (!password || !confirmPassword) return setError("رمز عبور و تکرار آن را کامل وارد کنید.");
+    if (password.length < 8) return setError("رمز عبور باید حداقل ۸ کاراکتر باشد.");
+    if (password !== confirmPassword) return setError("تکرار رمز عبور با خود رمز یکی نیست.");
 
     setIsSubmitting(true);
-
     try {
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
@@ -47,15 +34,13 @@ function ResetPasswordForm() {
         body: JSON.stringify({ token, password }),
       });
       const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error || "تنظیم رمز عبور ناموفق بود");
+        setError(data.error || "ذخیره رمز تازه انجام نشد.");
         return;
       }
-
       router.push("/auth/login");
     } catch {
-      setError("ارتباط با سرور برقرار نشد");
+      setError("ارتباط با سرور برقرار نشد. دوباره تلاش کنید.");
     } finally {
       setIsSubmitting(false);
     }
@@ -63,62 +48,39 @@ function ResetPasswordForm() {
 
   return (
     <AuthShell
-      icon="password"
-      title="رمز عبور جدید"
-      subtitle="برای ادامه، رمز تازه‌ای با حداقل ۸ کاراکتر، یک حرف بزرگ و یک عدد تنظیم کنید."
+      title="رمز تازه"
+      subtitle="حداقل ۸ کاراکتر، با یک حرف بزرگ و یک عدد."
       footer={
-        <Link href="/auth/login" className="text-center text-sm font-bold text-[var(--pm-primary)] transition-colors hover:text-[var(--pm-primary)]">
+        <Link href="/auth/login" className="text-sm font-bold text-accent hover:underline">
           بازگشت به ورود
         </Link>
       }
     >
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-        {error && (
-          <div className="rounded-2xl border border-red-400/24 bg-red-400/10 px-4 py-3 text-sm text-red-200">
-            <div className="flex items-center gap-2 font-medium">
-              <span className="material-symbols-outlined text-lg">error</span>
-              <span>{error}</span>
-            </div>
-          </div>
-        )}
-
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-white/58">رمز عبور</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/42">lock</span>
-            <input
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              minLength={8}
-              type="password"
-              dir="ltr"
-              autoComplete="new-password"
-              placeholder="رمز تازه"
-              className="w-full pl-12"
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-white/58">تکرار رمز عبور</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/42">lock</span>
-            <input
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              minLength={8}
-              type="password"
-              dir="ltr"
-              autoComplete="new-password"
-              placeholder="تکرار رمز تازه"
-              className="w-full pl-12"
-            />
-          </div>
-        </div>
-
-        <button disabled={isSubmitting} type="submit" className="pm-button-primary mt-2 min-h-12 w-full">
-          <span className="material-symbols-outlined text-xl">check</span>
-          {isSubmitting ? "در حال ذخیره..." : "ذخیره رمز جدید"}
+        {error ? <Notice tone="danger">{error}</Notice> : null}
+        <Field
+          label="رمز عبور تازه"
+          name="password"
+          type="password"
+          dir="ltr"
+          autoComplete="new-password"
+          minLength={8}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
+        <Field
+          label="تکرار رمز عبور"
+          name="confirm"
+          type="password"
+          dir="ltr"
+          autoComplete="new-password"
+          minLength={8}
+          value={confirmPassword}
+          onChange={(event) => setConfirmPassword(event.target.value)}
+        />
+        <button disabled={isSubmitting} type="submit" className="nq-btn nq-btn-primary nq-btn-lg mt-1 w-full">
+          {isSubmitting ? "در حال ذخیره…" : "ذخیره رمز تازه"}
+          {!isSubmitting ? <Check size={20} weight="bold" aria-hidden /> : null}
         </button>
       </form>
     </AuthShell>

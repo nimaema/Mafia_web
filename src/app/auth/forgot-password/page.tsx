@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ArrowSquareOut, PaperPlaneTilt } from "@phosphor-icons/react";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { Field } from "@/components/ui/Field";
+import { Notice } from "@/components/ui/Notice";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -32,14 +35,14 @@ export default function ForgotPasswordPage() {
       const data = contentType.includes("application/json") ? await response.json() : null;
 
       if (!response.ok) {
-        setError(data?.error || "ارسال لینک بازیابی ناموفق بود. پاسخ سرور قابل خواندن نبود.");
+        setError(data?.error || "ارسال لینک بازیابی انجام نشد. دوباره تلاش کنید.");
         return;
       }
 
-      setMessage("اگر حسابی با این ایمیل وجود داشته باشد، لینک بازیابی ارسال می‌شود.");
+      setMessage("اگر حسابی با این ایمیل وجود داشته باشد، لینک بازیابی تا چند دقیقه دیگر می‌رسد.");
       setPreviewUrl(data?.previewUrl || null);
     } catch {
-      setError("درخواست به سرور نرسید. اگر برنامه محلی را تست می‌کنید، مطمئن شوید سرور و دیتابیس هر دو اجرا هستند.");
+      setError("ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.");
     } finally {
       setIsSubmitting(false);
     }
@@ -47,66 +50,42 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthShell
-      icon="lock_reset"
-      title="بازیابی رمز عبور"
-      subtitle="ایمیل حساب خود را وارد کنید تا لینک تنظیم رمز تازه برای شما آماده شود."
+      title="رمز را فراموش کرده‌اید؟"
+      subtitle="ایمیل حسابتان را بنویسید تا لینک ساخت رمز تازه را برایتان بفرستیم."
       footer={
-        <Link href="/auth/login" className="text-center text-sm font-bold text-[var(--pm-primary)] transition-colors hover:text-[var(--pm-primary)]">
+        <Link href="/auth/login" className="text-sm font-bold text-accent hover:underline">
           بازگشت به ورود
         </Link>
       }
     >
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-        {error && (
-          <div className="rounded-2xl border border-red-400/24 bg-red-400/10 px-4 py-3 text-sm text-red-200">
-            <div className="flex items-center gap-2 font-medium">
-              <span className="material-symbols-outlined text-lg">error</span>
-              <span>{error}</span>
-            </div>
-          </div>
-        )}
-
-        {message && (
-          <div className="rounded-2xl border border-[var(--pm-primary)]/30 bg-[var(--pm-primary)]/10 px-4 py-3 text-sm text-[var(--pm-primary)]">
-            <div className="flex items-center gap-2 font-medium">
-              <span className="material-symbols-outlined text-lg">mark_email_read</span>
-              <span>{message}</span>
-            </div>
-          </div>
-        )}
-
-        {previewUrl && (
-          <div className="rounded-2xl border border-sky-300/24 bg-sky-300/10 p-4 text-sm text-sky-100">
-            <p className="font-black">لینک تست محلی آماده است</p>
-            <p className="mt-2 leading-6">
-              چون سرویس ایمیل در این محیط در دسترس نیست، می‌توانید مستقیم از همین لینک روند بازیابی را تست کنید.
-            </p>
-            <a href={previewUrl} className="pm-button-secondary mt-3 min-h-10 px-3 text-xs">
-              <span className="material-symbols-outlined text-base">open_in_new</span>
+        {error ? <Notice tone="danger">{error}</Notice> : null}
+        {message ? <Notice tone="success">{message}</Notice> : null}
+        {previewUrl ? (
+          <Notice tone="info">
+            <p>سرویس ایمیل در این محیط فعال نیست. لینک بازیابی را مستقیم باز کنید:</p>
+            <a href={previewUrl} className="mt-2 inline-flex items-center gap-1.5 underline">
               باز کردن لینک بازیابی
+              <ArrowSquareOut size={16} weight="bold" aria-hidden />
             </a>
-          </div>
-        )}
+          </Notice>
+        ) : null}
 
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-white/58">ایمیل</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/42">mail</span>
-            <input
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              type="email"
-              dir="ltr"
-              autoComplete="email"
-              placeholder="name@example.com"
-              className="w-full pl-12"
-            />
-          </div>
-        </div>
+        <Field
+          label="ایمیل"
+          name="email"
+          type="email"
+          dir="ltr"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="name@example.com"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
 
-        <button disabled={isSubmitting} type="submit" className="pm-button-primary mt-2 min-h-12 w-full">
-          <span className="material-symbols-outlined text-xl">send</span>
-          {isSubmitting ? "در حال ارسال..." : "ارسال لینک بازیابی"}
+        <button disabled={isSubmitting} type="submit" className="nq-btn nq-btn-primary nq-btn-lg mt-1 w-full">
+          {isSubmitting ? "در حال ارسال…" : "ارسال لینک بازیابی"}
+          {!isSubmitting ? <PaperPlaneTilt size={20} weight="bold" aria-hidden /> : null}
         </button>
       </form>
     </AuthShell>

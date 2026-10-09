@@ -1,106 +1,87 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Wordmark } from "@/components/brand/Wordmark";
+import { Crescent } from "@/components/brand/Crescent";
+import { MaskAvatar } from "@/components/brand/MaskAvatar";
 
 type AuthShellProps = {
-  icon: string;
   title: string;
   subtitle: string;
+  /** Shows the login / register switch. */
   activeTab?: "login" | "register";
   children: ReactNode;
   footer?: ReactNode;
+  /** Legacy prop from older screens; the shell no longer shows a page icon. */
+  icon?: string;
 };
 
-const highlights = [
-  { icon: "verified_user", title: "ورود امن", text: "همه بازیکن‌ها قبل از بازی حساب دارند." },
-  { icon: "account_tree", title: "سناریوی زنده", text: "نقش‌ها و توانایی‌ها بعد از ورود آماده‌اند." },
-  { icon: "phone_iphone", title: "موبایل‌محور", text: "فرم‌ها برای لمس و صفحه کوچک بازطراحی شده‌اند." },
-];
+const TABLE = ["sara", "kian", "mina", "arash", "bahar", "reza", "parisa", "houman", "shirin", "nima"];
 
-export function AuthShell({ icon, title, subtitle, activeTab, children, footer }: AuthShellProps) {
+export function AuthShell({ title, subtitle, activeTab, children, footer }: AuthShellProps) {
   return (
-    <div className="app-page min-h-screen overflow-hidden text-[var(--pm-text)]" dir="rtl">
-      <header className="app-container relative z-20 flex items-center justify-between py-5">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="pm-icon size-11 text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10">
-            <span className="material-symbols-outlined text-xl">theater_comedy</span>
-          </div>
-          <div>
-            <p className="text-lg font-black text-[var(--pm-text)]">نقاب</p>
-            <p className="text-[11px] font-black tracking-wider text-[var(--pm-primary)] opacity-80">ورود به اتاق فرمان</p>
-          </div>
-        </Link>
+    <div className="min-h-dvh bg-canvas lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]" dir="rtl">
+      {/* Night band: full column on desktop, a header band on phones */}
+      <aside className="nq-grain relative overflow-hidden bg-night text-moon lg:order-2 lg:min-h-dvh">
+        <Crescent className="pointer-events-none absolute -left-20 top-14 w-52 text-moon lg:-left-24 lg:top-24 lg:w-[30rem]" />
 
-        <div className="flex items-center gap-2">
-          <ThemeToggle compact />
-          <Link href="/" className="pm-button-secondary min-h-10 px-3 text-xs shadow-none sm:px-4 sm:text-sm">
-            <span className="material-symbols-outlined text-lg">arrow_back</span>
-            خانه
+        <div className="relative z-10 flex items-center justify-between px-5 pt-[max(env(safe-area-inset-top),1rem)] lg:px-10 lg:pt-8">
+          <Link href="/" className="nq-icon-btn bg-moon/12 text-moon hover:bg-moon/20 hover:text-moon" aria-label="بازگشت به صفحه اصلی">
+            <ArrowRight size={20} weight="bold" aria-hidden />
           </Link>
+          <ThemeToggle tone="drench" />
         </div>
-      </header>
 
-      <main className="app-container relative z-10 grid min-h-[calc(100dvh-5.25rem)] items-center gap-8 pb-10 lg:grid-cols-[minmax(0,1fr)_440px]">
-        <section className="motion-reveal hidden lg:block">
-          <div className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-3 py-1.5 text-sm font-black text-[var(--pm-primary)]">
-            <span className="material-symbols-outlined text-base">lock_open</span>
-            دسترسی حساب
-          </div>
-          <h1 className="mt-5 max-w-3xl text-5xl font-black leading-tight text-[var(--pm-text)]">
-            یک ورود کوتاه؛ بعدش مستقیم به لابی، نقش و گزارش بازی.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base font-bold leading-8 pm-muted-card text-[var(--pm-text)] opacity-90">
-            فرم‌ها جمع‌وجور شده‌اند تا آیکن، فیلد و متن‌ها فاصله اضافه نداشته باشند و روی موبایل مثل یک اپ واقعی حس شوند.
+        <div className="relative z-10 px-6 pb-14 pt-6 lg:flex lg:min-h-[calc(100dvh-6rem)] lg:flex-col lg:justify-end lg:px-12 lg:pb-16">
+          <Link href="/" aria-label="نقاب">
+            <Wordmark className="h-14 text-moon lg:h-24" title="" />
+          </Link>
+          <p className="mt-3 max-w-xs text-sm font-bold leading-7 text-moon/80 lg:mt-6 lg:max-w-sm lg:text-base lg:leading-8">
+            بازی مافیا، روی گوشی همه. نقش‌ها مخفی می‌مانند و داستان بازی ثبت می‌شود.
           </p>
-
-          <div className="motion-list mt-8 grid gap-3 xl:grid-cols-3">
-            {highlights.map((item) => (
-              <div key={item.title} className="pm-card p-4">
-                <span className="material-symbols-outlined pm-icon size-11 text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-2xl">{item.icon}</span>
-                <h2 className="mt-4 font-black text-[var(--pm-text)]">{item.title}</h2>
-                <p className="mt-2 text-sm font-bold leading-7 text-[var(--pm-muted)]">{item.text}</p>
-              </div>
+          <div className="mt-10 hidden flex-wrap gap-2.5 lg:flex" aria-hidden>
+            {TABLE.map((seed) => (
+              <MaskAvatar key={seed} seed={seed} size="md" />
             ))}
           </div>
-        </section>
+        </div>
+      </aside>
 
-        <section className="motion-pop mx-auto w-full max-w-[440px] pm-card p-4 sm:p-5">
-          <header className="rounded-[var(--radius-lg)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-4 text-center">
-            <div className="mx-auto grid size-16 place-items-center rounded-[var(--radius-md)] border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]">
-              <span className="material-symbols-outlined text-3xl">{icon}</span>
-            </div>
-            <h2 className="mt-4 text-3xl font-black text-[var(--pm-text)]">{title}</h2>
-            <p className="mt-2 text-sm font-bold leading-6 text-[var(--pm-muted)]">{subtitle}</p>
-          </header>
+      <main className="relative z-10 -mt-7 rounded-t-[var(--radius-xl)] bg-canvas px-5 pb-[max(env(safe-area-inset-bottom),2rem)] pt-8 lg:order-1 lg:mt-0 lg:flex lg:items-center lg:justify-center lg:rounded-none lg:px-12">
+        <div className="motion-reveal mx-auto w-full max-w-[26rem]">
+          <h1 className="nq-display text-[2.6rem] leading-[1.15] text-fg">{title}</h1>
+          <p className="mt-2 text-[0.95rem] font-medium leading-7 text-muted">{subtitle}</p>
 
-          {activeTab && (
-            <div className="mt-4 grid grid-cols-2 gap-1 rounded-[var(--radius-md)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-1">
-              {activeTab === "login" ? (
-                <>
-                  <button className="pm-button-primary rounded-[var(--radius-sm)] py-2.5 text-sm">
-                    ورود
-                  </button>
-                  <Link href="/auth/register" className="pm-button-secondary rounded-[var(--radius-sm)] py-2.5 text-sm border-transparent bg-transparent shadow-none hover:bg-[var(--pm-surface)] text-center">
-                    ثبت نام
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link href="/auth/login" className="pm-button-secondary rounded-[var(--radius-sm)] py-2.5 text-sm border-transparent bg-transparent shadow-none hover:bg-[var(--pm-surface)] text-center">
-                    ورود
-                  </Link>
-                  <button className="pm-button-primary rounded-[var(--radius-sm)] py-2.5 text-sm">
-                    ثبت نام
-                  </button>
-                </>
-              )}
-            </div>
-          )}
+          {activeTab ? (
+            <nav aria-label="ورود یا ثبت نام" className="mt-6 grid grid-cols-2 gap-1 rounded-[var(--radius-md)] bg-raised p-1">
+              <TabLink href="/auth/login" active={activeTab === "login"}>
+                ورود
+              </TabLink>
+              <TabLink href="/auth/register" active={activeTab === "register"}>
+                ساخت حساب
+              </TabLink>
+            </nav>
+          ) : null}
 
-          <div className="mt-5">{children}</div>
-          {footer && <div className="mt-5">{footer}</div>}
-        </section>
+          <div className="mt-6">{children}</div>
+          {footer ? <div className="mt-6 text-center">{footer}</div> : null}
+        </div>
       </main>
     </div>
+  );
+}
+
+function TabLink({ href, active, children }: { href: string; active: boolean; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`grid min-h-11 place-items-center rounded-[0.75rem] text-sm font-extrabold transition-colors ${
+        active ? "bg-accent-soft text-accent" : "text-muted hover:text-fg"
+      }`}
+    >
+      {children}
+    </Link>
   );
 }
