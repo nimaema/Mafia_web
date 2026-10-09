@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   createSuggestionRequest,
   getMySuggestionRequests,
   getSuggestionReferenceData,
 } from "@/actions/suggestions";
+import { CheckCircle, HourglassMedium, Plus, XCircle } from "@phosphor-icons/react";
 import { usePopup } from "@/components/PopupProvider";
+import { Field } from "@/components/ui/Field";
+import { Notice } from "@/components/ui/Notice";
+import { Sheet } from "@/components/ui/Sheet";
+import { FactionTag } from "@/components/ui/Tag";
 
 type SuggestionType = "NEW_ROLE" | "NEW_SCENARIO" | "CHANGE_ROLE" | "CHANGE_SCENARIO";
 type Alignment = "CITIZEN" | "MAFIA" | "NEUTRAL";
@@ -32,17 +37,17 @@ type SuggestionRequest = {
   reviewedAt?: string | null;
 };
 
-const REQUEST_TYPES: { value: SuggestionType; title: string; text: string; icon: string }[] = [
-  { value: "NEW_ROLE", title: "نقش جدید", text: "پیشنهاد یک نقش تازه با جبهه و رفتار کلی", icon: "theater_comedy" },
-  { value: "NEW_SCENARIO", title: "سناریوی جدید", text: "ایده سناریو، تعداد نفرات و ترکیب پیشنهادی", icon: "account_tree" },
-  { value: "CHANGE_ROLE", title: "اصلاح نقش", text: "تغییر نام، توضیح یا جبهه یک نقش موجود", icon: "edit_note" },
-  { value: "CHANGE_SCENARIO", title: "اصلاح سناریو", text: "اصلاح توضیح یا نام سناریوی موجود", icon: "rule_settings" },
+const REQUEST_TYPES: { value: SuggestionType; title: string }[] = [
+  { value: "NEW_ROLE", title: "نقش تازه" },
+  { value: "NEW_SCENARIO", title: "سناریوی تازه" },
+  { value: "CHANGE_ROLE", title: "اصلاح یک نقش" },
+  { value: "CHANGE_SCENARIO", title: "اصلاح یک سناریو" },
 ];
 
 const STATUS_META = {
-  PENDING: { label: "در انتظار بررسی", icon: "hourglass_top", className: "pm-chip pm-chip-warning" },
-  APPROVED: { label: "تایید شد", icon: "task_alt", className: "pm-chip pm-chip-primary" },
-  REJECTED: { label: "رد شد", icon: "block", className: "pm-chip pm-chip-danger" },
+  PENDING: { label: "در حال بررسی", Icon: HourglassMedium, className: "bg-warning/14 text-warning" },
+  APPROVED: { label: "تایید شد", Icon: CheckCircle, className: "bg-success/14 text-success" },
+  REJECTED: { label: "رد شد", Icon: XCircle, className: "bg-danger/12 text-danger" },
 };
 
 function typeLabel(type: SuggestionType) {
@@ -61,7 +66,10 @@ function formatDate(value?: string | null) {
 }
 
 export function SuggestionRequestsPanel() {
-  const { showAlert, showToast } = usePopup();
+  const { showToast } = usePopup();
+  const [formOpen, setFormOpen] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [reference, setReference] = useState<ReferenceData>({ roles: [], scenarios: [] });
   const [requests, setRequests] = useState<SuggestionRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,14 +83,12 @@ export function SuggestionRequestsPanel() {
   const [proposedDescription, setProposedDescription] = useState("");
   const [proposedAlignment, setProposedAlignment] = useState<Alignment | "">("CITIZEN");
 
-  const selectedType = REQUEST_TYPES.find((item) => item.value === type) || REQUEST_TYPES[0];
   const needsRole = type === "CHANGE_ROLE";
   const needsScenario = type === "CHANGE_SCENARIO";
   const roleRelated = type === "NEW_ROLE" || type === "CHANGE_ROLE";
   const proposedNameLabel = type === "NEW_ROLE" || type === "NEW_SCENARIO" ? "نام پیشنهادی" : "نام جدید اگر لازم است";
   const proposedDescriptionLabel = type === "NEW_SCENARIO" ? "توضیح و ترکیب نقش‌های پیشنهادی" : "توضیح پیشنهادی یا تغییر مورد نظر";
 
-  const pendingCount = useMemo(() => requests.filter((request) => request.status === "PENDING").length, [requests]);
 
   const loadData = () => {
     setLoading(true);
@@ -92,7 +98,7 @@ export function SuggestionRequestsPanel() {
         setReference(refs);
         setRequests(mine as SuggestionRequest[]);
       } catch (error: any) {
-        showAlert("خطا در بارگذاری درخواست‌ها", error.message || "اطلاعات درخواست‌ها خوانده نشد.", "error");
+        setLoadError(error.message || "پیشنهادها بارگذاری نشدند.");
       } finally {
         setLoading(false);
       }
@@ -101,7 +107,7 @@ export function SuggestionRequestsPanel() {
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const resetForm = () => {
@@ -121,6 +127,7 @@ export function SuggestionRequestsPanel() {
   };
 
   const submitRequest = () => {
+    setFormError(null);
     startTransition(async () => {
       try {
         await createSuggestionRequest({
@@ -133,217 +140,169 @@ export function SuggestionRequestsPanel() {
           proposedDescription,
           proposedAlignment: roleRelated && proposedAlignment ? proposedAlignment : undefined,
         });
-        showToast("درخواست شما ثبت شد", "success");
+        showToast("پیشنهاد شما ثبت شد", "success");
         resetForm();
+        setFormOpen(false);
         const mine = await getMySuggestionRequests();
         setRequests(mine as SuggestionRequest[]);
       } catch (error: any) {
-        showAlert("ثبت درخواست انجام نشد", error.message || "لطفاً اطلاعات درخواست را بررسی کنید.", "error");
+        setFormError(error.message || "ثبت پیشنهاد انجام نشد. اطلاعات را بررسی کنید.");
       }
     });
   };
 
+  const textarea = "min-h-28 w-full resize-y rounded-[var(--radius-sm)] border border-line bg-sunken p-4 font-medium leading-7";
+
   return (
-    <div className="space-y-5" dir="rtl">
-      <section className="pm-card overflow-hidden">
-        <div className="flex flex-col gap-5 p-5 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-[10px] font-bold tracking-widest text-[var(--pm-primary)] uppercase">درخواست‌های بازی</p>
-            <h1 className="mt-1 text-3xl font-black text-[var(--pm-text)]">پیشنهاد نقش و سناریو</h1>
-            <p className="mt-2 max-w-3xl text-sm font-bold leading-7 text-[var(--pm-muted)]">
-              اگر نقش، سناریو یا تغییری به ذهنتان رسیده، اینجا ثبت کنید. مدیر می‌تواند آن را تایید کند، رد کند یا بعد از تایید وارد کتابخانه نقش‌ها و سناریوها کند.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-2 text-center sm:min-w-64">
-            <div className="pm-muted-card border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3">
-              <p className="text-2xl font-black text-[var(--pm-primary)]">{requests.length}</p>
-              <p className="mt-1 text-[10px] font-black text-[var(--pm-primary)]/70">کل درخواست‌ها</p>
-            </div>
-            <div className="pm-muted-card border border-[var(--pm-warning)]/20 bg-[var(--pm-warning)]/10 p-3">
-              <p className="text-2xl font-black text-[var(--pm-warning)]">{pendingCount}</p>
-              <p className="mt-1 text-[10px] font-black text-[var(--pm-warning)]/70">در انتظار بررسی</p>
-            </div>
-          </div>
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="nq-display text-[2.6rem] leading-[1.15]">پیشنهادها</h1>
+          <p className="mt-1 max-w-xl font-medium leading-7 text-muted">نقش یا سناریوی تازه‌ای به ذهنتان رسیده؟ پیشنهاد بدهید تا مدیر بررسی کند و به بازی اضافه شود.</p>
         </div>
-      </section>
+        <button type="button" onClick={() => setFormOpen(true)} className="nq-btn nq-btn-primary nq-btn-lg shrink-0 self-start">
+          <Plus size={20} weight="bold" aria-hidden />
+          پیشنهاد تازه
+        </button>
+      </header>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-        <div className="pm-card overflow-hidden">
-          <div className="border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-5">
-            <p className="text-[10px] font-bold tracking-widest text-[var(--pm-primary)] uppercase">ثبت درخواست جدید</p>
-            <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">{selectedType.title}</h2>
-            <p className="mt-2 text-sm font-bold leading-6 text-[var(--pm-muted)]">{selectedType.text}</p>
-          </div>
+      {loadError ? <Notice tone="danger">{loadError}</Notice> : null}
 
-          <div className="space-y-4 p-5">
-            <div className="grid gap-2 sm:grid-cols-2">
+      {loading ? (
+        <div className="flex flex-col gap-3" aria-busy="true">
+          {[0, 1, 2].map((item) => (
+            <div key={item} className="h-28 animate-pulse rounded-[var(--radius-lg)] bg-surface" />
+          ))}
+        </div>
+      ) : requests.length === 0 ? (
+        <div className="rounded-[var(--radius-lg)] border border-dashed border-line-strong p-8 text-center">
+          <p className="font-extrabold">هنوز پیشنهادی نداده‌اید</p>
+          <p className="mx-auto mt-1 max-w-sm text-sm font-medium leading-7 text-muted">وضعیت هر پیشنهاد و پاسخ مدیر همین‌جا نشان داده می‌شود.</p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {requests.map((request) => {
+            const status = STATUS_META[request.status];
+            const payload = request.payload || {};
+            return (
+              <li key={request.id} className="rounded-[var(--radius-lg)] border border-line bg-surface p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`nq-tag ${status.className}`}>
+                    <status.Icon size={14} weight="fill" aria-hidden />
+                    {status.label}
+                  </span>
+                  <span className="nq-tag">{typeLabel(request.type)}</span>
+                  <span className="text-xs font-medium text-faint">{formatDate(request.createdAt)}</span>
+                </div>
+                <h2 className="mt-2.5 text-lg font-extrabold">{request.title}</h2>
+                <p className="mt-1 font-medium leading-7 text-muted">{request.description}</p>
+                {payload.proposedName || payload.proposedDescription || payload.proposedAlignment ? (
+                  <div className="mt-3 flex flex-col gap-1 rounded-[var(--radius-sm)] bg-raised p-3 text-sm font-medium leading-6">
+                    {payload.proposedName ? <p>{`نام پیشنهادی: ${payload.proposedName}`}</p> : null}
+                    {payload.proposedAlignment ? (
+                      <p className="flex items-center gap-2">
+                        جبهه: <FactionTag alignment={payload.proposedAlignment} />
+                      </p>
+                    ) : null}
+                    {payload.proposedDescription ? <p className="text-muted">{payload.proposedDescription}</p> : null}
+                  </div>
+                ) : null}
+                {request.targetRole || request.targetScenario ? <p className="mt-2 text-sm font-bold text-muted">{`درباره: ${request.targetRole?.name || request.targetScenario?.name}`}</p> : null}
+                {request.createdRole || request.createdScenario ? <p className="mt-2 text-sm font-bold text-success">{`به بازی اضافه شد: ${request.createdRole?.name || request.createdScenario?.name}`}</p> : null}
+                {request.adminNote ? (
+                  <p className="mt-3 border-s-2 border-accent ps-3 text-sm font-medium leading-6">
+                    <span className="font-bold text-accent">پاسخ مدیر: </span>
+                    {request.adminNote}
+                  </p>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <Sheet
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        title="پیشنهاد تازه"
+        footer={
+          <button type="button" onClick={submitRequest} disabled={isPending} className="nq-btn nq-btn-primary nq-btn-lg w-full">
+            {isPending ? "در حال ثبت…" : "ثبت پیشنهاد"}
+          </button>
+        }
+      >
+        <div className="flex flex-col gap-5">
+          <fieldset>
+            <legend className="mb-2 text-sm font-bold">درباره چیست؟</legend>
+            <div className="grid grid-cols-2 gap-2">
               {REQUEST_TYPES.map((item) => (
                 <button
                   key={item.value}
                   type="button"
+                  aria-pressed={type === item.value}
                   onClick={() => selectType(item.value)}
-                  className={`rounded-[var(--radius-sm)] border p-3 text-right transition-all ${
-                    type === item.value
-                      ? "border-[var(--pm-primary)]/50 bg-[var(--pm-primary)]/10 shadow-[var(--pm-shadow-glow)]"
-                      : "border-[var(--pm-line)] bg-[var(--pm-surface)] hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-surface-strong)]"
-                  }`}
+                  className={`min-h-12 rounded-[var(--radius-sm)] px-3 text-sm font-extrabold transition-colors ${type === item.value ? "bg-accent-soft text-accent ring-1 ring-accent/50" : "bg-raised text-muted hover:text-fg"}`}
                 >
-                  <span className={`material-symbols-outlined text-xl ${type === item.value ? 'text-[var(--pm-primary)]' : 'text-[var(--pm-muted)]'}`}>{item.icon}</span>
-                  <span className="mt-2 block text-sm font-black text-[var(--pm-text)]">{item.title}</span>
-                  <span className="mt-1 block text-[10px] font-bold leading-5 text-[var(--pm-muted)]">{item.text}</span>
+                  {item.title}
                 </button>
               ))}
             </div>
+          </fieldset>
 
-            {needsRole && (
-              <label className="flex flex-col gap-2">
-                <span className="text-xs font-black text-[var(--pm-muted)]">نقش مورد نظر</span>
-                <select value={targetRoleId} onChange={(event) => setTargetRoleId(event.target.value)} className="w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-4 py-3 text-[var(--pm-text)] focus:border-[var(--pm-primary)]">
-                  <option value="">انتخاب نقش...</option>
-                  {reference.roles.map((role) => (
-                    <option key={role.id} value={role.id}>{role.name} | {alignmentLabel(role.alignment)}</option>
-                  ))}
-                </select>
-              </label>
-            )}
+          {formError ? <Notice tone="danger">{formError}</Notice> : null}
 
-            {needsScenario && (
-              <label className="flex flex-col gap-2">
-                <span className="text-xs font-black text-[var(--pm-muted)]">سناریوی مورد نظر</span>
-                <select value={targetScenarioId} onChange={(event) => setTargetScenarioId(event.target.value)} className="w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-4 py-3 text-[var(--pm-text)] focus:border-[var(--pm-primary)]">
-                  <option value="">انتخاب سناریو...</option>
-                  {reference.scenarios.map((scenario) => (
-                    <option key={scenario.id} value={scenario.id}>{scenario.name}</option>
-                  ))}
-                </select>
-              </label>
-            )}
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="flex flex-col gap-2">
-                <span className="text-xs font-black text-[var(--pm-muted)]">عنوان درخواست</span>
-                <input value={title} onChange={(event) => setTitle(event.target.value.slice(0, 90))} placeholder="مثلاً اضافه شدن نقش نگهبان" className="w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-4 py-3 text-[var(--pm-text)] focus:border-[var(--pm-primary)]" />
-              </label>
-              <label className="flex flex-col gap-2">
-                <span className="text-xs font-black text-[var(--pm-muted)]">{proposedNameLabel}</span>
-                <input value={proposedName} onChange={(event) => setProposedName(event.target.value.slice(0, 80))} placeholder="نام نقش یا سناریو" className="w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-4 py-3 text-[var(--pm-text)] focus:border-[var(--pm-primary)]" />
-              </label>
-            </div>
-
-            {roleRelated && (
-              <label className="flex flex-col gap-2">
-                <span className="text-xs font-black text-[var(--pm-muted)]">{type === "CHANGE_ROLE" ? "جبهه جدید اگر لازم است" : "جبهه پیشنهادی"}</span>
-                <select value={proposedAlignment} onChange={(event) => setProposedAlignment(event.target.value as Alignment | "")} className="w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-4 py-3 text-[var(--pm-text)] focus:border-[var(--pm-primary)]">
-                  {type === "CHANGE_ROLE" && <option value="">بدون تغییر جبهه</option>}
-                  <option value="CITIZEN">شهروند</option>
-                  <option value="MAFIA">مافیا</option>
-                  <option value="NEUTRAL">مستقل</option>
-                </select>
-              </label>
-            )}
-
+          {needsRole ? (
             <label className="flex flex-col gap-2">
-              <span className="text-xs font-black text-[var(--pm-muted)]">توضیح درخواست</span>
-              <textarea
-                value={description}
-                onChange={(event) => setDescription(event.target.value.slice(0, 1800))}
-                className="min-h-32 resize-none w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] p-4 text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
-                placeholder="مشکل، ایده یا دلیل پیشنهاد را واضح بنویسید."
-              />
+              <span className="text-sm font-bold">کدام نقش؟</span>
+              <select value={targetRoleId} onChange={(event) => setTargetRoleId(event.target.value)}>
+                <option value="">یک نقش انتخاب کنید</option>
+                {reference.roles.map((role) => (
+                  <option key={role.id} value={role.id}>{`${role.name} (${alignmentLabel(role.alignment)})`}</option>
+                ))}
+              </select>
             </label>
+          ) : null}
 
+          {needsScenario ? (
             <label className="flex flex-col gap-2">
-              <span className="text-xs font-black text-[var(--pm-muted)]">{proposedDescriptionLabel}</span>
-              <textarea
-                value={proposedDescription}
-                onChange={(event) => setProposedDescription(event.target.value.slice(0, 1600))}
-                className="min-h-28 resize-none w-full rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] p-4 text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
-                placeholder={type === "NEW_SCENARIO" ? "مثلاً: ۱۰ نفره؛ ۳ مافیا، ۶ شهروند، ۱ مستقل..." : "متن نهایی پیشنهادی یا تغییر دقیق را بنویسید."}
-              />
+              <span className="text-sm font-bold">کدام سناریو؟</span>
+              <select value={targetScenarioId} onChange={(event) => setTargetScenarioId(event.target.value)}>
+                <option value="">یک سناریو انتخاب کنید</option>
+                {reference.scenarios.map((scenario) => (
+                  <option key={scenario.id} value={scenario.id}>{scenario.name}</option>
+                ))}
+              </select>
             </label>
+          ) : null}
 
-            <button onClick={submitRequest} disabled={isPending} className="pm-button pm-button-primary min-h-12 w-full mt-2">
-              <span className={`material-symbols-outlined text-xl ${isPending ? "animate-spin" : ""}`}>{isPending ? "progress_activity" : "send"}</span>
-              ثبت درخواست
-            </button>
-          </div>
+          <Field label="عنوان" name="title" value={title} onChange={(event) => setTitle(event.target.value.slice(0, 90))} hint="یک جمله کوتاه، مثلاً «اضافه شدن نقش نگهبان»." />
+          <Field label={proposedNameLabel} name="proposedName" value={proposedName} onChange={(event) => setProposedName(event.target.value.slice(0, 80))} />
+
+          {roleRelated ? (
+            <label className="flex flex-col gap-2">
+              <span className="text-sm font-bold">{type === "CHANGE_ROLE" ? "جبهه تازه (اگر لازم است)" : "جبهه"}</span>
+              <select value={proposedAlignment} onChange={(event) => setProposedAlignment(event.target.value as Alignment | "")}>
+                {type === "CHANGE_ROLE" ? <option value="">بدون تغییر</option> : null}
+                <option value="CITIZEN">شهروند</option>
+                <option value="MAFIA">مافیا</option>
+                <option value="NEUTRAL">مستقل</option>
+              </select>
+            </label>
+          ) : null}
+
+          <label className="flex flex-col gap-2">
+            <span className="text-sm font-bold">چرا؟</span>
+            <textarea value={description} onChange={(event) => setDescription(event.target.value.slice(0, 1800))} className={textarea} />
+            <span className="text-xs font-medium text-muted">ایده یا مشکلی که دیدید را واضح بنویسید.</span>
+          </label>
+
+          <label className="flex flex-col gap-2">
+            <span className="text-sm font-bold">{proposedDescriptionLabel}</span>
+            <textarea value={proposedDescription} onChange={(event) => setProposedDescription(event.target.value.slice(0, 1600))} className={textarea} />
+            {type === "NEW_SCENARIO" ? <span className="text-xs font-medium text-muted">مثلاً: ۱۰ نفره، ۳ مافیا، ۶ شهروند، ۱ مستقل.</span> : null}
+          </label>
         </div>
-
-        <div className="pm-card overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-line)] bg-[var(--pm-surface-strong)] p-5">
-            <div>
-              <p className="text-[10px] font-bold tracking-widest text-[var(--pm-primary)] uppercase">پیگیری</p>
-              <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">وضعیت درخواست‌های شما</h2>
-            </div>
-            <button onClick={loadData} disabled={loading || isPending} className="pm-button pm-button-secondary min-h-10 px-3 text-xs">
-              <span className={`material-symbols-outlined text-base ${loading ? "animate-spin" : ""}`}>refresh</span>
-              بروزرسانی
-            </button>
-          </div>
-
-          {loading ? (
-            <div className="flex min-h-80 items-center justify-center p-8">
-              <span className="material-symbols-outlined animate-spin text-4xl text-[var(--pm-primary)]">progress_activity</span>
-            </div>
-          ) : requests.length === 0 ? (
-            <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-8 text-center">
-              <div className="flex size-16 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-surface-strong)] text-[var(--pm-muted)] shadow-[var(--pm-shadow-soft)]">
-                <span className="material-symbols-outlined text-3xl">rate_review</span>
-              </div>
-              <p className="font-black text-[var(--pm-text)]">هنوز درخواستی ثبت نکرده‌اید</p>
-              <p className="max-w-sm text-sm font-bold leading-6 text-[var(--pm-muted)]">بعد از ثبت، وضعیت بررسی مدیر همین‌جا نمایش داده می‌شود.</p>
-            </div>
-          ) : (
-            <div className="custom-scrollbar max-h-[760px] space-y-3 overflow-y-auto p-4">
-              {requests.map((request) => {
-                const status = STATUS_META[request.status];
-                const payload = request.payload || {};
-                return (
-                  <article key={request.id} className="pm-muted-card border border-[var(--pm-line)] bg-[var(--pm-surface)] p-4 shadow-[var(--pm-shadow-soft)]">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap gap-2">
-                          <span className="pm-chip bg-[var(--pm-surface-strong)]">{typeLabel(request.type)}</span>
-                          <span className={`${status.className} inline-flex items-center gap-1`}>
-                            <span className="material-symbols-outlined text-sm">{status.icon}</span>
-                            {status.label}
-                          </span>
-                        </div>
-                        <h3 className="mt-2 text-lg font-black text-[var(--pm-text)]">{request.title}</h3>
-                        <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{formatDate(request.createdAt)}</p>
-                      </div>
-                    </div>
-
-                    <p className="mt-3 text-sm font-bold leading-7 text-[var(--pm-text)] opacity-80">{request.description}</p>
-                    {(payload.proposedName || payload.proposedDescription || payload.proposedAlignment) && (
-                      <div className="mt-3 rounded-[var(--radius-sm)] border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/5 p-3 text-xs font-bold leading-6 text-[var(--pm-primary)]">
-                        {payload.proposedName && <p>نام پیشنهادی: {payload.proposedName}</p>}
-                        {payload.proposedAlignment && <p>جبهه پیشنهادی: {alignmentLabel(payload.proposedAlignment)}</p>}
-                        {payload.proposedDescription && <p>متن پیشنهادی: {payload.proposedDescription}</p>}
-                      </div>
-                    )}
-                    {(request.targetRole || request.targetScenario) && (
-                      <p className="mt-2 text-xs font-black text-[var(--pm-muted)]">
-                        مورد مرتبط: {request.targetRole?.name || request.targetScenario?.name}
-                      </p>
-                    )}
-                    {(request.createdRole || request.createdScenario) && (
-                      <p className="mt-2 pm-chip pm-chip-primary px-3 py-2 text-xs font-black text-[var(--pm-primary)] border-transparent bg-[var(--pm-primary)]/10">
-                        اضافه شد: {request.createdRole?.name || request.createdScenario?.name}
-                      </p>
-                    )}
-                    {request.adminNote && (
-                      <p className="mt-2 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-strong)] px-3 py-2 text-xs font-bold leading-6 text-[var(--pm-text)]">
-                        پاسخ مدیر: {request.adminNote}
-                      </p>
-                    )}
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
+      </Sheet>
     </div>
   );
 }

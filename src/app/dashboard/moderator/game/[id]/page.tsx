@@ -18,6 +18,7 @@ import {
 import { usePopup } from "@/components/PopupProvider";
 import { MobilePwaFeatureLock } from "@/components/MobilePwaFeatureLock";
 import { GameReportTimeline, type GameReportEvent } from "@/components/game/GameReportTimeline";
+import { PhaseControl } from "@/components/game/PhaseControl";
 
 type Alignment = "CITIZEN" | "MAFIA" | "NEUTRAL";
 type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
@@ -1244,6 +1245,17 @@ export default function ModeratorGamePage() {
           </div>
         </div>
 
+        {game?.status === "IN_PROGRESS" ? (
+          <div className="border-b border-[var(--pm-line)] px-4 py-3">
+            <PhaseControl
+              gameId={gameId}
+              phase={game?.phase}
+              phaseNumber={game?.phaseNumber ?? 0}
+              onChanged={() => refreshGame()}
+              onError={(message) => showAlert("تغییر مرحله انجام نشد", message, "error")}
+            />
+          </div>
+        ) : null}
         <div className="flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[
             ["سناریو", game?.scenario?.name || "نامشخص", "account_tree", "text-[var(--pm-primary)]"],

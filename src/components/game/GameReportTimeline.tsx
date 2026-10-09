@@ -1,5 +1,8 @@
 "use client";
 
+import { Moon, PencilSimple, Prohibit, Sun, Trash } from "@phosphor-icons/react";
+import { ordinalFa } from "@/lib/phase";
+
 type ReportAlignment = "CITIZEN" | "MAFIA" | "NEUTRAL" | string;
 
 export type GameReportEvent = {
@@ -157,39 +160,6 @@ function eventNarrative(event: GameReportEvent) {
   return `${event.abilityLabel} در گزارش شب ثبت شد.`;
 }
 
-function phaseMeta(type: "DAY" | "NIGHT") {
-  if (type === "DAY") {
-    return {
-      icon: "wb_sunny",
-      label: "روز",
-      card: "border-amber-500/20 bg-amber-500/[0.06]",
-      badge: "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-      iconBox: "bg-amber-500 text-zinc-950",
-    };
-  }
-  return {
-    icon: "dark_mode",
-    label: "شب",
-    card: "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/[0.06]",
-    badge: "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]",
-    iconBox: "bg-[var(--pm-primary)] text-[var(--pm-text-inverse)]",
-  };
-}
-
-function eventTone(event: GameReportEvent) {
-  if (isDayReportEvent(event)) return phaseMeta("DAY");
-  if (event.wasUsed === false) {
-    return {
-      icon: "block",
-      label: "استفاده نشد",
-      card: "border-zinc-300 bg-zinc-100/75 dark:border-[var(--pm-line)] dark:bg-white/[0.045]",
-      badge: "border-zinc-300 bg-zinc-100 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.06] dark:text-zinc-300",
-      iconBox: "bg-zinc-500 text-white",
-    };
-  }
-  return phaseMeta("NIGHT");
-}
-
 function reportPhases(events: GameReportEvent[]) {
   const rounds = new Map<number, { day: GameReportEvent[]; night: GameReportEvent[] }>();
   events.forEach((event) => {
@@ -209,25 +179,17 @@ function reportPhases(events: GameReportEvent[]) {
     .filter(Boolean) as { key: string; type: "DAY" | "NIGHT"; round: number; events: GameReportEvent[] }[];
 }
 
-function DetailChip({ label, value, tone = "zinc" }: { label: string; value: string; tone?: "zinc" | "primary" | "amber" | "red" }) {
-  const toneClass =
-    tone === "primary"
-      ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]"
-      : tone === "amber"
-        ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-        : tone === "red"
-          ? "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300"
-          : "border-[var(--pm-line)] bg-white/78 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950/45 dark:text-zinc-300";
-
+function Detail({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "neutral" | "accent" | "day" | "danger" }) {
+  const toneClass = tone === "accent" ? "bg-accent-soft text-accent" : tone === "day" ? "bg-warning/14 text-warning" : tone === "danger" ? "bg-danger/12 text-danger" : "bg-raised text-muted";
   return (
-    <span className={cx("inline-flex min-h-8 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-black", toneClass)}>
-      <span className="text-[10px] opacity-70">{label}</span>
-      <span>{value}</span>
+    <span className={cx("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold", toneClass)}>
+      <span className="opacity-75">{label}</span>
+      <span className="font-extrabold">{value}</span>
     </span>
   );
 }
 
-function ReportEventCard({
+function ReportEvent({
   event,
   busy,
   onEdit,
@@ -238,170 +200,112 @@ function ReportEventCard({
   onEdit?: (event: GameReportEvent) => void;
   onDelete?: (event: GameReportEvent) => void;
 }) {
-  const tone = eventTone(event);
+  const isDay = isDayReportEvent(event);
   const target = targetName(event);
-  const actor = actorName(event);
   const labels = targetLabelText(event);
   const extras = event.details?.extraTargets?.map((item) => item.name).filter(Boolean) || [];
   const defenses = defenseNames(event);
+  const unused = event.wasUsed === false;
+  const effect = event.details?.effectType && event.details.effectType !== "NONE" ? effectLabel(event.details.effectType) : null;
 
   return (
-    <article className={cx("group relative overflow-hidden rounded-[1.2rem] border p-3 shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-zinc-950/10 dark:shadow-black/20", tone.card)}>
-      <div className="flex gap-3">
-        <span className={cx("grid size-11 shrink-0 place-items-center rounded-2xl shadow-sm", tone.iconBox)}>
-          <span className="material-symbols-outlined text-2xl">{tone.icon}</span>
-        </span>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start gap-2">
-            <span className={cx("inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black", tone.badge)}>
-              <span className="material-symbols-outlined text-sm">{tone.icon}</span>
-              {tone.label}
+    <li className="group relative flex gap-3 py-4">
+      <span className={cx("mt-1.5 size-2.5 shrink-0 rounded-full", unused ? "bg-faint" : isDay ? "bg-day" : "bg-accent")} aria-hidden />
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <h4 className={cx("font-extrabold leading-7", unused ? "text-muted" : "text-fg")}>{eventHeadline(event)}</h4>
+          {effect ? <span className="nq-tag bg-accent-soft text-accent">{effect}</span> : null}
+          {unused ? (
+            <span className="nq-tag">
+              <Prohibit size={14} weight="bold" aria-hidden />
+              استفاده نشد
             </span>
-            {event.details?.effectType && event.details.effectType !== "NONE" && (
-              <span className="inline-flex items-center rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-[10px] font-black text-sky-700 dark:text-sky-300">
-                {effectLabel(event.details.effectType)}
-              </span>
-            )}
-            <h4 className="min-w-0 flex-1 basis-full text-base font-black leading-7 text-[var(--pm-text)] sm:basis-auto">
-              {eventHeadline(event)}
-            </h4>
-          </div>
-
-          <p className="mt-2 text-sm font-bold leading-7 text-[var(--pm-muted)]">{eventNarrative(event)}</p>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            <DetailChip label="عامل" value={actor} />
-            {target && <DetailChip label="هدف" value={target} tone={isDayReportEvent(event) ? "amber" : "primary"} />}
-            {defenses.length > 0 && <DetailChip label="دفاع" value={defenses.join("، ")} tone="amber" />}
-            {labels && <DetailChip label="انتخاب‌ها" value={labels} tone="primary" />}
-            {event.details?.secondaryTargetName && <DetailChip label={event.details.effectType === "YAKUZA" ? "قربانی" : "هدف دوم"} value={event.details.secondaryTargetName} tone={event.details.effectType === "YAKUZA" ? "red" : "primary"} />}
-            {extras.length > 0 && <DetailChip label="هدف‌های اضافه" value={extras.join("، ")} tone="primary" />}
-            {event.details?.convertedRoleName && <DetailChip label="تبدیل" value={`${event.details.previousRoleName || "قبلی"} ← ${event.details.convertedRoleName}`} tone="red" />}
-          </div>
-
-          {event.note && (
-            <p className="mt-3 rounded-lg border border-[var(--pm-line)] bg-white/72 px-3 py-2 text-xs font-bold leading-6 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950/40 dark:text-[var(--pm-muted)]">
-              {event.note}
-            </p>
-          )}
+          ) : null}
         </div>
-
-        {(onEdit || onDelete) && (
-          <div className="flex shrink-0 flex-col gap-2 opacity-90 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-            {onEdit && (
-              <button
-                type="button"
-                onClick={() => onEdit(event)}
-                disabled={busy}
-                className="grid size-9 place-items-center rounded-lg border border-sky-500/15 bg-sky-500/10 text-sky-600 transition-all hover:bg-sky-500 hover:text-white disabled:opacity-40 dark:text-sky-300"
-                aria-label="ویرایش رکورد"
-              >
-                <span className="material-symbols-outlined text-base">edit</span>
-              </button>
-            )}
-            {onDelete && (
-              <button
-                type="button"
-                onClick={() => onDelete(event)}
-                disabled={busy}
-                className="grid size-9 place-items-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white disabled:opacity-40"
-                aria-label="حذف رکورد"
-              >
-                <span className="material-symbols-outlined text-base">delete</span>
-              </button>
-            )}
-          </div>
-        )}
+        <p className="mt-1 text-sm font-medium leading-7 text-muted">{eventNarrative(event)}</p>
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          <Detail label="عامل" value={actorName(event)} />
+          {target ? <Detail label="هدف" value={target} tone={isDay ? "day" : "accent"} /> : null}
+          {defenses.length > 0 ? <Detail label="دفاع" value={defenses.join("، ")} tone="day" /> : null}
+          {labels ? <Detail label="انتخاب‌ها" value={labels} tone="accent" /> : null}
+          {event.details?.secondaryTargetName ? (
+            <Detail label={event.details.effectType === "YAKUZA" ? "قربانی" : "هدف دوم"} value={event.details.secondaryTargetName} tone={event.details.effectType === "YAKUZA" ? "danger" : "accent"} />
+          ) : null}
+          {extras.length > 0 ? <Detail label="هدف‌های اضافه" value={extras.join("، ")} tone="accent" /> : null}
+          {event.details?.convertedRoleName ? <Detail label="تبدیل" value={`${event.details.previousRoleName || "قبلی"} ← ${event.details.convertedRoleName}`} tone="danger" /> : null}
+        </div>
+        {event.note ? <p className="mt-2.5 rounded-[var(--radius-sm)] bg-raised px-3 py-2 text-sm font-medium leading-6 text-muted">{event.note}</p> : null}
       </div>
-    </article>
+      {onEdit || onDelete ? (
+        <div className="flex shrink-0 flex-col gap-1.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+          {onEdit ? (
+            <button type="button" onClick={() => onEdit(event)} disabled={busy} className="nq-icon-btn size-9" aria-label="ویرایش این رویداد">
+              <PencilSimple size={18} weight="bold" aria-hidden />
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button type="button" onClick={() => onDelete(event)} disabled={busy} className="nq-icon-btn size-9 hover:!text-danger" aria-label="حذف این رویداد">
+              <Trash size={18} weight="bold" aria-hidden />
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </li>
   );
 }
 
 export function GameReportTimeline({
   events,
-  title = "گزارش نهایی بازی",
-  subtitle = "وقایع به ترتیب اجرا نوشته شده‌اند؛ اول اتفاقات روز، بعد اتفاقات شب همان دور.",
+  title = "گزارش بازی",
+  subtitle = "به ترتیب اجرا: اول اتفاقات روز، بعد شب همان دور.",
   isPublic,
   sample,
   className,
-  emptyTitle = "هنوز گزارشی ثبت نشده است",
-  emptyText = "با ثبت اتفاقات روز و شب، گزارش نهایی اینجا به شکل خط زمانی نمایش داده می‌شود.",
+  emptyTitle = "هنوز چیزی ثبت نشده",
+  emptyText = "با ثبت اتفاقات روز و شب، داستان بازی اینجا نوشته می‌شود.",
   busy,
   onEdit,
   onDelete,
 }: GameReportTimelineProps) {
   const phases = reportPhases(events);
-  const dayCount = events.filter(isDayReportEvent).length;
-  const nightCount = events.length - dayCount;
+  const status = sample ? "نمونه" : isPublic === undefined ? null : isPublic ? "منتشرشده" : "فقط گرداننده";
 
   return (
-    <section className={cx("overflow-hidden rounded-[1.45rem] border border-[var(--pm-line)] bg-white/86 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/62", className)}>
-      <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-zinc-50/86 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
+    <section className={cx("rounded-[var(--radius-lg)] border border-line bg-surface", className)}>
+      <header className="flex items-start justify-between gap-3 px-5 pb-2 pt-5">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="material-symbols-outlined text-xl text-[var(--pm-primary-strong)] dark:text-[var(--pm-primary)]">receipt_long</span>
-            <h3 className="text-base font-black text-[var(--pm-text)]">{title}</h3>
-          </div>
-          <p className="mt-1 text-xs font-bold leading-6 text-[var(--pm-muted)]">{subtitle}</p>
+          <h3 className="text-lg font-extrabold">{title}</h3>
+          <p className="mt-0.5 text-sm font-medium leading-6 text-muted">{subtitle}</p>
         </div>
-        <div className="flex flex-wrap gap-2 text-[10px] font-black">
-          <span className="rounded-lg border border-[var(--pm-line)] bg-white px-2.5 py-1 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-300">{events.length} اتفاق</span>
-          <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-amber-700 dark:text-amber-300">{dayCount} روز</span>
-          <span className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2.5 py-1 text-[var(--pm-primary)]">{nightCount} شب</span>
-          {(sample || isPublic !== undefined) && (
-            <span className={sample || isPublic ? "rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2.5 py-1 text-[var(--pm-primary)]" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-amber-700 dark:text-amber-300"}>
-              {sample ? "نمونه" : isPublic ? "منتشرشده" : "فقط مدیریت"}
-            </span>
-          )}
-        </div>
-      </div>
+        {status ? <span className={cx("nq-tag shrink-0", isPublic || sample ? "bg-accent-soft text-accent" : "bg-warning/14 text-warning")}>{status}</span> : null}
+      </header>
 
       {phases.length === 0 ? (
-        <div className="flex min-h-72 flex-col items-center justify-center gap-4 p-8 text-center">
-          <div className="pm-icon size-16">
-            <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">edit_note</span>
-          </div>
-          <div>
-            <p className="font-black text-[var(--pm-text)]">{emptyTitle}</p>
-            <p className="mt-1 max-w-md text-sm font-bold leading-6 text-[var(--pm-muted)]">{emptyText}</p>
-          </div>
+        <div className="px-5 pb-8 pt-6 text-center">
+          <p className="font-extrabold">{emptyTitle}</p>
+          <p className="mx-auto mt-1 max-w-sm text-sm font-medium leading-6 text-muted">{emptyText}</p>
         </div>
       ) : (
-        <div className="space-y-4 p-4">
-          {phases.map((phase, index) => {
-            const meta = phaseMeta(phase.type);
-            return (
-              <article key={phase.key} className={cx("overflow-hidden rounded-[1.35rem] border", meta.card)}>
-                <div className="flex flex-col gap-3 border-b border-current/10 bg-white/48 p-3 dark:bg-zinc-950/22 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className={cx("grid size-11 shrink-0 place-items-center rounded-2xl text-sm font-black shadow-sm", meta.iconBox)}>
-                      {index + 1}
-                    </span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className={cx("material-symbols-outlined text-lg", phase.type === "DAY" ? "text-amber-600 dark:text-amber-300" : "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]")}>{meta.icon}</span>
-                        <p className="font-black text-[var(--pm-text)]">{meta.label} {phase.round}</p>
-                      </div>
-                      <p className="mt-1 text-[11px] font-bold text-[var(--pm-muted)]">
-                        {phase.type === "DAY" ? "گفتگو، دفاع، رای‌گیری یا حذف روز" : "اکشن‌های شب، شات، نجات، استعلام یا تبدیل"}
-                      </p>
-                    </div>
-                  </div>
-                  <span className={cx("inline-flex items-center justify-center rounded-lg border px-3 py-1.5 text-[11px] font-black", meta.badge)}>
-                    {phase.events.length} اتفاق
-                  </span>
-                </div>
-
-                <div className="space-y-3 p-3">
-                  {phase.events.map((event) => (
-                    <ReportEventCard key={event.id} event={event} busy={busy} onEdit={onEdit} onDelete={onDelete} />
-                  ))}
-                </div>
-              </article>
-            );
-          })}
-        </div>
+        <ol className="px-5 pb-3">
+          {phases.map((phase) => (
+            <li key={phase.key} className="mt-3">
+              <p
+                className={cx(
+                  "inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-extrabold",
+                  phase.type === "DAY" ? "bg-day text-day-ink" : "bg-night text-moon",
+                )}
+              >
+                {phase.type === "DAY" ? <Sun size={16} weight="fill" aria-hidden /> : <Moon size={16} weight="fill" aria-hidden />}
+                {`${phase.type === "DAY" ? "روز" : "شب"} ${ordinalFa(phase.round)}`}
+              </p>
+              <ul className="ms-1 divide-y divide-line border-s border-line ps-4">
+                {phase.events.map((event) => (
+                  <ReportEvent key={event.id} event={event} busy={busy} onEdit={onEdit} onDelete={onDelete} />
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ol>
       )}
     </section>
   );

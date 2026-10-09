@@ -1,6 +1,16 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import { useEffect } from "react";
+import { CheckCircle, Info, Warning, WarningCircle, X } from "@phosphor-icons/react";
+
+type PopupTone = "info" | "error" | "warning" | "success";
+
+const TONE = {
+  info: { Icon: Info, box: "bg-accent-soft text-accent", button: "nq-btn-primary" },
+  success: { Icon: CheckCircle, box: "bg-success/14 text-success", button: "nq-btn-primary" },
+  warning: { Icon: Warning, box: "bg-warning/16 text-warning", button: "nq-btn-primary" },
+  error: { Icon: WarningCircle, box: "bg-danger/12 text-danger", button: "nq-btn-danger" },
+} as const;
 
 type ModalProps = {
   isOpen: boolean;
@@ -10,93 +20,60 @@ type ModalProps = {
   onConfirm?: () => void;
   confirmText?: string;
   cancelText?: string;
-  type?: 'info' | 'error' | 'warning' | 'success';
+  type?: PopupTone;
 };
 
-export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText = "تایید", cancelText = "لغو", type = 'info' }: ModalProps) => {
-  if (!isOpen) return null;
+export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText = "باشه", cancelText = "انصراف", type = "info" }: ModalProps) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
 
-  const palette =
-    type === 'error'
-      ? {
-          accent: 'bg-[var(--pm-danger)]',
-          iconBox: 'text-[var(--pm-danger)] border-[var(--pm-danger)]/20 bg-[var(--pm-danger)]/10',
-          icon: 'error',
-          confirmBtn: 'pm-button-danger',
-        }
-      : type === 'warning'
-        ? {
-            accent: 'bg-[var(--pm-warning)]',
-            iconBox: 'text-[var(--pm-warning)] border-[var(--pm-warning)]/20 bg-[var(--pm-warning)]/10',
-            icon: 'warning',
-            confirmBtn: 'pm-button-primary',
-          }
-        : type === 'success'
-          ? {
-              accent: 'bg-[var(--pm-success)]',
-              iconBox: 'text-[var(--pm-success)] border-[var(--pm-success)]/20 bg-[var(--pm-success)]/10',
-              icon: 'check_circle',
-              confirmBtn: 'pm-button-primary',
-            }
-          : {
-              accent: 'bg-[var(--pm-primary)]',
-              iconBox: 'text-[var(--pm-primary)] border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10',
-              icon: 'info',
-              confirmBtn: 'pm-button-primary',
-            };
+  if (!isOpen) return null;
+  const tone = TONE[type];
 
   return (
-    <div className="fixed inset-0 z-[520] flex items-end justify-center p-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:items-center sm:p-4" dir="rtl">
-      <div 
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm dark:bg-black/60 dark:backdrop-blur-xl transition-opacity"
-        onClick={onClose}
-      />
-      <div className="pm-safe-modal motion-pop pm-card relative flex w-full max-w-md flex-col overflow-hidden !rounded-[var(--radius-lg)] shadow-2xl">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute left-3 top-3 z-20 flex size-9 items-center justify-center rounded-xl border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] text-[var(--pm-muted)] transition-all hover:bg-[var(--pm-line)] hover:text-[var(--pm-text)]"
-          aria-label="بستن"
-        >
-          <span className="material-symbols-outlined text-base">close</span>
-        </button>
-        
-        <div className="custom-scrollbar relative z-10 flex min-h-0 flex-col gap-5 overflow-y-auto p-5 sm:p-6">
-          <div className="flex items-center gap-4">
-            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${palette.iconBox}`}>
-              <span className="material-symbols-outlined text-2xl font-black">
-                {palette.icon}
-              </span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--pm-primary)] opacity-80">MESSAGE</p>
-              <h3 className="mt-1 break-words text-xl font-black leading-7 text-[var(--pm-text)]">{title}</h3>
-            </div>
-          </div>
-          
-          <p className="pm-muted-card p-4 text-sm font-bold leading-7 text-[var(--pm-text)] opacity-90">
-            {message}
-          </p>
-          
-          <div className="grid gap-2 sm:grid-cols-2 mt-2">
-            {onConfirm && (
-              <button 
-                onClick={() => { onConfirm(); onClose(); }}
-                className={palette.confirmBtn}
-              >
-                {confirmText}
-              </button>
-            )}
-            <button 
-              onClick={onClose}
-              className={onConfirm ? 'pm-button-secondary' : palette.confirmBtn}
-            >
-              {onConfirm ? cancelText : confirmText}
-            </button>
+    <div className="fixed inset-0 z-[520] flex items-end justify-center p-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] sm:items-center sm:p-6" dir="rtl" role="alertdialog" aria-modal="true" aria-labelledby="popup-title" aria-describedby="popup-message">
+      <button type="button" className="motion-page absolute inset-0 bg-black/55" onClick={onClose} aria-label="بستن" />
+      <div className="motion-reveal relative w-full max-w-md rounded-[var(--radius-xl)] bg-surface p-6">
+        <div className="flex items-start gap-4">
+          <span className={`grid size-12 shrink-0 place-items-center rounded-[0.9rem] ${tone.box}`}>
+            <tone.Icon size={26} weight="fill" aria-hidden />
+          </span>
+          <div className="min-w-0 flex-1 pt-1">
+            <h2 id="popup-title" className="text-lg font-extrabold leading-7">
+              {title}
+            </h2>
+            <p id="popup-message" className="mt-1.5 font-medium leading-7 text-muted">
+              {message}
+            </p>
           </div>
         </div>
-        <div className="h-1 bg-[var(--pm-line)] w-full absolute bottom-0 left-0 right-0">
-          <div className={`h-full w-1/3 animate-pulse rounded-l-full ${palette.accent}`} />
+        <div className={`mt-6 grid gap-2 ${onConfirm ? "grid-cols-2" : ""}`}>
+          {onConfirm ? (
+            <>
+              <button
+                type="button"
+                autoFocus
+                onClick={() => {
+                  onConfirm();
+                  onClose();
+                }}
+                className={`nq-btn nq-btn-lg ${type === "warning" || type === "error" ? "nq-btn-danger" : "nq-btn-primary"}`}
+              >
+                {confirmText === "باشه" ? "بله، ادامه" : confirmText}
+              </button>
+              <button type="button" onClick={onClose} className="nq-btn nq-btn-secondary nq-btn-lg">
+                {cancelText}
+              </button>
+            </>
+          ) : (
+            <button type="button" autoFocus onClick={onClose} className={`nq-btn nq-btn-lg ${tone.button}`}>
+              {confirmText}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -105,69 +82,29 @@ export const Modal = ({ isOpen, onClose, title, message, onConfirm, confirmText 
 
 type ToastProps = {
   message: string;
-  type: 'success' | 'error' | 'warning' | 'info';
+  type: PopupTone;
   onClose: () => void;
 };
 
 export const Toast = ({ message, type, onClose }: ToastProps) => {
-  const durationMs = 5000;
-  const palette =
-    type === 'success'
-      ? {
-          shell: 'border-[var(--pm-success)]/30 bg-[var(--pm-surface)] text-[var(--pm-success)] shadow-2xl',
-          icon: 'check_circle',
-          iconBox: 'bg-[var(--pm-success)]/10 text-[var(--pm-success)]',
-          progress: 'bg-[var(--pm-success)]',
-        }
-      : type === 'error'
-        ? {
-            shell: 'border-[var(--pm-danger)]/30 bg-[var(--pm-surface)] text-[var(--pm-danger)] shadow-2xl',
-            icon: 'error',
-            iconBox: 'bg-[var(--pm-danger)]/10 text-[var(--pm-danger)]',
-            progress: 'bg-[var(--pm-danger)]',
-          }
-        : type === 'warning'
-          ? {
-              shell: 'border-[var(--pm-warning)]/30 bg-[var(--pm-surface)] text-[var(--pm-warning)] shadow-2xl',
-              icon: 'warning',
-              iconBox: 'bg-[var(--pm-warning)]/10 text-[var(--pm-warning)]',
-              progress: 'bg-[var(--pm-warning)]',
-            }
-          : {
-              shell: 'border-[var(--pm-primary)]/30 bg-[var(--pm-surface)] text-[var(--pm-primary)] shadow-2xl',
-              icon: 'info',
-              iconBox: 'bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]',
-              progress: 'bg-[var(--pm-primary)]',
-            };
-
   useEffect(() => {
-    const timer = setTimeout(onClose, durationMs);
+    const timer = setTimeout(onClose, 4500);
     return () => clearTimeout(timer);
   }, [onClose]);
 
+  const tone = TONE[type];
+
   return (
-    <div className="fixed top-[calc(env(safe-area-inset-top)+1rem)] left-3 right-3 z-[600] animate-in slide-in-from-top-4 duration-300 md:left-auto md:right-6 md:w-[26rem]" dir="rtl">
-      <div className={`relative flex items-center gap-3 overflow-hidden rounded-[var(--radius-md)] border p-3 shadow-2xl backdrop-blur-2xl ${palette.shell}`}>
-        <span className={`material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] font-black ${palette.iconBox}`}>
-          {palette.icon}
+    <div className="fixed inset-x-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[600] flex justify-center md:inset-x-auto md:left-6 md:top-6" dir="rtl" role="status" aria-live="polite">
+      <div className="motion-reveal flex w-full max-w-sm items-center gap-3 rounded-[var(--radius-md)] bg-raised p-2.5 ps-3 shadow-[var(--nq-shadow)] ring-1 ring-line">
+        <span className={`grid size-9 shrink-0 place-items-center rounded-[0.7rem] ${tone.box}`}>
+          <tone.Icon size={20} weight="fill" aria-hidden />
         </span>
-        <span className="flex-1 text-sm font-black leading-6 text-[var(--pm-text)]">{message}</span>
-        <button onClick={onClose} className="grid size-8 place-items-center rounded-[var(--radius-xs)] bg-[var(--pm-line)] text-[var(--pm-muted)] transition-opacity hover:opacity-100 opacity-70">
-          <span className="material-symbols-outlined text-sm">close</span>
+        <span className="min-w-0 flex-1 text-sm font-bold leading-6">{message}</span>
+        <button type="button" onClick={onClose} className="grid size-8 shrink-0 place-items-center rounded-[0.6rem] text-muted hover:text-fg" aria-label="بستن پیام">
+          <X size={16} weight="bold" aria-hidden />
         </button>
-        <span className="absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded-b-[var(--radius-md)] bg-[var(--pm-line)]">
-          <span
-            className={`block h-full ${palette.progress}`}
-            style={{ animation: `toast-progress ${durationMs}ms linear forwards` }}
-          />
-        </span>
       </div>
-      <style>{`
-        @keyframes toast-progress {
-          from { width: 100%; }
-          to { width: 0%; }
-        }
-      `}</style>
     </div>
   );
 };

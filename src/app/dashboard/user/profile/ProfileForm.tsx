@@ -1,21 +1,18 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
-import { updateProfile, changePassword } from "@/actions/user";
-import { createTelegramAccountLink, unlinkTelegramAccount } from "@/actions/telegram";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Check, LinkBreak, PaperPlaneTilt, TelegramLogo, Trash, UploadSimple } from "@phosphor-icons/react";
+import { updateProfile, changePassword } from "@/actions/user";
+import { createTelegramAccountLink, unlinkTelegramAccount } from "@/actions/telegram";
 import { usePopup } from "@/components/PopupProvider";
-import { useEffect } from "react";
+import { Field } from "@/components/ui/Field";
+import { Notice } from "@/components/ui/Notice";
 
 const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
 const OUTPUT_SIZE = 320;
 const TARGET_DATA_URL_LENGTH = 150_000;
-
-function getInitial(name: string) {
-  const trimmed = name.trim();
-  return trimmed ? trimmed.slice(0, 1).toUpperCase() : "؟";
-}
 
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -125,20 +122,12 @@ export default function ProfileForm({
   );
 
   useEffect(() => {
-    if (result?.success) {
-      showToast("پروفایل با موفقیت بروزرسانی شد", "success");
-    } else if (result?.error) {
-      showAlert("خطا", result.error || "خطا در بروزرسانی", "error");
-    }
-  }, [result]);
+    if (result?.success) showToast("مشخصات ذخیره شد", "success");
+  }, [result]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (pwdResult?.success) {
-      showToast(hasPassword ? "رمز عبور تغییر یافت" : "رمز عبور ایجاد شد", "success");
-    } else if (pwdResult?.error) {
-      showAlert("خطا", pwdResult.error || "خطا در تغییر رمز عبور", "error");
-    }
-  }, [pwdResult]);
+    if (pwdResult?.success) showToast(hasPassword ? "رمز عبور عوض شد" : "رمز عبور ساخته شد", "success");
+  }, [pwdResult]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleImageChange = async (file?: File) => {
     if (!file) return;
@@ -149,11 +138,8 @@ export default function ProfileForm({
       setImageValue(compressed);
       setImagePreview(compressed);
       setRemoveProfileImage(false);
-      showToast("تصویر آماده ذخیره شد", "success");
     } catch (error: any) {
-      const message = error?.message || "تصویر قابل استفاده نیست.";
-      setImageWarning(message);
-      showAlert("تصویر پروفایل", message, "warning");
+      setImageWarning(error?.message || "این تصویر قابل استفاده نیست.");
     } finally {
       setImageProcessing(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -198,77 +184,47 @@ export default function ProfileForm({
     }, "warning");
   };
 
+  const [formError, setFormError] = useState<string | null>(null);
+  const [pwdError, setPwdError] = useState<string | null>(null);
+
   return (
-    <div className="grid gap-5">
-    <form action={action} noValidate className="pm-card p-5" onSubmit={(event) => {
-      const formData = new FormData(event.currentTarget);
-      if (!String(formData.get("name") || "").trim() || !String(formData.get("email") || "").trim()) {
-        event.preventDefault();
-        showAlert("فرم ناقص است", "نام و ایمیل را کامل وارد کنید.", "warning");
-      }
-      if (nameWarning) {
-        event.preventDefault();
-        showAlert("نام طولانی است", nameWarning, "warning");
-      }
-      if (imageWarning || imageProcessing) {
-        event.preventDefault();
-        showAlert("تصویر پروفایل", imageProcessing ? "کمی صبر کنید تا تصویر آماده شود." : imageWarning, "warning");
-      }
-    }}>
-      <input type="hidden" name="profileImage" value={imageValue} />
-      <input type="hidden" name="removeProfileImage" value={removeProfileImage ? "true" : "false"} />
-      <div className="mb-5 flex items-start gap-3">
-        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-primary)] text-xl text-[var(--pm-text-inverse)] shadow-[0_0_15px_var(--pm-primary-glow)]">manage_accounts</span>
-        <div>
-          <h3 className="text-xl font-black text-[var(--pm-text)]">اطلاعات پروفایل</h3>
-          <p className="mt-1 text-sm leading-6 text-[var(--pm-muted)]">نام نمایشی و ایمیل حساب را مدیریت کنید.</p>
-        </div>
-      </div>
+    <div className="flex flex-col gap-10">
+      <form
+        action={action}
+        noValidate
+        className="flex flex-col gap-5"
+        onSubmit={(event) => {
+          setFormError(null);
+          const formData = new FormData(event.currentTarget);
+          const problem = !String(formData.get("name") || "").trim() || !String(formData.get("email") || "").trim()
+            ? "نام و ایمیل را کامل وارد کنید."
+            : nameWarning || (imageProcessing ? "کمی صبر کنید تا تصویر آماده شود." : imageWarning);
+          if (problem) {
+            event.preventDefault();
+            setFormError(problem);
+          }
+        }}
+      >
+        <h2 className="text-lg font-extrabold">مشخصات</h2>
+        <input type="hidden" name="profileImage" value={imageValue} />
+        <input type="hidden" name="removeProfileImage" value={removeProfileImage ? "true" : "false"} />
 
-      <div className="mb-5 overflow-hidden pm-muted-card border border-[var(--pm-line)]">
-        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-strong)] text-3xl font-black text-[var(--pm-muted)] shadow-[var(--pm-shadow-soft)]">
-              {imagePreview ? (
-                <img src={imagePreview} alt="" className="size-full object-cover" />
-              ) : (
-                getInitial(nameValue)
-              )}
-              <span className="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[9px] font-black text-[var(--pm-text)]">
-                پروفایل
-              </span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-black text-[var(--pm-text)]">تصویر بازیکن</p>
-              <p className="mt-1 max-w-lg text-xs leading-6 text-[var(--pm-muted)]">
-                یک تصویر واضح انتخاب کنید تا در لابی و صفحه بازی کنار نام شما نمایش داده شود.
-              </p>
-              {imageValue.startsWith("data:image/") && (
-                <p className="mt-2 inline-flex pm-chip pm-chip-primary">
-                  تصویر آماده ذخیره است
-                </p>
-              )}
-            </div>
+        {formError || result?.error ? <Notice tone="danger">{formError || result?.error}</Notice> : null}
+
+        <div className="flex items-center gap-4 rounded-[var(--radius-md)] bg-surface p-4 ring-1 ring-line">
+          <span className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-[1rem] bg-raised text-sm font-bold text-muted">
+            {imagePreview ? <img src={imagePreview} alt="" className="size-full object-cover" /> : "عکس"}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-bold">عکس پروفایل</p>
+            <p className="text-sm font-medium leading-6 text-muted">اختیاری. سر میز همه با نقابتان شما را می‌شناسند.</p>
           </div>
-
-          <div className="grid gap-2 sm:w-44">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              className="hidden"
-              onChange={(event) => handleImageChange(event.target.files?.[0])}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={imageProcessing}
-              className="pm-button pm-button-primary min-h-10 px-3 text-xs"
-            >
-              <span className={`material-symbols-outlined text-base ${imageProcessing ? "animate-spin" : ""}`}>{imageProcessing ? "refresh" : "upload"}</span>
-              {imageProcessing ? "پردازش..." : "انتخاب تصویر"}
+          <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event) => handleImageChange(event.target.files?.[0])} />
+          <div className="flex shrink-0 gap-1.5">
+            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={imageProcessing} className="nq-icon-btn" aria-label="انتخاب عکس">
+              {imageProcessing ? <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden /> : <UploadSimple size={20} weight="bold" aria-hidden />}
             </button>
-            {(imagePreview || imageValue) && (
+            {imagePreview || imageValue ? (
               <button
                 type="button"
                 onClick={() => {
@@ -277,218 +233,124 @@ export default function ProfileForm({
                   setRemoveProfileImage(true);
                   setImageWarning("");
                 }}
-                className="pm-button pm-button-secondary min-h-10 px-3 text-xs text-[var(--pm-danger)] border-[var(--pm-danger)]/50 hover:bg-[var(--pm-danger)]/10"
+                className="nq-icon-btn hover:!text-danger"
+                aria-label="حذف عکس"
               >
-                <span className="material-symbols-outlined text-base">delete</span>
-                حذف تصویر
+                <Trash size={20} weight="bold" aria-hidden />
               </button>
-            )}
+            ) : null}
           </div>
         </div>
-        {imageWarning && (
-          <p className="border-t border-[var(--pm-warning)]/20 bg-[var(--pm-warning)]/10 px-4 py-3 text-xs font-bold text-[var(--pm-warning)]">
-            {imageWarning}
-          </p>
-        )}
-      </div>
+        {imageWarning ? <Notice tone="warning">{imageWarning}</Notice> : null}
+        {imageValue.startsWith("data:image/") ? <p className="text-sm font-bold text-accent">عکس تازه آماده است. برای ثبت، ذخیره را بزنید.</p> : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
-      <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-[var(--pm-muted)]">نام و نام خانوادگی</label>
-        <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">person</span>
-          <input 
-            type="text" 
-            name="name" 
+        <div className="grid gap-5 md:grid-cols-2">
+          <Field
+            label="نام"
+            name="name"
             value={nameValue}
+            maxLength={60}
             onChange={(event) => {
               setNameValue(event.target.value);
               checkName(event.target.value);
             }}
-            maxLength={60}
-            className="w-full pl-10 pr-4 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
+            error={nameWarning || null}
+            hint="همین نام سر میز و در گزارش بازی دیده می‌شود."
           />
-        </div>
-        {nameWarning && (
-          <p className="rounded-[var(--radius-sm)] border border-[var(--pm-warning)]/20 bg-[var(--pm-warning)]/10 px-3 py-2 text-xs font-bold text-[var(--pm-warning)]">
-            {nameWarning}
-          </p>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-[var(--pm-muted)]">ایمیل</label>
-        <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">mail</span>
-          <input 
-            type="email" 
-            name="email" 
-            defaultValue={user.email} 
+          <Field
+            label="ایمیل"
+            name="email"
+            type="email"
             dir="ltr"
+            defaultValue={user.email}
             readOnly={hasGoogleProvider}
-            className={`w-full pl-10 pr-4 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-[var(--pm-text)] focus:border-[var(--pm-primary)] ${hasGoogleProvider ? 'opacity-60 cursor-not-allowed' : ''}`}
+            hint={hasGoogleProvider ? "ایمیل حساب گوگل قابل تغییر نیست." : undefined}
+            className={hasGoogleProvider ? "opacity-70" : ""}
           />
         </div>
-      </div>
-      </div>
 
-      <button 
-        type="submit" 
-        disabled={isPending}
-        className="pm-button pm-button-primary mt-5 min-h-12 w-full"
-      >
-        {isPending ? (
-          <span className="material-symbols-outlined animate-spin">refresh</span>
-        ) : (
-          <span className="material-symbols-outlined">save</span>
-        )}
-        ذخیره تغییرات
-      </button>
-    </form>
-
-    <form action={pwdAction} noValidate className="pm-card p-5" onSubmit={(event) => {
-      const formData = new FormData(event.currentTarget);
-      if (!String(formData.get("newPassword") || "") || !String(formData.get("confirmPassword") || "") || (hasPassword && !String(formData.get("currentPassword") || ""))) {
-        event.preventDefault();
-        showAlert("فرم ناقص است", "فیلدهای رمز عبور را کامل وارد کنید.", "warning");
-      }
-    }}>
-      <div className="mb-5 flex items-start gap-3">
-        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-surface-strong)] text-xl text-[var(--pm-primary)] shadow-[var(--pm-shadow-soft)]">encrypted</span>
-        <div>
-          <h3 className="text-xl font-black text-[var(--pm-text)]">{hasPassword ? "تغییر رمز عبور" : "ایجاد رمز عبور"}</h3>
-          <p className="mt-1 text-sm leading-6 text-[var(--pm-muted)]">برای ورود مستقیم با ایمیل، رمز حساب را امن نگه دارید.</p>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-      {hasPassword && (
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-black text-[var(--pm-muted)]">رمز عبور فعلی</label>
-          <div className="relative group">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">lock</span>
-            <input 
-              type="password" 
-              name="currentPassword" 
-              dir="ltr"
-              className="w-full pl-10 pr-4 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-[var(--pm-muted)]">رمز عبور جدید</label>
-        <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">key</span>
-          <input 
-            type="password" 
-            name="newPassword" 
-            dir="ltr"
-            className="w-full pl-10 pr-4 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label className="text-xs font-black text-[var(--pm-muted)]">تکرار رمز عبور جدید</label>
-        <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--pm-muted)]">key</span>
-          <input 
-            type="password" 
-            name="confirmPassword" 
-            dir="ltr"
-            className="w-full pl-10 pr-4 rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] text-[var(--pm-text)] focus:border-[var(--pm-primary)]"
-          />
-        </div>
-      </div>
-      </div>
-
-      <button 
-        type="submit" 
-        disabled={isPwdPending}
-        className="pm-button pm-button-primary mt-5 min-h-12 w-full"
-      >
-        {isPwdPending ? (
-          <span className="material-symbols-outlined animate-spin">refresh</span>
-        ) : (
-          <span className="material-symbols-outlined">password</span>
-        )}
-        {hasPassword ? "تغییر رمز" : "ایجاد رمز"}
-      </button>
-    </form>
-
-    <div className="pm-card p-5">
-      <div className="mb-5 flex items-start gap-3">
-        <span className="material-symbols-outlined flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--pm-surface-strong)] text-xl text-[var(--pm-text)] shadow-[var(--pm-shadow-soft)]">linked_services</span>
-        <div>
-          <h3 className="text-xl font-black text-[var(--pm-text)]">اتصال حساب‌ها</h3>
-          <p className="mt-1 text-sm leading-6 text-[var(--pm-muted)]">ورود سریع‌تر و تصویر پروفایل گوگل از اینجا مدیریت می‌شود.</p>
-        </div>
-      </div>
-      {hasGoogleProvider ? (
-        <div className="flex items-center justify-between rounded-[var(--radius-sm)] border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-4">
-          <div className="flex items-center gap-3">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-6 h-6" />
-            <div>
-              <span className="font-black text-[var(--pm-text)]">حساب گوگل</span>
-              <p className="mt-1 text-xs font-bold text-[var(--pm-primary)]">تصویر و تایید ایمیل از گوگل دریافت می‌شود.</p>
-            </div>
-          </div>
-          <span className="pm-chip pm-chip-primary">متصل</span>
-        </div>
-      ) : (
-        <button 
-          onClick={() => signIn("google", { callbackUrl: "/dashboard/user/profile" })}
-          className="group relative flex min-h-12 w-full items-center justify-center gap-3 overflow-hidden rounded-lg border border-[var(--pm-line)] bg-zinc-50/50 px-4 font-bold text-[var(--pm-text)] transition-all hover:border-[var(--pm-line-strong)] hover:bg-zinc-100 dark:bg-white/5 dark:hover:bg-white/10"
-        >
-          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--pm-line-strong)] to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-          <svg className="size-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
-          </svg>
-          <span>اتصال به حساب گوگل</span>
+        <button type="submit" disabled={isPending} className="nq-btn nq-btn-primary nq-btn-lg self-start">
+          {isPending ? "در حال ذخیره…" : "ذخیره مشخصات"}
+          {!isPending ? <Check size={20} weight="bold" aria-hidden /> : null}
         </button>
-      )}
+      </form>
 
-      <div className="mt-3 rounded-[var(--radius-sm)] border border-sky-500/20 bg-sky-500/10 p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="material-symbols-outlined flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-sky-500 text-xl text-white shadow-[var(--pm-shadow-soft)]">send</span>
-            <div className="min-w-0">
-              <span className="font-black text-[var(--pm-text)]">ربات تلگرام</span>
-              <p className="mt-1 text-xs font-bold leading-5 text-sky-700 dark:text-sky-300">
-                {telegramAccount ? `متصل به ${telegramName}` : "برای ورود به لابی از تلگرام و دیدن نقش، حساب را یک‌بار لینک کنید."}
-              </p>
-            </div>
-          </div>
-          {telegramAccount ? (
-            <button
-              type="button"
-              onClick={handleUnlinkTelegram}
-              disabled={telegramPending}
-              className="pm-button pm-button-secondary min-h-10 px-3 text-xs text-sky-700 dark:text-sky-300"
-            >
-              <span className={`material-symbols-outlined text-base ${telegramPending ? "animate-spin" : ""}`}>{telegramPending ? "progress_activity" : "link_off"}</span>
-              قطع اتصال
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleLinkTelegram}
-              disabled={telegramPending}
-              className="pm-button pm-button-primary min-h-10 px-3 text-xs"
-            >
-              <span className={`material-symbols-outlined text-base ${telegramPending ? "animate-spin" : ""}`}>{telegramPending ? "progress_activity" : "send"}</span>
-              لینک تلگرام
-            </button>
-          )}
+      <form
+        action={pwdAction}
+        noValidate
+        className="flex flex-col gap-5 border-t border-line pt-10"
+        onSubmit={(event) => {
+          setPwdError(null);
+          const formData = new FormData(event.currentTarget);
+          if (!String(formData.get("newPassword") || "") || !String(formData.get("confirmPassword") || "") || (hasPassword && !String(formData.get("currentPassword") || ""))) {
+            event.preventDefault();
+            setPwdError("همه خانه‌های رمز عبور را پر کنید.");
+          }
+        }}
+      >
+        <div>
+          <h2 className="text-lg font-extrabold">{hasPassword ? "تغییر رمز عبور" : "ساخت رمز عبور"}</h2>
+          <p className="mt-0.5 text-sm font-medium text-muted">{hasPassword ? "برای امنیت، رمز فعلی را هم وارد کنید." : "با رمز عبور می‌توانید بدون گوگل هم وارد شوید."}</p>
         </div>
-      </div>
-    </div>
+        {pwdError || pwdResult?.error ? <Notice tone="danger">{pwdError || pwdResult?.error}</Notice> : null}
+        <div className="grid gap-5 md:grid-cols-3">
+          {hasPassword ? <Field label="رمز فعلی" name="currentPassword" type="password" dir="ltr" autoComplete="current-password" /> : null}
+          <Field label="رمز تازه" name="newPassword" type="password" dir="ltr" autoComplete="new-password" />
+          <Field label="تکرار رمز تازه" name="confirmPassword" type="password" dir="ltr" autoComplete="new-password" />
+        </div>
+        <button type="submit" disabled={isPwdPending} className="nq-btn nq-btn-secondary nq-btn-lg self-start">
+          {isPwdPending ? "در حال ذخیره…" : hasPassword ? "عوض کردن رمز" : "ساخت رمز"}
+        </button>
+      </form>
 
+      <section className="flex flex-col gap-3 border-t border-line pt-10" aria-labelledby="connections-title">
+        <h2 id="connections-title" className="text-lg font-extrabold">
+          حساب‌های متصل
+        </h2>
+        <ul className="divide-y divide-line rounded-[var(--radius-lg)] border border-line bg-surface">
+          <li className="flex items-center gap-4 p-4">
+            <span className="grid size-11 shrink-0 place-items-center rounded-[0.85rem] bg-raised">
+              <svg className="size-5" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+              </svg>
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold">گوگل</p>
+              <p className="text-sm font-medium text-muted">{hasGoogleProvider ? "متصل است. می‌توانید با گوگل وارد شوید." : "برای ورود سریع‌تر وصل کنید."}</p>
+            </div>
+            {hasGoogleProvider ? (
+              <span className="nq-tag bg-success/14 text-success">متصل</span>
+            ) : (
+              <button type="button" onClick={() => signIn("google", { callbackUrl: "/dashboard/user/profile" })} className="nq-btn nq-btn-secondary nq-btn-sm">
+                اتصال
+              </button>
+            )}
+          </li>
+          <li className="flex items-center gap-4 p-4">
+            <span className="grid size-11 shrink-0 place-items-center rounded-[0.85rem] bg-raised text-[#29a9eb]">
+              <TelegramLogo size={24} weight="fill" aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold">ربات تلگرام</p>
+              <p className="text-sm font-medium text-muted">{telegramAccount ? `متصل به ${telegramName}` : "برای پیوستن به لابی و دیدن نقش از داخل تلگرام."}</p>
+            </div>
+            {telegramAccount ? (
+              <button type="button" onClick={handleUnlinkTelegram} disabled={telegramPending} className="nq-btn nq-btn-ghost nq-btn-sm text-danger">
+                <LinkBreak size={16} weight="bold" aria-hidden />
+                قطع
+              </button>
+            ) : (
+              <button type="button" onClick={handleLinkTelegram} disabled={telegramPending} className="nq-btn nq-btn-secondary nq-btn-sm">
+                <PaperPlaneTilt size={16} weight="bold" aria-hidden />
+                اتصال
+              </button>
+            )}
+          </li>
+        </ul>
+      </section>
     </div>
   );
 }

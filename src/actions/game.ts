@@ -1002,11 +1002,16 @@ export async function setGamePhase(gameId: string, phase: GamePhaseInput) {
       select: { phase: true, phaseNumber: true, phaseChangedAt: true },
     });
 
-    await pusherServer.trigger(`game-${gameId}`, "phase-changed", {
-      phase: updated.phase,
-      phaseNumber: updated.phaseNumber,
-      at: updated.phaseChangedAt?.toISOString(),
-    });
+    // Best effort: the phase is saved even if the realtime broadcast fails; phones also pick it up on their next sync.
+    try {
+      await pusherServer.trigger(`game-${gameId}`, "phase-changed", {
+        phase: updated.phase,
+        phaseNumber: updated.phaseNumber,
+        at: updated.phaseChangedAt?.toISOString(),
+      });
+    } catch (broadcastError) {
+      console.error("Phase broadcast failed:", broadcastError);
+    }
 
     revalidatePath(`/dashboard/moderator/game/${gameId}`);
     revalidatePath(`/game/${gameId}`);

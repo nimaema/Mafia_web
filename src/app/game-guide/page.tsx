@@ -1,13 +1,18 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { ArrowLeft, CaretDown } from "@phosphor-icons/react/dist/ssr";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { MaskMark } from "@/components/brand/MaskMark";
+import { Wordmark } from "@/components/brand/Wordmark";
+import { Notice } from "@/components/ui/Notice";
+import { FactionTag } from "@/components/ui/Tag";
 import { TEMP_SCENARIO_DESCRIPTION_PREFIX } from "@/lib/gameDisplay";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "راهنمای بازی مافیا | نقاب",
+  title: "نقش‌ها و سناریوها",
   description: "راهنمای خوانای نقش‌ها، سناریوها، توانایی‌های شب و ترکیب‌های بازی در نقاب.",
   alternates: {
     canonical: "/game-guide",
@@ -20,14 +25,6 @@ export const metadata: Metadata = {
     type: "article",
   },
 };
-
-const flowSteps = [
-  ["login", "ورود"],
-  ["groups", "لابی"],
-  ["dark_mode", "شب"],
-  ["how_to_vote", "رای‌گیری"],
-  ["summarize", "گزارش"],
-];
 
 const alignments = ["CITIZEN", "MAFIA", "NEUTRAL"] as const;
 type GuideAlignment = (typeof alignments)[number];
@@ -50,32 +47,14 @@ type RoleNightAbility = {
   choices: RoleNightAbilityChoice[];
 };
 
-function alignmentLabel(alignment?: string | null) {
-  if (alignment === "CITIZEN") return "شهروند";
-  if (alignment === "MAFIA") return "مافیا";
-  return "مستقل";
-}
-
-function alignmentClass(alignment?: string | null) {
-  if (alignment === "CITIZEN") return "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300";
-  if (alignment === "MAFIA") return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
-  return "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300";
-}
-
-function alignmentIcon(alignment?: string | null) {
-  if (alignment === "CITIZEN") return "verified_user";
-  if (alignment === "MAFIA") return "local_police";
-  return "casino";
-}
+const GROUP_TITLE: Record<GuideAlignment, string> = { CITIZEN: "شهروندان", MAFIA: "مافیا", NEUTRAL: "مستقل‌ها" };
+const GROUP_BAR: Record<GuideAlignment, string> = { CITIZEN: "bg-citizen", MAFIA: "bg-mafia", NEUTRAL: "bg-independent" };
+const toFa = (value: number) => value.toLocaleString("fa-IR");
 
 function alignmentOrder(alignment?: string | null) {
   if (alignment === "CITIZEN") return 0;
   if (alignment === "MAFIA") return 1;
   return 2;
-}
-
-function roleCountLabel(count: number) {
-  return count > 1 ? `${count} نفر` : "۱ نفر";
 }
 
 function normalizeRoleAbilities(value: unknown): RoleNightAbility[] {
@@ -207,269 +186,175 @@ async function getGuideLibrary() {
 
 function RoleAbilityList({ abilities }: { abilities: RoleNightAbility[] }) {
   if (!abilities.length) return null;
-
   return (
-    <div className="mt-4 border-t border-[var(--pm-line)] pt-4">
-      <p className="text-[11px] font-black text-[var(--pm-primary)]">توانایی شب</p>
-      <div className="mt-2 grid gap-2">
-        {abilities.map((ability) => (
-          <div key={ability.id} className="rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-black text-[var(--pm-text)]">{ability.label}</span>
-              <span className="rounded-[var(--radius-full)] border border-[var(--pm-line)] px-2 py-0.5 text-[10px] font-black text-[var(--pm-muted)]">
-                {effectLabel(ability.effectType)}
-              </span>
-            </div>
-            <p className="mt-1 text-xs font-bold leading-6 text-[var(--pm-muted)]">{abilityUsageLabel(ability)}</p>
-            {ability.choices.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {ability.choices.map((choice) => (
-                  <span key={choice.id} className="rounded-[var(--radius-full)] border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 py-0.5 text-[10px] font-black text-[var(--pm-primary)]">
-                    {choice.label}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+    <ul className="mt-4 flex flex-col gap-2">
+      {abilities.map((ability) => (
+        <li key={ability.id} className="rounded-[var(--radius-sm)] bg-raised p-3">
+          <p className="flex flex-wrap items-center gap-2 font-bold">
+            <span className="text-xs font-extrabold text-accent">توانایی شب</span>
+            {ability.label}
+            {ability.effectType && ability.effectType !== "NONE" ? <span className="nq-tag bg-accent-soft text-accent">{effectLabel(ability.effectType)}</span> : null}
+          </p>
+          <p className="mt-1 text-sm font-medium leading-6 text-muted">{abilityUsageLabel(ability)}</p>
+          {ability.choices.length > 0 ? (
+            <p className="mt-2 flex flex-wrap gap-1.5">
+              {ability.choices.map((choice) => (
+                <span key={choice.id} className="nq-tag">
+                  {choice.label}
+                </span>
+              ))}
+            </p>
+          ) : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function RoleRow({ role, count, showFaction = true }: { role: { id: string; name: string; description?: string | null; alignment?: string | null; nightAbilities?: unknown }; count?: number; showFaction?: boolean }) {
+  const abilities = normalizeRoleAbilities(role.nightAbilities);
+  return (
+    <details className="group border-b border-line last:border-0">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 py-3">
+        <span className="min-w-0 flex-1 font-extrabold">
+          {role.name}
+          {count && count > 1 ? <span className="ms-2 text-sm font-bold text-muted">{`× ${toFa(count)}`}</span> : null}
+        </span>
+        {showFaction ? <FactionTag alignment={role.alignment} /> : null}
+        <CaretDown size={18} weight="bold" className="shrink-0 text-muted transition-transform group-open:rotate-180" aria-hidden />
+      </summary>
+      <div className="pb-5">
+        <p className="whitespace-pre-line font-medium leading-8 text-muted">{role.description || "توضیحی برای این نقش ثبت نشده است."}</p>
+        <RoleAbilityList abilities={abilities} />
       </div>
-    </div>
+    </details>
   );
 }
 
 export default async function GameGuidePage() {
   const { roles, scenarios, unavailable } = await getGuideLibrary();
   const roleGroups = alignments
-    .map((alignment) => ({
-      alignment,
-      roles: roles.filter((role) => role.alignment === alignment),
-    }))
+    .map((alignment) => ({ alignment, roles: roles.filter((role) => role.alignment === alignment) }))
     .filter((group) => group.roles.length > 0);
-  const largestScenario = scenarios.reduce((max, scenario) => Math.max(max, scenarioTotalPlayers(scenario)), 0);
 
   return (
-    <main className="app-page min-h-screen text-[var(--pm-text)]" dir="rtl">
-      <header className="app-container relative z-10 flex items-center justify-between gap-3 py-5">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="pm-icon-primary">
-            <span className="material-symbols-outlined text-xl">theater_comedy</span>
-          </div>
-          <div>
-            <p className="text-lg font-black">نقاب</p>
-            <p className="text-[11px] font-black text-[var(--pm-primary-strong)] dark:text-[var(--pm-primary)]">راهنمای بازی</p>
-          </div>
-        </Link>
-        <div className="flex items-center gap-2">
-          <ThemeToggle compact />
-          <Link href="/dashboard/user" className="pm-button pm-button-secondary min-h-10 px-3 text-xs sm:px-4 sm:text-sm">
-            داشبورد
-            <span className="material-symbols-outlined text-lg">dashboard</span>
+    <main className="min-h-dvh bg-canvas pb-20 text-fg" dir="rtl">
+      <header className="sticky top-0 z-30 border-b border-line bg-canvas/92 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-5 pb-2 pt-[max(env(safe-area-inset-top),0.6rem)]">
+          <Link href="/" aria-label="نقاب" className="flex items-center gap-2">
+            <Wordmark className="h-9 text-fg" title="" />
+            <MaskMark className="h-4 text-accent" />
           </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link href="/dashboard/user" className="nq-btn nq-btn-secondary nq-btn-sm">
+              رفتن به بازی
+              <ArrowLeft size={16} weight="bold" aria-hidden />
+            </Link>
+          </div>
         </div>
+        <nav className="mx-auto flex max-w-4xl gap-1 px-5 pb-2" aria-label="بخش‌های راهنما">
+          <a href="#roles" className="nq-btn nq-btn-ghost nq-btn-sm">{`نقش‌ها (${toFa(roles.length)})`}</a>
+          <a href="#scenarios" className="nq-btn nq-btn-ghost nq-btn-sm">{`سناریوها (${toFa(scenarios.length)})`}</a>
+        </nav>
       </header>
 
-      <section className="app-container pb-8">
-        <div className="pm-card overflow-hidden p-5 sm:p-6">
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-            <div>
-              <div className="pm-chip pm-chip-primary">
-                <span className="material-symbols-outlined text-base">menu_book</span>
-                راهنمای خواندن نقش‌ها و سناریوها
-              </div>
-              <h1 className="mt-5 max-w-4xl text-3xl font-black leading-tight sm:text-5xl">
-                نقش‌ها و سناریوها، کامل و بدون برش متن.
-              </h1>
-              <p className="mt-4 max-w-3xl text-sm font-bold leading-7 text-[var(--pm-muted)] sm:text-base">
-                این صفحه برای خواندن جزئیات است؛ توضیح نقش‌ها، توانایی‌های شب و ترکیب سناریوها در کارت‌های بزرگ نمایش داده می‌شود.
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-2 sm:min-w-[24rem]">
-              <div className="pm-muted-card p-3 text-center">
-                <p className="text-2xl font-black text-[var(--pm-primary)]">{roles.length}</p>
-                <p className="mt-1 text-[10px] font-black text-[var(--pm-muted)]">نقش</p>
-              </div>
-              <div className="pm-muted-card p-3 text-center">
-                <p className="text-2xl font-black text-violet-600 dark:text-violet-300">{scenarios.length}</p>
-                <p className="mt-1 text-[10px] font-black text-[var(--pm-muted)]">سناریو</p>
-              </div>
-              <div className="pm-muted-card p-3 text-center">
-                <p className="text-2xl font-black text-emerald-600 dark:text-emerald-300">{largestScenario}</p>
-                <p className="mt-1 text-[10px] font-black text-[var(--pm-muted)]">ظرفیت</p>
-              </div>
-            </div>
-          </div>
+      <div className="mx-auto max-w-4xl px-5">
+        <section className="pt-10">
+          <h1 className="nq-display text-[3rem] leading-[1.1] sm:text-[3.6rem]">نقش‌ها و سناریوها</h1>
+          <p className="mt-2 max-w-xl font-medium leading-8 text-muted">هر نقش چه می‌کند، شب‌ها چه توانایی دارد، و هر سناریو با چه ترکیبی بازی می‌شود. روی هر نقش بزنید تا توضیحش باز شود.</p>
+        </section>
 
-          <div className="mt-5 flex flex-wrap gap-2">
-            <a href="#roles" className="pm-button pm-button-primary min-h-10 px-4 text-sm">
-              نقش‌ها
-              <span className="material-symbols-outlined text-lg">theater_comedy</span>
-            </a>
-            <a href="#scenarios" className="pm-button pm-button-secondary min-h-10 px-4 text-sm">
-              سناریوها
-              <span className="material-symbols-outlined text-lg">account_tree</span>
-            </a>
-            <div className="flex flex-wrap gap-1.5">
-              {flowSteps.map(([icon, label]) => (
-                <span key={label} className="pm-chip">
-                  <span className="material-symbols-outlined text-sm">{icon}</span>
-                  {label}
-                </span>
+        {unavailable ? (
+          <Notice tone="warning" className="mt-8">
+            کتابخانه نقش‌ها و سناریوها الان در دسترس نیست. کمی بعد دوباره سر بزنید.
+          </Notice>
+        ) : null}
+
+        <section id="roles" className="scroll-mt-32 pt-12" aria-labelledby="roles-title">
+          <h2 id="roles-title" className="nq-display text-[2.2rem] leading-tight">
+            نقش‌ها
+          </h2>
+          {roleGroups.length === 0 ? (
+            <p className="mt-4 font-medium text-muted">نقشی برای نمایش نیست.</p>
+          ) : (
+            <div className="mt-5 flex flex-col gap-8">
+              {roleGroups.map((group) => (
+                <section key={group.alignment} aria-label={GROUP_TITLE[group.alignment]}>
+                  <h3 className="flex items-center gap-3 text-lg font-extrabold">
+                    <span className={`h-5 w-1.5 rounded-full ${GROUP_BAR[group.alignment]}`} aria-hidden />
+                    {GROUP_TITLE[group.alignment]}
+                    <span className="text-sm font-bold text-muted">{`${toFa(group.roles.length)} نقش`}</span>
+                  </h3>
+                  <div className="mt-2 rounded-[var(--radius-lg)] border border-line bg-surface px-5">
+                    {group.roles.map((role) => (
+                      <RoleRow key={role.id} role={role} showFaction={false} />
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {unavailable && (
-        <section className="app-container pb-8">
-          <div className="rounded-[var(--radius-sm)] border border-amber-500/25 bg-amber-500/10 p-4 text-sm font-bold leading-7 text-amber-700 dark:text-amber-300">
-            کتابخانه نقش‌ها و سناریوها فعلاً قابل بارگذاری نیست. بعد از اتصال دیتابیس، همین بخش به‌صورت خودکار از اطلاعات فعلی سایت پر می‌شود.
-          </div>
+          )}
         </section>
-      )}
 
-      <section id="roles" className="app-container scroll-mt-6 pb-10">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-[11px] font-black text-[var(--pm-primary)]">کتابخانه نقش‌ها</p>
-            <h2 className="mt-1 text-2xl font-black sm:text-3xl">همه نقش‌ها با توضیح کامل</h2>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {roleGroups.map((group) => (
-              <span key={group.alignment} className={`rounded-[var(--radius-full)] border px-3 py-1 text-xs font-black ${alignmentClass(group.alignment)}`}>
-                {alignmentLabel(group.alignment)}: {group.roles.length}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid gap-5">
-          {roleGroups.length === 0 ? (
-            <div className="pm-card p-8 text-center text-sm font-bold text-[var(--pm-muted)]">نقشی برای نمایش پیدا نشد.</div>
-          ) : (
-            roleGroups.map((group) => (
-              <section key={group.alignment} className="pm-card overflow-hidden">
-                <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--pm-line)] p-4">
-                  <div className="flex items-center gap-3">
-                    <span className={`material-symbols-outlined grid size-11 place-items-center rounded-[var(--radius-sm)] border text-xl ${alignmentClass(group.alignment)}`}>
-                      {alignmentIcon(group.alignment)}
-                    </span>
-                    <div>
-                      <h3 className="text-xl font-black">{alignmentLabel(group.alignment)}</h3>
-                      <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{group.roles.length} نقش در این جبهه</p>
-                    </div>
-                  </div>
-                </header>
-
-                <div className="grid gap-3 p-4 lg:grid-cols-2">
-                  {group.roles.map((role) => {
-                    const abilities = normalizeRoleAbilities(role.nightAbilities);
-
-                    return (
-                      <article key={role.id} className="rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-4">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <h4 className="break-words text-lg font-black leading-7">{role.name}</h4>
-                          <span className={`shrink-0 rounded-[var(--radius-full)] border px-2.5 py-1 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
-                            {alignmentLabel(role.alignment)}
-                          </span>
-                        </div>
-                        <p className="mt-3 whitespace-pre-line text-sm font-bold leading-8 text-[var(--pm-muted)]">
-                          {role.description || "توضیحی برای این نقش ثبت نشده است."}
-                        </p>
-                        <RoleAbilityList abilities={abilities} />
-                      </article>
-                    );
-                  })}
-                </div>
-              </section>
-            ))
-          )}
-        </div>
-      </section>
-
-      <section id="scenarios" className="app-container scroll-mt-6 pb-16">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-[11px] font-black text-violet-600 dark:text-violet-300">کتابخانه سناریوها</p>
-            <h2 className="mt-1 text-2xl font-black sm:text-3xl">ترکیب سناریوها با جزئیات نقش‌ها</h2>
-          </div>
-          <span className="pm-chip">{scenarios.length} سناریو</span>
-        </div>
-
-        <div className="grid gap-5">
+        <section id="scenarios" className="scroll-mt-32 pt-16" aria-labelledby="scenarios-title">
+          <h2 id="scenarios-title" className="nq-display text-[2.2rem] leading-tight">
+            سناریوها
+          </h2>
           {scenarios.length === 0 ? (
-            <div className="pm-card p-8 text-center text-sm font-bold text-[var(--pm-muted)]">سناریویی برای نمایش پیدا نشد.</div>
+            <p className="mt-4 font-medium text-muted">سناریویی برای نمایش نیست.</p>
           ) : (
-            scenarios.map((scenario) => {
-              const totalPlayers = scenarioTotalPlayers(scenario);
-              const counts = scenarioAlignmentCounts(scenario);
-              const scenarioRoles = sortRoles(
-                scenario.roles.map((item) => ({
-                  ...item.role,
-                  count: item.count,
-                }))
-              );
-
-              return (
-                <article key={scenario.id} className="pm-card overflow-hidden">
-                  <header className="border-b border-[var(--pm-line)] p-4 sm:p-5">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <h3 className="break-words text-2xl font-black leading-9">{scenario.name}</h3>
-                        <p className="mt-3 max-w-5xl whitespace-pre-line text-sm font-bold leading-8 text-[var(--pm-muted)]">
-                          {scenario.description || "توضیحی برای این سناریو ثبت نشده است."}
+            <div className="mt-5 flex flex-col gap-4">
+              {scenarios.map((scenario) => {
+                const total = scenarioTotalPlayers(scenario);
+                const counts = scenarioAlignmentCounts(scenario);
+                const scenarioRoles = sortRoles(scenario.roles.map((item) => ({ ...item.role, count: item.count })));
+                return (
+                  <article key={scenario.id} className="rounded-[var(--radius-lg)] border border-line bg-surface p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-xl font-extrabold leading-8">{scenario.name}</h3>
+                      <span className="nq-tag shrink-0 bg-accent-soft text-accent">{total ? `${toFa(total)} نفر` : "؟ نفر"}</span>
+                    </div>
+                    {scenario.description ? <p className="mt-2 whitespace-pre-line font-medium leading-8 text-muted">{scenario.description}</p> : null}
+                    {total ? (
+                      <div className="mt-4">
+                        <div className="flex h-2.5 overflow-hidden rounded-full" aria-hidden>
+                          {alignments.map((alignment) =>
+                            counts[alignment] ? <span key={alignment} className={GROUP_BAR[alignment]} style={{ width: `${(counts[alignment] / total) * 100}%` }} /> : null,
+                          )}
+                        </div>
+                        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm font-bold">
+                          {alignments.map((alignment) =>
+                            counts[alignment] ? (
+                              <span key={alignment} className="flex items-center gap-1.5">
+                                <span className={`size-2 rounded-full ${GROUP_BAR[alignment]}`} aria-hidden />
+                                {`${toFa(counts[alignment])} ${GROUP_TITLE[alignment]}`}
+                              </span>
+                            ) : null,
+                          )}
                         </p>
                       </div>
-                      <span className="rounded-[var(--radius-full)] border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-sm font-black text-violet-700 dark:text-violet-300">
-                        {totalPlayers || "؟"} نفر
-                      </span>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {alignments.map((alignment) => (
-                        <span key={alignment} className={`rounded-[var(--radius-full)] border px-2.5 py-1 text-[10px] font-black ${alignmentClass(alignment)}`}>
-                          {alignmentLabel(alignment)}: {counts[alignment]}
-                        </span>
-                      ))}
-                    </div>
-                  </header>
-
-                  <div className="grid gap-3 p-4 xl:grid-cols-3">
+                    ) : null}
                     {scenarioRoles.length ? (
-                      scenarioRoles.map((role) => {
-                        const abilities = normalizeRoleAbilities(role.nightAbilities);
-
-                        return (
-                          <section key={`${scenario.id}-${role.id}`} className="rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface-soft)] p-4">
-                            <div className="flex flex-wrap items-start justify-between gap-2">
-                              <div>
-                                <h4 className="break-words text-base font-black leading-7">{role.name}</h4>
-                                <p className={`mt-1 inline-flex rounded-[var(--radius-full)] border px-2 py-0.5 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
-                                  {alignmentLabel(role.alignment)}
-                                </p>
-                              </div>
-                              <span className="rounded-[var(--radius-sm)] border border-[var(--pm-line)] bg-[var(--pm-surface)] px-2.5 py-1 text-xs font-black">
-                                {roleCountLabel(role.count)}
-                              </span>
-                            </div>
-                            <p className="mt-3 whitespace-pre-line text-xs font-bold leading-7 text-[var(--pm-muted)]">
-                              {role.description || "توضیحی برای این نقش ثبت نشده است."}
-                            </p>
-                            <RoleAbilityList abilities={abilities} />
-                          </section>
-                        );
-                      })
-                    ) : (
-                      <div className="rounded-[var(--radius-sm)] border border-dashed border-[var(--pm-line)] p-5 text-center text-sm font-bold text-[var(--pm-muted)] xl:col-span-3">
-                        ترکیب نقش برای این سناریو ثبت نشده است.
-                      </div>
-                    )}
-                  </div>
-                </article>
-              );
-            })
+                      <details className="group mt-4 border-t border-line">
+                        <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between pt-3 text-sm font-extrabold text-accent">
+                          نقش‌های این سناریو
+                          <CaretDown size={16} weight="bold" className="transition-transform group-open:rotate-180" aria-hidden />
+                        </summary>
+                        <div>
+                          {scenarioRoles.map((role) => (
+                            <RoleRow key={`${scenario.id}-${role.id}`} role={role} count={role.count} />
+                          ))}
+                        </div>
+                      </details>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
           )}
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
