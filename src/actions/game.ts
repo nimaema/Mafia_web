@@ -555,7 +555,11 @@ export async function getModeratorGames(timestamp?: number) {
           }
         } 
       },
-      _count: { select: { players: true } }
+      _count: { select: { players: true } },
+      players: {
+        select: { id: true, userId: true, isAlive: true },
+        orderBy: { createdAt: "asc" },
+      },
     },
     orderBy: { createdAt: 'desc' }
   });

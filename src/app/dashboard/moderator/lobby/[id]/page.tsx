@@ -1,16 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getPusherClient } from "@/lib/pusher-client";
 import { cancelGame, createCustomGameScenario, getGameStatus, removeWaitingLobbyPlayer, setGameRoleAbilities, setGameScenario, setTelegramJoinEnabled, startGame } from "@/actions/game";
 import { getScenarios } from "@/actions/admin";
 import { getRoles } from "@/actions/role";
+import { ArrowRight, Check, Copy, MagnifyingGlass, Minus, Play, Plus, Prohibit, ShareNetwork, TelegramLogo, Trash, UserMinus } from "@phosphor-icons/react";
 import { usePopup } from "@/components/PopupProvider";
-import { LobbyPreviewCard } from "@/components/game/LobbyPreviewCard";
-import { MobilePwaFeatureLock } from "@/components/MobilePwaFeatureLock";
+import { MaskAvatar } from "@/components/brand/MaskAvatar";
+import { Sheet } from "@/components/ui/Sheet";
+import { Switch } from "@/components/ui/Switch";
+import { FactionTag } from "@/components/ui/Tag";
+import { assignTableHues } from "@/lib/playerColor";
 
 type Player = {
   id: string;
@@ -44,17 +48,9 @@ type ScenarioAbilityRole = {
   abilities: RoleNightAbility[];
 };
 
-function alignmentClass(alignment?: string) {
-  if (alignment === "MAFIA") return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
-  if (alignment === "CITIZEN") return "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-300";
-  return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300";
-}
-
-function alignmentLabel(alignment?: string) {
-  if (alignment === "MAFIA") return "مافیا";
-  if (alignment === "CITIZEN") return "شهروند";
-  return "مستقل";
-}
+const toFa = (value: number) => value.toLocaleString("fa-IR");
+const faDigits = (value: string) => value.replace(/[0-9]/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
+const BAR: Record<string, string> = { CITIZEN: "bg-citizen", MAFIA: "bg-mafia", NEUTRAL: "bg-independent" };
 
 function normalizeSearchText(value: string) {
   return value
@@ -318,17 +314,7 @@ export default function GameLobbyPage() {
     .filter((item) => item.abilities.length > 1 && (abilityConfig[item.roleId]?.length || 0) === 0)
     .map((item) => item.name);
 
-  const lobbyPlayers = useMemo(
-    () =>
-      players.map((player) => ({
-        id: player.id,
-        name: player.name,
-        userId: player.userId,
-        image: player.image || null,
-        isAlive: player.isAlive,
-      })),
-    [players]
-  );
+  const hues = useMemo(() => assignTableHues(players.map((player) => player.userId || player.id)), [players]);
 
   const filteredCustomRoles = useMemo(() => {
     const query = normalizeSearchText(customRoleSearch);
@@ -354,20 +340,7 @@ export default function GameLobbyPage() {
       : customScenarioDelta > 0
         ? `${customScenarioDelta} نقش بیشتر از بازیکنان`
         : `${Math.abs(customScenarioDelta)} نقش کمتر از بازیکنان`;
-  const seatsRemaining = requiredPlayers ? requiredPlayers - players.length : 0;
   const activeScenarioCounts = scenarioCounts(game?.scenario);
-  const capacityProgress = requiredPlayers ? Math.min(100, Math.round((players.length / requiredPlayers) * 100)) : 0;
-  const lobbyCapacity = Math.max(requiredPlayers || players.length || 6, players.length);
-  const lobbySlots = Array.from({ length: lobbyCapacity }, (_, index) => players[index] || null);
-  const nextLobbyAction = !game?.scenario
-    ? "سناریو را انتخاب کنید"
-    : players.length < requiredPlayers
-      ? `${requiredPlayers - players.length} بازیکن دیگر لازم است`
-      : players.length > requiredPlayers
-        ? "سناریوی بزرگ‌تر لازم است"
-        : missingAbilityRoleNames.length > 0
-          ? "توانایی نقش‌ها را نهایی کنید"
-          : "آماده شروع بازی";
   const startDisabledReason = !game?.scenario
     ? "برای شروع بازی ابتدا سناریو را انتخاب کنید."
     : players.length < requiredPlayers
@@ -542,631 +515,334 @@ export default function GameLobbyPage() {
     setSavingAbilities(false);
   };
 
-  const copyJoinLink = async () => {
+  const [copied, setCopied] = useState(false);
+  const closeCustomSheet = () => {
+    setShowCustomModal(false);
+    setCustomRoleSearch("");
+    setSaveCustomScenario(false);
+    setCustomScenarioName("");
+  };
+
+  const shareLobby = async () => {
     const link = `${window.location.origin}/lobby/${gameId}`;
+    const text = `بیا سر میز «${game?.name || "مافیا"}» در نقاب. کد ورود: ${game?.code || ""}`;
     try {
-      await navigator.clipboard.writeText(link);
-      showToast("لینک ورود کپی شد", "success");
+      if (navigator.share) {
+        await navigator.share({ title: "نقاب", text, url: link });
+        return;
+      }
+      await navigator.clipboard.writeText(`${text}\n${link}`);
+      showToast("لینک لابی کپی شد", "success");
     } catch {
-      showAlert("کپی لینک", link, "info");
+      /* share sheet dismissed */
+    }
+  };
+
+  const copyCode = async () => {
+    if (!game?.code) return;
+    try {
+      await navigator.clipboard.writeText(game.code);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard blocked */
     }
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-[560px] items-center justify-center" dir="rtl">
-        <div className="pm-card w-full max-w-xl overflow-hidden text-center">
-          <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
-          <div className="p-8 sm:p-10">
-            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-lg shadow-[var(--pm-primary)]/20">
-              <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
-            </div>
-            <p className="mt-5 text-lg font-black text-[var(--pm-text)]">در حال آماده‌سازی اتاق انتظار</p>
-            <p className="mt-2 text-sm font-bold leading-6 text-[var(--pm-muted)]">
-              بازیکنان، سناریو و تنظیمات شروع بازی در حال هماهنگ‌سازی هستند.
-            </p>
-          </div>
-        </div>
+      <div className="flex flex-col gap-4" aria-busy="true">
+        <div className="h-40 animate-pulse rounded-[var(--radius-lg)] bg-surface" />
+        <div className="h-72 animate-pulse rounded-[var(--radius-lg)] bg-surface" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-5" dir="rtl">
-      <section className="relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_54%,#edf4e6_100%)] shadow-xl shadow-zinc-950/10 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(17,20,23,0.94)_0%,rgba(21,24,27,0.98)_58%,rgba(190,242,100,0.22)_100%)] dark:shadow-black/30">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
-        <header className="relative overflow-hidden border-b border-[var(--pm-line)] bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_58%,#edf4e6_100%)] p-4 text-zinc-950 dark:border-[var(--pm-line)] dark:bg-[linear-gradient(135deg,rgba(17,20,23,0.96)_0%,rgba(21,24,27,0.98)_58%,rgba(190,242,100,0.2)_100%)] dark:text-white sm:p-5">
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(132,204,22,0.12),transparent_44%),linear-gradient(90deg,rgba(37,99,235,0.06)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem] dark:bg-[linear-gradient(135deg,rgba(190,242,100,0.16),transparent_44%),linear-gradient(90deg,rgba(96,165,250,0.08)_1px,transparent_1px)]" />
-          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--pm-primary)]">مدیریت لابی</p>
-              <h1 className="mt-1 line-clamp-2 break-words text-2xl font-black leading-8 sm:text-3xl sm:leading-10">{game?.name || "لابی بازی مافیا"}</h1>
-              <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black">
-                <span className="rounded-lg border border-[var(--pm-line)] bg-white/82 px-2.5 py-1 text-[var(--pm-muted)] shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-white/10 dark:text-zinc-200">{players.length} بازیکن حاضر</span>
-                <span className="rounded-lg border border-[var(--pm-line)] bg-white/82 px-2.5 py-1 text-[var(--pm-muted)] shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-white/10 dark:text-zinc-200">{requiredPlayers || "بدون"} ظرفیت سناریو</span>
-                <span className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2.5 py-1 text-[var(--pm-primary-strong)] shadow-sm shadow-[var(--pm-primary)]/10 dark:border-[var(--pm-primary)]/30 dark:bg-[var(--pm-primary)]/10 dark:text-[var(--pm-primary)]">کد #{game?.code || "------"}</span>
-                <span className={game?.telegramJoinEnabled ? "rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-sky-700 shadow-sm shadow-sky-500/10 dark:text-sky-300" : "rounded-lg border border-zinc-500/20 bg-zinc-500/10 px-2.5 py-1 text-[var(--pm-muted)]"}>
-                  تلگرام {game?.telegramJoinEnabled ? "فعال" : "خاموش"}
-                </span>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-              <button onClick={copyJoinLink} className="pm-button-secondary min-h-10 border-[var(--pm-line)] bg-white/82 px-3 text-xs text-zinc-700 shadow-sm shadow-zinc-950/5 hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-zinc-950 dark:border-[var(--pm-line)] dark:bg-white/10 dark:text-white dark:hover:bg-white dark:hover:text-zinc-950">
-                <span className="material-symbols-outlined text-base">content_copy</span>
-                کپی لینک
-              </button>
-              <button
-                onClick={handleDeleteLobby}
-                disabled={deletingLobby}
-                className="pm-button-danger min-h-10 px-3 text-xs"
-              >
-                <span className={`material-symbols-outlined text-base ${deletingLobby ? "animate-spin" : ""}`}>{deletingLobby ? "progress_activity" : "delete"}</span>
-                حذف لابی
-              </button>
-              <button onClick={() => router.push("/dashboard/moderator")} className="pm-button-secondary min-h-10 border-[var(--pm-line)] bg-white/82 px-3 text-xs text-zinc-700 shadow-sm shadow-zinc-950/5 hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-zinc-950 dark:border-[var(--pm-line)] dark:bg-white/10 dark:text-white dark:hover:bg-white dark:hover:text-zinc-950">
-                <span className="material-symbols-outlined text-base">arrow_forward</span>
-                بازگشت
-              </button>
-            </div>
+    <div className="flex flex-col gap-8 pb-36 md:pb-10">
+      <header className="flex items-center justify-between gap-3">
+        <Link href="/dashboard/moderator" className="nq-icon-btn" aria-label="بازگشت به لابی‌ها">
+          <ArrowRight size={20} weight="bold" aria-hidden />
+        </Link>
+        <div className="flex gap-2">
+          <button type="button" onClick={shareLobby} className="nq-icon-btn" aria-label="دعوت به این لابی">
+            <ShareNetwork size={20} weight="bold" aria-hidden />
+          </button>
+          <button type="button" onClick={handleDeleteLobby} disabled={deletingLobby} className="nq-icon-btn hover:!text-danger" aria-label="حذف لابی">
+            <Trash size={20} weight="bold" aria-hidden />
+          </button>
+        </div>
+      </header>
+
+      <section className="nq-khatam -mt-4 overflow-hidden rounded-[var(--radius-lg)] border border-line bg-surface p-5">
+        <p className="text-sm font-bold text-muted">{game?.scenario?.name || "سناریو هنوز انتخاب نشده"}</p>
+        <h1 className="nq-display mt-1 text-[2.6rem] leading-[1.15]">{game?.name || "لابی مافیا"}</h1>
+        <div className="mt-5 flex items-center justify-between gap-3 rounded-[var(--radius-md)] bg-canvas px-4 py-3">
+          <span className="text-sm font-bold text-muted">کد ورود را سر میز بخوانید</span>
+          <span className="flex items-center gap-1">
+            <span className="text-3xl font-black tracking-[0.16em] text-accent tabular-nums" dir="ltr">
+              {faDigits(game?.code || "------")}
+            </span>
+            <button type="button" onClick={copyCode} className="nq-icon-btn size-10 bg-transparent" aria-label="کپی کد ورود">
+              {copied ? <Check size={20} weight="bold" className="text-success" aria-hidden /> : <Copy size={20} weight="bold" aria-hidden />}
+            </button>
+          </span>
+        </div>
+        <div className="mt-3">
+          <Switch
+            checked={Boolean(game?.telegramJoinEnabled)}
+            onChange={() => handleToggleTelegramJoin()}
+            disabled={savingTelegramJoin}
+            label="ورود از تلگرام"
+            description="بازیکنانی که تلگرامشان را وصل کرده‌اند با ربات هم می‌توانند بنشینند."
+          />
+        </div>
+      </section>
+
+      <div className="grid gap-8 lg:grid-cols-2 lg:gap-10">
+        <section aria-labelledby="seats-title">
+          <div className="flex items-baseline justify-between">
+            <h2 id="seats-title" className="text-lg font-extrabold">
+              دور میز
+            </h2>
+            <span className="text-sm font-bold text-muted">{requiredPlayers ? `${toFa(players.length)} از ${toFa(requiredPlayers)} نفر` : `${toFa(players.length)} نفر`}</span>
           </div>
-        </header>
-
-        <div className="grid gap-5 p-4 sm:p-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="space-y-4">
-            <div className="grid gap-2 sm:grid-cols-4">
-              {[
-                { icon: "groups", label: "بازیکنان", value: players.length > 0 ? "فعال" : "در انتظار", done: players.length > 0 },
-                { icon: "account_tree", label: "سناریو", value: game?.scenario ? "انتخاب شد" : "لازم است", done: Boolean(game?.scenario) },
-                { icon: "tune", label: "توانایی‌ها", value: missingAbilityRoleNames.length ? "نیاز به انتخاب" : "هماهنگ", done: missingAbilityRoleNames.length === 0 },
-                { icon: "play_arrow", label: "شروع", value: startDisabledReason ? "قفل" : "آماده", done: !startDisabledReason },
-              ].map((step) => (
-                <div key={step.label} className={`rounded-lg border p-3 shadow-sm shadow-zinc-950/5 ${step.done ? "border-[var(--pm-primary)]/25 bg-[var(--pm-primary)]/10" : "border-[var(--pm-line)] bg-white/80 dark:border-[var(--pm-line)] dark:bg-white/[0.03]"}`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={`material-symbols-outlined text-xl ${step.done ? "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]" : "text-[var(--pm-muted)]"}`}>{step.icon}</span>
-                    <span className={step.done ? "rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 py-0.5 text-[10px] font-black text-[var(--pm-primary)]" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
-                      {step.value}
+          {players.length === 0 ? (
+            <p className="mt-3 rounded-[var(--radius-lg)] border border-dashed border-line-strong p-6 text-center text-sm font-medium leading-7 text-muted">
+              هنوز کسی ننشسته. کد را اعلام کنید تا بازیکنان با گوشی خودشان وارد شوند.
+            </p>
+          ) : (
+            <ul className="mt-3 divide-y divide-line rounded-[var(--radius-lg)] border border-line bg-surface px-4">
+              {players.map((player) => {
+                const seed = player.userId || player.id;
+                const busy = busyPlayerId === player.id;
+                return (
+                  <li key={player.id} className="motion-reveal flex items-center gap-3 py-2.5">
+                    <MaskAvatar seed={seed} hue={hues.get(seed)} size="md" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-bold">{player.name}</span>
+                      {player.joinSource === "TELEGRAM" ? (
+                        <span className="flex items-center gap-1 text-xs font-bold text-[#29a9eb]">
+                          <TelegramLogo size={12} weight="fill" aria-hidden />
+                          از تلگرام
+                        </span>
+                      ) : null}
                     </span>
-                  </div>
-                  <p className="mt-3 text-sm font-black text-[var(--pm-text)]">{step.label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
-              <section className="overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white/90 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/65">
-                <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-zinc-50/80 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">لیست زنده بازیکنان</p>
-                    <h2 className="mt-1 text-lg font-black text-[var(--pm-text)]">آمادگی لابی و ظرفیت</h2>
-                  </div>
-                  <span className={`rounded-lg border px-3 py-1 text-xs font-black ${
-                    !requiredPlayers
-                      ? "border-[var(--pm-line)] bg-white text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-[var(--pm-muted)]"
-                      : seatsRemaining === 0
-                        ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]"
-                        : seatsRemaining > 0
-                          ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                          : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300"
-                  }`}>
-                    {nextLobbyAction}
-                  </span>
-                </div>
-
-                <div className="p-4">
-                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                    {lobbySlots.map((player, index) => {
-                      const image = player?.image || null;
-                      const joinedViaTelegram = player?.joinSource === "TELEGRAM";
-                      return (
-                        <div
-                          key={player?.id || `slot-${index}`}
-                          className={`flex min-h-14 items-center gap-3 rounded-lg border p-2.5 transition-all ${
-                            player
-                              ? joinedViaTelegram
-                                ? "border-sky-500/25 bg-sky-500/10 shadow-sm shadow-sky-500/10"
-                                : "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 shadow-sm shadow-lime-500/10"
-                              : "border-dashed border-[var(--pm-line)] bg-zinc-50/70 dark:border-[var(--pm-line)] dark:bg-white/[0.03]"
-                          }`}
-                        >
-                          <span className={`relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg text-sm font-black ${
-                            player ? joinedViaTelegram ? "bg-sky-500 text-white" : "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-white text-zinc-300 dark:bg-zinc-950 dark:text-[var(--pm-muted)]"
-                          }`}>
-                            {player ? image ? <img src={image} alt="" className="size-full object-cover" /> : player.name.slice(0, 1) : <span className="material-symbols-outlined text-xl">person_add</span>}
-                            {joinedViaTelegram && <span className="material-symbols-outlined absolute -bottom-1 -right-1 rounded-full bg-white text-[13px] text-sky-600">send</span>}
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="flex min-w-0 items-center gap-1">
-                              <span className={`block truncate text-sm font-black ${player ? joinedViaTelegram ? "text-sky-700 dark:text-sky-300" : "text-[var(--pm-text)]" : "text-[var(--pm-muted)]"}`}>
-                                {player?.name || `جای خالی ${index + 1}`}
-                              </span>
-                              {joinedViaTelegram && <span className="rounded-md bg-sky-500 px-1.5 py-0.5 text-[9px] font-black text-white">TG</span>}
-                            </span>
-                            <span className="mt-0.5 block truncate text-[10px] font-bold text-[var(--pm-muted)]">
-                              {player ? joinedViaTelegram ? "ورود از تلگرام" : "وارد لابی شده" : requiredPlayers ? "در انتظار بازیکن" : "بعد از انتخاب سناریو فعال می‌شود"}
-                            </span>
-                            {player && (
-                              <span className="mt-2 grid grid-cols-2 gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemovePlayer(player, false)}
-                                  disabled={busyPlayerId === player.id}
-                                  className="min-h-8 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 text-[10px] font-black text-amber-700 transition-all hover:bg-amber-500/18 disabled:opacity-50 dark:text-amber-300"
-                                >
-                                  حذف
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemovePlayer(player, true)}
-                                  disabled={busyPlayerId === player.id || player.userId === session?.user?.id}
-                                  className="min-h-8 rounded-lg border border-red-500/20 bg-red-500/10 px-2 text-[10px] font-black text-red-600 transition-all hover:bg-red-500/18 disabled:opacity-50 dark:text-red-300"
-                                >
-                                  حذف و بستن
-                                </button>
-                              </span>
-                            )}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </section>
-
-              <aside className="rounded-lg border border-[var(--pm-line)] bg-white/90 p-4 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/65">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">کنترل سریع</p>
-                    <h2 className="mt-1 text-lg font-black text-[var(--pm-text)]">دعوت و شروع</h2>
-                  </div>
-                  <span className="material-symbols-outlined flex size-11 items-center justify-center rounded-lg bg-zinc-950 text-xl text-white dark:bg-white dark:text-zinc-950">admin_panel_settings</span>
-                </div>
-
-                <div className="mt-4 rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-                  <p className="text-[10px] font-black text-[var(--pm-muted)]">کد ورود</p>
-                  <div className="mt-2 flex items-center justify-between gap-2">
-                    <span className="font-mono text-3xl font-black tracking-[0.25em] text-[var(--pm-text)]">{game?.code || "------"}</span>
-                    <button type="button" onClick={copyJoinLink} className="pm-button-secondary min-h-10 px-3 text-xs">
-                      <span className="material-symbols-outlined text-base">content_copy</span>
-                      لینک
+                    <button type="button" onClick={() => handleRemovePlayer(player, false)} disabled={busy} className="nq-icon-btn size-10" aria-label={`بیرون کردن ${player.name}`} title="بیرون کردن">
+                      <UserMinus size={18} weight="bold" aria-hidden />
                     </button>
-                  </div>
-                </div>
-
-                <div className="mt-3 rounded-lg border border-sky-500/20 bg-sky-500/10 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-xs font-black text-[var(--pm-text)]">ورود از تلگرام</p>
-                      <p className="mt-1 text-[10px] font-bold leading-5 text-sky-700 dark:text-sky-300">
-                        فقط کاربران لینک‌شده می‌توانند از ربات وارد شوند.
-                      </p>
-                    </div>
                     <button
                       type="button"
-                      onClick={handleToggleTelegramJoin}
-                      disabled={savingTelegramJoin}
-                      className={`min-h-10 shrink-0 rounded-lg border px-3 text-[10px] font-black transition-all disabled:opacity-60 ${
-                        game?.telegramJoinEnabled
-                          ? "border-sky-500/30 bg-sky-500 text-white"
-                          : "border-[var(--pm-line)] bg-white text-[var(--pm-muted)] dark:bg-zinc-950"
-                      }`}
+                      onClick={() => handleRemovePlayer(player, true)}
+                      disabled={busy || player.userId === session?.user?.id}
+                      className="nq-icon-btn size-10 hover:!text-danger"
+                      aria-label={`بیرون کردن و بستن ورود ${player.name}`}
+                      title="بیرون کردن و بستن ورود"
                     >
-                      <span className={`material-symbols-outlined align-middle text-base ${savingTelegramJoin ? "animate-spin" : ""}`}>
-                        {savingTelegramJoin ? "progress_activity" : game?.telegramJoinEnabled ? "toggle_on" : "toggle_off"}
-                      </span>
-                      {game?.telegramJoinEnabled ? "فعال" : "خاموش"}
+                      <Prohibit size={18} weight="bold" aria-hidden />
                     </button>
-                  </div>
-                </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {requiredPlayers > players.length ? (
+            <p className="mt-2 text-sm font-medium text-muted">{`${toFa(requiredPlayers - players.length)} صندلی خالی مانده.`}</p>
+          ) : null}
+        </section>
 
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  {[
-                    ["حاضر", players.length, "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]"],
-                    ["ظرفیت", requiredPlayers || "?", "text-sky-600 dark:text-sky-300"],
-                    ["مانده", requiredPlayers ? Math.max(0, seatsRemaining) : "?", "text-amber-600 dark:text-amber-300"],
-                  ].map(([label, value, color]) => (
-                    <div key={String(label)} className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-2 text-center dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-                      <p className={`text-lg font-black ${color}`}>{value}</p>
-                      <p className="mt-0.5 text-[9px] font-bold text-[var(--pm-muted)]">{label}</p>
-                    </div>
-                  ))}
-                </div>
-              </aside>
+        <div className="flex flex-col gap-8">
+          <section aria-labelledby="scenario-title">
+            <div className="flex items-baseline justify-between">
+              <h2 id="scenario-title" className="text-lg font-extrabold">
+                سناریو
+              </h2>
+              {game?.scenario ? (
+                <button type="button" onClick={() => handleSelectScenario("")} disabled={settingScenario} className="text-sm font-bold text-accent hover:underline">
+                  عوض کردن
+                </button>
+              ) : null}
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
-              {game?.scenario ? (
-                <div className="relative overflow-hidden rounded-lg border border-[var(--pm-primary)]/20 bg-white/90 p-4 shadow-sm shadow-zinc-950/5 dark:bg-zinc-950/70">
-                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" />
-                  <div className="flex items-start justify-between gap-3 pt-1">
-                    <div className="min-w-0">
-                      <p className="text-xs font-black text-[var(--pm-primary)]">سناریوی فعال</p>
-                      <p className="mt-1 line-clamp-2 break-words text-xl font-black leading-7 text-[var(--pm-text)]">{game.scenario.name}</p>
-                      <p className="mt-1 text-sm font-bold text-[var(--pm-primary)]">{players.length} / {requiredPlayers} بازیکن</p>
-                    </div>
-                    <button onClick={() => handleSelectScenario("")} className="pm-button-secondary min-h-9 shrink-0 px-3 text-xs" disabled={settingScenario}>
-                      تغییر
-                    </button>
-                  </div>
-                  <div className="mt-4 rounded-lg border border-[var(--pm-line)] bg-zinc-50/80 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-                    <div className="flex h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
-                      {[
-                        ["bg-sky-500", activeScenarioCounts.CITIZEN],
-                        ["bg-red-500", activeScenarioCounts.MAFIA],
-                        ["bg-amber-500", activeScenarioCounts.NEUTRAL],
-                      ].map(([className, value]) => (
-                        Number(value) > 0 && (
-                          <span key={String(className)} className={String(className)} style={{ width: `${activeScenarioCounts.total ? Math.max(6, (Number(value) / activeScenarioCounts.total) * 100) : 0}%` }} />
-                        )
-                      ))}
-                    </div>
-                    <div className="mt-3 grid grid-cols-3 gap-2">
-                      {[
-                        ["شهروند", activeScenarioCounts.CITIZEN, "text-sky-600 dark:text-sky-300"],
-                        ["مافیا", activeScenarioCounts.MAFIA, "text-red-600 dark:text-red-300"],
-                        ["مستقل", activeScenarioCounts.NEUTRAL, "text-amber-600 dark:text-amber-300"],
-                      ].map(([label, value, color]) => (
-                        <div key={String(label)} className="rounded-lg bg-white px-2 py-1.5 text-center dark:bg-zinc-950/60">
-                          <p className={`text-sm font-black ${color}`}>{value}</p>
-                          <p className="mt-0.5 text-[9px] font-bold text-[var(--pm-muted)]">{label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+            {game?.scenario ? (
+              <div className="mt-3 rounded-[var(--radius-lg)] border border-line bg-surface p-5">
+                <p className="text-xl font-extrabold">{game.scenario.name}</p>
+                <div className="mt-3 flex h-2.5 overflow-hidden rounded-full" aria-hidden>
+                  {(["CITIZEN", "MAFIA", "NEUTRAL"] as const).map((alignment) =>
+                    activeScenarioCounts[alignment] ? <span key={alignment} className={BAR[alignment]} style={{ width: `${(activeScenarioCounts[alignment] / (activeScenarioCounts.total || 1)) * 100}%` }} /> : null,
+                  )}
                 </div>
-              ) : (
-                <div className="rounded-lg border border-dashed border-[var(--pm-line)] bg-white/70 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-                  <span className="material-symbols-outlined text-4xl text-[var(--pm-muted)]">account_tree</span>
-                  <p className="mt-3 text-lg font-black text-[var(--pm-text)]">سناریو انتخاب نشده</p>
-                  <p className="mt-1 text-sm leading-6 text-[var(--pm-muted)]">یک سناریوی آماده انتخاب کنید یا ترکیب مخصوص همین لابی را بچینید.</p>
-                </div>
-              )}
-
-              <div className="rounded-lg border border-[var(--pm-line)] bg-white/85 p-4 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/60">
-                <div className="flex items-center justify-between gap-3">
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  {scenarioRoles.map((role: any) => (
+                    <li key={role.roleId} className="flex items-center gap-2 rounded-full border border-line py-1 pe-1 ps-3.5 text-sm font-bold">
+                      {role.name}
+                      {role.count > 1 ? <span className="text-muted">{`× ${toFa(role.count)}`}</span> : null}
+                      <FactionTag alignment={role.alignment} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="mt-3 flex flex-col gap-3">
+                {players.length > 0 && recommendedScenarios.length > 0 ? (
                   <div>
-                    <p className="text-xs font-black text-[var(--pm-muted)]">انتخاب سناریو</p>
-                    <p className="mt-1 text-sm font-bold text-[var(--pm-text)]">کتابخانه یا طراحی لحظه‌ای</p>
+                    <p className="text-sm font-bold text-muted">{`مناسب ${toFa(players.length)} نفر سر میز:`}</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {recommendedScenarios.slice(0, 4).map((scenario) => (
+                        <button key={scenario.id} type="button" onClick={() => handleSelectScenario(scenario.id)} disabled={settingScenario} className="nq-btn nq-btn-secondary nq-btn-sm">
+                          {scenario.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <span className="material-symbols-outlined text-[var(--pm-muted)]">rule_settings</span>
-                </div>
-                <label className="mt-4 flex flex-col gap-2">
-                  <span className="text-xs font-black text-[var(--pm-muted)]">انتخاب از کتابخانه</span>
+                ) : null}
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-bold">از کتابخانه</span>
                   <select onChange={(event) => handleSelectScenario(event.target.value)} value="" disabled={settingScenario}>
-                    <option value="">انتخاب سناریو...</option>
+                    <option value="">یک سناریو انتخاب کنید</option>
                     {scenarios.map((scenario) => (
                       <option key={scenario.id} value={scenario.id}>
-                        {scenario.name} ({scenario.roles.reduce((sum: number, item: any) => sum + item.count, 0)} نفره)
+                        {`${scenario.name} (${toFa(scenario.roles.reduce((sum: number, item: any) => sum + item.count, 0))} نفره)`}
                       </option>
                     ))}
                   </select>
                 </label>
-
-                <MobilePwaFeatureLock
-                  compact
-                  icon="dashboard_customize"
-                  title="طراحی سناریوی لحظه‌ای"
-                  description="ساخت سناریوی سفارشی در همین لابی فعال است."
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomRoleSearch("");
+                    setSaveCustomScenario(false);
+                    setCustomScenarioName("");
+                    setShowCustomModal(true);
+                  }}
+                  disabled={settingScenario}
+                  className="nq-btn nq-btn-secondary"
                 >
-                  <button
-                    onClick={() => {
-                      setCustomRoleSearch("");
-                      setSaveCustomScenario(false);
-                      setCustomScenarioName("");
-                      setShowCustomModal(true);
-                    }}
-                    disabled={settingScenario}
-                    className="pm-button-secondary mt-3 min-h-12 w-full"
-                  >
-                    <span className="material-symbols-outlined text-xl">dashboard_customize</span>
-                    طراحی سناریو در لحظه
-                  </button>
-                </MobilePwaFeatureLock>
-              </div>
-            </div>
-
-            {players.length > 0 && recommendedScenarios.length > 0 && !game?.scenario && (
-              <div>
-                <p className="mb-2 text-xs font-black text-[var(--pm-muted)]">پیشنهاد مناسب تعداد فعلی</p>
-                <div className="grid gap-2 sm:grid-cols-3">
-                  {recommendedScenarios.slice(0, 3).map((scenario) => {
-                    const counts = scenarioCounts(scenario);
-                    return (
-                      <button
-                        key={scenario.id}
-                        onClick={() => handleSelectScenario(scenario.id)}
-                        disabled={settingScenario}
-                        className="group relative overflow-hidden rounded-lg border border-[var(--pm-primary)]/25 bg-white/90 p-3 text-right shadow-sm shadow-zinc-950/5 transition-all hover:-translate-y-0.5 hover:border-[var(--pm-primary)]/40 hover:shadow-lg hover:shadow-zinc-950/10 disabled:opacity-50 dark:bg-zinc-950/70"
-                      >
-                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-lime-400 to-sky-400" />
-                        <p className="mt-1 line-clamp-2 break-words font-black leading-6 text-[var(--pm-text)]">{scenario.name}</p>
-                        <div className="mt-3 flex items-center justify-between gap-2 text-[10px] font-black text-[var(--pm-muted)]">
-                          <span>{counts.total} نفره</span>
-                          <span>{scenario.roles.length} نوع نقش</span>
-                        </div>
-                        <div className="mt-3 grid grid-cols-3 gap-1.5">
-                          {[
-                            ["شهر", counts.CITIZEN, "text-sky-600 dark:text-sky-300"],
-                            ["مافیا", counts.MAFIA, "text-red-600 dark:text-red-300"],
-                            ["مستقل", counts.NEUTRAL, "text-amber-600 dark:text-amber-300"],
-                          ].map(([label, value, color]) => (
-                            <span key={String(label)} className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-1.5 py-1 text-center dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-                              <span className={`block text-xs ${color}`}>{value}</span>
-                              <span className="block text-[8px] text-[var(--pm-muted)]">{label}</span>
-                            </span>
-                          ))}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                  <Plus size={18} weight="bold" aria-hidden />
+                  چیدن نقش‌ها برای همین میز
+                </button>
               </div>
             )}
-          </div>
+          </section>
 
-          <aside className="h-fit space-y-3 rounded-lg border border-[var(--pm-line)] bg-white/90 p-4 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/70 xl:sticky xl:top-5">
-            <div className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-              <div className="flex items-center justify-between gap-3 text-xs font-black text-[var(--pm-muted)]">
-                <span>آمادگی شروع</span>
-                <span className="text-[var(--pm-text)]">{capacityProgress}%</span>
+          {scenarioAbilityRoles.length > 0 ? (
+            <section aria-labelledby="abilities-title">
+              <div className="flex items-baseline justify-between">
+                <h2 id="abilities-title" className="text-lg font-extrabold">
+                  توانایی‌های شب
+                </h2>
+                <button type="button" onClick={handleSaveAbilityConfig} disabled={savingAbilities || settingScenario} className="nq-btn nq-btn-secondary nq-btn-sm">
+                  {savingAbilities ? "در حال ذخیره…" : "ذخیره"}
+                </button>
               </div>
-              <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10">
-                <div className="h-full rounded-full bg-gradient-to-l from-lime-400 via-sky-400 to-amber-400" style={{ width: `${capacityProgress}%` }} />
-              </div>
-            </div>
-            <button
-              onClick={handleStartGame}
-              disabled={Boolean(startDisabledReason) || loading}
-              className="pm-button-primary min-h-12 w-full text-base"
-            >
-              <span className="material-symbols-outlined text-xl">play_arrow</span>
-              شروع بازی
-            </button>
-            {startDisabledReason ? (
-              <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm font-bold leading-6 text-amber-700 dark:text-amber-300">
-                {startDisabledReason}
-              </p>
-            ) : (
-              <p className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3 text-sm font-bold leading-6 text-[var(--pm-primary)]">
-                همه چیز برای شروع آماده است.
-              </p>
-            )}
-          </aside>
-        </div>
-      </section>
-
-      {scenarioAbilityRoles.length > 0 && (
-        <MobilePwaFeatureLock
-          icon="tune"
-          title="تنظیم توانایی‌های بازی"
-          description="این بخش برای موبایل و دسکتاپ در دسترس است و کنترل‌ها زیر نوار ناوبری نمی‌روند."
-        >
-        <section className="pm-card overflow-hidden">
-          <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">توانایی‌های همین بازی</p>
-              <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">انتخاب اکشن‌های فعال سناریو</h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">
-                نقش‌هایی که چند توانایی دارند، فقط با انتخاب شما در اتاق شب ظاهر می‌شوند.
-              </p>
-            </div>
-            <button onClick={handleSaveAbilityConfig} disabled={savingAbilities || settingScenario} className="pm-button-primary min-h-11 px-4 text-sm">
-              <span className="material-symbols-outlined text-xl">tune</span>
-              ذخیره توانایی‌ها
-            </button>
-          </div>
-
-          <div className="grid gap-3 p-4 lg:grid-cols-2 2xl:grid-cols-3">
-            {scenarioAbilityRoles.map((role) => {
-              const selectedIds = abilityConfig[role.roleId] || [];
-              return (
-                <article key={role.roleId} className="rounded-lg border border-[var(--pm-line)] bg-white p-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/70">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-base font-black text-[var(--pm-text)]">{role.name}</p>
-                      <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-black">
-                        <span className={`rounded-lg border px-2 py-1 ${alignmentClass(role.alignment)}`}>{alignmentLabel(role.alignment)}</span>
-                        <span className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-2 py-1 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]">
-                          {role.count} نقش در سناریو
-                        </span>
-                      </div>
+              <p className="mt-1 text-sm font-medium leading-6 text-muted">نقش‌هایی که چند توانایی دارند، فقط با توانایی‌های روشن در دفترچه شب ظاهر می‌شوند.</p>
+              <div className="mt-3 flex flex-col gap-3">
+                {scenarioAbilityRoles.map((role) => {
+                  const selectedIds = abilityConfig[role.roleId] || [];
+                  return (
+                    <div key={role.roleId} className="rounded-[var(--radius-lg)] border border-line bg-surface p-4">
+                      <p className="flex items-center justify-between gap-2 font-extrabold">
+                        {role.name}
+                        <FactionTag alignment={role.alignment} />
+                      </p>
+                      <ul className="mt-3 flex flex-col gap-2">
+                        {role.abilities.map((ability) => {
+                          const active = selectedIds.includes(ability.id);
+                          return (
+                            <li key={ability.id}>
+                              <button
+                                type="button"
+                                aria-pressed={active}
+                                onClick={() => toggleAbilityForRole(role.roleId, ability.id)}
+                                className={`flex w-full items-start gap-3 rounded-[var(--radius-sm)] p-3 text-right transition-colors ${active ? "bg-accent-soft ring-1 ring-accent/45" : "bg-raised"}`}
+                              >
+                                <span className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border-2 ${active ? "border-accent bg-accent text-on-accent" : "border-line-strong"}`} aria-hidden>
+                                  {active ? <Check size={12} weight="bold" /> : null}
+                                </span>
+                                <span className="min-w-0">
+                                  <span className="block font-bold">{ability.label}</span>
+                                  <span className="mt-0.5 block text-sm font-medium leading-6 text-muted">{abilityLimitLabel(ability)}</span>
+                                </span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
                     </div>
-                    <span className={selectedIds.length > 0 ? "rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 py-1 text-[10px] font-black text-[var(--pm-primary)]" : "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-300"}>
-                      {selectedIds.length || "بدون"} فعال
-                    </span>
-                  </div>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+        </div>
+      </div>
 
-                  <div className="mt-3 grid gap-2">
-                    {role.abilities.map((ability) => {
-                      const active = selectedIds.includes(ability.id);
-                      return (
-                        <button
-                          key={ability.id}
-                          type="button"
-                          onClick={() => toggleAbilityForRole(role.roleId, ability.id)}
-                          className={`rounded-lg border p-3 text-right transition-all ${
-                            active
-                              ? "border-[var(--pm-primary)]/30 bg-[var(--pm-primary)]/10 shadow-sm shadow-[var(--pm-primary)]/10"
-                              : "border-[var(--pm-line)] bg-zinc-50 hover:border-zinc-300 dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:hover:border-white/20"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-sm font-black text-[var(--pm-text)]">{ability.label}</p>
-                              <p className="mt-1 text-xs leading-5 text-[var(--pm-muted)]">{abilityLimitLabel(ability)}</p>
-                            </div>
-                            <span className={`material-symbols-outlined text-xl ${active ? "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]" : "text-zinc-300 dark:text-[var(--pm-muted)]"}`}>
-                              {active ? "check_circle" : "radio_button_unchecked"}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </article>
+      {/* Start: pinned to the bottom on phones, inline on desktop */}
+      <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4rem)] z-30 border-t border-line bg-canvas/95 px-4 pb-3 pt-3 backdrop-blur-xl md:static md:mt-2 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <p className={`text-sm font-bold ${startDisabledReason ? "text-warning" : "text-success"}`} role="status">
+            {startDisabledReason || "همه چیز آماده است. نقش‌ها مخفیانه روی گوشی هر نفر می‌رود."}
+          </p>
+          <button type="button" onClick={handleStartGame} disabled={Boolean(startDisabledReason) || loading} className="nq-btn nq-btn-primary nq-btn-lg md:min-w-56">
+            <Play size={20} weight="fill" aria-hidden />
+            پخش نقش‌ها و شروع
+          </button>
+        </div>
+      </div>
+
+      <Sheet
+        open={showCustomModal}
+        onClose={closeCustomSheet}
+        size="lg"
+        title="چیدن نقش‌ها"
+        eyebrow={
+          <p className={`text-sm font-bold ${selectedCustomCount > 0 && customScenarioDelta === 0 ? "text-success" : "text-warning"}`}>
+            {`${toFa(selectedCustomCount)} از ${toFa(players.length)} نقش · ${customScenarioStatus}`}
+          </p>
+        }
+        footer={
+          <div className="flex flex-col gap-3">
+            <Switch checked={saveCustomScenario} onChange={setSaveCustomScenario} label="ذخیره در کتابخانه سناریوها" />
+            {saveCustomScenario ? (
+              <input value={customScenarioName} onChange={(event) => setCustomScenarioName(event.target.value)} maxLength={40} aria-label="نام سناریو" placeholder="نام سناریو، مثلاً «۱۰ نفره جمعه»" />
+            ) : null}
+            <button type="button" onClick={handleCreateCustomScenario} disabled={settingScenario || selectedCustomCount === 0} className="nq-btn nq-btn-primary nq-btn-lg w-full">
+              {`اعمال ${toFa(selectedCustomCount)} نقش`}
+            </button>
+          </div>
+        }
+      >
+        <label className="sticky top-0 z-10 -mx-1 mb-3 flex items-center gap-2 rounded-[var(--radius-sm)] bg-surface px-1 pb-2">
+          <MagnifyingGlass size={20} weight="bold" className="shrink-0 text-muted" aria-hidden />
+          <input value={customRoleSearch} onChange={(event) => setCustomRoleSearch(event.target.value)} placeholder="جستجوی نقش" aria-label="جستجوی نقش" />
+        </label>
+        {filteredCustomRoles.length === 0 ? (
+          <p className="py-10 text-center text-sm font-medium text-muted">نقشی با این نام پیدا نشد.</p>
+        ) : (
+          <ul className="divide-y divide-line">
+            {filteredCustomRoles.map((role) => {
+              const count = customRoles.find((item) => item.roleId === role.id)?.count || 0;
+              return (
+                <li key={role.id} className="flex items-center gap-3 py-2.5">
+                  <span className="min-w-0 flex-1">
+                    <span className={`block truncate font-bold ${count ? "text-fg" : "text-muted"}`}>{role.name}</span>
+                  </span>
+                  <FactionTag alignment={role.alignment} />
+                  <span className="flex shrink-0 items-center gap-1 rounded-[var(--radius-sm)] bg-raised p-1">
+                    <button type="button" onClick={() => handleCustomRoleChange(role.id, -1)} disabled={count === 0} className="grid size-9 place-items-center rounded-[0.6rem] hover:bg-line disabled:opacity-30" aria-label={`یکی کمتر ${role.name}`}>
+                      <Minus size={16} weight="bold" aria-hidden />
+                    </button>
+                    <span className="w-6 text-center font-black tabular-nums">{toFa(count)}</span>
+                    <button type="button" onClick={() => handleCustomRoleChange(role.id, 1)} className="grid size-9 place-items-center rounded-[0.6rem] hover:bg-line" aria-label={`یکی بیشتر ${role.name}`}>
+                      <Plus size={16} weight="bold" aria-hidden />
+                    </button>
+                  </span>
+                </li>
               );
             })}
-          </div>
-        </section>
-        </MobilePwaFeatureLock>
-      )}
-
-      <LobbyPreviewCard
-        title={game?.name || "لابی بازی مافیا"}
-        subtitle="نمای بازیکنان، ظرفیت و ترکیب سناریوی انتخاب‌شده."
-        scenarioName={game?.scenario?.name || "سناریوی تعیین نشده"}
-        code={game?.code || "------"}
-        statusLabel={seatsRemaining <= 0 && requiredPlayers ? "آماده شروع" : "در حال تکمیل"}
-        playerCount={players.length}
-        capacity={requiredPlayers}
-        moderatorName={game?.moderator?.name || "گرداننده"}
-        locked={game?.hasPassword}
-        players={lobbyPlayers}
-        roleBreakdown={scenarioRoles}
-      />
-
-      {showCustomModal && typeof document !== "undefined" && createPortal(
-        <div className="pm-modal-layer fixed inset-0 z-[520] flex items-end justify-center bg-black/70 p-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] backdrop-blur-xl md:items-center md:pb-3">
-          <div className="pm-card pm-safe-modal flex max-h-[calc(100dvh-7rem)] w-full flex-col overflow-hidden rounded-lg md:max-h-[calc(100dvh-1.5rem)] md:max-w-6xl">
-            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-zinc-50/90 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03] sm:p-5">
-              <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">سناریوی سفارشی</p>
-                <h2 className="mt-1 text-xl font-black text-[var(--pm-text)] sm:text-2xl">چیدن نقش‌ها</h2>
-                <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black">
-                  <span className="rounded-lg border border-[var(--pm-line)] bg-white px-2.5 py-1 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-300">
-                    {selectedCustomCount} / {players.length} نقش
-                  </span>
-                  <span className={`rounded-lg border px-2.5 py-1 ${
-                    selectedCustomCount > 0 && customScenarioDelta === 0
-                      ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]"
-                      : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                  }`}>
-                    {customScenarioStatus}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setShowCustomModal(false);
-                  setCustomRoleSearch("");
-                  setSaveCustomScenario(false);
-                  setCustomScenarioName("");
-                }}
-                className="pm-button-secondary size-10 p-0"
-              >
-                <span className="material-symbols-outlined text-xl">close</span>
-              </button>
-            </div>
-
-            <div className="custom-scrollbar flex-1 overflow-y-auto p-4 sm:p-5">
-              <div className="space-y-4">
-                <section className="min-w-0">
-                  <label className="sticky top-0 z-10 mb-4 flex min-h-12 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-white px-3 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950">
-                    <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
-                    <input
-                      value={customRoleSearch}
-                      onChange={(event) => setCustomRoleSearch(event.target.value)}
-                      placeholder="جستجوی نام نقش"
-                      className="w-full border-0 bg-transparent p-0 text-sm outline-none focus:ring-0"
-                    />
-                  </label>
-
-                  {filteredCustomRoles.length === 0 ? (
-                    <div className="flex min-h-52 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center dark:border-[var(--pm-line)]">
-                      <div className="pm-icon size-14">
-                        <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">manage_search</span>
-                      </div>
-                      <p className="text-sm font-bold text-[var(--pm-muted)]">نقشی با این جستجو پیدا نشد.</p>
-                    </div>
-                  ) : (
-                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                      {filteredCustomRoles.map((role) => {
-                        const count = customRoles.find((item) => item.roleId === role.id)?.count || 0;
-
-                        return (
-                          <div
-                            key={role.id}
-                            className={`rounded-lg border p-3 transition-colors ${
-                              count > 0
-                                ? "border-[var(--pm-primary)]/30 bg-[var(--pm-primary)]/10"
-                                : "border-[var(--pm-line)] bg-[var(--pm-surface-soft)]"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-black text-[var(--pm-text)]">{role.name}</p>
-                                <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
-                                  {alignmentLabel(role.alignment)}
-                                </p>
-                              </div>
-                              <div className="flex shrink-0 items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-white p-1 dark:border-[var(--pm-line)] dark:bg-zinc-950">
-                                <button type="button" onClick={() => handleCustomRoleChange(role.id, -1)} disabled={count === 0} className="flex size-9 items-center justify-center rounded-md hover:bg-zinc-100 disabled:opacity-30 dark:hover:bg-white/10">
-                                  <span className="material-symbols-outlined text-base">remove</span>
-                                </button>
-                                <span className="w-6 text-center text-base font-black text-[var(--pm-text)]">{count}</span>
-                                <button type="button" onClick={() => handleCustomRoleChange(role.id, 1)} className="flex size-9 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-white/10">
-                                  <span className="material-symbols-outlined text-base">add</span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </section>
-              </div>
-            </div>
-
-            <div className="sticky bottom-0 grid gap-3 border-t border-[var(--pm-line)] bg-white p-4 pb-[max(env(safe-area-inset-bottom),1rem)] dark:border-[var(--pm-line)] dark:bg-zinc-900/95 sm:grid-cols-[minmax(0,1fr)_220px] sm:p-5">
-              <label className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-all ${
-                saveCustomScenario
-                  ? "border-[var(--pm-primary)]/35 bg-[var(--pm-primary)]/10 shadow-sm shadow-[var(--pm-primary)]/10"
-                  : "border-[var(--pm-line)] bg-zinc-50 hover:border-[var(--pm-primary)]/25 dark:border-[var(--pm-line)] dark:bg-white/[0.03]"
-              }`}>
-                <input
-                  type="checkbox"
-                  checked={saveCustomScenario}
-                  onChange={(event) => setSaveCustomScenario(event.target.checked)}
-                  className="sr-only"
-                />
-                <span className={`flex size-10 shrink-0 items-center justify-center rounded-lg border transition-all ${
-                  saveCustomScenario
-                    ? "border-[var(--pm-primary)] bg-gradient-to-br from-lime-300 to-lime-500 text-zinc-950 shadow-sm shadow-[var(--pm-primary)]/30"
-                    : "border-zinc-300 bg-white text-zinc-300 dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-700"
-                }`}>
-                  <span className="material-symbols-outlined text-lg">{saveCustomScenario ? "check" : "add"}</span>
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-black text-[var(--pm-text)]">ذخیره در کتابخانه سناریوها</span>
-                </span>
-              </label>
-
-              {saveCustomScenario && (
-                <label className="flex flex-col gap-2 rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3 sm:col-span-2">
-                  <span className="text-xs font-black text-[var(--pm-primary)]">نام سناریو برای کتابخانه</span>
-                  <input
-                    value={customScenarioName}
-                    onChange={(event) => setCustomScenarioName(event.target.value)}
-                    maxLength={40}
-                    placeholder="مثلاً سناریوی ۱۰ نفره جمعه"
-                    className="w-full"
-                  />
-                </label>
-              )}
-
-              <button
-                onClick={handleCreateCustomScenario}
-                disabled={settingScenario || selectedCustomCount === 0}
-                className="pm-button-primary min-h-12 w-full"
-              >
-                <span className="material-symbols-outlined text-xl">save</span>
-                اعمال سناریو ({selectedCustomCount})
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </ul>
+        )}
+      </Sheet>
     </div>
   );
 }
