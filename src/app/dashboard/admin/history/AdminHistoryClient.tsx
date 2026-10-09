@@ -186,8 +186,7 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
     <div className="space-y-5" dir="rtl">
       <section className="pm-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">مدیریت تاریخچه کل</p>
-          <h1 className="mt-1 text-3xl font-black text-[var(--pm-text)]">تاریخچه همه بازی‌ها</h1>
+          <h1 className="nq-display text-[2.6rem] leading-[1.15]">تاریخچه همه بازی‌ها</h1>
           <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">ادمین می‌تواند بازی‌های ثبت‌شده را برای همه کاربران بررسی یا حذف کند.</p>
         </div>
         <Link href="/dashboard/admin/users" className="pm-button-secondary min-h-11 px-4">
@@ -206,13 +205,13 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
       <section className="grid gap-4 xl:grid-cols-2">
         {data.items.map((game) => (
           <article key={game.id} className="pm-card overflow-hidden">
-            <div className="border-b border-[var(--pm-line)] bg-zinc-50/80 p-4 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+            <div className="border-b border-[var(--pm-line)] bg-raised p-4 ">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 className="truncate text-lg font-black text-[var(--pm-text)]">{game.scenarioName}</h2>
+                  <h2 className="truncate text-lg font-extrabold text-[var(--pm-text)]">{game.scenarioName}</h2>
                   <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{game.date} | {game.moderatorName}</p>
                 </div>
-                <span className="rounded-lg border border-[var(--pm-line)] bg-white px-2 py-1 font-mono text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-[var(--pm-muted)]">
+                <span className="rounded-lg border border-[var(--pm-line)] bg-surface px-2 py-1 font-mono text-xs font-extrabold text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                   {game.gameCode ? `#${game.gameCode}` : "بدون کد"}
                 </span>
               </div>
@@ -220,27 +219,27 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
             <div className="space-y-4 p-4">
               <div className="grid grid-cols-2 gap-2">
                 <div className="pm-muted-card p-3">
-                  <p className="text-xl font-black text-[var(--pm-text)]">{game.playerCount}</p>
-                  <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">بازیکن</p>
+                  <p className="text-xl font-extrabold text-[var(--pm-text)]">{game.playerCount}</p>
+                  <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">بازیکن</p>
                 </div>
                 <div className="pm-muted-card p-3">
-                  <p className="text-xl font-black text-[var(--pm-text)]">{game.historyCount}</p>
-                  <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">رکورد تاریخچه</p>
+                  <p className="text-xl font-extrabold text-[var(--pm-text)]">{game.historyCount}</p>
+                  <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">رکورد تاریخچه</p>
                 </div>
               </div>
               <div className={`rounded-lg border p-3 ${game.winningAlignment ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]" : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-black">نتیجه ثبت‌شده</p>
-                    <p className="mt-1 text-base font-black">{winnerLabel(game.winningAlignment)}</p>
+                    <p className="text-xs font-extrabold">نتیجه ثبت‌شده</p>
+                    <p className="mt-1 text-base font-extrabold">{winnerLabel(game.winningAlignment)}</p>
                   </div>
                   <span className="material-symbols-outlined text-2xl">{game.winningAlignment ? "emoji_events" : "pending_actions"}</span>
                 </div>
               </div>
               {game.canSetResult && (
-                <div className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-                  <p className="text-xs font-black text-[var(--pm-text)]">اصلاح نتیجه بازی بی‌نتیجه</p>
-                  <p className="mt-1 text-[10px] font-bold leading-5 text-[var(--pm-muted)]">
+                <div className="rounded-lg border border-[var(--pm-line)] bg-raised p-3 ">
+                  <p className="text-xs font-extrabold text-[var(--pm-text)]">اصلاح نتیجه بازی بی‌نتیجه</p>
+                  <p className="mt-1 text-xs font-bold leading-5 text-[var(--pm-muted)]">
                     این گزینه فقط نتیجه بازی منقضی‌شده را ثبت می‌کند و به گزارش‌ها یا جزئیات بازی دست نمی‌زند.
                   </p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-3">
@@ -250,7 +249,7 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
                         type="button"
                         onClick={() => setFinalResult(game.id, option.key)}
                         disabled={isPending}
-                        className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-black transition-all hover:-translate-y-0.5 disabled:opacity-50 ${option.className}`}
+                        className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-extrabold transition-all  disabled:opacity-50 ${option.className}`}
                       >
                         <span className="material-symbols-outlined text-base">{option.icon}</span>
                         {option.label}
@@ -261,7 +260,7 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
               )}
               <div className="flex flex-wrap gap-2">
                 {game.histories.slice(0, 6).map((history, index) => (
-                  <span key={`${game.id}-${history.userName}-${index}`} className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-zinc-300">
+                  <span key={`${game.id}-${history.userName}-${index}`} className="rounded-lg border border-[var(--pm-line)] bg-raised px-2.5 py-1 text-xs font-extrabold text-[var(--pm-muted)] dark:text-zinc-300">
                     {history.userName}: {history.roleName}
                   </span>
                 ))}
@@ -274,7 +273,7 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
                   subtitle="اتفاقات منتشرشده با روایت مرحله‌ای و قابل خواندن برای بازیکنان نمایش داده می‌شود."
                 />
               ) : (
-                <div className="rounded-lg border border-dashed border-[var(--pm-line)] bg-zinc-50 p-3 text-xs font-bold leading-6 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]">
+                <div className="rounded-lg border border-dashed border-[var(--pm-line)] bg-raised p-3 text-xs font-bold leading-6 text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                   برای این بازی هنوز گزارش شب ثبت نشده است.
                 </div>
               )}

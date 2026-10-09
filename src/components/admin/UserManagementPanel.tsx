@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { banUser, deleteUser, getAllUsersSafe, sendEmailToUser, sendRecoveryOtpToUser, updateUserRole, verifyUserEmail } from "@/actions/admin";
+import { MaskAvatar } from "@/components/brand/MaskAvatar";
 import { usePopup } from "@/components/PopupProvider";
 import { usePresenceSnapshot } from "@/hooks/usePresenceSnapshot";
 
@@ -63,8 +64,8 @@ function roleClass(role: Role) {
 
 function roleAccentClass(role: Role) {
   if (role === "ADMIN") return "from-purple-500 to-fuchsia-500";
-  if (role === "MODERATOR") return "from-blue-500 to-lime-400";
-  return "from-lime-500 to-emerald-400";
+  if (role === "MODERATOR") return " ";
+  return " ";
 }
 
 function parseDate(value?: Date | string | null) {
@@ -90,7 +91,7 @@ function getActivityStatus(value?: Date | string | null) {
       label: "ثبت نشده",
       detail: "فعالیتی ثبت نشده",
       recent: false,
-      className: "border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]",
+      className: "border-[var(--pm-line)] bg-raised text-[var(--pm-muted)]   dark:text-[var(--pm-muted)]",
     };
   }
 
@@ -119,7 +120,7 @@ function getActivityStatus(value?: Date | string | null) {
       ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]"
       : diff < day
         ? "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300"
-        : "border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]",
+        : "border-[var(--pm-line)] bg-raised text-[var(--pm-muted)]   dark:text-[var(--pm-muted)]",
   };
 }
 
@@ -148,7 +149,7 @@ function getUserPresence(user: UserRecord, onlineUserIds: Set<string>) {
       detail: "بدون حضور فعال",
       icon: "radio_button_unchecked",
       online: false,
-      className: "border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]",
+      className: "border-[var(--pm-line)] bg-raised text-[var(--pm-muted)]   dark:text-[var(--pm-muted)]",
     };
   }
 
@@ -511,15 +512,11 @@ export function UserManagementPanel() {
 
   return (
     <div className="flex min-h-[80vh] flex-col gap-5" dir="rtl">
-      <header className="pm-card overflow-hidden">
-        <div className="flex flex-col gap-5 p-5 xl:flex-row xl:items-start xl:justify-between">
+      <header>
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div className="flex items-center gap-4">
-            <div className="pm-icon-primary size-14">
-              <span className="material-symbols-outlined text-3xl">manage_accounts</span>
-            </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">مدیریت کاربران</p>
-              <h1 className="mt-1 text-3xl font-black text-[var(--pm-text)]">کاربران و دسترسی‌ها</h1>
+              <h1 className="nq-display text-[2.6rem] leading-[1.15]">کاربران و دسترسی‌ها</h1>
               <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--pm-muted)]">
                 وضعیت حساب، روش ورود، سطح دسترسی، سابقه بازی و ابزارهای مدیریتی هر کاربر را از یک نمای متمرکز کنترل کنید.
               </p>
@@ -542,7 +539,7 @@ export function UserManagementPanel() {
           className="flex min-h-14 w-full items-center justify-between gap-3 p-4 text-right"
         >
           <div>
-            <p className="text-sm font-black text-[var(--pm-text)]">نمای کلی کاربران</p>
+            <p className="text-sm font-extrabold text-[var(--pm-text)]">نمای کلی کاربران</p>
             <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">
               {counts.total} کاربر، {counts.onlineUsers} آنلاین و {counts.googleUsers} ورود گوگل
             </p>
@@ -553,7 +550,7 @@ export function UserManagementPanel() {
         </button>
 
         {showStats && (
-          <div className="grid gap-3 border-t border-[var(--pm-line)] p-4 dark:border-[var(--pm-line)] md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid gap-3 border-t border-[var(--pm-line)] p-4 md:grid-cols-2 xl:grid-cols-5">
             {[
               ["کل کاربران", counts.total, "group", "text-[var(--pm-primary)]"],
               ["مدیر و گرداننده", counts.admins + counts.moderators, "admin_panel_settings", "text-sky-500"],
@@ -563,7 +560,7 @@ export function UserManagementPanel() {
             ].map(([label, value, icon, color]) => (
               <div key={label} className="pm-muted-card p-4">
                 <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-                <p className="mt-3 text-2xl font-black text-[var(--pm-text)]">{value}</p>
+                <p className="mt-3 text-2xl font-extrabold text-[var(--pm-text)]">{value}</p>
                 <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{label}</p>
               </div>
             ))}
@@ -573,7 +570,7 @@ export function UserManagementPanel() {
 
       <section className="pm-card p-3">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_160px_170px_190px]">
-          <label className="flex min-h-11 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-white px-3 text-sm dark:border-[var(--pm-line)] dark:bg-zinc-950/40">
+          <label className="flex min-h-11 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-surface px-3 text-sm ">
             <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
             <input
               value={search}
@@ -614,35 +611,34 @@ export function UserManagementPanel() {
 
       <main className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_430px]">
         <section className="pm-card relative h-fit overflow-hidden">
-          <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-[var(--pm-line)] bg-raised p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">لیست عملیاتی</p>
-              <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">کاربران سیستم</h2>
+              <h2 className="mt-1 text-2xl font-extrabold text-[var(--pm-text)]">کاربران سیستم</h2>
               <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">
                 {filteredUsers.length} نتیجه از {users.length} کاربر
               </p>
             </div>
-            <div className="flex flex-wrap gap-2 text-[10px] font-black">
+            <div className="flex flex-wrap gap-2 text-xs font-extrabold">
               <span className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2.5 py-1 text-[var(--pm-primary)]">{counts.onlineUsers} آنلاین</span>
               <span className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2.5 py-1 text-[var(--pm-primary)]">{counts.recentUsers} فعال اخیر</span>
               <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-sky-700 dark:text-sky-300">{counts.admins + counts.moderators} مدیر/گرداننده</span>
-              <span className="rounded-lg border border-[var(--pm-line)] bg-white px-2.5 py-1 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-[var(--pm-muted)]">برای جزئیات انتخاب کنید</span>
+              <span className="rounded-lg border border-[var(--pm-line)] bg-surface px-2.5 py-1 text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">برای جزئیات انتخاب کنید</span>
             </div>
           </div>
 
           {loading ? (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/92 p-6 backdrop-blur-xl dark:bg-zinc-900/92">
-              <div className="w-full max-w-md rounded-2xl border border-[var(--pm-line)] bg-white p-5 text-center shadow-2xl shadow-zinc-950/10 dark:border-[var(--pm-line)] dark:bg-zinc-950">
-                <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-sky-400 text-sky-950 shadow-lg shadow-sky-500/20">
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface p-6 ">
+              <div className="w-full max-w-md rounded-2xl border border-[var(--pm-line)] bg-surface p-5 text-center ">
+                <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-sky-400 text-sky-950 ">
                   <span className="material-symbols-outlined animate-spin text-3xl leading-none">sync</span>
                 </div>
-                <p className="mt-4 text-base font-black text-[var(--pm-text)]">در حال ساخت نمای مدیریتی کاربران</p>
+                <p className="mt-4 text-base font-extrabold text-[var(--pm-text)]">در حال ساخت نمای مدیریتی کاربران</p>
                 <p className="mt-2 text-xs font-bold leading-6 text-[var(--pm-muted)]">
                   وضعیت حساب‌ها، آخرین فعالیت و دسترسی‌ها در حال مرتب‌سازی هستند.
                 </p>
                 <div className="mt-4 grid grid-cols-3 gap-2">
                   {["حساب‌ها", "دسترسی‌ها", "فعالیت"].map((item) => (
-                    <span key={item} className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-2 py-1.5 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.04] dark:text-[var(--pm-muted)]">
+                    <span key={item} className="rounded-lg border border-[var(--pm-line)] bg-raised px-2 py-1.5 text-xs font-extrabold text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                       {item}
                     </span>
                   ))}
@@ -655,7 +651,7 @@ export function UserManagementPanel() {
                 <span className="material-symbols-outlined text-3xl">cloud_off</span>
               </div>
               <div>
-                <h2 className="text-xl font-black text-[var(--pm-text)]">بارگذاری کاربران ناموفق بود</h2>
+                <h2 className="text-xl font-extrabold text-[var(--pm-text)]">بارگذاری کاربران ناموفق بود</h2>
                 <p className="mt-2 max-w-md text-sm leading-6 text-[var(--pm-muted)]">{errorMessage}</p>
               </div>
               <button onClick={refreshUsers} className="pm-button-primary">
@@ -669,13 +665,13 @@ export function UserManagementPanel() {
                 <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">person_search</span>
               </div>
               <div>
-                <p className="font-black text-[var(--pm-text)]">کاربری با این فیلتر پیدا نشد</p>
+                <p className="font-extrabold text-[var(--pm-text)]">کاربری با این فیلتر پیدا نشد</p>
                 <p className="mt-1 text-sm text-[var(--pm-muted)]">جستجو یا فیلترها را تغییر دهید.</p>
               </div>
             </div>
           ) : (
             <div className="custom-scrollbar max-h-[720px] overflow-y-auto">
-              <div className="sticky top-0 z-10 hidden grid-cols-[minmax(220px,1.3fr)_132px_156px_88px] gap-3 border-b border-[var(--pm-line)] bg-zinc-50/95 px-4 py-2 text-[10px] font-black text-[var(--pm-muted)] backdrop-blur dark:border-[var(--pm-line)] dark:bg-zinc-950/95 dark:text-[var(--pm-muted)] lg:grid">
+              <div className="sticky top-0 z-10 hidden grid-cols-[minmax(220px,1.3fr)_132px_156px_88px] gap-3 border-b border-[var(--pm-line)] bg-raised px-4 py-2 text-xs font-extrabold text-[var(--pm-muted)] dark:text-[var(--pm-muted)] lg:grid">
                 <span>کاربر</span>
                 <span>دسترسی</span>
                 <span>فعالیت</span>
@@ -693,28 +689,28 @@ export function UserManagementPanel() {
                       onClick={() => setSelectedUserId(user.id)}
                       className={`group relative grid w-full gap-3 px-4 py-3 text-right transition-all lg:grid-cols-[minmax(220px,1.3fr)_132px_156px_88px] lg:items-center ${
                         isSelected
-                          ? "bg-[var(--pm-primary)]/10 shadow-[inset_0_0_0_1px_rgba(190,242,100,0.18)]"
-                          : "bg-white hover:bg-zinc-50 dark:bg-transparent dark:hover:bg-white/[0.04]"
+                          ? "bg-[var(--pm-primary)]/10 "
+                          : "bg-surface hover:bg-raised  "
                       }`}
                     >
-                      <span className={`absolute inset-y-3 right-0 w-1 rounded-l-full bg-gradient-to-b ${roleAccentClass(user.role)}`} />
+                      <span className={`absolute inset-y-3 right-0 w-1 rounded-l-full bg-accent ${roleAccentClass(user.role)}`} />
                       <div className="flex min-w-0 items-center gap-3 pr-1">
-                        <div className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-sm font-black text-zinc-700 shadow-sm shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-white/[0.04] dark:text-zinc-200">
+                        <div className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--pm-line)] bg-raised text-sm font-extrabold text-zinc-700 dark:text-zinc-200">
                           {user.image ? (
                             <img src={user.image} alt="" className="size-full object-cover" />
                           ) : (
                             getInitial(user.name, user.email)
                           )}
-                          <span className={`absolute bottom-0.5 right-0.5 size-3 rounded-full border-2 border-white dark:border-zinc-950 ${presence.online ? "bg-[var(--pm-primary)]" : activity.recent ? "bg-sky-500" : "bg-zinc-300 dark:bg-zinc-700"}`} />
+                          <span className={`absolute bottom-0.5 right-0.5 size-3 rounded-full border-2 border-white  ${presence.online ? "bg-[var(--pm-primary)]" : activity.recent ? "bg-sky-500" : "bg-zinc-300 "}`} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-black text-[var(--pm-text)]">{user.name || "بدون نام"}</p>
+                          <p className="truncate text-sm font-extrabold text-[var(--pm-text)]">{user.name || "بدون نام"}</p>
                           <p className="mt-1 truncate text-xs text-[var(--pm-muted)]" dir="ltr">{user.email || "بدون ایمیل"}</p>
-                          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] font-black lg:hidden">
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-extrabold lg:hidden">
                             <span className={`rounded-lg border px-2 py-0.5 ${roleClass(user.role)}`}>{roleLabel(user.role)}</span>
                             <span className={`rounded-lg border px-2 py-0.5 ${presence.className}`}>{presence.label}</span>
                             <span className={`rounded-lg border px-2 py-0.5 ${activity.className}`}>{activity.label}</span>
-                            <span className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-2 py-0.5 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]">
+                            <span className="rounded-lg border border-[var(--pm-line)] bg-raised px-2 py-0.5 text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                               {user._count.gameHistories} بازی / {user._count.gamesHosted} لابی
                             </span>
                           </div>
@@ -723,36 +719,36 @@ export function UserManagementPanel() {
 
                       <div className="hidden min-w-0 lg:block">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className={`rounded-lg border px-2 py-1 text-[10px] font-black ${roleClass(user.role)}`}>
+                          <span className={`rounded-lg border px-2 py-1 text-xs font-extrabold ${roleClass(user.role)}`}>
                             {roleLabel(user.role)}
                           </span>
                           {user.isBanned && (
-                            <span className="rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-1 text-[10px] font-black text-red-500">
+                            <span className="rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-1 text-xs font-extrabold text-red-500">
                               مسدود
                             </span>
                           )}
                         </div>
-                        <p className={`mt-1 text-[10px] font-black ${user.emailVerified ? "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]" : "text-amber-600 dark:text-amber-300"}`}>
+                        <p className={`mt-1 text-xs font-extrabold ${user.emailVerified ? "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]" : "text-amber-600 dark:text-amber-300"}`}>
                           {user.emailVerified ? "ایمیل تایید شده" : "در انتظار تایید ایمیل"}
                         </p>
                       </div>
 
                       <div className="hidden min-w-0 lg:block">
-                        <p className="truncate text-xs font-black text-[var(--pm-text)]">{activity.label}</p>
-                        <div className="mt-1 flex min-w-0 items-center gap-1 text-[10px] font-bold text-[var(--pm-muted)]">
-                          <span className={`size-1.5 shrink-0 rounded-full ${presence.online ? "bg-[var(--pm-primary)]" : "bg-zinc-300 dark:bg-zinc-700"}`} />
+                        <p className="truncate text-xs font-extrabold text-[var(--pm-text)]">{activity.label}</p>
+                        <div className="mt-1 flex min-w-0 items-center gap-1 text-xs font-bold text-[var(--pm-muted)]">
+                          <span className={`size-1.5 shrink-0 rounded-full ${presence.online ? "bg-[var(--pm-primary)]" : "bg-zinc-300 "}`} />
                           <span className="truncate">{presence.label}، {presence.detail}</span>
                         </div>
                       </div>
 
-                      <div className="hidden grid-cols-2 overflow-hidden rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-center dark:border-[var(--pm-line)] dark:bg-white/[0.03] lg:grid">
-                        <div className="border-l border-[var(--pm-line)] px-2 py-1.5 dark:border-[var(--pm-line)]">
-                          <p className="text-sm font-black text-[var(--pm-text)]">{user._count.gameHistories}</p>
-                          <p className="text-[8px] font-bold text-[var(--pm-muted)]">بازی</p>
+                      <div className="hidden grid-cols-2 overflow-hidden rounded-lg border border-[var(--pm-line)] bg-raised text-center lg:grid">
+                        <div className="border-l border-[var(--pm-line)] px-2 py-1.5 ">
+                          <p className="text-sm font-extrabold text-[var(--pm-text)]">{user._count.gameHistories}</p>
+                          <p className="text-xs font-bold text-[var(--pm-muted)]">بازی</p>
                         </div>
                         <div className="px-2 py-1.5">
-                          <p className="text-sm font-black text-[var(--pm-text)]">{user._count.gamesHosted}</p>
-                          <p className="text-[8px] font-bold text-[var(--pm-muted)]">لابی</p>
+                          <p className="text-sm font-extrabold text-[var(--pm-text)]">{user._count.gamesHosted}</p>
+                          <p className="text-xs font-bold text-[var(--pm-muted)]">لابی</p>
                         </div>
                       </div>
                     </button>
@@ -766,24 +762,21 @@ export function UserManagementPanel() {
         <aside className="pm-card h-fit overflow-hidden xl:sticky xl:top-6">
           {selectedUser ? (
             <div>
-              <div className="pm-contrast-surface relative overflow-hidden border-b border-[var(--pm-line)] bg-zinc-950 p-5 text-white dark:border-[var(--pm-line)]">
-                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${roleAccentClass(selectedUser.role)}`} />
-                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(190,242,100,0.12),transparent_44%),linear-gradient(90deg,rgba(96,165,250,0.08)_1px,transparent_1px)] bg-[size:auto,2.75rem_2.75rem]" />
+              <div className="nq-grain relative overflow-hidden border-b border-line bg-night p-5 text-moon">
                 <div className="relative flex items-start gap-4">
-                  <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white/10 text-2xl font-black text-white shadow-xl shadow-black/20">
-                    {selectedUser.image ? (
+                  {selectedUser.image ? (
+                    <span className="size-20 shrink-0 overflow-hidden rounded-[1.4rem]">
                       <img src={selectedUser.image} alt="" className="size-full object-cover" />
-                    ) : (
-                      getInitial(selectedUser.name, selectedUser.email)
-                    )}
-                  </div>
+                    </span>
+                  ) : (
+                    <MaskAvatar seed={selectedUser.id} size="xl" />
+                  )}
                   <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[var(--pm-primary)]">پرونده کاربر</p>
-                    <h2 className="mt-2 line-clamp-2 break-words text-2xl font-black leading-8 text-white">{selectedUser.name || "بدون نام"}</h2>
-                    <p className="mt-1 truncate text-xs text-zinc-300" dir="ltr">{selectedUser.email || "بدون ایمیل"}</p>
+                    <h2 className="nq-display mt-1 line-clamp-2 break-words text-[2rem] leading-tight">{selectedUser.name || "بدون نام"}</h2>
+                    <p className="mt-1 truncate text-sm opacity-80" dir="ltr">{selectedUser.email || "بدون ایمیل"}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="rounded-lg border border-[var(--pm-line)] bg-white/10 px-2.5 py-1 text-[10px] font-black text-white">{roleLabel(selectedUser.role)}</span>
-                      <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black ${selectedPresence?.online ? "border-[var(--pm-primary)]/30 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]" : "border-[var(--pm-line)] bg-white/10 text-zinc-300"}`}>
+                      <span className="rounded-full bg-moon/14 px-2.5 py-1 text-xs font-extrabold">{roleLabel(selectedUser.role)}</span>
+                      <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-extrabold ${selectedPresence?.online ? "border-[var(--pm-primary)]/30 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]" : "border-[var(--pm-line)] bg-surface text-zinc-300"}`}>
                         <span className="material-symbols-outlined text-sm">{selectedPresence?.icon}</span>
                         {selectedPresence?.label || "آفلاین"}
                       </span>
@@ -795,28 +788,28 @@ export function UserManagementPanel() {
               <div className="space-y-4 p-5">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="pm-muted-card p-3">
-                    <p className="text-[10px] font-bold text-[var(--pm-muted)]">بازی‌ها</p>
-                    <p className="mt-2 text-lg font-black text-[var(--pm-text)]">{selectedUser._count.gameHistories}</p>
+                    <p className="text-xs font-bold text-[var(--pm-muted)]">بازی‌ها</p>
+                    <p className="mt-2 text-lg font-extrabold text-[var(--pm-text)]">{selectedUser._count.gameHistories}</p>
                   </div>
                   <div className="pm-muted-card p-3">
-                    <p className="text-[10px] font-bold text-[var(--pm-muted)]">لابی‌ها</p>
-                    <p className="mt-2 text-lg font-black text-[var(--pm-text)]">{selectedUser._count.gamesHosted}</p>
+                    <p className="text-xs font-bold text-[var(--pm-muted)]">لابی‌ها</p>
+                    <p className="mt-2 text-lg font-extrabold text-[var(--pm-text)]">{selectedUser._count.gamesHosted}</p>
                   </div>
                 </div>
 
                 <div className={`rounded-lg border p-4 ${selectedActivity?.className || ""}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-black">آخرین استفاده از اپ</p>
-                      <p className="mt-2 text-xl font-black">{selectedActivity?.label || "ثبت نشده"}</p>
-                      <p className="mt-1 text-[10px] font-bold opacity-80">{selectedActivity?.detail || "فعالیتی ثبت نشده"}</p>
+                      <p className="text-xs font-extrabold">آخرین استفاده از اپ</p>
+                      <p className="mt-2 text-xl font-extrabold">{selectedActivity?.label || "ثبت نشده"}</p>
+                      <p className="mt-1 text-xs font-bold opacity-80">{selectedActivity?.detail || "فعالیتی ثبت نشده"}</p>
                     </div>
                     <span className="material-symbols-outlined text-2xl">schedule</span>
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-[var(--pm-line)] p-4 dark:border-[var(--pm-line)]">
-                  <label className="text-xs font-black text-[var(--pm-muted)]">سطح دسترسی</label>
+                <div className="rounded-lg border border-[var(--pm-line)] p-4 ">
+                  <label className="text-xs font-extrabold text-[var(--pm-muted)]">سطح دسترسی</label>
                   <select
                     value={selectedUser.role}
                     onChange={(event) => handleRoleChange(selectedUser.id, event.target.value as Role)}
@@ -835,38 +828,38 @@ export function UserManagementPanel() {
                 </div>
 
                 <div className="grid gap-2">
-                  <div className="flex items-center justify-between rounded-lg border border-[var(--pm-line)] p-3 text-sm dark:border-[var(--pm-line)]">
+                  <div className="flex items-center justify-between rounded-lg border border-[var(--pm-line)] p-3 text-sm ">
                     <span className="font-bold text-[var(--pm-muted)]">وضعیت حساب</span>
-                    <span className={selectedUser.isBanned ? "font-black text-red-500" : "font-black text-emerald-500"}>
+                    <span className={selectedUser.isBanned ? "font-extrabold text-red-500" : "font-extrabold text-emerald-500"}>
                       {selectedUser.isBanned ? "مسدود" : "فعال"}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg border border-[var(--pm-line)] p-3 text-sm dark:border-[var(--pm-line)]">
+                  <div className="flex items-center justify-between rounded-lg border border-[var(--pm-line)] p-3 text-sm ">
                     <span className="font-bold text-[var(--pm-muted)]">ورود با رمز</span>
-                    <span className="font-black text-[var(--pm-text)]">{selectedUser.password_hash ? "فعال" : "ندارد"}</span>
+                    <span className="font-extrabold text-[var(--pm-text)]">{selectedUser.password_hash ? "فعال" : "ندارد"}</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg border border-[var(--pm-line)] p-3 text-sm dark:border-[var(--pm-line)]">
+                  <div className="flex items-center justify-between rounded-lg border border-[var(--pm-line)] p-3 text-sm ">
                     <span className="font-bold text-[var(--pm-muted)]">ورود با گوگل</span>
-                    <span className="font-black text-[var(--pm-text)]">
+                    <span className="font-extrabold text-[var(--pm-text)]">
                       {selectedUser.accounts.some((account) => account.provider === "google") ? "متصل" : "متصل نیست"}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg border border-[var(--pm-line)] p-3 text-sm dark:border-[var(--pm-line)]">
+                  <div className="flex items-center justify-between rounded-lg border border-[var(--pm-line)] p-3 text-sm ">
                     <span className="font-bold text-[var(--pm-muted)]">تایید ایمیل</span>
-                    <span className={selectedUser.emailVerified ? "font-black text-[var(--pm-primary)] dark:text-[var(--pm-primary)]" : "font-black text-amber-600 dark:text-amber-300"}>
+                    <span className={selectedUser.emailVerified ? "font-extrabold text-[var(--pm-primary)] dark:text-[var(--pm-primary)]" : "font-extrabold text-amber-600 dark:text-amber-300"}>
                       {selectedUser.emailVerified ? "تایید شده" : "در انتظار تایید"}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg border border-[var(--pm-line)] p-3 text-sm dark:border-[var(--pm-line)]">
+                  <div className="flex items-center justify-between rounded-lg border border-[var(--pm-line)] p-3 text-sm ">
                     <span className="font-bold text-[var(--pm-muted)]">حضور آنلاین</span>
-                    <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-black ${selectedPresence?.className || ""}`}>
+                    <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-extrabold ${selectedPresence?.className || ""}`}>
                       <span className="material-symbols-outlined text-sm">{selectedPresence?.icon}</span>
                       {selectedPresence?.label || "آفلاین"}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 border-t border-[var(--pm-line)] pt-4 dark:border-[var(--pm-line)]">
+                <div className="flex flex-col gap-2 border-t border-[var(--pm-line)] pt-4 ">
                   <button
                     onClick={() => openEmailComposer(selectedUser)}
                     disabled={busyUserId === selectedUser.id || !selectedUser.email}
@@ -918,7 +911,7 @@ export function UserManagementPanel() {
                 <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">manage_search</span>
               </div>
               <div>
-                <p className="font-black text-[var(--pm-text)]">کاربری انتخاب نشده</p>
+                <p className="font-extrabold text-[var(--pm-text)]">کاربری انتخاب نشده</p>
                 <p className="mt-1 text-sm leading-6 text-[var(--pm-muted)]">از فهرست سمت راست یک کاربر را انتخاب کنید.</p>
               </div>
             </div>
@@ -928,17 +921,16 @@ export function UserManagementPanel() {
 
       {emailComposerUser && typeof document !== "undefined" && createPortal(
         <div
-          className="fixed inset-0 z-[520] flex items-end justify-center bg-zinc-950/70 p-4 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] backdrop-blur-sm md:items-center md:pb-4"
+          className="fixed inset-0 z-[520] flex items-end justify-center bg-zinc-950/70 p-4 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] md:items-center md:pb-4"
           onClick={() => setEmailComposerUser(null)}
         >
           <section
             className="pm-card flex max-h-[calc(100dvh-7rem)] w-full max-w-5xl flex-col overflow-hidden md:max-h-[calc(100dvh-2rem)]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-raised p-5 ">
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">ارسال پیام مدیریتی</p>
-                <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">ایمیل به {emailComposerUser.name || "کاربر"}</h2>
+                <h2 className="mt-1 text-2xl font-extrabold text-[var(--pm-text)]">ایمیل به {emailComposerUser.name || "کاربر"}</h2>
                 <p className="mt-2 truncate text-xs font-bold text-[var(--pm-muted)]" dir="ltr">
                   {emailComposerUser.email}
                 </p>
@@ -950,7 +942,7 @@ export function UserManagementPanel() {
 
             <div className="custom-scrollbar flex-1 overflow-y-auto p-5">
               <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-                <div className="custom-scrollbar flex gap-1 overflow-x-auto rounded-lg border border-[var(--pm-line)] bg-zinc-100 p-1 dark:border-[var(--pm-line)] dark:bg-zinc-950">
+                <div className="custom-scrollbar flex gap-1 overflow-x-auto rounded-lg border border-[var(--pm-line)] bg-raised p-1 ">
                   {[
                     { mode: "write" as EmailComposerMode, label: "نوشتن", icon: "edit_note" },
                     { mode: "preview" as EmailComposerMode, label: "پیش‌نمایش", icon: "preview" },
@@ -959,10 +951,10 @@ export function UserManagementPanel() {
                       key={item.mode}
                       type="button"
                       onClick={() => setEmailComposerMode(item.mode)}
-                      className={`flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-black transition-all ${
+                      className={`flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-extrabold transition-all ${
                         emailComposerMode === item.mode
-                          ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
-                          : "text-[var(--pm-muted)] hover:bg-white dark:text-[var(--pm-muted)] dark:hover:bg-white/[0.06]"
+                          ? "bg-fg text-canvas"
+                          : "text-[var(--pm-muted)] hover:bg-raised dark:text-[var(--pm-muted)] "
                       }`}
                     >
                       <span className="material-symbols-outlined text-base">{item.icon}</span>
@@ -993,7 +985,7 @@ export function UserManagementPanel() {
                 <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
                   <div className="space-y-4">
                     <label className="flex flex-col gap-2">
-                      <span className="text-xs font-black text-[var(--pm-muted)]">موضوع ایمیل</span>
+                      <span className="text-xs font-extrabold text-[var(--pm-muted)]">موضوع ایمیل</span>
                       <input
                         value={emailSubject}
                         onChange={(event) => setEmailSubject(event.target.value.slice(0, 120))}
@@ -1001,7 +993,7 @@ export function UserManagementPanel() {
                       />
                     </label>
 
-                    <div className="custom-scrollbar flex gap-1 overflow-x-auto rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-1 dark:border-[var(--pm-line)] dark:bg-zinc-950/40">
+                    <div className="custom-scrollbar flex gap-1 overflow-x-auto rounded-lg border border-[var(--pm-line)] bg-raised p-1 ">
                       {[
                         { label: "عنوان", icon: "title", value: "# عنوان بخش" },
                         { label: "پررنگ", icon: "format_bold", value: "**متن مهم**" },
@@ -1013,7 +1005,7 @@ export function UserManagementPanel() {
                           key={item.label}
                           type="button"
                           onClick={() => addEmailFormatBlock(item.value)}
-                          className="flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-black text-[var(--pm-muted)] transition-all hover:bg-white hover:text-zinc-950 dark:text-[var(--pm-muted)] dark:hover:bg-white/[0.06] dark:hover:text-white"
+                          className="flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-extrabold text-[var(--pm-muted)] transition-all hover:bg-raised hover:text-zinc-950 dark:text-[var(--pm-muted)] dark:hover:text-white"
                         >
                           <span className="material-symbols-outlined text-base">{item.icon}</span>
                           {item.label}
@@ -1023,8 +1015,8 @@ export function UserManagementPanel() {
 
                     <label className="flex flex-col gap-2">
                       <div className="flex items-center justify-between gap-3">
-                        <span className="text-xs font-black text-[var(--pm-muted)]">متن پیام</span>
-                        <span className="text-[10px] font-bold text-[var(--pm-muted)]">{emailBody.length}/4000</span>
+                        <span className="text-xs font-extrabold text-[var(--pm-muted)]">متن پیام</span>
+                        <span className="text-xs font-bold text-[var(--pm-muted)]">{emailBody.length}/4000</span>
                       </div>
                       <textarea
                         value={emailBody}
@@ -1035,8 +1027,8 @@ export function UserManagementPanel() {
                     </label>
                   </div>
 
-                  <aside className="space-y-3 rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-                    <p className="text-sm font-black text-[var(--pm-text)]">ابزار نگارش</p>
+                  <aside className="space-y-3 rounded-lg border border-[var(--pm-line)] bg-raised p-3 ">
+                    <p className="text-sm font-extrabold text-[var(--pm-text)]">ابزار نگارش</p>
                     {[
                       "وضعیت حساب شما توسط مدیریت بررسی شد.",
                       "برای ادامه، لطفاً وارد حساب کاربری خود شوید و اطلاعات پروفایل را بررسی کنید.",
@@ -1048,7 +1040,7 @@ export function UserManagementPanel() {
                         key={snippet}
                         type="button"
                         onClick={() => insertEmailSnippet(snippet)}
-                        className="w-full rounded-lg border border-[var(--pm-line)] bg-white p-3 text-right text-xs font-bold leading-5 text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-300"
+                        className="w-full rounded-lg border border-[var(--pm-line)] bg-surface p-3 text-right text-xs font-bold leading-5 text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 dark:text-zinc-300"
                       >
                         {snippet}
                       </button>
@@ -1056,27 +1048,27 @@ export function UserManagementPanel() {
                   </aside>
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-[28px] border border-[var(--pm-line)] bg-[#e8edf0] p-3 shadow-inner dark:border-[var(--pm-line)]">
-                  <div className="mx-auto max-w-2xl overflow-hidden rounded-[26px] border border-[var(--pm-line)] bg-white shadow-2xl shadow-zinc-950/10">
-                    <div className="pm-contrast-surface bg-[linear-gradient(135deg,#15181b_0%,#2457d6_48%,#65a30d_100%)] p-6 text-white">
+                <div className="overflow-hidden rounded-[28px] border border-[var(--pm-line)] bg-[#e8edf0] p-3 shadow-inner ">
+                  <div className="mx-auto max-w-2xl overflow-hidden rounded-[26px] border border-[#d6dee3] bg-[#fbfdfe]">
+                    <div className="bg-[#0c1a2c] p-6 text-[#f4f8fa]">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex size-12 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-xl font-black text-zinc-950">M</div>
+                          <div className="flex size-12 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-xl font-extrabold text-zinc-950">M</div>
                           <div>
-                            <p className="font-black">نقاب</p>
+                            <p className="font-extrabold">نقاب</p>
                             <p className="mt-1 text-xs font-bold text-[var(--pm-primary)]">پیام مدیریت</p>
                           </div>
                         </div>
-                        <span className="rounded-full border border-[var(--pm-primary)]/25 bg-[var(--pm-primary)]/10 px-3 py-1 text-xs font-black text-[var(--pm-primary)]">پیام رسمی</span>
+                        <span className="rounded-full border border-[var(--pm-primary)]/25 bg-[var(--pm-primary)]/10 px-3 py-1 text-xs font-extrabold text-[var(--pm-primary)]">پیام رسمی</span>
                       </div>
-                      <h3 className="mt-7 text-2xl font-black leading-10">{emailSubject.trim() || "موضوع ایمیل"}</h3>
+                      <h3 className="mt-7 text-2xl font-extrabold leading-10">{emailSubject.trim() || "موضوع ایمیل"}</h3>
                       <p className="mt-2 text-sm font-bold leading-6 text-zinc-300">این پیام توسط تیم مدیریت نقاب برای اطلاع‌رسانی مستقیم حساب شما ارسال شده است.</p>
                     </div>
 
                     <div className="space-y-3 p-5">
                       {(parseEmailPreviewBlocks(emailBody).length ? parseEmailPreviewBlocks(emailBody) : [{ type: "paragraph" as const, lines: ["متن پیام اینجا نمایش داده می‌شود."] }]).map((block, index) => {
                         if (block.type === "heading") {
-                          return <h4 key={index} className="text-xl font-black leading-9 text-zinc-950">{renderPreviewText(block.text)}</h4>;
+                          return <h4 key={index} className="text-xl font-extrabold leading-9 text-zinc-950">{renderPreviewText(block.text)}</h4>;
                         }
                         if (block.type === "list") {
                           return (
@@ -1092,7 +1084,7 @@ export function UserManagementPanel() {
                         }
                         if (block.type === "note") {
                           return (
-                            <div key={index} className="rounded-lg border border-[var(--pm-primary)]/30 border-r-4 bg-[var(--pm-primary)]/10 p-4 text-sm font-black leading-7 text-[var(--pm-primary)]">
+                            <div key={index} className="rounded-lg border border-[var(--pm-primary)]/30 border-r-4 bg-[var(--pm-primary)]/10 p-4 text-sm font-extrabold leading-7 text-[var(--pm-primary)]">
                               {renderPreviewText(block.text)}
                             </div>
                           );
@@ -1101,7 +1093,7 @@ export function UserManagementPanel() {
                           return <div key={index} className="h-px bg-zinc-200" />;
                         }
                         return (
-                          <div key={index} className="rounded-lg border border-[var(--pm-line)] bg-white p-4 text-sm font-semibold leading-8 text-zinc-700">
+                          <div key={index} className="rounded-lg border border-[var(--pm-line)] bg-surface p-4 text-sm font-semibold leading-8 text-zinc-700">
                             {block.lines.map((line, lineIndex) => (
                               <span key={`${index}-${lineIndex}`}>
                                 {renderPreviewText(line)}
@@ -1124,7 +1116,7 @@ export function UserManagementPanel() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 border-t border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+            <div className="flex flex-wrap gap-2 border-t border-[var(--pm-line)] bg-raised p-5 ">
               <button onClick={() => setEmailComposerUser(null)} className="pm-button-secondary min-h-11 flex-1 px-4">
                 انصراف
               </button>

@@ -144,9 +144,9 @@ function alignmentIcon(alignment: Alignment) {
 }
 
 function alignmentAccentClass(alignment: Alignment) {
-  if (alignment === "CITIZEN") return "from-sky-400 to-blue-500";
-  if (alignment === "MAFIA") return "from-red-400 to-rose-600";
-  return "from-amber-400 to-orange-500";
+  if (alignment === "CITIZEN") return " ";
+  if (alignment === "MAFIA") return " to-rose-600";
+  return " to-orange-500";
 }
 
 function normalizeSearchText(value: string) {
@@ -779,15 +779,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-[80vh] flex-col gap-5" dir="rtl">
-      <header className="pm-card overflow-hidden">
-        <div className="flex flex-col gap-5 p-5 xl:flex-row xl:items-start xl:justify-between">
+      <header>
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div className="flex items-center gap-4">
-            <div className="pm-icon-primary size-14">
-              <span className="material-symbols-outlined text-3xl">theater_comedy</span>
-            </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">طراحی و پیکربندی بازی</p>
-              <h1 className="mt-1 text-3xl font-black text-[var(--pm-text)]">سناریوها و نقش‌ها</h1>
+              <h1 className="nq-display text-[2.6rem] leading-[1.15]">سناریوها و نقش‌ها</h1>
               <p className="mt-1 text-sm leading-6 text-[var(--pm-muted)]">
                 نقش‌های قابل استفاده، سناریوهای آماده و ترکیب نفرات هر بازی را از این بخش مدیریت کنید.
               </p>
@@ -795,13 +791,13 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex flex-col gap-3 xl:items-end">
-            <div className="grid grid-cols-2 gap-1 rounded-lg border border-[var(--pm-line)] bg-zinc-100 p-1 dark:border-[var(--pm-line)] dark:bg-zinc-950">
+            <div className="grid grid-cols-2 gap-1 rounded-lg border border-[var(--pm-line)] bg-raised p-1 ">
               <button
                 onClick={() => switchTab("roles")}
-                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${
+                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-extrabold transition-colors ${
                   activeTab === "roles"
-                    ? "bg-[var(--pm-primary)] text-zinc-950 shadow-sm"
-                    : "text-[var(--pm-muted)] hover:bg-white dark:hover:bg-white/[0.06]"
+                    ? "bg-[var(--pm-primary)] text-zinc-950 "
+                    : "text-[var(--pm-muted)] hover:bg-raised "
                 }`}
               >
                 <span className="material-symbols-outlined text-lg">theater_comedy</span>
@@ -809,10 +805,10 @@ export default function AdminDashboard() {
               </button>
               <button
                 onClick={() => switchTab("scenarios")}
-                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition-colors ${
+                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-extrabold transition-colors ${
                   activeTab === "scenarios"
-                    ? "bg-[var(--pm-primary)] text-zinc-950 shadow-sm"
-                    : "text-[var(--pm-muted)] hover:bg-white dark:hover:bg-white/[0.06]"
+                    ? "bg-[var(--pm-primary)] text-zinc-950 "
+                    : "text-[var(--pm-muted)] hover:bg-raised "
                 }`}
               >
                 <span className="material-symbols-outlined text-lg">account_tree</span>
@@ -830,7 +826,7 @@ export default function AdminDashboard() {
           className="flex min-h-14 w-full items-center justify-between gap-3 p-4 text-right"
         >
           <div>
-            <p className="text-sm font-black text-[var(--pm-text)]">نمای کلی پیکربندی</p>
+            <p className="text-sm font-extrabold text-[var(--pm-text)]">نمای کلی پیکربندی</p>
             <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">
               {stats.roles} نقش، {stats.scenarios} سناریو و ترکیب‌های آماده بازی
             </p>
@@ -841,7 +837,7 @@ export default function AdminDashboard() {
         </button>
 
         {showStats && (
-          <div className="grid gap-3 border-t border-[var(--pm-line)] p-4 dark:border-[var(--pm-line)] md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 border-t border-[var(--pm-line)] p-4 md:grid-cols-2 xl:grid-cols-4">
             {[
               ["کل نقش‌ها", stats.roles, "theater_comedy", "text-[var(--pm-primary)]"],
               ["شهروند", stats.citizenRoles, "verified_user", "text-sky-500"],
@@ -851,9 +847,9 @@ export default function AdminDashboard() {
               <div key={label} className="pm-muted-card group overflow-hidden p-4 transition-colors hover:border-[var(--pm-primary)]/25">
                 <div className="flex items-center justify-between gap-3">
                   <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-                  <span className="h-1.5 w-10 rounded-full bg-zinc-200 transition-colors group-hover:bg-[var(--pm-primary)] dark:bg-white/10"></span>
+                  <span className="h-1.5 w-10 rounded-full bg-zinc-200 transition-colors group-hover:bg-[var(--pm-primary)] "></span>
                 </div>
-                <p className="mt-3 text-2xl font-black text-[var(--pm-text)]">{value}</p>
+                <p className="mt-3 text-2xl font-extrabold text-[var(--pm-text)]">{value}</p>
                 <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{label}</p>
               </div>
             ))}
@@ -863,18 +859,18 @@ export default function AdminDashboard() {
 
       <main className="pm-card relative min-h-[520px] overflow-hidden">
         {loading ? (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/92 p-6 backdrop-blur-xl dark:bg-zinc-900/92">
-            <div className="w-full max-w-md rounded-2xl border border-[var(--pm-line)] bg-white p-5 text-center shadow-2xl shadow-zinc-950/10 dark:border-[var(--pm-line)] dark:bg-zinc-950">
-              <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[var(--pm-primary)] text-zinc-950 shadow-lg shadow-[var(--pm-primary)]/20">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface p-6 ">
+            <div className="w-full max-w-md rounded-2xl border border-[var(--pm-line)] bg-surface p-5 text-center ">
+              <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[var(--pm-primary)] text-zinc-950 ">
                 <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
               </div>
-              <p className="mt-4 text-base font-black text-[var(--pm-text)]">در حال همگام‌سازی مرکز پیکربندی</p>
+              <p className="mt-4 text-base font-extrabold text-[var(--pm-text)]">در حال همگام‌سازی مرکز پیکربندی</p>
               <p className="mt-2 text-xs font-bold leading-6 text-[var(--pm-muted)]">
                 نقش‌ها، سناریوها و توانایی‌های بازی برای نمایش دقیق آماده می‌شوند.
               </p>
               <div className="mt-4 grid grid-cols-3 gap-2">
                 {["نقش‌ها", "سناریوها", "توانایی‌ها"].map((item) => (
-                  <span key={item} className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-2 py-1.5 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.04] dark:text-[var(--pm-muted)]">
+                  <span key={item} className="rounded-lg border border-[var(--pm-line)] bg-raised px-2 py-1.5 text-xs font-extrabold text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                     {item}
                   </span>
                 ))}
@@ -887,7 +883,7 @@ export default function AdminDashboard() {
               <span className="material-symbols-outlined text-3xl">cloud_off</span>
             </div>
             <div>
-              <h2 className="text-xl font-black text-[var(--pm-text)]">بارگذاری اطلاعات ناموفق بود</h2>
+              <h2 className="text-xl font-extrabold text-[var(--pm-text)]">بارگذاری اطلاعات ناموفق بود</h2>
               <p className="mt-2 max-w-md text-sm leading-6 text-[var(--pm-muted)]">{errorMessage}</p>
             </div>
             <button onClick={refreshData} className="pm-button-primary">
@@ -897,10 +893,10 @@ export default function AdminDashboard() {
           </div>
         ) : activeTab === "roles" ? (
           <div className="grid min-h-[520px] gap-0 xl:grid-cols-[380px_minmax(0,1fr)]">
-            <section className="border-b border-[var(--pm-line)] bg-zinc-50/70 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03] xl:border-b-0 xl:border-l">
+            <section className="border-b border-[var(--pm-line)] bg-raised p-5 xl:border-b-0 xl:border-l">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-black text-[var(--pm-text)]">
+                  <p className="text-sm font-extrabold text-[var(--pm-text)]">
                     {editingRoleId ? "ویرایش نقش" : "نقش جدید"}
                   </p>
                   <p className="mt-1 text-xs leading-5 text-[var(--pm-muted)]">
@@ -917,12 +913,12 @@ export default function AdminDashboard() {
               {isAdmin && (
                 <div className="mt-4 rounded-lg border border-sky-500/20 bg-sky-500/10 p-3">
                   <div className="flex items-start gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-sky-500/20 bg-white text-sky-700 dark:bg-zinc-950 dark:text-sky-300">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-sky-500/20 bg-surface text-sky-700 dark:text-sky-300">
                       <span className="material-symbols-outlined text-lg">cloud_done</span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-black text-[var(--pm-text)]">پشتیبان نقش‌ها</p>
-                      <p className="mt-1 text-[10px] leading-5 text-[var(--pm-muted)]">
+                      <p className="text-xs font-extrabold text-[var(--pm-text)]">پشتیبان نقش‌ها</p>
+                      <p className="mt-1 text-xs leading-5 text-[var(--pm-muted)]">
                         نقش‌ها را روی سرور نگه دارید، یا نسخه JSON همین وضعیت را دانلود و با فایل JSON بروزرسانی کنید.
                       </p>
                     </div>
@@ -993,11 +989,11 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                <div className="rounded-lg border border-[var(--pm-line)] bg-white p-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/40">
+                <div className="rounded-lg border border-[var(--pm-line)] bg-surface p-3 ">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-black text-[var(--pm-text)]">توانایی‌های شب همین نقش</p>
-                      <p className="mt-1 text-[10px] leading-5 text-[var(--pm-muted)]">
+                      <p className="text-xs font-extrabold text-[var(--pm-text)]">توانایی‌های شب همین نقش</p>
+                      <p className="mt-1 text-xs leading-5 text-[var(--pm-muted)]">
                         فقط برای نقشی که در حال ساخت یا ویرایش است اعمال می‌شود؛ مثل دکتر، گادفادر، بازپرس یا تفنگدار.
                       </p>
                     </div>
@@ -1026,7 +1022,7 @@ export default function AdminDashboard() {
                   </div>
 
                   {newRoleAbilities.length === 0 ? (
-                    <div className="mt-3 rounded-lg border border-dashed border-[var(--pm-line)] bg-zinc-50 p-3 text-xs font-bold leading-5 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]">
+                    <div className="mt-3 rounded-lg border border-dashed border-[var(--pm-line)] bg-raised p-3 text-xs font-bold leading-5 text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                       اگر نقش در شب اکشن خاصی ندارد، این بخش را خالی بگذارید. شلیک مافیا جداگانه و به جبهه مافیا وصل است.
                     </div>
                   ) : (
@@ -1036,7 +1032,7 @@ export default function AdminDashboard() {
                           <div className="p-3">
                             <div className="flex items-end gap-2">
                               <label className="flex min-w-0 flex-1 flex-col gap-1">
-                                <span className="text-[10px] font-black text-[var(--pm-muted)]">نام توانایی</span>
+                                <span className="text-xs font-extrabold text-[var(--pm-muted)]">نام توانایی</span>
                                 <input
                                   value={ability.label}
                                   onChange={(event) =>
@@ -1059,7 +1055,7 @@ export default function AdminDashboard() {
 
                             <div className="mt-3 grid gap-2 sm:grid-cols-3">
                               <label className="flex min-w-0 flex-col gap-1">
-                                <span className="text-[10px] font-black text-[var(--pm-muted)]">چند شب</span>
+                                <span className="text-xs font-extrabold text-[var(--pm-muted)]">چند شب</span>
                                 <select
                                   value={ability.usesPerGame ?? "INFINITE"}
                                   onChange={(event) =>
@@ -1079,7 +1075,7 @@ export default function AdminDashboard() {
                               </label>
 
                               <label className="flex min-w-0 flex-col gap-1">
-                                <span className="text-[10px] font-black text-[var(--pm-muted)]">روی چند نفر</span>
+                                <span className="text-xs font-extrabold text-[var(--pm-muted)]">روی چند نفر</span>
                                 <select
                                   value={ability.targetsPerUse || 1}
                                   onChange={(event) =>
@@ -1096,7 +1092,7 @@ export default function AdminDashboard() {
                               </label>
 
                               <label className="flex min-w-0 flex-col gap-1">
-                                <span className="text-[10px] font-black text-[var(--pm-muted)]">روی خودش</span>
+                                <span className="text-xs font-extrabold text-[var(--pm-muted)]">روی خودش</span>
                                 <select
                                   value={ability.selfTargetLimit ?? 0}
                                   onChange={(event) =>
@@ -1118,11 +1114,11 @@ export default function AdminDashboard() {
                           </div>
 
                           {abilityNeedsChoices(ability) && (
-                            <div className="border-t border-[var(--pm-line)] bg-white p-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/45">
+                            <div className="border-t border-[var(--pm-line)] bg-surface p-3 ">
                               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                  <p className="text-xs font-black text-[var(--pm-text)]">انتخاب‌های داخل توانایی</p>
-                                  <p className="mt-1 text-[10px] leading-5 text-[var(--pm-muted)]">
+                                  <p className="text-xs font-extrabold text-[var(--pm-text)]">انتخاب‌های داخل توانایی</p>
+                                  <p className="mt-1 text-xs leading-5 text-[var(--pm-muted)]">
                                     چون این توانایی روی چند نفر/گزینه اعمال می‌شود، نام هر گزینه را جدا وارد کنید.
                                   </p>
                                 </div>
@@ -1131,7 +1127,7 @@ export default function AdminDashboard() {
                               <div className="mt-3 space-y-2">
                                 {ability.choices.slice(0, requiredChoiceCount(ability)).map((choice, choiceIndex) => (
                                   <div key={choice.id} className="grid gap-2 lg:grid-cols-[90px_minmax(0,1fr)]">
-                                    <div className="flex min-h-9 items-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-3 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]">
+                                    <div className="flex min-h-9 items-center rounded-lg border border-[var(--pm-line)] bg-raised px-3 text-xs font-extrabold text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                                       گزینه {choiceIndex + 1}
                                     </div>
                                     <input
@@ -1148,7 +1144,7 @@ export default function AdminDashboard() {
                                 ))}
                               </div>
 
-                              <p className={`mt-3 rounded-lg border px-3 py-2 text-[10px] font-bold leading-5 ${
+                              <p className={`mt-3 rounded-lg border px-3 py-2 text-xs font-bold leading-5 ${
                                 ability.choices.filter((choice) => choice.label.trim()).length >= requiredChoiceCount(ability)
                                   ? "border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]"
                                   : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
@@ -1158,7 +1154,7 @@ export default function AdminDashboard() {
                             </div>
                           )}
 
-                          <div className="border-t border-[var(--pm-line)] bg-white px-3 py-2 text-[10px] font-bold leading-5 text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950/50 dark:text-[var(--pm-muted)]">
+                          <div className="border-t border-[var(--pm-line)] bg-surface px-3 py-2 text-xs font-bold leading-5 text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                             {abilityUsageLabel(ability)}
                           </div>
                         </div>
@@ -1178,19 +1174,19 @@ export default function AdminDashboard() {
 
             <section className="space-y-4 p-5">
               {roles.length === 0 ? (
-                <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center dark:border-[var(--pm-line)]">
+                <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center ">
                   <div className="pm-icon size-16">
                     <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">theater_comedy</span>
                   </div>
                   <div>
-                    <p className="font-black text-[var(--pm-text)]">هنوز نقشی ثبت نشده است</p>
+                    <p className="font-extrabold text-[var(--pm-text)]">هنوز نقشی ثبت نشده است</p>
                     <p className="mt-1 text-sm text-[var(--pm-muted)]">برای ساخت سناریو، ابتدا چند نقش به سیستم اضافه کنید.</p>
                   </div>
                 </div>
               ) : (
                 <>
                   <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
-                    <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/40">
+                    <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-raised px-3 ">
                       <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
                       <input
                         value={roleSearch}
@@ -1200,7 +1196,7 @@ export default function AdminDashboard() {
                       />
                     </label>
 
-                    <div className="custom-scrollbar flex gap-1 overflow-x-auto rounded-lg border border-[var(--pm-line)] bg-zinc-100 p-1 dark:border-[var(--pm-line)] dark:bg-zinc-950">
+                    <div className="custom-scrollbar flex gap-1 overflow-x-auto rounded-lg border border-[var(--pm-line)] bg-raised p-1 ">
                       {[
                         ["ALL", "همه", roles.length],
                         ["CITIZEN", "شهروند", stats.citizenRoles],
@@ -1211,26 +1207,26 @@ export default function AdminDashboard() {
                           key={value}
                           type="button"
                           onClick={() => setRoleAlignmentFilter(value as RoleAlignmentFilter)}
-                          className={`flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-black transition-all ${
+                          className={`flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-extrabold transition-all ${
                             roleAlignmentFilter === value
-                              ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
-                              : "text-[var(--pm-muted)] hover:bg-white dark:text-[var(--pm-muted)] dark:hover:bg-white/[0.06]"
+                              ? "bg-fg text-canvas"
+                              : "text-[var(--pm-muted)] hover:bg-raised dark:text-[var(--pm-muted)] "
                           }`}
                         >
                           <span>{label}</span>
-                          <span className="rounded-md bg-white/60 px-1.5 py-0.5 text-[10px] text-current dark:bg-zinc-900/40">{count}</span>
+                          <span className="rounded-md bg-surface px-1.5 py-0.5 text-xs text-current ">{count}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
                   {visibleRoles.length === 0 ? (
-                    <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center dark:border-[var(--pm-line)]">
+                    <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center ">
                       <div className="pm-icon size-16">
                         <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">manage_search</span>
                       </div>
                       <div>
-                        <p className="font-black text-[var(--pm-text)]">نقشی با این جستجو پیدا نشد</p>
+                        <p className="font-extrabold text-[var(--pm-text)]">نقشی با این جستجو پیدا نشد</p>
                         <p className="mt-1 text-sm text-[var(--pm-muted)]">عبارت جستجو را کوتاه‌تر یا متفاوت وارد کنید.</p>
                       </div>
                     </div>
@@ -1240,7 +1236,7 @@ export default function AdminDashboard() {
                         <details
                           key={group.alignment}
                           open={Boolean(roleSearch) || roleAlignmentFilter !== "ALL" || group.alignment === "CITIZEN"}
-                          className="group/role-side rounded-lg border border-[var(--pm-line)] bg-zinc-50/70 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.02]"
+                          className="group/role-side rounded-lg border border-[var(--pm-line)] bg-raised p-3 "
                         >
                           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-1">
                             <div className="flex items-center gap-2">
@@ -1248,12 +1244,12 @@ export default function AdminDashboard() {
                                 {alignmentIcon(group.alignment)}
                               </span>
                               <div>
-                                <p className="text-sm font-black text-[var(--pm-text)]">{alignmentLabel(group.alignment)}</p>
-                                <p className="mt-0.5 text-[10px] font-bold text-[var(--pm-muted)]">{group.roles.length} نقش</p>
+                                <p className="text-sm font-extrabold text-[var(--pm-text)]">{alignmentLabel(group.alignment)}</p>
+                                <p className="mt-0.5 text-xs font-bold text-[var(--pm-muted)]">{group.roles.length} نقش</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
-                              <span className={`hidden h-1.5 w-16 rounded-full bg-gradient-to-l sm:block ${alignmentAccentClass(group.alignment)}`} />
+                              <span className={`hidden h-1.5 w-16 rounded-full bg-accent sm:block ${alignmentAccentClass(group.alignment)}`} />
                               <span className="material-symbols-outlined text-[var(--pm-muted)] transition-transform group-open/role-side:rotate-180">keyboard_arrow_down</span>
                             </div>
                           </summary>
@@ -1265,24 +1261,24 @@ export default function AdminDashboard() {
                               return (
                               <article
                                 key={role.id}
-                                className="group relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-[var(--pm-primary)]/30 hover:shadow-lg hover:shadow-zinc-950/5 dark:border-[var(--pm-line)] dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                                className="group relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-surface p-3 transition-all hover:border-[var(--pm-primary)]/30      "
                               >
-                                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(role.alignment)}`} />
+                                <div className={`absolute inset-x-0 top-0 h-1 bg-accent ${alignmentAccentClass(role.alignment)}`} />
                                 <div className="flex items-start justify-between gap-3 pt-1">
                                   <div className="flex min-w-0 items-start gap-3">
                                     <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(role.alignment)}`}>
                                       <span className="material-symbols-outlined text-xl">{alignmentIcon(role.alignment)}</span>
                                     </div>
                                     <div className="min-w-0">
-                                      <h3 className="truncate text-base font-black text-[var(--pm-text)]">{role.name}</h3>
-                                      <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">{alignmentLabel(role.alignment)}</p>
+                                      <h3 className="truncate text-base font-extrabold text-[var(--pm-text)]">{role.name}</h3>
+                                      <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{alignmentLabel(role.alignment)}</p>
                                     </div>
                                   </div>
 
                                   <div className="flex shrink-0 gap-1">
                                     <button
                                       onClick={() => handleEditRole(role)}
-                                      className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)] dark:hover:text-sky-300"
+                                      className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-raised text-[var(--pm-muted)] transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:text-[var(--pm-muted)] dark:hover:text-sky-300"
                                       title="ویرایش نقش"
                                     >
                                       <span className="material-symbols-outlined text-base">edit_square</span>
@@ -1301,24 +1297,24 @@ export default function AdminDashboard() {
                                   {role.description || "برای این نقش هنوز توضیحی ثبت نشده است."}
                                 </p>
 
-                                <div className="mt-3 flex flex-wrap gap-1.5 border-t border-[var(--pm-line)] pt-3 dark:border-[var(--pm-line)]">
+                                <div className="mt-3 flex flex-wrap gap-1.5 border-t border-[var(--pm-line)] pt-3 ">
                                   {abilities.length ? (
                                     abilities.slice(0, 3).map((ability) => (
                                       <span
                                         key={`${role.id}-${ability.id}`}
-                                        className="inline-flex items-center gap-1 rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 py-1 text-[10px] font-black text-[var(--pm-primary)]"
+                                        className="inline-flex items-center gap-1 rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 py-1 text-xs font-extrabold text-[var(--pm-primary)]"
                                       >
                                         <span className="material-symbols-outlined text-[13px]">dark_mode</span>
                                         {ability.label}، {abilityUsageLabel(ability)}
                                       </span>
                                     ))
                                   ) : (
-                                    <span className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-2 py-1 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]">
+                                    <span className="rounded-lg border border-[var(--pm-line)] bg-raised px-2 py-1 text-xs font-extrabold text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                                       بدون اکشن شب
                                     </span>
                                   )}
                                   {abilities.length > 3 && (
-                                    <span className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-2 py-1 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]">
+                                    <span className="rounded-lg border border-[var(--pm-line)] bg-raised px-2 py-1 text-xs font-extrabold text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                                       +{abilities.length - 3}
                                     </span>
                                   )}
@@ -1337,10 +1333,10 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <div className="grid min-h-[520px] gap-0 xl:grid-cols-[420px_minmax(0,1fr)]">
-            <section className="border-b border-[var(--pm-line)] bg-zinc-50/70 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03] xl:border-b-0 xl:border-l">
+            <section className="border-b border-[var(--pm-line)] bg-raised p-5 xl:border-b-0 xl:border-l">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-black text-[var(--pm-text)]">
+                  <p className="text-sm font-extrabold text-[var(--pm-text)]">
                     {editingScenarioId ? "ویرایش سناریو" : "طراحی سناریو"}
                   </p>
                   <p className="mt-1 text-xs leading-5 text-[var(--pm-muted)]">
@@ -1360,12 +1356,12 @@ export default function AdminDashboard() {
               {!editingScenarioId && isAdmin && (
                 <div className="mt-4 rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3">
                   <div className="flex items-start gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--pm-primary)]/20 bg-white text-[var(--pm-primary-strong)] dark:bg-zinc-950 dark:text-[var(--pm-primary)]">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--pm-primary)]/20 bg-surface text-[var(--pm-primary-strong)] dark:text-[var(--pm-primary)]">
                       <span className="material-symbols-outlined text-lg">cloud_done</span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-black text-[var(--pm-text)]">پشتیبان سناریوها</p>
-                      <p className="mt-1 text-[10px] leading-5 text-[var(--pm-muted)]">
+                      <p className="text-xs font-extrabold text-[var(--pm-text)]">پشتیبان سناریوها</p>
+                      <p className="mt-1 text-xs leading-5 text-[var(--pm-muted)]">
                         وضعیت فعلی را روی سرور ذخیره کنید، یا برای انتقال/ویرایش دستی نسخه JSON بگیرید و دوباره آپلود کنید.
                       </p>
                     </div>
@@ -1443,15 +1439,15 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                <div className="rounded-lg border border-[var(--pm-line)] bg-white p-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/40">
+                <div className="rounded-lg border border-[var(--pm-line)] bg-surface p-3 ">
                   <div className="mb-3 flex items-center justify-between">
                     <label className="text-xs font-bold text-[var(--pm-muted)]">انتخاب نقش‌ها</label>
-                    <span className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-2.5 py-1 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)]">
+                    <span className="rounded-lg border border-[var(--pm-line)] bg-raised px-2.5 py-1 text-xs font-extrabold text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                       مجموع: {selectedRoles.reduce((sum, role) => sum + role.count, 0)} نفر
                     </span>
                   </div>
 
-                  <label className="mb-3 flex min-h-10 items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                  <label className="mb-3 flex min-h-10 items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-raised px-3 ">
                     <span className="material-symbols-outlined text-base text-[var(--pm-muted)]">search</span>
                     <input
                       value={scenarioRoleSearch}
@@ -1481,8 +1477,8 @@ export default function AdminDashboard() {
                             key={role.id}
                             className={`rounded-lg border p-3 transition-colors ${
                               selected
-                                ? "border-[var(--pm-primary)]/35 bg-[var(--pm-primary)]/10 shadow-sm shadow-[var(--pm-primary)]/10"
-                                : "border-[var(--pm-line)] bg-zinc-50 hover:bg-white dark:border-[var(--pm-line)] dark:bg-white/[0.02] dark:hover:bg-white/[0.04]"
+                                ? "border-[var(--pm-primary)]/35 bg-[var(--pm-primary)]/10  "
+                                : "border-[var(--pm-line)] bg-raised hover:bg-raised   "
                             }`}
                           >
                             <div className="flex items-center justify-between gap-3">
@@ -1493,23 +1489,23 @@ export default function AdminDashboard() {
                               >
                                 <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg border transition-all ${
                                   selected
-                                    ? "border-[var(--pm-primary)] bg-gradient-to-br from-lime-300 to-lime-500 text-zinc-950 shadow-sm shadow-[var(--pm-primary)]/30"
-                                    : "border-zinc-300 bg-white text-zinc-300 group-hover/role-option:border-[var(--pm-primary)] group-hover/role-option:text-[var(--pm-primary)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-zinc-700"
+                                    ? "border-[var(--pm-primary)] bg-accent   text-zinc-950  "
+                                    : "border-line bg-surface text-zinc-300 group-hover/role-option:border-[var(--pm-primary)] group-hover/role-option:text-[var(--pm-primary)]   dark:text-zinc-700"
                                 }`}>
                                   <span className="material-symbols-outlined text-lg">{selected ? "check" : "add"}</span>
                                 </div>
                                 <div>
-                                  <p className="text-sm font-black text-[var(--pm-text)]">{role.name}</p>
-                                  <p className="mt-1 text-[10px] text-[var(--pm-muted)]">{alignmentLabel(role.alignment)}</p>
+                                  <p className="text-sm font-extrabold text-[var(--pm-text)]">{role.name}</p>
+                                  <p className="mt-1 text-xs text-[var(--pm-muted)]">{alignmentLabel(role.alignment)}</p>
                                 </div>
                               </button>
 
                               {selected && (
-                                <div className="flex items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-white px-2 py-1 dark:border-[var(--pm-line)] dark:bg-zinc-950">
+                                <div className="flex items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-surface px-2 py-1 ">
                                   <button type="button" onClick={() => updateRoleCount(role.id, -1)} className="text-[var(--pm-muted)] transition-colors hover:text-zinc-950 dark:hover:text-white">
                                     <span className="material-symbols-outlined text-base">remove</span>
                                   </button>
-                                  <span className="w-4 text-center text-sm font-black text-[var(--pm-text)]">{selected.count}</span>
+                                  <span className="w-4 text-center text-sm font-extrabold text-[var(--pm-text)]">{selected.count}</span>
                                   <button type="button" onClick={() => updateRoleCount(role.id, 1)} className="text-[var(--pm-muted)] transition-colors hover:text-zinc-950 dark:hover:text-white">
                                     <span className="material-symbols-outlined text-base">add</span>
                                   </button>
@@ -1534,18 +1530,18 @@ export default function AdminDashboard() {
 
             <section className="space-y-4 p-5">
               {scenarios.length === 0 ? (
-                <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center dark:border-[var(--pm-line)]">
+                <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center ">
                   <div className="pm-icon size-16">
                     <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">account_tree</span>
                   </div>
                   <div>
-                    <p className="font-black text-[var(--pm-text)]">سناریویی برای نمایش وجود ندارد</p>
+                    <p className="font-extrabold text-[var(--pm-text)]">سناریویی برای نمایش وجود ندارد</p>
                     <p className="mt-1 text-sm leading-6 text-[var(--pm-muted)]">سناریوهای پیش‌فرض را نصب کنید یا یکی را از ابتدا طراحی کنید.</p>
                   </div>
                 </div>
               ) : (
                 <>
-                  <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/40">
+                  <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-raised px-3 ">
                     <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
                     <input
                       value={scenarioSearch}
@@ -1556,12 +1552,12 @@ export default function AdminDashboard() {
                   </label>
 
                   {visibleScenarios.length === 0 ? (
-                    <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center dark:border-[var(--pm-line)]">
+                    <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center ">
                       <div className="pm-icon size-16">
                         <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">manage_search</span>
                       </div>
                       <div>
-                        <p className="font-black text-[var(--pm-text)]">سناریویی با این جستجو پیدا نشد</p>
+                        <p className="font-extrabold text-[var(--pm-text)]">سناریویی با این جستجو پیدا نشد</p>
                         <p className="mt-1 text-sm text-[var(--pm-muted)]">فقط نام سناریو جستجو می‌شود؛ عبارت را دقیق‌تر وارد کنید.</p>
                       </div>
                     </div>
@@ -1589,22 +1585,22 @@ export default function AdminDashboard() {
                                 setSelectedScenario(scenario);
                               }
                             }}
-                            className="group relative cursor-pointer overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-[var(--pm-primary)]/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-[var(--pm-primary)]/30 dark:border-[var(--pm-line)] dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                            className="group relative cursor-pointer overflow-hidden rounded-lg border border-[var(--pm-line)] bg-surface p-5 transition-all hover:border-[var(--pm-primary)]/30   focus:outline-none focus:ring-2 focus:ring-[var(--pm-primary)]/30    "
                           >
-                            <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(dominantAlignment)}`} />
+                            <div className={`absolute inset-x-0 top-0 h-1 bg-accent ${alignmentAccentClass(dominantAlignment)}`} />
                             <div className="flex items-start justify-between gap-3 pt-1">
                               <div className="flex min-w-0 items-start gap-3">
                                 <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(dominantAlignment)}`}>
                                   <span className="material-symbols-outlined text-xl">account_tree</span>
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="text-[10px] font-bold text-[var(--pm-muted)]">سناریوی {alignmentLabel(dominantAlignment)}</p>
-                                  <h3 className="mt-1 break-words text-xl font-black leading-8 text-[var(--pm-text)]">{scenario.name}</h3>
+                                  <p className="text-xs font-bold text-[var(--pm-muted)]">سناریوی {alignmentLabel(dominantAlignment)}</p>
+                                  <h3 className="mt-1 break-words text-xl font-extrabold leading-8 text-[var(--pm-text)]">{scenario.name}</h3>
                                 </div>
                               </div>
 
                               <div className="flex shrink-0 items-start gap-1">
-                                <span className="flex min-h-8 items-center rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 text-[10px] font-black text-[var(--pm-primary)]">
+                                <span className="flex min-h-8 items-center rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 text-xs font-extrabold text-[var(--pm-primary)]">
                                   {totalPlayers} نفر
                                 </span>
                                 <button
@@ -1612,7 +1608,7 @@ export default function AdminDashboard() {
                                     event.stopPropagation();
                                     handleEditScenario(scenario);
                                   }}
-                                  className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)] dark:hover:text-sky-300"
+                                  className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-raised text-[var(--pm-muted)] transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:text-[var(--pm-muted)] dark:hover:text-sky-300"
                                   title="ویرایش سناریو"
                                 >
                                   <span className="material-symbols-outlined text-base">edit_square</span>
@@ -1622,7 +1618,7 @@ export default function AdminDashboard() {
                                     event.stopPropagation();
                                     handleDuplicateScenario(scenario);
                                   }}
-                                  className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-[var(--pm-primary-strong)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)] dark:hover:text-[var(--pm-primary)]"
+                                  className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-raised text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-[var(--pm-primary-strong)] dark:text-[var(--pm-muted)] dark:hover:text-[var(--pm-primary)]"
                                   title="کپی سناریو"
                                 >
                                   <span className="material-symbols-outlined text-base">content_copy</span>
@@ -1646,10 +1642,10 @@ export default function AdminDashboard() {
 
                             <div className="mt-4 overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface-soft)]">
                               <div className="flex items-center justify-between gap-3 px-3 py-2 text-xs">
-                                <span className="font-black text-[var(--pm-text)]">ترکیب سناریو</span>
+                                <span className="font-extrabold text-[var(--pm-text)]">ترکیب سناریو</span>
                                 <span className="font-bold text-[var(--pm-muted)]">{scenario.roles.length} نوع نقش</span>
                               </div>
-                              <div className="flex h-2 overflow-hidden bg-zinc-200 dark:bg-white/10">
+                              <div className="flex h-2 overflow-hidden bg-zinc-200 ">
                                 {composition.map((item) => (
                                   item.value > 0 && (
                                     <span
@@ -1660,21 +1656,21 @@ export default function AdminDashboard() {
                                   )
                                 ))}
                               </div>
-                              <div className="grid grid-cols-3 gap-px bg-zinc-200 dark:bg-white/10">
+                              <div className="grid grid-cols-3 gap-px bg-zinc-200 ">
                                 {composition.map(({ label, value, alignment }) => (
-                                  <div key={label} className={`border-0 bg-white px-2 py-2 text-center dark:bg-zinc-950/70 ${alignmentClass(alignment)}`}>
-                                    <p className="text-sm font-black">{value}</p>
-                                    <p className="mt-0.5 text-[9px] font-bold">{label}</p>
+                                  <div key={label} className={`border-0 bg-surface px-2 py-2 text-center  ${alignmentClass(alignment)}`}>
+                                    <p className="text-sm font-extrabold">{value}</p>
+                                    <p className="mt-0.5 text-xs font-bold">{label}</p>
                                   </div>
                                 ))}
                               </div>
                             </div>
 
-                            <div className="mt-4 flex items-center gap-3 border-t border-[var(--pm-line)] pt-3 dark:border-[var(--pm-line)]">
+                            <div className="mt-4 flex items-center gap-3 border-t border-[var(--pm-line)] pt-3 ">
                               <div className="min-w-0 flex-1">
                                 <p className="truncate text-xs font-bold text-[var(--pm-muted)]">برای دیدن نقش‌ها و ظرفیت دقیق وارد جزئیات شوید.</p>
                               </div>
-                              <div className="mr-auto flex items-center gap-1 text-[10px] font-black text-[var(--pm-muted)] transition-colors group-hover:text-[var(--pm-primary)] dark:group-hover:text-[var(--pm-primary)]">
+                              <div className="mr-auto flex items-center gap-1 text-xs font-extrabold text-[var(--pm-muted)] transition-colors group-hover:text-[var(--pm-primary)] dark:group-hover:text-[var(--pm-primary)]">
                                 جزئیات
                                 <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>
                               </div>
@@ -1693,17 +1689,16 @@ export default function AdminDashboard() {
 
       {selectedScenario && (
         <div
-          className="pm-modal-layer fixed inset-0 z-[240] flex items-center justify-center bg-zinc-950/60 backdrop-blur-sm"
+          className="pm-modal-layer fixed inset-0 z-[240] flex items-center justify-center bg-zinc-950/60 "
           onClick={() => setSelectedScenario(null)}
         >
           <section
             className="pm-card pm-safe-modal motion-pop w-full max-w-3xl overflow-hidden"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-raised p-5 ">
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">جزئیات سناریو</p>
-                <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">{selectedScenario.name}</h2>
+                <h2 className="mt-1 text-2xl font-extrabold text-[var(--pm-text)]">{selectedScenario.name}</h2>
                 <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">
                   {selectedScenario.description || "توضیحی برای این سناریو ثبت نشده است."}
                 </p>
@@ -1727,8 +1722,8 @@ export default function AdminDashboard() {
                 ].map(([label, value, icon, color]) => (
                   <div key={label} className="pm-muted-card p-3">
                     <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-                    <p className="mt-2 text-lg font-black text-[var(--pm-text)]">{value}</p>
-                    <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">{label}</p>
+                    <p className="mt-2 text-lg font-extrabold text-[var(--pm-text)]">{value}</p>
+                    <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{label}</p>
                   </div>
                 ))}
               </div>
@@ -1738,7 +1733,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 border-t border-[var(--pm-line)] p-5 dark:border-[var(--pm-line)]">
+            <div className="flex flex-wrap gap-2 border-t border-[var(--pm-line)] p-5 ">
               <button
                 onClick={() => {
                   handleEditScenario(selectedScenario);

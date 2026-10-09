@@ -53,9 +53,9 @@ function alignmentIcon(alignment: Alignment) {
 }
 
 function alignmentAccentClass(alignment: Alignment) {
-  if (alignment === "CITIZEN") return "from-sky-400 to-blue-500";
-  if (alignment === "MAFIA") return "from-red-400 to-rose-600";
-  return "from-amber-400 to-orange-500";
+  if (alignment === "CITIZEN") return " ";
+  if (alignment === "MAFIA") return " to-rose-600";
+  return " to-orange-500";
 }
 
 function normalizeSearchText(value: string) {
@@ -367,8 +367,7 @@ export function ScenariosManager({
       <section className="pm-card overflow-hidden">
         <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">کتابخانه سناریوها</p>
-            <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">ترکیب‌های آماده بازی</h2>
+            <h2 className="mt-1 text-2xl font-extrabold text-[var(--pm-text)]">ترکیب‌های آماده بازی</h2>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--pm-muted)]">
               سناریوها را به صورت خلاصه ببینید، با جستجو سریع پیدا کنید و جزئیات نقش‌ها را در پنجره جداگانه بررسی کنید.
             </p>
@@ -390,7 +389,7 @@ export function ScenariosManager({
               <span className="material-symbols-outlined text-xl">cloud_done</span>
             </div>
             <div>
-              <p className="text-sm font-black text-[var(--pm-text)]">پشتیبان کتابخانه سناریو</p>
+              <p className="text-sm font-extrabold text-[var(--pm-text)]">پشتیبان کتابخانه سناریو</p>
               <p className="mt-1 text-xs leading-5 text-[var(--pm-muted)]">
                 وضعیت فعلی را روی سرور ذخیره کنید، یا نسخه JSON بگیرید و همان JSON را برای بروزرسانی روی دیتابیس اعمال کنید.
               </p>
@@ -426,7 +425,7 @@ export function ScenariosManager({
           className="flex min-h-14 w-full items-center justify-between gap-3 p-4 text-right"
         >
           <div>
-            <p className="text-sm font-black text-[var(--pm-text)]">نمای کلی سناریوها</p>
+            <p className="text-sm font-extrabold text-[var(--pm-text)]">نمای کلی سناریوها</p>
             <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">
               {stats.scenarios} سناریو، {stats.roles} نقش قابل استفاده
             </p>
@@ -437,7 +436,7 @@ export function ScenariosManager({
         </button>
 
         {showStats && (
-          <div className="grid gap-3 border-t border-[var(--pm-line)] p-4 dark:border-[var(--pm-line)] md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 border-t border-[var(--pm-line)] p-4 md:grid-cols-2 xl:grid-cols-4">
             {[
               ["سناریوها", stats.scenarios, "account_tree", "text-[var(--pm-primary)]"],
               ["نقش‌های قابل استفاده", stats.roles, "theater_comedy", "text-sky-500"],
@@ -446,7 +445,7 @@ export function ScenariosManager({
             ].map(([label, value, icon, color]) => (
               <div key={label} className="pm-muted-card p-4">
                 <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-                <p className="mt-3 text-2xl font-black text-[var(--pm-text)]">{value}</p>
+                <p className="mt-3 text-2xl font-extrabold text-[var(--pm-text)]">{value}</p>
                 <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{label}</p>
               </div>
             ))}
@@ -455,7 +454,7 @@ export function ScenariosManager({
       </section>
 
       <section className="pm-card p-3">
-        <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-zinc-50 px-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/40">
+        <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-raised px-3 ">
           <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
           <input
             value={scenarioSearch}
@@ -472,7 +471,7 @@ export function ScenariosManager({
             <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">account_tree</span>
           </div>
           <div>
-            <p className="font-black text-[var(--pm-text)]">سناریویی برای نمایش وجود ندارد</p>
+            <p className="font-extrabold text-[var(--pm-text)]">سناریویی برای نمایش وجود ندارد</p>
             <p className="mt-1 text-sm text-[var(--pm-muted)]">یک سناریوی جدید بسازید یا عبارت جستجو را تغییر دهید.</p>
           </div>
         </section>
@@ -500,22 +499,22 @@ export function ScenariosManager({
                     setSelectedScenario(scenario);
                   }
                 }}
-                className="group relative cursor-pointer overflow-hidden rounded-lg border border-[var(--pm-line)] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-[var(--pm-primary)]/30 hover:shadow-lg hover:shadow-zinc-950/5 focus:outline-none focus:ring-2 focus:ring-[var(--pm-primary)]/30 dark:border-[var(--pm-line)] dark:bg-zinc-950/70 dark:hover:bg-zinc-950 dark:hover:shadow-black/20"
+                className="group relative cursor-pointer overflow-hidden rounded-lg border border-[var(--pm-line)] bg-surface p-5 transition-all hover:border-[var(--pm-primary)]/30   focus:outline-none focus:ring-2 focus:ring-[var(--pm-primary)]/30    "
               >
-                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${alignmentAccentClass(dominantAlignment)}`} />
+                <div className={`absolute inset-x-0 top-0 h-1 bg-accent ${alignmentAccentClass(dominantAlignment)}`} />
                 <div className="flex items-start justify-between gap-3 pt-1">
                   <div className="flex min-w-0 items-start gap-3">
                     <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(dominantAlignment)}`}>
                       <span className="material-symbols-outlined text-xl">account_tree</span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-bold text-[var(--pm-muted)]">سناریوی {alignmentLabel(dominantAlignment)}</p>
-                      <h3 className="mt-1 break-words text-xl font-black leading-8 text-[var(--pm-text)]">{scenario.name}</h3>
+                      <p className="text-xs font-bold text-[var(--pm-muted)]">سناریوی {alignmentLabel(dominantAlignment)}</p>
+                      <h3 className="mt-1 break-words text-xl font-extrabold leading-8 text-[var(--pm-text)]">{scenario.name}</h3>
                     </div>
                   </div>
 
                   <div className="flex shrink-0 items-start gap-1">
-                    <span className="flex min-h-8 items-center rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 text-[10px] font-black text-[var(--pm-primary)]">
+                    <span className="flex min-h-8 items-center rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 text-xs font-extrabold text-[var(--pm-primary)]">
                       {total} نفر
                     </span>
                     <button
@@ -523,7 +522,7 @@ export function ScenariosManager({
                         event.stopPropagation();
                         openForm(scenario);
                       }}
-                      className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)] dark:hover:text-sky-300"
+                      className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-raised text-[var(--pm-muted)] transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:text-[var(--pm-muted)] dark:hover:text-sky-300"
                       title="ویرایش سناریو"
                     >
                       <span className="material-symbols-outlined text-base">edit_square</span>
@@ -533,7 +532,7 @@ export function ScenariosManager({
                         event.stopPropagation();
                         openDuplicateForm(scenario);
                       }}
-                      className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-zinc-50 text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-[var(--pm-primary-strong)] dark:border-[var(--pm-line)] dark:bg-white/[0.03] dark:text-[var(--pm-muted)] dark:hover:text-[var(--pm-primary)]"
+                      className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-raised text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-[var(--pm-primary-strong)] dark:text-[var(--pm-muted)] dark:hover:text-[var(--pm-primary)]"
                       title="کپی سناریو"
                     >
                       <span className="material-symbols-outlined text-base">content_copy</span>
@@ -557,10 +556,10 @@ export function ScenariosManager({
 
                 <div className="mt-4 overflow-hidden rounded-lg border border-[var(--pm-line)] bg-[var(--pm-surface-soft)]">
                   <div className="flex items-center justify-between gap-3 px-3 py-2 text-xs">
-                    <span className="font-black text-[var(--pm-text)]">ترکیب سناریو</span>
+                    <span className="font-extrabold text-[var(--pm-text)]">ترکیب سناریو</span>
                     <span className="font-bold text-[var(--pm-muted)]">{scenario.roles.length} نوع نقش</span>
                   </div>
-                  <div className="flex h-2 overflow-hidden bg-zinc-200 dark:bg-white/10">
+                  <div className="flex h-2 overflow-hidden bg-zinc-200 ">
                     {composition.map((item) => (
                       item.value > 0 && (
                         <span
@@ -571,21 +570,21 @@ export function ScenariosManager({
                       )
                     ))}
                   </div>
-                  <div className="grid grid-cols-3 gap-px bg-zinc-200 dark:bg-white/10">
+                  <div className="grid grid-cols-3 gap-px bg-zinc-200 ">
                     {composition.map(({ label, value, alignment }) => (
-                      <div key={label} className={`border-0 bg-white px-2 py-2 text-center dark:bg-zinc-950/70 ${alignmentClass(alignment)}`}>
-                        <p className="text-sm font-black">{value}</p>
-                        <p className="mt-0.5 text-[9px] font-bold">{label}</p>
+                      <div key={label} className={`border-0 bg-surface px-2 py-2 text-center  ${alignmentClass(alignment)}`}>
+                        <p className="text-sm font-extrabold">{value}</p>
+                        <p className="mt-0.5 text-xs font-bold">{label}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center gap-3 border-t border-[var(--pm-line)] pt-3 dark:border-[var(--pm-line)]">
+                <div className="mt-4 flex items-center gap-3 border-t border-[var(--pm-line)] pt-3 ">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-bold text-[var(--pm-muted)]">برای دیدن نقش‌ها و ظرفیت دقیق وارد جزئیات شوید.</p>
                   </div>
-                  <div className="mr-auto flex items-center gap-1 text-[10px] font-black text-[var(--pm-muted)] transition-colors group-hover:text-[var(--pm-primary)] dark:group-hover:text-[var(--pm-primary)]">
+                  <div className="mr-auto flex items-center gap-1 text-xs font-extrabold text-[var(--pm-muted)] transition-colors group-hover:text-[var(--pm-primary)] dark:group-hover:text-[var(--pm-primary)]">
                     جزئیات
                     <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>
                   </div>
@@ -597,12 +596,11 @@ export function ScenariosManager({
       )}
 
       {showForm && (
-        <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center">
+        <div className="pm-modal-layer fixed inset-0 z-[240] flex items-end justify-center bg-black/60 sm:items-center">
           <section className="pm-card pm-safe-modal flex w-full max-w-3xl flex-col overflow-hidden">
-            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-raised p-5 ">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">طراحی سناریو</p>
-                <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">
+                <h2 className="mt-1 text-2xl font-extrabold text-[var(--pm-text)]">
                   {editingScenario ? "ویرایش سناریو" : "ساخت سناریو جدید"}
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">
@@ -627,7 +625,7 @@ export function ScenariosManager({
 
                 <div className="pm-muted-card p-3">
                   <p className="text-xs font-bold text-[var(--pm-muted)]">مجموع بازیکنان</p>
-                  <p className="mt-2 text-2xl font-black text-[var(--pm-text)]">{totalPlayers}</p>
+                  <p className="mt-2 text-2xl font-extrabold text-[var(--pm-text)]">{totalPlayers}</p>
                 </div>
               </div>
 
@@ -641,15 +639,15 @@ export function ScenariosManager({
                 />
               </label>
 
-              <div className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/40">
+              <div className="rounded-lg border border-[var(--pm-line)] bg-raised p-3 ">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <p className="text-sm font-black text-[var(--pm-text)]">نقش‌های سناریو</p>
-                  <span className="rounded-lg border border-[var(--pm-line)] bg-white px-2.5 py-1 text-[10px] font-black text-[var(--pm-muted)] dark:border-[var(--pm-line)] dark:bg-zinc-950 dark:text-[var(--pm-muted)]">
+                  <p className="text-sm font-extrabold text-[var(--pm-text)]">نقش‌های سناریو</p>
+                  <span className="rounded-lg border border-[var(--pm-line)] bg-surface px-2.5 py-1 text-xs font-extrabold text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
                     {formData.roles.length} نقش انتخاب شده
                   </span>
                 </div>
 
-                <label className="mb-3 flex min-h-11 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-white px-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                <label className="mb-3 flex min-h-11 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-surface px-3 ">
                   <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
                   <input
                     value={roleSearch}
@@ -671,28 +669,28 @@ export function ScenariosManager({
                         const currentCount = formData.roles.find((item) => item.roleId === role.id)?.count || 0;
 
                         return (
-                          <div key={role.id} className="rounded-lg border border-[var(--pm-line)] bg-white p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+                          <div key={role.id} className="rounded-lg border border-[var(--pm-line)] bg-surface p-3 ">
                             <div className="flex items-center justify-between gap-3">
                               <div className="min-w-0">
-                                <p className="truncate text-sm font-black text-[var(--pm-text)]">{role.name}</p>
-                                <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[10px] font-black ${alignmentClass(role.alignment)}`}>
+                                <p className="truncate text-sm font-extrabold text-[var(--pm-text)]">{role.name}</p>
+                                <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-xs font-extrabold ${alignmentClass(role.alignment)}`}>
                                   {alignmentLabel(role.alignment)}
                                 </p>
                               </div>
-                              <div className="flex shrink-0 items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-white p-1 dark:border-[var(--pm-line)] dark:bg-zinc-950">
+                              <div className="flex shrink-0 items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-surface p-1 ">
                                 <button
                                   type="button"
                                   onClick={() => updateRoleCount(role.id, -1)}
                                   disabled={currentCount === 0}
-                                  className="flex size-7 items-center justify-center rounded-md hover:bg-zinc-100 disabled:opacity-30 dark:hover:bg-white/10"
+                                  className="flex size-7 items-center justify-center rounded-md hover:bg-raised disabled:opacity-30 "
                                 >
                                   <span className="material-symbols-outlined text-base">remove</span>
                                 </button>
-                                <span className="w-5 text-center text-sm font-black text-[var(--pm-text)]">{currentCount}</span>
+                                <span className="w-5 text-center text-sm font-extrabold text-[var(--pm-text)]">{currentCount}</span>
                                 <button
                                   type="button"
                                   onClick={() => updateRoleCount(role.id, 1)}
-                                  className="flex size-7 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-white/10"
+                                  className="flex size-7 items-center justify-center rounded-md hover:bg-raised "
                                 >
                                   <span className="material-symbols-outlined text-base">add</span>
                                 </button>
@@ -707,7 +705,7 @@ export function ScenariosManager({
               </div>
             </form>
 
-            <div className="flex flex-wrap justify-end gap-3 border-t border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+            <div className="flex flex-wrap justify-end gap-3 border-t border-[var(--pm-line)] bg-raised p-5 ">
               <button type="button" onClick={closeForm} className="pm-button-secondary min-h-11 px-5">
                 انصراف
               </button>
@@ -727,17 +725,16 @@ export function ScenariosManager({
 
       {selectedScenario && (
         <div
-          className="pm-modal-layer fixed inset-0 z-[240] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          className="pm-modal-layer fixed inset-0 z-[240] flex items-center justify-center bg-black/60 "
           onClick={() => setSelectedScenario(null)}
         >
           <section
             className="pm-card pm-safe-modal motion-pop w-full max-w-3xl overflow-hidden"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--pm-line)] bg-raised p-5 ">
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">جزئیات سناریو</p>
-                <h2 className="mt-1 text-2xl font-black text-[var(--pm-text)]">{selectedScenario.name}</h2>
+                <h2 className="mt-1 text-2xl font-extrabold text-[var(--pm-text)]">{selectedScenario.name}</h2>
                 <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">
                   {selectedScenario.description || "توضیحی برای این سناریو ثبت نشده است."}
                 </p>
@@ -757,8 +754,8 @@ export function ScenariosManager({
                 ].map(([label, value, icon, color]) => (
                   <div key={label} className="pm-muted-card p-3">
                     <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
-                    <p className="mt-2 text-lg font-black text-[var(--pm-text)]">{value}</p>
-                    <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">{label}</p>
+                    <p className="mt-2 text-lg font-extrabold text-[var(--pm-text)]">{value}</p>
+                    <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{label}</p>
                   </div>
                 ))}
               </div>
@@ -768,7 +765,7 @@ export function ScenariosManager({
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 border-t border-[var(--pm-line)] p-5 dark:border-[var(--pm-line)]">
+            <div className="flex flex-wrap gap-2 border-t border-[var(--pm-line)] p-5 ">
               <button
                 onClick={() => {
                   openForm(selectedScenario);
