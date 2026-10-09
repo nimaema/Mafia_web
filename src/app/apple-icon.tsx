@@ -1,51 +1,20 @@
-import { ImageResponse } from 'next/og'
+import { ImageResponse } from "next/og";
+import { MASK_PATH } from "@/components/brand/MaskMark";
 
-export const runtime = 'edge'
+export const runtime = "edge";
 
-export const size = {
-  width: 180,
-  height: 180,
-}
-export const contentType = 'image/png'
+export const size = { width: 180, height: 180 };
+export const contentType = "image/png";
 
-export default function Icon() {
+export default function AppleIcon() {
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background:
-            'radial-gradient(circle at 28% 18%, #bef264 0, #60a5fa 34%, #111417 72%)',
-          borderRadius: '42px',
-          overflow: 'hidden',
-          position: 'relative',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 16,
-            borderRadius: 34,
-            border: '2px solid rgba(190, 242, 100, 0.34)',
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.1), rgba(96,165,250,0.28))',
-          }}
-        />
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="82%" height="82%">
-          <path d="M256 66 405 150v168c0 70-57 116-149 142-92-26-149-72-149-142V150L256 66Z" fill="#111417" stroke="#bef264" strokeWidth="22" strokeLinejoin="round" />
-          <path d="M154 176c35 26 69 39 102 39s67-13 102-39v101c0 55-38 91-102 113-64-22-102-58-102-113V176Z" fill="#181d22" stroke="#3d4b56" strokeWidth="10" />
-          <rect x="170" y="168" width="76" height="112" rx="16" fill="#f8fafc" transform="rotate(-13 208 224)" />
-          <rect x="266" y="168" width="76" height="112" rx="16" fill="#f8fafc" transform="rotate(13 304 224)" />
-          <rect x="218" y="151" width="76" height="120" rx="16" fill="#bef264" />
-          <circle cx="256" cy="208" r="25" fill="#111417" />
-          <path d="M216 316c22-24 58-24 80 0" fill="none" stroke="#bef264" strokeWidth="22" strokeLinecap="round" />
-          <path d="M184 350h144" stroke="#f8fafc" strokeWidth="18" strokeLinecap="round" opacity=".9" />
+      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#05101e" }}>
+        <svg viewBox="0 0 64 34" width="116" height="62">
+          <path fillRule="evenodd" d={MASK_PATH} fill="#49d6cc" />
         </svg>
       </div>
     ),
-    { ...size }
-  )
+    { ...size },
+  );
 }

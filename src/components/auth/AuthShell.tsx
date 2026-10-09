@@ -26,7 +26,7 @@ export function AuthShell({ icon, title, subtitle, activeTab, children, footer }
             <span className="material-symbols-outlined text-xl">theater_comedy</span>
           </div>
           <div>
-            <p className="text-lg font-black text-[var(--pm-text)]">مافیا بورد</p>
+            <p className="text-lg font-black text-[var(--pm-text)]">نقاب</p>
             <p className="text-[11px] font-black tracking-wider text-[var(--pm-primary)] opacity-80">ورود به اتاق فرمان</p>
           </div>
         </Link>

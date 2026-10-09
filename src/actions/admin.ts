@@ -411,7 +411,7 @@ export async function sendRecoveryOtpToUser(userId: string) {
 
   const result = await sendAdminUserEmail(
     user.email,
-    "رمز یک‌بارمصرف بازیابی حساب مافیا بورد",
+    "رمز یک‌بارمصرف بازیابی حساب نقاب",
     [
       "# بازیابی حساب",
       `برای حساب ${user.name || user.email} یک رمز یک‌بارمصرف ساخته شده است.`,

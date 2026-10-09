@@ -1,4 +1,4 @@
-import { Vazirmatn } from "next/font/google";
+import { Lalezar, Vazirmatn } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { InstallPWANotice } from "@/components/InstallPWANotice";
@@ -10,10 +10,20 @@ const vazirmatn = Vazirmatn({
   display: "swap",
 });
 
+const lalezar = Lalezar({
+  weight: "400",
+  subsets: ["arabic", "latin"],
+  variable: "--font-lalezar",
+  display: "swap",
+});
+
 import type { Metadata, Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#111417",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#05101e" },
+    { media: "(prefers-color-scheme: light)", color: "#f2f7f9" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -21,10 +31,13 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(getConfiguredSiteUrl()),
-  title: "مافیا بورد - اتاق فرمان بازی",
-  description: "اتاق فرمان مدرن برای اجرای بازی مافیا، لابی‌ها، سناریوها و گزارش‌ها",
-  applicationName: "مافیا بورد",
-  keywords: ["مافیا", "بازی مافیا", "گرداننده مافیا", "سناریو مافیا", "لابی مافیا"],
+  title: {
+    default: "نقاب | بازی مافیا با دوستان",
+    template: "%s | نقاب",
+  },
+  description: "نقاب، تخته بازی مافیا برای دورهمی‌ها: نقش مخفی، شب و روز، رأی‌گیری و گزارش کامل بازی روی گوشی همه.",
+  applicationName: "نقاب",
+  keywords: ["نقاب", "مافیا", "بازی مافیا", "گرداننده مافیا", "سناریو مافیا", "Turku Games"],
   alternates: {
     canonical: "/",
   },
@@ -37,14 +50,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fa_IR",
     url: "/",
-    siteName: "مافیا بورد",
-    title: "مافیا بورد - اتاق فرمان بازی",
-    description: "اتاق فرمان مدرن برای اجرای بازی مافیا، لابی‌ها، سناریوها و گزارش‌ها",
+    siteName: "نقاب",
+    title: "نقاب | بازی مافیا با دوستان",
+    description: "نقش مخفی، شب و روز، رأی‌گیری و گزارش کامل بازی مافیا روی گوشی همه.",
   },
   twitter: {
     card: "summary",
-    title: "مافیا بورد - اتاق فرمان بازی",
-    description: "اتاق فرمان مدرن برای اجرای بازی مافیا، لابی‌ها، سناریوها و گزارش‌ها",
+    title: "نقاب | بازی مافیا با دوستان",
+    description: "نقش مخفی، شب و روز، رأی‌گیری و گزارش کامل بازی مافیا روی گوشی همه.",
   },
   robots: {
     index: true,
@@ -52,7 +65,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "مافیا بورد",
+    title: "نقاب",
     statusBarStyle: "black-translucent",
   },
 };
@@ -64,7 +77,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body className={`${vazirmatn.variable} font-sans antialiased`}>
+      <body className={`${vazirmatn.variable} ${lalezar.variable} font-sans antialiased`}>
         <Providers>
           {children}
           <InstallPWANotice />

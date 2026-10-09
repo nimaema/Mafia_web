@@ -2,17 +2,17 @@ import { MetadataRoute } from 'next'
  
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'مافیا بورد - اتاق فرمان بازی',
-    short_name: 'مافیا بورد',
-    description: 'اتاق فرمان مدرن برای لابی، سناریو و گزارش بازی مافیا',
+    name: 'نقاب | بازی مافیا با دوستان',
+    short_name: 'نقاب',
+    description: 'نقش مخفی، شب و روز، رأی‌گیری و گزارش بازی مافیا روی گوشی همه',
     start_url: '/dashboard',
     scope: '/',
     display: 'standalone',
     display_override: ['standalone', 'minimal-ui'],
     orientation: 'portrait',
-    background_color: '#111417',
-    theme_color: '#111417',
-    categories: ['games', 'productivity', 'utilities'],
+    background_color: '#05101e',
+    theme_color: '#05101e',
+    categories: ['games', 'entertainment', 'social'],
     icons: [
       {
         src: '/icon',

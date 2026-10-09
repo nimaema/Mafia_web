@@ -23,7 +23,7 @@ export default function Home() {
             <span className="material-symbols-outlined text-3xl text-[var(--pm-primary)]">theater_comedy</span>
           </div>
           <div>
-            <p className="text-xl font-black">مافیا بورد</p>
+            <p className="text-xl font-black">نقاب</p>
             <p className="text-xs font-black tracking-widest text-[var(--pm-muted)]">PLAYMAFIA</p>
           </div>
         </Link>
@@ -49,7 +49,7 @@ export default function Home() {
                 اپ مدیریت بازی مافیا
               </span>
               <h1 className="text-6xl font-black leading-[1.1] sm:text-7xl lg:text-[5.5rem]">
-                مافیا بورد
+                نقاب
               </h1>
               <p className="mx-auto mt-6 max-w-xl text-lg font-bold leading-relaxed text-[var(--pm-muted)] lg:mx-0">
                 لابی، نقش‌ها، تایمر و گزارش بازی در یک تجربه ساده و شیک. طراحی شده برای گرداننده‌های حرفه‌ای.

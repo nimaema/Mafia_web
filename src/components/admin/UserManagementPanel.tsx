@@ -981,7 +981,7 @@ export function UserManagementPanel() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => insertEmailSnippet("با احترام،\nتیم مافیا بورد")}
+                    onClick={() => insertEmailSnippet("با احترام،\nتیم نقاب")}
                     className="pm-button-secondary min-h-10 px-3 text-xs"
                   >
                     امضا
@@ -1063,14 +1063,14 @@ export function UserManagementPanel() {
                         <div className="flex items-center gap-3">
                           <div className="flex size-12 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-xl font-black text-zinc-950">M</div>
                           <div>
-                            <p className="font-black">مافیا بورد</p>
+                            <p className="font-black">نقاب</p>
                             <p className="mt-1 text-xs font-bold text-[var(--pm-primary)]">پیام مدیریت</p>
                           </div>
                         </div>
                         <span className="rounded-full border border-[var(--pm-primary)]/25 bg-[var(--pm-primary)]/10 px-3 py-1 text-xs font-black text-[var(--pm-primary)]">پیام رسمی</span>
                       </div>
                       <h3 className="mt-7 text-2xl font-black leading-10">{emailSubject.trim() || "موضوع ایمیل"}</h3>
-                      <p className="mt-2 text-sm font-bold leading-6 text-zinc-300">این پیام توسط تیم مدیریت مافیا بورد برای اطلاع‌رسانی مستقیم حساب شما ارسال شده است.</p>
+                      <p className="mt-2 text-sm font-bold leading-6 text-zinc-300">این پیام توسط تیم مدیریت نقاب برای اطلاع‌رسانی مستقیم حساب شما ارسال شده است.</p>
                     </div>
 
                     <div className="space-y-3 p-5">
@@ -1120,7 +1120,7 @@ export function UserManagementPanel() {
               )}
 
               <div className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3 text-xs font-bold leading-6 text-[var(--pm-primary)]">
-                ایمیل با قالب رسمی مافیا بورد و راست‌چین ارسال می‌شود. برای قالب‌بندی می‌توانید از عنوان، لیست، متن پررنگ، نکته و خط جداکننده استفاده کنید.
+                ایمیل با قالب رسمی نقاب و راست‌چین ارسال می‌شود. برای قالب‌بندی می‌توانید از عنوان، لیست، متن پررنگ، نکته و خط جداکننده استفاده کنید.
               </div>
             </div>
 

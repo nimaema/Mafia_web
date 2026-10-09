@@ -10,7 +10,7 @@ export function MobileLandingLogin() {
             <span className="material-symbols-outlined text-2xl text-[var(--pm-primary)]">theater_comedy</span>
           </span>
           <span className="min-w-0">
-            <span className="block text-base font-black leading-6">مافیا بورد</span>
+            <span className="block text-base font-black leading-6">نقاب</span>
             <span className="block text-[0.68rem] font-black text-[var(--pm-muted)]">اتاق بازی</span>
           </span>
         </Link>

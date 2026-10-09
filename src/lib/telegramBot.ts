@@ -312,7 +312,7 @@ async function sendMainMenu(chatId: string, telegramUserId: string) {
 
   await sendTelegramMessage(
     chatId,
-    `🎲 <b>مافیا بورد</b>\n\nسلام ${htmlEscape(account.user.name || account.firstName || "بازیکن")}! از گزینه‌های زیر انتخاب کنید.`,
+    `🎲 <b>نقاب</b>\n\nسلام ${htmlEscape(account.user.name || account.firstName || "بازیکن")}! از گزینه‌های زیر انتخاب کنید.`,
     mainMenuKeyboard()
   );
 }

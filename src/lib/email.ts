@@ -135,18 +135,18 @@ const PERSIAN_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "�
 const resetEmailTheme: AuthEmailTheme = {
   heroBackground: "#15171b",
   heroGradient: "linear-gradient(135deg, #15171b 0%, #1f2937 54%, #00a896 100%)",
-  accent: "#00f5d4",
+  accent: "#49d6cc",
   accentText: "#002d27",
   accentSoft: "#ccfbf1",
-  badgeText: "#99fff0",
+  badgeText: "#a5ece5",
   noteBackground: "#ecfeff",
   noteBorder: "#a5f3fc",
-  noteText: "#155e75",
+  noteText: "#0f5f63",
 };
 
 const verificationEmailTheme: AuthEmailTheme = {
   heroBackground: "#0f172a",
-  heroGradient: "linear-gradient(135deg, #0f172a 0%, #172554 52%, #155e75 100%)",
+  heroGradient: "linear-gradient(135deg, #0f172a 0%, #172554 52%, #0f5f63 100%)",
   accent: "#38bdf8",
   accentText: "#082f49",
   accentSoft: "#e0f2fe",
@@ -166,7 +166,7 @@ function renderEmailRows(rows: EmailDetailRow[]) {
           <td dir="rtl" align="right" valign="middle" style="${EMAIL_RTL_STYLE} padding: 13px 15px; border-top: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; border-radius: 0 16px 16px 0; background-color: #fafafa; color: #71717a; font-size: 12px; line-height: 22px; font-weight: 700; white-space: nowrap;">
             ${escapeHtml(row.label)}
           </td>
-          <td dir="${valueDirection}" align="${valueAlign}" valign="middle" style="font-family: ${EMAIL_FONT_FAMILY}; direction: ${valueDirection}; text-align: ${valueAlign}; unicode-bidi: embed; padding: 13px 15px; border-top: 1px solid #e5e7eb; border-left: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; border-radius: 16px 0 0 16px; background-color: #fafafa; color: #18181b; font-size: 13px; line-height: 22px; font-weight: 700;">
+          <td dir="${valueDirection}" align="${valueAlign}" valign="middle" style="font-family: ${EMAIL_FONT_FAMILY}; direction: ${valueDirection}; text-align: ${valueAlign}; unicode-bidi: embed; padding: 13px 15px; border-top: 1px solid #e5e7eb; border-left: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; border-radius: 16px 0 0 16px; background-color: #fafafa; color: #0c1a2c; font-size: 13px; line-height: 22px; font-weight: 700;">
             ${escapeHtml(row.value)}
           </td>
         </tr>
@@ -211,7 +211,7 @@ function buildAuthEmailHtml(options: AuthEmailHtmlOptions) {
       <meta name="supported-color-schemes" content="light" />
       <title>${escapeHtml(options.title)}</title>
     </head>
-    <body lang="fa" dir="rtl" style="margin: 0; padding: 0; background-color: #edf2f4; color: #18181b; direction: rtl; text-align: right; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+    <body lang="fa" dir="rtl" style="margin: 0; padding: 0; background-color: #edf2f4; color: #0c1a2c; direction: rtl; text-align: right; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
       <div lang="fa" dir="rtl" style="display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent; font-size: 1px; line-height: 1px; direction: rtl; text-align: right;">
         ${escapeHtml(options.preheader)}
       </div>
@@ -231,7 +231,7 @@ function buildAuthEmailHtml(options: AuthEmailHtmlOptions) {
                               M
                             </td>
                             <td dir="rtl" align="right" valign="middle" style="${EMAIL_RTL_STYLE} padding-right: 12px;">
-                              <div dir="rtl" style="${EMAIL_RTL_STYLE} color: #ffffff; font-size: 17px; line-height: 24px; font-weight: 700;">مافیا بورد</div>
+                              <div dir="rtl" style="${EMAIL_RTL_STYLE} color: #ffffff; font-size: 17px; line-height: 24px; font-weight: 700;">نقاب</div>
                               <div dir="rtl" style="${EMAIL_RTL_STYLE} color: ${options.theme.badgeText}; font-size: 12px; line-height: 20px; font-weight: 700;">${escapeHtml(options.eyebrow)}</div>
                             </td>
                           </tr>
@@ -303,7 +303,7 @@ function buildAuthEmailHtml(options: AuthEmailHtmlOptions) {
 
               <tr>
                 <td dir="rtl" align="center" style="${EMAIL_RTL_STYLE} padding: 18px 24px 26px; background-color: #ffffff; color: #71717a; font-size: 12px; line-height: 22px; font-weight: 400; text-align: center;">
-                  این پیام خودکار از طرف مافیا بورد ارسال شده است.
+                  این پیام خودکار از طرف نقاب ارسال شده است.
                 </td>
               </tr>
             </table>
@@ -319,10 +319,10 @@ function buildResetMessage(email: string, resetUrl: string, from: string) {
   return {
     from,
     to: email,
-    subject: "بازیابی رمز عبور مافیا بورد",
+    subject: "بازیابی رمز عبور نقاب",
     html: buildAuthEmailHtml({
       theme: resetEmailTheme,
-      preheader: "لینک امن تنظیم رمز جدید حساب مافیا بورد تا ۲۴ ساعت معتبر است.",
+      preheader: "لینک امن تنظیم رمز جدید حساب نقاب تا ۲۴ ساعت معتبر است.",
       eyebrow: "بازیابی امن حساب",
       badge: "اعتبار ۲۴ ساعت",
       title: "تنظیم رمز عبور تازه",
@@ -334,7 +334,7 @@ function buildResetMessage(email: string, resetUrl: string, from: string) {
         { label: "اعتبار لینک", value: "۲۴ ساعت" },
         { label: "وضعیت", value: "پس از استفاده حذف می‌شود" },
       ],
-      notice: "این لینک را با کسی به اشتراک نگذارید. تیم مافیا بورد هرگز رمز عبور یا کد خصوصی شما را درخواست نمی‌کند.",
+      notice: "این لینک را با کسی به اشتراک نگذارید. تیم نقاب هرگز رمز عبور یا کد خصوصی شما را درخواست نمی‌کند.",
     }),
     text: `${RTL_MARK}برای بازیابی رمز عبور حساب ${email} به این لینک مراجعه کنید: ${resetUrl}\n\n${RTL_MARK}این لینک تا ۲۴ ساعت معتبر است و بعد از استفاده حذف می‌شود.`,
   };
@@ -344,10 +344,10 @@ function buildVerificationMessage(email: string, verifyUrl: string, from: string
   return {
     from,
     to: email,
-    subject: "تایید ایمیل و فعال‌سازی حساب مافیا بورد",
+    subject: "تایید ایمیل و فعال‌سازی حساب نقاب",
     html: buildAuthEmailHtml({
       theme: verificationEmailTheme,
-      preheader: "حساب مافیا بورد خود را با یک لینک ۲۴ ساعته فعال کنید.",
+      preheader: "حساب نقاب خود را با یک لینک ۲۴ ساعته فعال کنید.",
       eyebrow: "فعال‌سازی حساب",
       badge: "اعتبار ۲۴ ساعت",
       title: "ایمیل‌تان را تایید کنید",
@@ -370,7 +370,7 @@ function buildVerificationMessage(email: string, verifyUrl: string, from: string
 }
 
 function renderInlineEmailText(value: string) {
-  return escapeHtml(value).replace(/\*\*(.+?)\*\*/g, "<strong style=\"font-weight: 800; color: #18181b;\">$1</strong>");
+  return escapeHtml(value).replace(/\*\*(.+?)\*\*/g, "<strong style=\"font-weight: 800; color: #0c1a2c;\">$1</strong>");
 }
 
 function buildAdminEmailBodyHtml(body: string) {
@@ -397,7 +397,7 @@ function buildAdminEmailBodyHtml(body: string) {
           .map(
             (item) => `
               <div dir="rtl" style="${EMAIL_RTL_STYLE} color: #1e3a8a; font-size: 14px; line-height: 30px; font-weight: 700;">
-                <span style="display: inline-block; width: 7px; height: 7px; margin-left: 8px; border-radius: 999px; background: #00f5d4;"></span>${renderInlineEmailText(item)}
+                <span style="display: inline-block; width: 7px; height: 7px; margin-left: 8px; border-radius: 999px; background: #49d6cc;"></span>${renderInlineEmailText(item)}
               </div>
             `
           )
@@ -426,7 +426,7 @@ function buildAdminEmailBodyHtml(body: string) {
       flushParagraph();
       flushList();
       blocks.push(`
-        <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 12px; color: #18181b; font-size: 20px; line-height: 34px; font-weight: 800;">
+        <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 12px; color: #0c1a2c; font-size: 20px; line-height: 34px; font-weight: 800;">
           ${renderInlineEmailText(line.slice(2))}
         </div>
       `);
@@ -437,7 +437,7 @@ function buildAdminEmailBodyHtml(body: string) {
       flushParagraph();
       flushList();
       blocks.push(`
-        <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 14px; border: 1px solid #99fff0; border-right: 5px solid #00f5d4; border-radius: 18px; background: #ecfeff; padding: 15px 17px; color: #155e75; font-size: 14px; line-height: 28px; font-weight: 800;">
+        <div dir="rtl" style="${EMAIL_RTL_STYLE} margin: 0 0 14px; border: 1px solid #a5ece5; border-right: 5px solid #49d6cc; border-radius: 18px; background: #ecfeff; padding: 15px 17px; color: #0f5f63; font-size: 14px; line-height: 28px; font-weight: 800;">
           ${renderInlineEmailText(line.slice(2))}
         </div>
       `);
@@ -483,7 +483,7 @@ function buildAdminUserMessage(email: string, subject: string, body: string, fro
         <meta name="supported-color-schemes" content="light" />
         <title>${escapeHtml(subject)}</title>
       </head>
-      <body lang="fa" dir="rtl" style="margin: 0; padding: 0; background-color: #e8edf0; color: #18181b; direction: rtl; text-align: right; -webkit-text-size-adjust: 100%;">
+      <body lang="fa" dir="rtl" style="margin: 0; padding: 0; background-color: #e8edf0; color: #0c1a2c; direction: rtl; text-align: right; -webkit-text-size-adjust: 100%;">
         <div dir="rtl" style="display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent; font-size: 1px; line-height: 1px;">
           ${escapeHtml(subject)}
         </div>
@@ -496,20 +496,20 @@ function buildAdminUserMessage(email: string, subject: string, body: string, fro
                     <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                       <tr>
                         <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE}">
-                          <div dir="rtl" style="display: inline-block; width: 48px; height: 48px; border-radius: 17px; background-color: #00f5d4; color: #002d27; font-family: ${EMAIL_FONT_FAMILY}; font-size: 24px; line-height: 48px; font-weight: 700; text-align: center;">M</div>
+                          <div dir="rtl" style="display: inline-block; width: 48px; height: 48px; border-radius: 17px; background-color: #49d6cc; color: #002d27; font-family: ${EMAIL_FONT_FAMILY}; font-size: 24px; line-height: 48px; font-weight: 700; text-align: center;">M</div>
                           <div dir="rtl" style="${EMAIL_RTL_STYLE} display: inline-block; padding-right: 12px; vertical-align: top;">
-                            <div style="${EMAIL_RTL_STYLE} color: #ffffff; font-size: 17px; line-height: 24px; font-weight: 700;">مافیا بورد</div>
-                            <div style="${EMAIL_RTL_STYLE} color: #99fff0; font-size: 12px; line-height: 20px; font-weight: 700;">پیام مدیریت</div>
+                            <div style="${EMAIL_RTL_STYLE} color: #ffffff; font-size: 17px; line-height: 24px; font-weight: 700;">نقاب</div>
+                            <div style="${EMAIL_RTL_STYLE} color: #a5ece5; font-size: 12px; line-height: 20px; font-weight: 700;">پیام مدیریت</div>
                           </div>
                         </td>
                         <td dir="rtl" align="left" style="${EMAIL_RTL_STYLE}">
-                          <span style="display: inline-block; border: 1px solid rgba(217,249,157,0.25); border-radius: 999px; padding: 8px 12px; background: rgba(163,230,53,0.10); color: #99fff0; font-size: 12px; font-weight: 700;">پیام رسمی</span>
+                          <span style="display: inline-block; border: 1px solid rgba(217,249,157,0.25); border-radius: 999px; padding: 8px 12px; background: rgba(163,230,53,0.10); color: #a5ece5; font-size: 12px; font-weight: 700;">پیام رسمی</span>
                         </td>
                       </tr>
                     </table>
                     <h1 dir="rtl" style="${EMAIL_RTL_STYLE} margin: 30px 0 0; color: #ffffff; font-size: 31px; line-height: 46px; font-weight: 700;">${escapeHtml(subject)}</h1>
                     <div dir="rtl" style="${EMAIL_RTL_STYLE} margin-top: 14px; color: #d4d4d8; font-size: 14px; line-height: 27px; font-weight: 700;">
-                      این پیام توسط تیم مدیریت مافیا بورد برای اطلاع‌رسانی مستقیم حساب شما ارسال شده است.
+                      این پیام توسط تیم مدیریت نقاب برای اطلاع‌رسانی مستقیم حساب شما ارسال شده است.
                     </div>
                   </td>
                 </tr>
@@ -520,7 +520,7 @@ function buildAdminUserMessage(email: string, subject: string, body: string, fro
                     </div>
                     <table role="presentation" dir="rtl" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin-top: 18px; border-collapse: separate; border-spacing: 0;">
                       <tr>
-                        <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} border: 1px solid #99fff0; border-radius: 18px; background: #ecfeff; padding: 14px 16px; color: #155e75; font-size: 12px; line-height: 24px; font-weight: 700;">
+                        <td dir="rtl" align="right" style="${EMAIL_RTL_STYLE} border: 1px solid #a5ece5; border-radius: 18px; background: #ecfeff; padding: 14px 16px; color: #0f5f63; font-size: 12px; line-height: 24px; font-weight: 700;">
                           اگر درباره این پیام سوالی دارید، از داخل سایت با مدیریت پیگیری کنید و اطلاعات حساس حساب خود را در پاسخ ایمیل ارسال نکنید.
                         </td>
                       </tr>
@@ -652,7 +652,7 @@ export async function sendVerificationEmail(
 
 export async function sendAdminUserEmail(email: string, subject: string, body: string): Promise<PasswordResetEmailResult> {
   const config = getMailConfig();
-  const from = process.env.ADMIN_EMAIL_FROM || process.env.EMAIL_FROM || process.env.SMTP_FROM || "no-reply@playmafia.live";
+  const from = process.env.ADMIN_EMAIL_FROM || process.env.EMAIL_FROM || process.env.SMTP_FROM || "no-reply@turkugames.com";
   const message = buildAdminUserMessage(email, subject, body, from);
 
   if (config.resendApiKey) {

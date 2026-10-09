@@ -304,7 +304,7 @@ export function ScenariosManager({
     setBackupBusy(true);
     try {
       const result = await downloadScenarioBackupJson();
-      downloadJsonFile(result.backup, `playmafia-scenarios-${backupFileDate()}.json`);
+      downloadJsonFile(result.backup, `neghab-scenarios-${backupFileDate()}.json`);
       showToast(`${result.scenarios} سناریو به صورت JSON دانلود شد`, "success");
     } catch (error: any) {
       showAlert("دانلود JSON سناریو", error.message || "دانلود JSON انجام نشد.", "error");

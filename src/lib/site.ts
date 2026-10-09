@@ -1,4 +1,4 @@
-const FALLBACK_SITE_URL = "https://playmafia.live";
+const FALLBACK_SITE_URL = "https://turkugames.com";
 
 type HeaderReader = {
   get(name: string): string | null;

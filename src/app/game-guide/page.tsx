@@ -7,13 +7,13 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "راهنمای بازی مافیا | مافیا بورد",
-  description: "راهنمای خوانای نقش‌ها، سناریوها، توانایی‌های شب و ترکیب‌های بازی در مافیا بورد.",
+  title: "راهنمای بازی مافیا | نقاب",
+  description: "راهنمای خوانای نقش‌ها، سناریوها، توانایی‌های شب و ترکیب‌های بازی در نقاب.",
   alternates: {
     canonical: "/game-guide",
   },
   openGraph: {
-    title: "راهنمای بازی مافیا | مافیا بورد",
+    title: "راهنمای بازی مافیا | نقاب",
     description: "راهنمای خوانای نقش‌ها، سناریوها، توانایی‌های شب و ترکیب‌های بازی.",
     url: "/game-guide",
     locale: "fa_IR",
@@ -255,7 +255,7 @@ export default async function GameGuidePage() {
             <span className="material-symbols-outlined text-xl">theater_comedy</span>
           </div>
           <div>
-            <p className="text-lg font-black">مافیا بورد</p>
+            <p className="text-lg font-black">نقاب</p>
             <p className="text-[11px] font-black text-[var(--pm-primary-strong)] dark:text-[var(--pm-primary)]">راهنمای بازی</p>
           </div>
         </Link>

@@ -18,7 +18,7 @@ const installBenefits = [
 ];
 
 const afterInstallTips = [
-  "بعد از نصب، از آیکن مافیا بورد روی صفحه اصلی وارد شوید.",
+  "بعد از نصب، از آیکن نقاب روی صفحه اصلی وارد شوید.",
   "اگر هنوز صفحه مرورگر را می‌بینید، برنامه را از تب مرورگر باز کرده‌اید نه از آیکن نصب‌شده.",
   "اگر دوباره وارد صفحه ورود شدید، دامنه، HTTPS و Secret سرور باید ثابت بمانند.",
 ];
@@ -112,7 +112,7 @@ export function InstallPWANotice() {
               </span>
               <div className="min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--pm-primary)]">{pwa.guide.platformLabel} PWA</p>
-                <h2 className="mt-0.5 text-xl font-black leading-7">نصب مافیا بورد</h2>
+                <h2 className="mt-0.5 text-xl font-black leading-7">نصب نقاب</h2>
               </div>
             </div>
             <button

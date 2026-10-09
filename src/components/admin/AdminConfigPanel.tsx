@@ -429,7 +429,7 @@ export default function AdminDashboard() {
     setRoleBackupBusy(true);
     try {
       const result = await downloadRoleBackupJson();
-      downloadJsonFile(result.backup, `playmafia-roles-${backupFileDate()}.json`);
+      downloadJsonFile(result.backup, `neghab-roles-${backupFileDate()}.json`);
       showToast(`${result.roles} نقش به صورت JSON دانلود شد`, "success");
     } catch (error: any) {
       showAlert("دانلود JSON نقش‌ها", error.message || "دانلود JSON نقش‌ها انجام نشد.", "error");
@@ -589,7 +589,7 @@ export default function AdminDashboard() {
     setScenarioBackupBusy(true);
     try {
       const result = await downloadScenarioBackupJson();
-      downloadJsonFile(result.backup, `playmafia-scenarios-${backupFileDate()}.json`);
+      downloadJsonFile(result.backup, `neghab-scenarios-${backupFileDate()}.json`);
       showToast(`${result.scenarios} سناریو به صورت JSON دانلود شد`, "success");
     } catch (error: any) {
       showAlert("دانلود JSON سناریوها", error.message || "دانلود JSON سناریوها انجام نشد.", "error");
