@@ -183,26 +183,38 @@ function buildDefaultActiveRoleAbilities(scenario?: { roles?: Array<{ roleId: st
   return Object.keys(config).length ? (config as Prisma.InputJsonValue) : Prisma.JsonNull;
 }
 
-function sanitizeNightEvents(events: any[]) {
-  return events.map((event) => ({
-    ...event,
-    actorPlayer: event.actorPlayer
+/**
+ * Shapes night/day records for the client. Only the game's moderator gets role
+ * data; for everyone else roles are stripped so nothing leaks through the payload
+ * (the screen never shows them, but the JSON is readable in dev tools).
+ */
+function sanitizeNightEvents(events: any[], { includeRoles = true }: { includeRoles?: boolean } = {}) {
+  const person = (player: any) =>
+    player
       ? {
-          id: event.actorPlayer.id,
-          name: event.actorPlayer.name,
-          isAlive: event.actorPlayer.isAlive,
-          role: event.actorPlayer.role,
+          id: player.id,
+          name: player.name,
+          isAlive: player.isAlive,
+          ...(includeRoles ? { role: player.role } : {}),
         }
-      : null,
-    targetPlayer: event.targetPlayer
-      ? {
-          id: event.targetPlayer.id,
-          name: event.targetPlayer.name,
-          isAlive: event.targetPlayer.isAlive,
-          role: event.targetPlayer.role,
-        }
-      : null,
-  }));
+      : null;
+
+  return events.map((event) => {
+    let details = event.details;
+    if (!includeRoles && details && typeof details === "object") {
+      const safe: Record<string, any> = { ...(details as Record<string, any>) };
+      delete safe.convertedRoleId;
+      if (Array.isArray(safe.defensePlayers)) {
+        safe.defensePlayers = safe.defensePlayers.map((defender: Record<string, any>) => {
+          const copy = { ...defender };
+          delete copy.roleName;
+          return copy;
+        });
+      }
+      details = safe;
+    }
+    return { ...event, details, actorPlayer: person(event.actorPlayer), targetPlayer: person(event.targetPlayer) };
+  });
 }
 
 async function broadcastLobbyUpdated(reason: string, gameId?: string) {
@@ -655,7 +667,7 @@ export async function getGameStatus(gameId: string) {
   return {
     ...withGameDisplayName(withScenarioDisplayName(safeGame)),
     players: visiblePlayers,
-    nightEvents: sanitizeNightEvents(visibleNightEvents),
+    nightEvents: sanitizeNightEvents(visibleNightEvents, { includeRoles: canSeePrivateNightEvents }),
     mafiaConversionRoles,
     currentUserBlocked: Boolean(currentUserBlock),
     hasPassword: !!password
@@ -708,7 +720,7 @@ export async function getPlayerGameView(gameId: string) {
   return {
     ...withGameDisplayName(withScenarioDisplayName(safeGame)),
     hasPassword: !!password,
-    nightEvents: sanitizeNightEvents(nightEvents),
+    nightEvents: sanitizeNightEvents(nightEvents, { includeRoles: false }),
     players: players.map((player) => ({
       id: player.id,
       name: player.name,
@@ -1243,10 +1255,9 @@ export async function recordNightEvent(gameId: string, data: NightEventInput) {
       });
     }
     if (wasUsed && (effectType === "CONVERT_TO_MAFIA" || effectType === "YAKUZA")) {
+      // Public channel: only say that the state changed. Who was converted, and into what, stays server-side.
       await pusherServer.trigger(`game-${gameId}`, "game-state-updated", {
-        reason: effectType,
-        targetPlayerId,
-        convertedRoleId,
+        reason: "NIGHT_EFFECT",
       });
     }
 
