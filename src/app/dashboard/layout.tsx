@@ -40,20 +40,21 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="app-page min-h-screen pb-28 md:pb-0 md:flex md:items-start" dir="rtl">
+    <div className="min-h-dvh bg-canvas pb-[calc(env(safe-area-inset-bottom)+5rem)] md:flex md:items-start md:pb-0" dir="rtl">
       <DashboardNavigation
         isAdmin={isAdmin}
         isModerator={isModerator}
         logoutAction={handleLogout}
         user={{
+          id: session.user?.id,
           name: dbUser?.name || session.user?.name,
           image: navigationImage,
           role: effectiveRole,
         }}
       />
 
-      <main className="relative z-10 w-full flex-1 overflow-x-hidden p-4 md:p-8">
-        <div className="motion-page mx-auto max-w-7xl">
+      <main className="relative w-full flex-1 overflow-x-hidden px-4 pb-6 pt-5 md:px-10 md:py-10">
+        <div className="motion-page mx-auto max-w-6xl">
           {children}
         </div>
       </main>

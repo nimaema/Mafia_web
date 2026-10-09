@@ -27,6 +27,13 @@ enum GameStatus {
   FINISHED
 }
 
+/// Where the table is in the game; drives the phase title cards on every phone.
+enum GamePhase {
+  DAY
+  NIGHT
+  VOTE
+}
+
 enum GameResult {
   WIN
   LOSS
@@ -220,6 +227,11 @@ model Game {
   nightRecordsPublic  Boolean    @default(false)
   telegramJoinEnabled Boolean    @default(true)
   activeRoleAbilities Json?
+  /// Current phase while IN_PROGRESS. DAY 0 is the introduction day.
+  phase               GamePhase?
+  /// Night/day cycle number: NIGHT n is followed by DAY n and VOTE n.
+  phaseNumber         Int        @default(0)
+  phaseChangedAt      DateTime?
 
   histories    GameHistory[]
   players      GamePlayer[]

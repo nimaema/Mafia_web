@@ -481,12 +481,21 @@ export async function getWaitingGames(timestamp?: number) {
           }
         }
       },
-      _count: { select: { players: true } }
+      _count: { select: { players: true } },
+      players: {
+        select: { id: true, userId: true },
+        orderBy: { createdAt: "asc" },
+        take: 12,
+      },
     },
     orderBy: { createdAt: 'desc' }
   });
 
-  return games.map((game) => withGameDisplayName(withScenarioDisplayName(game)));
+  // Never send lobby passwords to the client; only whether one is required.
+  return games.map(({ password, ...game }) => ({
+    ...withGameDisplayName(withScenarioDisplayName(game)),
+    hasPassword: Boolean(password),
+  }));
 }
 
 export async function getWaitingGamesSafe(timestamp?: number) {
@@ -771,6 +780,9 @@ export async function startGame(gameId: string) {
       where: { id: gameId },
       data: {
         status: "IN_PROGRESS",
+        phase: "DAY",
+        phaseNumber: 0,
+        phaseChangedAt: new Date(),
         endedAt: null,
         winningAlignment: null,
         nightRecordsPublic: false,
@@ -965,6 +977,43 @@ export async function createCustomGameScenario(
   } catch (error: any) {
     console.error("Create custom scenario error:", error);
     return { error: error.message || "خطا در ایجاد سناریوی سفارشی" };
+  }
+}
+
+export type GamePhaseInput = "DAY" | "NIGHT" | "VOTE";
+
+/** Moves the whole table to a new phase. Night starts a new cycle; day and vote keep the cycle number. */
+export async function setGamePhase(gameId: string, phase: GamePhaseInput) {
+  try {
+    const { game } = await checkModeratorForGame(gameId);
+    if (game.status !== "IN_PROGRESS") throw new Error("فقط در بازی در جریان می‌توان مرحله را عوض کرد.");
+    if (!["DAY", "NIGHT", "VOTE"].includes(phase)) throw new Error("مرحله نامعتبر است.");
+
+    const current = await prisma.game.findUnique({
+      where: { id: gameId },
+      select: { phase: true, phaseNumber: true },
+    });
+    const currentNumber = current?.phaseNumber ?? 0;
+    const phaseNumber = phase === "NIGHT" && current?.phase !== "NIGHT" ? currentNumber + 1 : currentNumber;
+
+    const updated = await prisma.game.update({
+      where: { id: gameId },
+      data: { phase, phaseNumber, phaseChangedAt: new Date() },
+      select: { phase: true, phaseNumber: true, phaseChangedAt: true },
+    });
+
+    await pusherServer.trigger(`game-${gameId}`, "phase-changed", {
+      phase: updated.phase,
+      phaseNumber: updated.phaseNumber,
+      at: updated.phaseChangedAt?.toISOString(),
+    });
+
+    revalidatePath(`/dashboard/moderator/game/${gameId}`);
+    revalidatePath(`/game/${gameId}`);
+    return { success: true, phase: updated.phase, phaseNumber: updated.phaseNumber };
+  } catch (error: any) {
+    console.error("Set game phase error:", error);
+    return { error: error.message || "تغییر مرحله انجام نشد" };
   }
 }
 

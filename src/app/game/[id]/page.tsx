@@ -1,373 +1,241 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { ArrowRight, CaretDown, Trophy } from "@phosphor-icons/react";
 import { getPlayerGameView } from "@/actions/game";
 import { getPusherClient } from "@/lib/pusher-client";
-import Link from "next/link";
 import { usePopup } from "@/components/PopupProvider";
+import { MaskAvatar } from "@/components/brand/MaskAvatar";
+import { PhaseTitleCard } from "@/components/game/PhaseTitleCard";
+import { PublicNightLog } from "@/components/game/PublicNightLog";
+import { RoleCard } from "@/components/game/RoleCard";
+import { VerdictOverlay } from "@/components/game/VerdictOverlay";
+import { Notice } from "@/components/ui/Notice";
+import { FactionTag } from "@/components/ui/Tag";
+import { assignTableHues } from "@/lib/playerColor";
+import { FACTION } from "@/lib/faction";
+import { PHASE_COPY, PHASE_SURFACE, phaseTitle, type Phase } from "@/lib/phase";
 
-function alignmentLabel(alignment?: string) {
-  if (alignment === "CITIZEN") return "شهروند";
-  if (alignment === "MAFIA") return "مافیا";
-  return "مستقل";
-}
+type GamePlayer = { id: string; name: string; userId?: string | null; isAlive?: boolean };
 
-function alignmentClass(alignment?: string) {
-  if (alignment === "CITIZEN") return "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-300";
-  if (alignment === "MAFIA") return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
-  return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-300";
-}
+const WINNER_LABEL: Record<string, string> = { CITIZEN: "شهروندان", MAFIA: "مافیا", NEUTRAL: "مستقل‌ها" };
+const toFa = (value: number) => value.toLocaleString("fa-IR");
 
-function effectLabel(effectType?: string) {
-  if (effectType === "CONVERT_TO_MAFIA") return "خریداری";
-  if (effectType === "YAKUZA") return "یاکوزا";
-  if (effectType === "TWO_NAME_INQUIRY") return "بازپرسی دو نفره";
-  return "ثبت ساده";
-}
-
-function getInitial(name: string) {
-  const trimmed = name.trim();
-  return trimmed ? trimmed.slice(0, 1).toUpperCase() : "؟";
-}
-
-export default function UserGamePage() {
+export default function PlayerGamePage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
   const { showAlert } = usePopup();
   const gameId = params.id as string;
-  
+
   const [game, setGame] = useState<any>(null);
-  const [myPlayerInfo, setMyPlayerInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [revealRole, setRevealRole] = useState(false);
+  const [titleCard, setTitleCard] = useState<{ phase: Phase; phaseNumber: number } | null>(null);
+  const [verdict, setVerdict] = useState<{ playerId: string } | null>(null);
+  const [ended, setEnded] = useState<string | null>(null);
+  const playersRef = useRef<GamePlayer[]>([]);
+
+  const sync = useCallback(async () => {
+    const view = await getPlayerGameView(gameId);
+    if (!view) {
+      router.replace("/dashboard/user");
+      return;
+    }
+    if (view.status === "WAITING") {
+      router.replace(`/lobby/${gameId}`);
+      return;
+    }
+    if (view.status !== "IN_PROGRESS") {
+      router.replace("/dashboard/user/history");
+      return;
+    }
+    playersRef.current = view.players;
+    setGame(view);
+    setLoading(false);
+  }, [gameId, router]);
 
   useEffect(() => {
     if (!gameId || !session?.user?.id) return;
-
-    const syncGameView = async () => {
-      const res = await getPlayerGameView(gameId);
-      if (!res || res.status !== "IN_PROGRESS") {
-        router.push(res?.status === "WAITING" ? `/lobby/${gameId}` : "/dashboard/user");
-        return;
-      }
-      
-      setGame(res);
-      setMyPlayerInfo(res.myPlayer);
-      
-      setLoading(false);
-    };
-
-    syncGameView();
+    sync();
 
     const pusher = getPusherClient();
     const channel = pusher.subscribe(`game-${gameId}`);
-    
-    // Listen for game end
-    channel.bind('game-ended', (data: { winningAlignment: string }) => {
-      const winnerStr = data.winningAlignment === 'CITIZEN' ? 'شهروندان' : data.winningAlignment === 'MAFIA' ? 'مافیا' : data.winningAlignment === 'NEUTRAL' ? 'مستقل‌ها' : 'نامشخص';
-      showAlert("پایان بازی", `بازی به پایان رسید! تیم پیروز: ${winnerStr}`, "info");
-      router.push("/dashboard/user");
-    });
 
-    channel.bind("player-status-updated", () => {
-      syncGameView();
+    channel.bind("phase-changed", (data: { phase: Phase; phaseNumber: number }) => {
+      setTitleCard({ phase: data.phase, phaseNumber: data.phaseNumber });
+      setGame((previous: any) => (previous ? { ...previous, phase: data.phase, phaseNumber: data.phaseNumber } : previous));
     });
-
-    channel.bind("game-state-updated", () => {
-      syncGameView();
+    channel.bind("player-status-updated", (data: { playerId: string; isAlive: boolean }) => {
+      const wasAlive = playersRef.current.find((player) => player.id === data.playerId)?.isAlive !== false;
+      if (!data.isAlive && wasAlive) setVerdict({ playerId: data.playerId });
+      sync();
     });
-
-    channel.bind("night-records-public", () => {
-      syncGameView();
-    });
-
-    // Listen for game cancellation
-    channel.bind('game-cancelled', () => {
-      showAlert("لغو بازی", "بازی توسط گرداننده لغو شد.", "warning");
+    channel.bind("game-state-updated", sync);
+    channel.bind("night-records-public", sync);
+    channel.bind("game-ended", (data: { winningAlignment: string }) => setEnded(data.winningAlignment || "UNKNOWN"));
+    channel.bind("game-cancelled", () => {
+      showAlert("بازی لغو شد", "گرداننده این بازی را لغو کرد.", "warning");
       router.push("/dashboard/user");
     });
 
     return () => {
       pusher.unsubscribe(`game-${gameId}`);
     };
-  }, [gameId, session?.user?.id, router, showAlert]);
+  }, [gameId, session?.user?.id, router, showAlert, sync]);
 
-  const role = myPlayerInfo?.role;
-  const scenarioRoles = useMemo(
-    () =>
-      (game?.scenario?.roles || []).map((scenarioRole: any) => ({
-        id: scenarioRole.roleId,
-        name: scenarioRole.role?.name || "نقش",
-        description: scenarioRole.role?.description || "",
-        alignment: scenarioRole.role?.alignment,
-        count: scenarioRole.count,
-      })),
-    [game]
-  );
-  const scenarioCounts = useMemo(
-    () =>
-      scenarioRoles.reduce(
-        (counts: Record<string, number>, scenarioRole: any) => {
-          counts[scenarioRole.alignment || "NEUTRAL"] += scenarioRole.count;
-          counts.total += scenarioRole.count;
-          return counts;
-        },
-        { CITIZEN: 0, MAFIA: 0, NEUTRAL: 0, total: 0 }
-      ),
-    [scenarioRoles]
-  );
-  const players = game?.players || [];
-  const publicNightEvents = game?.nightEvents || [];
-  const groupedNightEvents = useMemo(() => {
-    const groups = new Map<number, any[]>();
-    publicNightEvents.forEach((event: any) => {
-      const existing = groups.get(event.nightNumber) || [];
-      groups.set(event.nightNumber, [...existing, event]);
-    });
-    return [...groups.entries()].sort(([left], [right]) => left - right);
-  }, [publicNightEvents]);
+  const players: GamePlayer[] = useMemo(() => game?.players || [], [game]);
+  const hues = useMemo(() => assignTableHues(players.map((player) => player.userId || player.id)), [players]);
+  const me = game?.myPlayer;
+  const alive = players.filter((player) => player.isAlive !== false).length;
+  const phase: Phase | null = game?.phase || null;
+  const phaseNumber: number = game?.phaseNumber ?? 0;
+  const scenarioName: string = game?.scenario?.name || "سناریو";
+
+  const composition = useMemo(() => {
+    const roles = (game?.scenario?.roles || []).map((entry: any) => ({
+      id: entry.roleId,
+      name: entry.role?.name || "نقش",
+      alignment: entry.role?.alignment || "NEUTRAL",
+      count: entry.count,
+    }));
+    const counts = { CITIZEN: 0, MAFIA: 0, NEUTRAL: 0 } as Record<string, number>;
+    roles.forEach((role: any) => (counts[role.alignment] = (counts[role.alignment] || 0) + role.count));
+    return { roles, counts };
+  }, [game]);
 
   if (loading) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center p-4" dir="rtl">
-        <div className="pm-card w-full max-w-lg overflow-hidden text-center">
-          <div className="h-1 bg-gradient-to-l from-lime-400 via-sky-400 to-amber-300" />
-          <div className="p-8">
-            <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] shadow-lg shadow-[var(--pm-primary)]/20">
-              <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
-            </div>
-            <p className="mt-5 text-lg font-black text-[var(--pm-text)]">در حال آماده‌سازی کارت نقش</p>
-            <p className="mt-2 text-sm font-bold leading-6 text-[var(--pm-muted)]">
-              نقش، سناریو و گزارش‌های عمومی بازی در حال دریافت هستند.
-            </p>
-          </div>
+      <div className="min-h-dvh bg-canvas" dir="rtl">
+        <div className="h-52 animate-pulse bg-night" />
+        <div className="mx-auto mt-8 aspect-[3/4] w-[min(19rem,80vw)] animate-pulse rounded-[1.6rem] bg-surface" />
+      </div>
+    );
+  }
+
+  if (!me) {
+    return (
+      <div className="grid min-h-dvh place-items-center bg-canvas px-6 text-center" dir="rtl">
+        <div className="max-w-sm">
+          <h1 className="nq-display text-4xl">شما سر این میز نیستید</h1>
+          <p className="mt-3 font-medium leading-7 text-muted">این بازی بدون شما شروع شده است. می‌توانید به خانه برگردید و به لابی دیگری بپیوندید.</p>
+          <Link href="/dashboard/user" className="nq-btn nq-btn-primary nq-btn-lg mt-6 w-full">
+            بازگشت به خانه
+          </Link>
         </div>
       </div>
     );
   }
 
-  if (!myPlayerInfo) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] gap-4">
-        <span className="material-symbols-outlined text-6xl text-zinc-300">error</span>
-        <h2 className="text-2xl font-bold">شما در این بازی حضور ندارید!</h2>
-        <Link href={`/lobby/${gameId}`} className="px-6 py-2 bg-zinc-900 text-white rounded-lg mt-4">بازگشت به لابی</Link>
-      </div>
-    );
-  }
+  const verdictPlayer = verdict ? players.find((player) => player.id === verdict.playerId) : null;
+  const surface = phase ? PHASE_SURFACE[phase] : "bg-night text-moon";
 
   return (
-    <div className="min-h-[80vh] px-4 py-6" dir="rtl">
-      <div className="mx-auto grid w-full max-w-6xl gap-5 lg:grid-cols-[minmax(320px,430px)_minmax(0,1fr)]">
-        <section className="pm-card relative flex flex-col items-center overflow-hidden p-6 sm:p-8">
-          {revealRole && (
-            <div className={`pointer-events-none absolute inset-0 opacity-10 transition-opacity duration-1000 ${
-              role?.alignment === 'CITIZEN' ? 'bg-blue-500' :
-              role?.alignment === 'MAFIA' ? 'bg-red-500' :
-              'bg-amber-500'
-            }`}></div>
-          )}
-
-          <div className="z-10 mb-6 text-center">
-            <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">کارت محرمانه</p>
-            <h1 className="mt-1 text-3xl font-black text-[var(--pm-text)]">نقش شما</h1>
-            <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">نقش خود را فقط در محیط امن ببینید.</p>
+    <div className="min-h-dvh bg-canvas pb-12" dir="rtl">
+      <header className={`nq-grain relative overflow-hidden transition-colors duration-700 ${surface}`}>
+        <div className="relative z-10 mx-auto max-w-5xl px-5 pb-10 pt-[max(env(safe-area-inset-top),1rem)] lg:px-8">
+          <div className="flex items-center justify-between gap-3">
+            <Link href="/dashboard/user" className="nq-icon-btn bg-current/10 text-current hover:text-current" aria-label="بازگشت به خانه">
+              <ArrowRight size={20} weight="bold" aria-hidden />
+            </Link>
+            <span className="rounded-full bg-black/15 px-3 py-1.5 text-sm font-extrabold">{`${toFa(alive)} نفر در بازی`}</span>
           </div>
+          <p className="mt-6 text-sm font-bold opacity-80">{`${scenarioName} · گرداننده: ${game?.moderator?.name || "نامشخص"}`}</p>
+          <h1 className="nq-display mt-1 text-[3.4rem] leading-[1.05] lg:text-[4.5rem]">{phaseTitle(phase, phaseNumber)}</h1>
+          {phase ? <p className="mt-2 max-w-md text-[0.95rem] font-semibold leading-7 opacity-85">{PHASE_COPY[phase]}</p> : null}
+        </div>
+      </header>
 
-          <div
-            onClick={() => setRevealRole(!revealRole)}
-            className={`relative z-10 aspect-[2/3] w-full max-w-sm cursor-pointer rounded-lg transition-all duration-700 preserve-3d ${revealRole ? '[transform:rotateY(180deg)]' : ''}`}
-            style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
-          >
-            <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg border-4 border-[var(--pm-line)] bg-zinc-950 p-6 shadow-2xl backface-hidden" style={{ backfaceVisibility: 'hidden' }}>
-              <div className="mb-4 flex size-24 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-white/[0.03]">
-                <span className="material-symbols-outlined text-5xl text-zinc-700">visibility_off</span>
-              </div>
-              <p className="mb-2 text-lg font-black text-white">برای مشاهده نقش ضربه بزنید</p>
-              <p className="text-center text-xs leading-5 text-[var(--pm-muted)]">پس از دیدن، دوباره کارت را مخفی کنید.</p>
-            </div>
-
-            <div className={`absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-lg border-4 p-6 shadow-2xl backface-hidden ${
-              role?.alignment === 'CITIZEN' ? 'border-blue-800 bg-blue-950' :
-              role?.alignment === 'MAFIA' ? 'border-red-800 bg-red-950' :
-              'border-amber-800 bg-amber-950'
-            }`} style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
-              <div className="absolute top-0 w-full bg-black/20 py-2 text-center text-xs font-black text-white/55">
-                تیم {alignmentLabel(role?.alignment)}
-              </div>
-
-              <div className="flex w-full flex-1 flex-col items-center justify-center">
-                <h2 className="mb-4 text-center text-4xl font-black text-white drop-shadow-md">{role?.name || "بدون نقش"}</h2>
-                <div className="w-full rounded-lg border border-[var(--pm-line)] bg-black/20 p-4 text-center">
-                  <p className="text-sm leading-7 text-white/85">{role?.description || "توضیحی برای این نقش وجود ندارد."}</p>
-                </div>
-              </div>
-
-              <div className="mt-auto pt-4 text-xs text-white/45">برای مخفی کردن دوباره ضربه بزنید</div>
-            </div>
-          </div>
-
-          <Link href="/dashboard/user" className="pm-button-secondary z-10 mt-6 min-h-12 w-full max-w-sm">
-            <span className="material-symbols-outlined text-xl">dashboard</span>
-            بازگشت به داشبورد
-          </Link>
+      <main className="mx-auto grid max-w-5xl gap-10 px-5 pt-8 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-14 lg:px-8">
+        <section aria-label="نقش شما" className="lg:sticky lg:top-8 lg:self-start">
+          {me.isAlive === false ? (
+            <Notice tone="danger" className="mb-5">
+              شما از بازی بیرون رفته‌اید. تا پایان بازی نقشتان را لو ندهید.
+            </Notice>
+          ) : null}
+          <RoleCard name={me.role?.name} description={me.role?.description} alignment={me.role?.alignment} />
         </section>
 
-        <aside className="pm-card overflow-hidden">
-          <div className="border-b border-[var(--pm-line)] bg-zinc-50/80 p-5 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--pm-primary)]">راهنمای سناریو</p>
-                <h2 className="mt-1 truncate text-2xl font-black text-[var(--pm-text)]">{game?.scenario?.name || "سناریو"}</h2>
-                <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">
-                  {game?.scenario?.description || "ترکیب نقش‌های این بازی را بدون نمایش نقش بازیکنان ببینید."}
-                </p>
-              </div>
-              <span className="material-symbols-outlined flex size-12 shrink-0 rounded-lg bg-[var(--pm-primary)] text-2xl text-zinc-950">menu_book</span>
+        <div className="flex flex-col gap-10">
+          <section aria-labelledby="table-title">
+            <div className="flex items-baseline justify-between">
+              <h2 id="table-title" className="text-lg font-extrabold">
+                دور میز
+              </h2>
+              <span className="text-sm font-bold text-muted">{`${toFa(players.length - alive)} نفر بیرون`}</span>
             </div>
+            <ul className="mt-4 grid grid-cols-4 gap-x-2 gap-y-4 sm:grid-cols-6">
+              {players.map((player) => {
+                const out = player.isAlive === false;
+                const isMe = player.id === me.id;
+                return (
+                  <li key={player.id} className="flex flex-col items-center gap-1.5 text-center">
+                    <MaskAvatar seed={player.userId || player.id} hue={hues.get(player.userId || player.id)} size="lg" eliminated={out} className={isMe ? "ring-2 ring-accent ring-offset-2 ring-offset-canvas" : ""} />
+                    <span className={`w-full truncate text-xs font-bold ${out ? "text-faint line-through" : "text-fg"}`}>{isMe ? "شما" : player.name}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
 
-            <div className="mt-5 grid grid-cols-4 gap-2">
-              {[
-                ["کل", scenarioCounts.total, "text-[var(--pm-primary)] dark:text-[var(--pm-primary)]"],
-                ["شهروند", scenarioCounts.CITIZEN, "text-sky-600 dark:text-sky-300"],
-                ["مافیا", scenarioCounts.MAFIA, "text-red-600 dark:text-red-300"],
-                ["مستقل", scenarioCounts.NEUTRAL, "text-amber-600 dark:text-amber-300"],
-              ].map(([label, value, color]) => (
-                <div key={label} className="rounded-lg border border-[var(--pm-line)] bg-white p-3 text-center dark:border-[var(--pm-line)] dark:bg-zinc-950/60">
-                  <p className={`text-lg font-black ${color}`}>{value}</p>
-                  <p className="mt-1 text-[10px] font-bold text-[var(--pm-muted)]">{label}</p>
-                </div>
+          <details className="group rounded-[var(--radius-lg)] border border-line bg-surface" open>
+            <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5">
+              <span className="text-lg font-extrabold">ترکیب نقش‌ها</span>
+              <span className="flex items-center gap-3 text-sm font-bold">
+                <span className={FACTION.CITIZEN.text}>{`${toFa(composition.counts.CITIZEN || 0)} شهروند`}</span>
+                <span className={FACTION.MAFIA.text}>{`${toFa(composition.counts.MAFIA || 0)} مافیا`}</span>
+                {composition.counts.NEUTRAL ? <span className={FACTION.NEUTRAL.text}>{`${toFa(composition.counts.NEUTRAL)} مستقل`}</span> : null}
+                <CaretDown size={18} weight="bold" className="text-muted transition-transform group-open:rotate-180" aria-hidden />
+              </span>
+            </summary>
+            <ul className="border-t border-line px-5 py-2">
+              {composition.roles.map((role: any) => (
+                <li key={role.id || role.name} className="flex items-center justify-between gap-3 py-2.5">
+                  <span className="flex items-center gap-2.5 font-bold">
+                    {role.name}
+                    {role.count > 1 ? <span className="text-sm text-muted">{`× ${toFa(role.count)}`}</span> : null}
+                  </span>
+                  <FactionTag alignment={role.alignment} />
+                </li>
               ))}
-            </div>
+            </ul>
+          </details>
 
-            <div className="mt-5 rounded-lg border border-[var(--pm-line)] bg-white p-3 dark:border-[var(--pm-line)] dark:bg-zinc-950/60">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="text-xs font-black text-[var(--pm-text)]">وضعیت بازیکنان</p>
-                <span className="text-[10px] font-bold text-[var(--pm-muted)]">
-                  {players.filter((player: any) => player.isAlive !== false).length} فعال
-                </span>
-              </div>
-              <div className="grid gap-2">
-                {players.map((player: any) => {
-                  const alive = player.isAlive !== false;
-                  return (
-                    <div key={player.id} className={alive ? "relative overflow-hidden rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-2 dark:border-[var(--pm-line)] dark:bg-white/[0.03]" : "relative overflow-hidden rounded-lg border border-red-500/20 bg-red-500/10 p-2"}>
-                      <div className={`absolute inset-y-2 right-0 w-1 rounded-l-full ${alive ? "bg-[var(--pm-primary)]" : "bg-red-500"}`} />
-                      <div className="flex items-center justify-between gap-2 pr-1">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <div className={`flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg text-xs font-black ${alive ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950" : "bg-red-500 text-white"}`}>
-                            {player.image ? <img src={player.image} alt="" className="size-full object-cover" /> : getInitial(player.name)}
-                          </div>
-                          <p className="truncate text-xs font-black text-[var(--pm-text)]">{player.name}</p>
-                        </div>
-                        <span className={alive ? "rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 py-0.5 text-[9px] font-black text-[var(--pm-primary)]" : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[9px] font-black text-red-600 dark:text-red-300"}>
-                          {alive ? "فعال" : "حذف‌شده"}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+          {game?.nightEvents?.length ? <PublicNightLog events={game.nightEvents} /> : null}
+        </div>
+      </main>
+
+      {titleCard ? <PhaseTitleCard phase={titleCard.phase} phaseNumber={titleCard.phaseNumber} subtitle={scenarioName} onDone={() => setTitleCard(null)} /> : null}
+
+      {verdict && verdictPlayer && !titleCard ? (
+        <VerdictOverlay
+          name={verdictPlayer.name}
+          hue={hues.get(verdictPlayer.userId || verdictPlayer.id) ?? 15}
+          isMe={verdictPlayer.id === me.id}
+          onDone={() => setVerdict(null)}
+        />
+      ) : null}
+
+      {ended ? (
+        <div className="nq-grain fixed inset-0 z-[70] flex flex-col justify-end bg-night px-6 pb-[max(env(safe-area-inset-bottom),2.5rem)] text-moon animate-[phase-in_520ms_cubic-bezier(0.16,1,0.3,1)_both]" role="dialog" aria-modal="true" aria-labelledby="end-title">
+          <Trophy size={56} weight="fill" className="relative z-10 text-day" aria-hidden />
+          <p className="relative z-10 mt-6 text-base font-bold opacity-80">پایان بازی</p>
+          <h2 id="end-title" className="nq-display relative z-10 mt-1 text-[4.6rem] leading-none">
+            {WINNER_LABEL[ended] ? `${WINNER_LABEL[ended]} بردند` : "بازی تمام شد"}
+          </h2>
+          <p className="relative z-10 mt-4 max-w-sm text-lg font-semibold leading-8 opacity-90">نقاب‌ها برداشته شد. داستان کامل این بازی در «بازی‌های من» ثبت شده است.</p>
+          <div className="relative z-10 mt-8 grid gap-3 sm:max-w-sm">
+            <Link href="/dashboard/user/history" className="nq-btn nq-btn-lg bg-moon text-night">
+              دیدن گزارش بازی
+            </Link>
+            <Link href="/dashboard/user" className="nq-btn nq-btn-lg bg-moon/12 text-moon">
+              بازگشت به خانه
+            </Link>
           </div>
-
-          <div className="custom-scrollbar max-h-[62vh] overflow-y-auto p-5">
-            {scenarioRoles.length ? (
-              <div className="grid gap-3 md:grid-cols-2">
-                {scenarioRoles.map((scenarioRole: any) => (
-                  <div key={scenarioRole.id || scenarioRole.name} className="rounded-lg border border-[var(--pm-line)] bg-zinc-50 p-3 dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-[var(--pm-text)]">{scenarioRole.name}</p>
-                        <p className={`mt-1 inline-flex rounded-lg border px-2 py-0.5 text-[10px] font-black ${alignmentClass(scenarioRole.alignment)}`}>
-                          {alignmentLabel(scenarioRole.alignment)}
-                        </p>
-                      </div>
-                      <span className={`shrink-0 rounded-lg border px-2.5 py-1 text-[10px] font-black ${alignmentClass(scenarioRole.alignment)}`}>
-                        x{scenarioRole.count}
-                      </span>
-                    </div>
-                    {scenarioRole.description && (
-                      <p className="mt-3 line-clamp-2 text-xs leading-5 text-[var(--pm-muted)]">{scenarioRole.description}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[var(--pm-line)] bg-zinc-50 p-6 text-center dark:border-[var(--pm-line)] dark:bg-white/[0.03]">
-                <span className="material-symbols-outlined text-4xl text-[var(--pm-muted)]">account_tree</span>
-                <p className="text-sm font-black text-[var(--pm-text)]">راهنمایی برای این سناریو ثبت نشده است</p>
-              </div>
-            )}
-
-            {groupedNightEvents.length > 0 && (
-              <div className="mt-5 rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-4">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[var(--pm-primary)] dark:text-[var(--pm-primary)]">dark_mode</span>
-                  <p className="text-sm font-black text-[var(--pm-text)]">دفترچه عمومی شب</p>
-                </div>
-                <div className="mt-3 space-y-2">
-                  {groupedNightEvents.map(([nightNumber, events]) => (
-                    <details key={nightNumber} className="group rounded-lg border border-[var(--pm-primary)]/20 bg-white/70 dark:bg-zinc-950/60">
-                      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3">
-                        <span className="text-xs font-black text-[var(--pm-text)]">شب {nightNumber}</span>
-                        <span className="material-symbols-outlined text-[var(--pm-muted)] transition-transform group-open:rotate-180">keyboard_arrow_down</span>
-                      </summary>
-                      <div className="space-y-2 border-t border-[var(--pm-primary)]/20 p-3">
-                        {events.map((event: any) => (
-                          <div key={event.id} className="rounded-lg bg-white p-2 text-xs leading-5 text-[var(--pm-muted)] dark:bg-zinc-900 dark:text-zinc-300">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="font-black text-[var(--pm-text)]">
-                                {event.abilityLabel}{event.abilityChoiceLabel ? `: ${event.abilityChoiceLabel}` : ""}
-                              </p>
-                              <span className={event.wasUsed === false ? "rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-300" : "rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 py-0.5 text-[10px] font-black text-[var(--pm-primary)]"}>
-                                {event.wasUsed === false ? "استفاده نشد" : "استفاده شد"}
-                              </span>
-                              {event.details?.effectType && event.details.effectType !== "NONE" && (
-                                <span className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
-                                  {effectLabel(event.details.effectType)}
-                                </span>
-                              )}
-                            </div>
-                            <p className="mt-1">
-                              {event.actorPlayer?.name || event.abilitySource || (event.actorAlignment ? alignmentLabel(event.actorAlignment) : "نامشخص")}
-                              {event.wasUsed === false ? " ← بدون هدف" : ` ← ${event.targetPlayer?.name || "نامشخص"}`}
-                            </p>
-                            {Array.isArray(event.details?.targetLabels) && event.details.targetLabels.length > 0 && (
-                              <p className="mt-1 text-[var(--pm-muted)]">
-                                گزینه‌ها: {event.details.targetLabels.map((target: { label: string; playerName?: string | null }) => `${target.label}: ${target.playerName || "نامشخص"}`).join("، ")}
-                              </p>
-                            )}
-                            {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && event.details?.secondaryTargetName && (
-                              <p className="mt-1 text-[var(--pm-muted)]">
-                                {event.details.effectType === "YAKUZA" ? "قربانی یاکوزا" : "هدف دوم"}: {event.details.secondaryTargetName}
-                              </p>
-                            )}
-                            {(!Array.isArray(event.details?.targetLabels) || event.details.targetLabels.length === 0) && Array.isArray(event.details?.extraTargets) && event.details.extraTargets.length > 0 && (
-                              <p className="mt-1 text-[var(--pm-muted)]">
-                                هدف‌های اضافه: {event.details.extraTargets.map((target: { name: string }) => target.name).join("، ")}
-                              </p>
-                            )}
-                            {event.details?.convertedRoleName && (
-                              <p className="mt-1 text-[var(--pm-muted)]">
-                                تبدیل نقش: {event.details.previousRoleName || "نقش قبلی"} ← {event.details.convertedRoleName}
-                              </p>
-                            )}
-                            {event.note && <p className="mt-1 text-[var(--pm-muted)]">{event.note}</p>}
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </aside>
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

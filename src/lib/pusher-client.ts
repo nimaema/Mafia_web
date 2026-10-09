@@ -17,6 +17,11 @@ export function getPusherClient(): PusherClient {
       cluster: cluster || "ap2",
       authEndpoint: "/api/pusher/auth",
     });
+    // Dev only: lets you replay realtime events by hand, e.g.
+    // __neghabPusher.channel("game-<id>").emit("phase-changed", { phase: "DAY", phaseNumber: 2 })
+    if (process.env.NODE_ENV !== "production") {
+      (window as unknown as { __neghabPusher?: PusherClient }).__neghabPusher = pusherClient;
+    }
   }
   return pusherClient;
 }

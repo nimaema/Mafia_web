@@ -156,6 +156,7 @@ export async function getUserStats() {
   });
 
   return {
+    userId,
     userName: dbUser?.name,
     userImage: profileImageUrl(userId, dbUser?.image),
     currentActiveGame: activePlayerRecord?.game ? {

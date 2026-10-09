@@ -1,5 +1,5 @@
 import { MaskMark } from "./MaskMark";
-import { hueColor, playerColor } from "@/lib/playerColor";
+import { assignTableHues, hueColor, playerColor } from "@/lib/playerColor";
 
 const SIZES = {
   xs: { box: "size-7 rounded-[0.55rem]", mask: "w-[72%]" },
@@ -48,13 +48,14 @@ type MaskStackProps = {
 };
 
 export function MaskStack({ seeds, hues, max = 6, size = "sm", ringClassName = "ring-surface", className = "" }: MaskStackProps) {
+  const tableHues = hues || assignTableHues(seeds);
   const shown = seeds.slice(0, max);
   const rest = seeds.length - shown.length;
   return (
     <span className={`inline-flex items-center ${className}`}>
       <span className="flex -space-x-2 space-x-reverse">
         {shown.map((seed, index) => (
-          <MaskAvatar key={`${seed}-${index}`} seed={seed} hue={hues?.get(seed)} size={size} className={`ring-[3px] ${ringClassName}`} />
+          <MaskAvatar key={`${seed}-${index}`} seed={seed} hue={tableHues.get(seed)} size={size} className={`ring-[3px] ${ringClassName}`} />
         ))}
       </span>
       {rest > 0 ? <span className="ms-3 text-xs font-bold text-muted">{`+${rest.toLocaleString("fa-IR")}`}</span> : null}
