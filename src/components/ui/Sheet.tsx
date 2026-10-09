@@ -17,6 +17,9 @@ type SheetProps = {
   size?: "md" | "lg";
 };
 
+// Sheets can stack (a picker over a form); only unlock page scroll when the last one closes.
+let openSheets = 0;
+
 /** Bottom sheet on phones, centered dialog on larger screens. Escape and the backdrop close it. */
 export function Sheet({ open, onClose, title, eyebrow, header, children, footer, size = "md" }: SheetProps) {
   const titleId = useId();
@@ -31,11 +34,13 @@ export function Sheet({ open, onClose, title, eyebrow, header, children, footer,
     const previous = document.activeElement as HTMLElement | null;
     const onKey = (event: KeyboardEvent) => event.key === "Escape" && closeRef.current();
     document.addEventListener("keydown", onKey);
+    openSheets += 1;
     document.body.style.overflow = "hidden";
     panel.current?.focus();
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
+      openSheets = Math.max(0, openSheets - 1);
+      if (openSheets === 0) document.body.style.overflow = "";
       previous?.focus?.();
     };
   }, [open]);

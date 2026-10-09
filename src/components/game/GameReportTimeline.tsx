@@ -1,7 +1,7 @@
 "use client";
 
 import { Moon, PencilSimple, Prohibit, Sun, Trash } from "@phosphor-icons/react";
-import { ordinalFa } from "@/lib/phase";
+import { logbookDayLabel, logbookNightLabel } from "@/lib/phase";
 
 type ReportAlignment = "CITIZEN" | "MAFIA" | "NEUTRAL" | string;
 
@@ -296,7 +296,7 @@ export function GameReportTimeline({
                 )}
               >
                 {phase.type === "DAY" ? <Sun size={16} weight="fill" aria-hidden /> : <Moon size={16} weight="fill" aria-hidden />}
-                {`${phase.type === "DAY" ? "روز" : "شب"} ${ordinalFa(phase.round)}`}
+                {phase.type === "DAY" ? logbookDayLabel(phase.round) : logbookNightLabel(phase.round)}
               </p>
               <ul className="ms-1 divide-y divide-line border-s border-line ps-4">
                 {phase.events.map((event) => (

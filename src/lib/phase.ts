@@ -32,3 +32,16 @@ export const PHASE_SURFACE: Record<Phase, string> = {
   DAY: "bg-day text-day-ink",
   VOTE: "bg-verdict text-verdict-ink",
 };
+
+/**
+ * The moderator logbook numbers rounds so that "day r" comes before "night r"
+ * (day 1 is the introduction day). Players see the same day as "روز معارفه",
+ * then "روز اول" after the first night. Use these labels everywhere so both match.
+ */
+export function logbookDayLabel(round: number) {
+  return round <= 1 ? "روز معارفه" : `روز ${ordinalFa(round - 1)}`;
+}
+
+export function logbookNightLabel(round: number) {
+  return `شب ${ordinalFa(Math.max(1, round))}`;
+}
