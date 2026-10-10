@@ -20,6 +20,7 @@ type DashboardData = {
   currentActiveGame?: { id: string; scenarioName: string; moderatorName: string } | null;
   userId?: string;
   userName?: string | null;
+  userImage?: string | null;
 };
 
 const toFa = (value: number) => value.toLocaleString("fa-IR");
@@ -89,7 +90,7 @@ export default function PlayerHome() {
       <div className="flex flex-col gap-8">
         {/* Who you are */}
         <section className="flex items-center gap-4">
-          <MaskAvatar seed={data?.userId || session?.user?.id || name} size="xl" />
+          <MaskAvatar seed={data?.userId || session?.user?.id || name} image={data?.userImage} size="xl" />
           <div className="min-w-0">
             <h1 className="nq-display line-clamp-2 break-words text-[2.4rem] leading-[1.15]">{`سلام ${name}`}</h1>
             <p className="mt-0.5 text-[0.95rem] font-medium text-muted">
@@ -170,7 +171,7 @@ export default function PlayerHome() {
                       </div>
                       <div className="mt-4 flex items-center justify-between">
                         {lobby.players?.length ? (
-                          <MaskStack seeds={lobby.players.map((player: any) => player.userId || player.id)} max={7} size="sm" ringClassName="ring-surface" />
+                          <MaskStack seeds={lobby.players.map((player: any) => player.userId || player.id)} images={lobby.players.map((player: any) => player.image)} max={7} size="sm" ringClassName="ring-surface" />
                         ) : (
                           <span className="text-sm font-medium text-faint">هنوز کسی ننشسته</span>
                         )}

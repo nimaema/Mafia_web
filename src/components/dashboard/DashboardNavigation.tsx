@@ -151,7 +151,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
           <Wordmark className="h-9 text-fg" title="" />
         </Link>
         <Link href="/dashboard/user/profile" aria-label={`پروفایل ${name}`}>
-          <MaskAvatar seed={user.id || name} size="sm" />
+          <MaskAvatar seed={user.id || name} image={user.image} size="sm" />
         </Link>
       </header>
 
@@ -191,7 +191,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
         </nav>
 
         <div className="flex items-center gap-3 border-t border-line p-4">
-          <MaskAvatar seed={user.id || name} size="md" />
+          <MaskAvatar seed={user.id || name} image={user.image} size="md" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-extrabold">{name}</p>
             <p className="text-xs font-medium text-muted">{roleLabel(user.role)}</p>
@@ -249,7 +249,7 @@ export function DashboardNavigation({ isAdmin, isModerator, user, logoutAction }
           <div className="motion-reveal absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-[var(--radius-xl)] bg-surface px-4 pb-[max(env(safe-area-inset-bottom),1.25rem)] pt-3">
             <span className="mx-auto mb-4 block h-1 w-10 rounded-full bg-line-strong" aria-hidden />
             <div className="flex items-center gap-3 px-1">
-              <MaskAvatar seed={user.id || name} size="md" />
+              <MaskAvatar seed={user.id || name} image={user.image} size="md" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-extrabold">{name}</p>
                 <p className="text-xs font-medium text-muted">{roleLabel(user.role)}</p>

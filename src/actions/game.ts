@@ -495,7 +495,7 @@ export async function getWaitingGames(timestamp?: number) {
       },
       _count: { select: { players: true } },
       players: {
-        select: { id: true, userId: true },
+        select: { id: true, userId: true, user: { select: { image: true } } },
         orderBy: { createdAt: "asc" },
         take: 12,
       },
@@ -504,8 +504,9 @@ export async function getWaitingGames(timestamp?: number) {
   });
 
   // Never send lobby passwords to the client; only whether one is required.
-  return games.map(({ password, ...game }) => ({
+  return games.map(({ password, players, ...game }) => ({
     ...withGameDisplayName(withScenarioDisplayName(game)),
+    players: players.map(({ user, ...player }) => ({ ...player, image: profileImageUrl(player.userId, user?.image) })),
     hasPassword: Boolean(password),
   }));
 }
@@ -557,14 +558,17 @@ export async function getModeratorGames(timestamp?: number) {
       },
       _count: { select: { players: true } },
       players: {
-        select: { id: true, userId: true, isAlive: true },
+        select: { id: true, userId: true, isAlive: true, user: { select: { image: true } } },
         orderBy: { createdAt: "asc" },
       },
     },
     orderBy: { createdAt: 'desc' }
   });
 
-  return games.map((game) => withGameDisplayName(withScenarioDisplayName(game)));
+  return games.map(({ players, ...game }) => ({
+    ...withGameDisplayName(withScenarioDisplayName(game)),
+    players: players.map(({ user, ...player }) => ({ ...player, image: profileImageUrl(player.userId, user?.image) })),
+  }));
 }
 
 export async function getModeratorGamesSafe(timestamp?: number) {

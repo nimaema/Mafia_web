@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ArrowRight, Check, Copy, LockSimple, ShareNetwork, SignOut } from "@phosphor-icons/react";
@@ -13,7 +13,7 @@ import { Notice } from "@/components/ui/Notice";
 import { FactionTag } from "@/components/ui/Tag";
 import { assignTableHues } from "@/lib/playerColor";
 
-type Player = { id: string; name: string; userId?: string | null };
+type Player = { id: string; name: string; userId?: string | null; image?: string | null };
 
 const toFa = (value: number) => value.toLocaleString("fa-IR");
 const faDigits = (value: string) => value.replace(/[0-9]/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
@@ -35,6 +35,7 @@ export default function PlayerLobbyPage() {
   const [password, setPassword] = useState("");
   const [joinError, setJoinError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const autoJoinTried = useRef(false);
 
   useEffect(() => {
     if (!gameId) return;
@@ -55,7 +56,7 @@ export default function PlayerLobbyPage() {
           router.replace("/dashboard/user");
           return;
         }
-        const nextPlayers: Player[] = (result.players || []).map((player: any) => ({ id: player.id, name: player.name, userId: player.userId }));
+        const nextPlayers: Player[] = (result.players || []).map((player: any) => ({ id: player.id, name: player.name, userId: player.userId, image: player.user?.image ?? player.image ?? null }));
         const inLobby = Boolean(session?.user?.id && nextPlayers.some((player) => player.userId === session.user.id));
         if (result.status === "IN_PROGRESS" && inLobby) {
           redirected = true;
@@ -141,6 +142,7 @@ export default function PlayerLobbyPage() {
         const result = await leaveLobby(gameId);
         setLeaving(false);
         if (result.success) {
+          autoJoinTried.current = true;
           setJoined(false);
           setPlayers((previous) => previous.filter((player) => player.userId !== session?.user?.id));
           showToast("از میز بلند شدید", "success");
@@ -150,6 +152,16 @@ export default function PlayerLobbyPage() {
       },
       "warning",
     );
+
+  // Opening a lobby is the join: sit the player down on arrival unless a password
+  // is needed, the table is full, or they already stood up from it once.
+  useEffect(() => {
+    if (loading || autoJoinTried.current || !game || joined || blocked || !session?.user?.id) return;
+    if (game.status !== "WAITING" || game.hasPassword || isFull) return;
+    autoJoinTried.current = true;
+    handleJoin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per visit
+  }, [loading, game, joined, blocked, isFull, session?.user?.id]);
 
   const shareLobby = async () => {
     const url = `${window.location.origin}/lobby/${gameId}`;
@@ -230,7 +242,7 @@ export default function PlayerLobbyPage() {
                 const isMe = Boolean(session?.user?.id && player.userId === session.user.id);
                 return (
                   <li key={player.id} className="motion-reveal flex items-center gap-3 py-2">
-                    <MaskAvatar seed={player.userId || player.id} hue={hues.get(player.userId || player.id)} size="md" />
+                    <MaskAvatar seed={player.userId || player.id} image={player.image} hue={hues.get(player.userId || player.id)} size="md" />
                     <span className="flex-1 truncate font-bold">{player.name}</span>
                     {isMe ? <span className="nq-tag bg-accent-soft text-accent">شما</span> : !player.userId ? <span className="nq-tag bg-raised text-muted">مهمان</span> : null}
                   </li>
@@ -300,6 +312,7 @@ export default function PlayerLobbyPage() {
                     onChange={(event) => setPassword(event.target.value)}
                     aria-label="رمز لابی"
                     placeholder="رمز لابی"
+                    autoFocus
                     className="min-h-14 flex-1"
                   />
                 ) : null}

@@ -151,7 +151,7 @@ export default function ModeratorLobbies() {
                       </span>
                     </span>
                     <span className="relative z-10 flex items-center justify-between gap-3">
-                      <MaskStack seeds={(game.players || []).map((player: any) => player.userId || player.id)} max={9} size="xs" ringClassName="ring-night" />
+                      <MaskStack seeds={(game.players || []).map((player: any) => player.userId || player.id)} images={(game.players || []).map((player: any) => player.image)} max={9} size="xs" ringClassName="ring-night" />
                       <span className="text-sm font-bold opacity-85">{`${toFa(alive)} نفر در بازی`}</span>
                     </span>
                   </Link>
@@ -189,7 +189,7 @@ export default function ModeratorLobbies() {
                   </div>
                   <div className="mt-4 flex items-center justify-between gap-3">
                     {seated ? (
-                      <MaskStack seeds={(game.players || []).map((player: any) => player.userId || player.id)} max={8} size="xs" ringClassName="ring-surface" />
+                      <MaskStack seeds={(game.players || []).map((player: any) => player.userId || player.id)} images={(game.players || []).map((player: any) => player.image)} max={8} size="xs" ringClassName="ring-surface" />
                     ) : (
                       <span className="text-sm font-medium text-faint">هنوز کسی ننشسته</span>
                     )}

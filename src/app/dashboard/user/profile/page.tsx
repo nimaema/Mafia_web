@@ -49,7 +49,7 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
       <header className="flex items-center gap-4">
-        <MaskAvatar seed={session.user.id} size="xl" />
+        <MaskAvatar seed={session.user.id} image={profileImage} size="xl" />
         <div className="min-w-0">
           <h1 className="nq-display truncate text-[2.4rem] leading-[1.15]">{userData.name || "بازیکن"}</h1>
           <div className="mt-1 flex flex-wrap items-center gap-2">

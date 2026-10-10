@@ -19,7 +19,7 @@ import { assignTableHues } from "@/lib/playerColor";
 import { FACTION } from "@/lib/faction";
 import { PHASE_COPY, PHASE_SURFACE, phaseTitle, type Phase } from "@/lib/phase";
 
-type GamePlayer = { id: string; name: string; userId?: string | null; isAlive?: boolean };
+type GamePlayer = { id: string; name: string; userId?: string | null; image?: string | null; isAlive?: boolean };
 
 const WINNER_LABEL: Record<string, string> = { CITIZEN: "شهروندان", MAFIA: "مافیا", NEUTRAL: "مستقل‌ها" };
 const toFa = (value: number) => value.toLocaleString("fa-IR");
@@ -173,7 +173,7 @@ export default function PlayerGamePage() {
                 const isMe = player.id === me.id;
                 return (
                   <li key={player.id} className="flex flex-col items-center gap-1.5 text-center">
-                    <MaskAvatar seed={player.userId || player.id} hue={hues.get(player.userId || player.id)} size="lg" eliminated={out} className={isMe ? "ring-2 ring-accent ring-offset-2 ring-offset-canvas" : ""} />
+                    <MaskAvatar seed={player.userId || player.id} image={player.image} hue={hues.get(player.userId || player.id)} size="lg" eliminated={out} className={isMe ? "ring-2 ring-accent ring-offset-2 ring-offset-canvas" : ""} />
                     <span className={`w-full truncate text-xs font-bold ${out ? "text-faint line-through" : "text-fg"}`}>{isMe ? "شما" : player.name}</span>
                   </li>
                 );

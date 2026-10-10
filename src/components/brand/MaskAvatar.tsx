@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { MaskMark } from "./MaskMark";
 import { assignTableHues, hueColor, playerColor } from "@/lib/playerColor";
 
@@ -17,13 +20,37 @@ type MaskAvatarProps = {
   size?: keyof typeof SIZES;
   /** Out of the game: desaturated, with the mask dimmed. */
   eliminated?: boolean;
+  /** Profile photo; the colored mask is the fallback when missing or broken. */
+  image?: string | null;
   /** Accessible name; omit when the name is printed right next to the avatar. */
   label?: string;
   className?: string;
 };
 
-export function MaskAvatar({ seed, hue, size = "md", eliminated = false, label, className = "" }: MaskAvatarProps) {
+export function MaskAvatar({ seed, hue, size = "md", eliminated = false, image, label, className = "" }: MaskAvatarProps) {
   const s = SIZES[size];
+  const [failed, setFailed] = useState<string | null>(null);
+  if (image && failed !== image) {
+    return (
+      <span
+        role={label ? "img" : undefined}
+        aria-label={label}
+        aria-hidden={label ? undefined : true}
+        className={`inline-block shrink-0 overflow-hidden bg-raised ${s.box} ${className}`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- avatars come from arbitrary hosts and our own data-URL route */}
+        <img
+          src={image}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onError={() => setFailed(image)}
+          className={`size-full object-cover ${eliminated ? "opacity-45 grayscale" : ""}`}
+        />
+      </span>
+    );
+  }
   return (
     <span
       role={label ? "img" : undefined}
@@ -39,6 +66,8 @@ export function MaskAvatar({ seed, hue, size = "md", eliminated = false, label, 
 
 type MaskStackProps = {
   seeds: string[];
+  /** Photos, index-aligned with seeds. */
+  images?: (string | null | undefined)[];
   hues?: Map<string, number>;
   max?: number;
   size?: "xs" | "sm" | "md";
@@ -47,7 +76,7 @@ type MaskStackProps = {
   className?: string;
 };
 
-export function MaskStack({ seeds, hues, max = 6, size = "sm", ringClassName = "ring-surface", className = "" }: MaskStackProps) {
+export function MaskStack({ seeds, images, hues, max = 6, size = "sm", ringClassName = "ring-surface", className = "" }: MaskStackProps) {
   const tableHues = hues || assignTableHues(seeds);
   const shown = seeds.slice(0, max);
   const rest = seeds.length - shown.length;
@@ -55,7 +84,7 @@ export function MaskStack({ seeds, hues, max = 6, size = "sm", ringClassName = "
     <span className={`inline-flex items-center ${className}`}>
       <span className="flex -space-x-2 space-x-reverse">
         {shown.map((seed, index) => (
-          <MaskAvatar key={`${seed}-${index}`} seed={seed} hue={tableHues.get(seed)} size={size} className={`ring-[3px] ${ringClassName}`} />
+          <MaskAvatar key={`${seed}-${index}`} seed={seed} image={images?.[index]} hue={tableHues.get(seed)} size={size} className={`ring-[3px] ${ringClassName}`} />
         ))}
       </span>
       {rest > 0 ? <span className="ms-3 text-xs font-bold text-muted">{`+${rest.toLocaleString("fa-IR")}`}</span> : null}

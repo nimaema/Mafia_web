@@ -876,7 +876,7 @@ export default function ModeratorGamePage() {
           className="flex min-h-14 w-full items-center gap-3 rounded-[var(--radius-sm)] border border-line bg-sunken px-3 text-right transition-colors hover:border-accent/50 disabled:opacity-50"
         >
           {selectedPlayer ? (
-            <MaskAvatar seed={selectedPlayer.userId || selectedPlayer.id} hue={hues.get(selectedPlayer.userId || selectedPlayer.id)} size="sm" eliminated={selectedPlayer.isAlive === false} />
+            <MaskAvatar seed={selectedPlayer.userId || selectedPlayer.id} image={selectedPlayer.image ?? selectedPlayer.user?.image} hue={hues.get(selectedPlayer.userId || selectedPlayer.id)} size="sm" eliminated={selectedPlayer.isAlive === false} />
           ) : (
             <span className="grid size-9 place-items-center rounded-[0.7rem] border-2 border-dashed border-line-strong text-muted">
               <UserPlus size={16} weight="bold" aria-hidden />
@@ -1169,7 +1169,7 @@ export default function ModeratorGamePage() {
       disabled={busy || player.isAlive === false}
       className="flex min-h-12 items-center gap-2.5 rounded-[var(--radius-sm)] bg-raised px-2.5 text-right transition-colors hover:bg-line disabled:opacity-45"
     >
-      <MaskAvatar seed={player.userId || player.id} hue={hues.get(player.userId || player.id)} size="xs" eliminated={player.isAlive === false} />
+      <MaskAvatar seed={player.userId || player.id} image={player.image ?? player.user?.image} hue={hues.get(player.userId || player.id)} size="xs" eliminated={player.isAlive === false} />
       <span className="min-w-0 flex-1 truncate text-sm font-bold">{player.name}</span>
       <CaretLeft size={14} weight="bold" className="text-muted" aria-hidden />
     </button>
@@ -1279,7 +1279,7 @@ export default function ModeratorGamePage() {
                 const out = player.isAlive === false;
                 return (
                   <li key={player.id} className="flex items-center gap-3 py-2.5">
-                    <MaskAvatar seed={player.userId || player.id} hue={hues.get(player.userId || player.id)} size="md" eliminated={out} />
+                    <MaskAvatar seed={player.userId || player.id} image={player.image ?? player.user?.image} hue={hues.get(player.userId || player.id)} size="md" eliminated={out} />
                     <span className="min-w-0 flex-1">
                       <span className={`flex items-center gap-1.5 truncate font-bold ${out ? "text-muted line-through" : ""}`}>
                         {player.name}
@@ -1611,7 +1611,7 @@ export default function ModeratorGamePage() {
                   <div className="flex flex-wrap gap-2">
                     {selectedDefensePlayers.map((player) => (
                       <button key={`defense-${player.id}`} type="button" onClick={() => setDayDefensePlayerIds((current) => current.filter((id) => id !== player.id))} className="flex items-center gap-2 rounded-full bg-raised py-1 pe-3 ps-1 text-sm font-bold" aria-label={`برداشتن ${player.name}`}>
-                        <MaskAvatar seed={player.userId || player.id} hue={hues.get(player.userId || player.id)} size="xs" />
+                        <MaskAvatar seed={player.userId || player.id} image={player.image ?? player.user?.image} hue={hues.get(player.userId || player.id)} size="xs" />
                         {player.name}
                       </button>
                     ))}
@@ -1643,7 +1643,7 @@ export default function ModeratorGamePage() {
       <Sheet open={Boolean(shotResolution)} onClose={() => setShotResolution(null)} title="نتیجه شلیک مافیا">
         {shotResolution ? (
           <div className="flex flex-col items-center gap-4 text-center">
-            <MaskAvatar seed={shotResolution.player.userId || shotResolution.player.id} hue={hues.get(shotResolution.player.userId || shotResolution.player.id)} size="xl" />
+            <MaskAvatar seed={shotResolution.player.userId || shotResolution.player.id} image={shotResolution.player.image ?? shotResolution.player.user?.image} hue={hues.get(shotResolution.player.userId || shotResolution.player.id)} size="xl" />
             <p className="font-medium leading-7 text-muted">
               <b className="font-extrabold text-fg">{shotResolution.player.name}</b>
               {` هدف شلیک مافیا در ${logbookNightLabel(nightNumber)} بود. بعد از نجات دکتر و اثر نقش‌ها، از بازی بیرون رفت؟`}
@@ -1685,7 +1685,7 @@ export default function ModeratorGamePage() {
                   aria-pressed={playerPicker?.multi ? selected : undefined}
                   className={`flex min-h-14 w-full items-center gap-3 rounded-[var(--radius-sm)] px-3 text-right ${selected ? "bg-accent-soft ring-1 ring-accent/50" : "bg-raised hover:bg-line"}`}
                 >
-                  <MaskAvatar seed={player.userId || player.id} hue={hues.get(player.userId || player.id)} size="sm" eliminated={out} />
+                  <MaskAvatar seed={player.userId || player.id} image={player.image ?? player.user?.image} hue={hues.get(player.userId || player.id)} size="sm" eliminated={out} />
                   <span className="min-w-0 flex-1">
                     <span className={`block truncate font-bold ${out ? "text-muted line-through" : ""}`}>{player.name}</span>
                     <span className="block truncate text-xs font-medium text-muted">{player.role?.name || "بدون نقش"}</span>

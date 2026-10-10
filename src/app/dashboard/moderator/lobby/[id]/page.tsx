@@ -637,7 +637,7 @@ export default function GameLobbyPage() {
                 const busy = busyPlayerId === player.id;
                 return (
                   <li key={player.id} className="motion-reveal flex items-center gap-3 py-2.5">
-                    <MaskAvatar seed={seed} hue={hues.get(seed)} size="md" />
+                    <MaskAvatar seed={seed} image={player.image} hue={hues.get(seed)} size="md" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-bold">{player.name}</span>
                       {!player.userId ? (
