@@ -86,7 +86,7 @@ export function InstallPWANotice() {
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="motion-reveal fixed right-0 top-[38dvh] z-[260] flex flex-col items-center gap-2 rounded-s-[var(--radius-md)] bg-night py-3 pe-1.5 ps-2 text-moon shadow-[var(--nq-shadow)] md:hidden"
+          className="motion-reveal fixed right-0 top-[38dvh] z-[45] flex flex-col items-center gap-2 rounded-s-[var(--radius-md)] bg-night py-3 pe-1.5 ps-2 text-moon shadow-[var(--nq-shadow)] md:hidden"
           aria-label="باز کردن راهنمای نصب نقاب"
         >
           <span className="grid size-8 place-items-center rounded-[0.6rem] bg-accent text-on-accent">
