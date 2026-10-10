@@ -14,6 +14,7 @@ import {
 } from "@/actions/admin";
 import { usePopup } from "@/components/PopupProvider";
 import { ScenarioRoleComposition } from "@/components/ScenarioRoleComposition";
+import { MIcon } from "@/components/ui/MIcon";
 
 type RoleRecord = {
   id: string;
@@ -374,7 +375,7 @@ export function ScenariosManager({
           </div>
           <div className="flex flex-wrap gap-2">
             <button onClick={() => openForm()} className="pm-button-primary min-h-11 px-5">
-              <span className="material-symbols-outlined text-xl">add_circle</span>
+              <MIcon name="add_circle" className="text-xl" />
               سناریو جدید
             </button>
           </div>
@@ -386,7 +387,7 @@ export function ScenariosManager({
         <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]">
-              <span className="material-symbols-outlined text-xl">cloud_done</span>
+              <MIcon name="cloud_done" className="text-xl" />
             </div>
             <div>
               <p className="text-sm font-extrabold text-[var(--pm-text)]">پشتیبان کتابخانه سناریو</p>
@@ -397,19 +398,19 @@ export function ScenariosManager({
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
             <button onClick={handleBackup} disabled={backupBusy} className="pm-button-secondary min-h-10 px-3 text-xs">
-              <span className="material-symbols-outlined text-base">backup</span>
+              <MIcon name="backup" className="text-base" />
               ذخیره بکاپ
             </button>
             <button onClick={handleRestore} disabled={backupBusy} className="pm-button-secondary min-h-10 px-3 text-xs">
-              <span className="material-symbols-outlined text-base">settings_backup_restore</span>
+              <MIcon name="settings_backup_restore" className="text-base" />
               بازیابی
             </button>
             <button onClick={handleDownload} disabled={backupBusy} className="pm-button-secondary min-h-10 px-3 text-xs">
-              <span className="material-symbols-outlined text-base">download</span>
+              <MIcon name="download" className="text-base" />
               JSON
             </button>
             <label className={`pm-button-secondary min-h-10 cursor-pointer px-3 text-xs ${backupBusy ? "pointer-events-none opacity-60" : ""}`}>
-              <span className="material-symbols-outlined text-base">upload_file</span>
+              <MIcon name="upload_file" className="text-base" />
               آپلود
               <input type="file" accept="application/json,.json" className="hidden" onChange={handleJsonUpload} disabled={backupBusy} />
             </label>
@@ -430,9 +431,7 @@ export function ScenariosManager({
               {stats.scenarios} سناریو، {stats.roles} نقش قابل استفاده
             </p>
           </div>
-          <span className="material-symbols-outlined text-[var(--pm-muted)]">
-            {showStats ? "keyboard_arrow_up" : "keyboard_arrow_down"}
-          </span>
+          <MIcon name={showStats ? "keyboard_arrow_up" : "keyboard_arrow_down"} className="text-[var(--pm-muted)]" />
         </button>
 
         {showStats && (
@@ -444,7 +443,7 @@ export function ScenariosManager({
               ["نقش‌های مافیا", stats.mafiaRoles, "local_police", "text-red-500"],
             ].map(([label, value, icon, color]) => (
               <div key={label} className="pm-muted-card p-4">
-                <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+                <MIcon name={icon} className={`text-lg ${color}`} />
                 <p className="mt-3 text-2xl font-extrabold text-[var(--pm-text)]">{value}</p>
                 <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{label}</p>
               </div>
@@ -455,7 +454,7 @@ export function ScenariosManager({
 
       <section className="pm-card p-3">
         <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-raised px-3 ">
-          <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
+          <MIcon name="search" className="text-[var(--pm-muted)]" />
           <input
             value={scenarioSearch}
             onChange={(event) => setScenarioSearch(event.target.value)}
@@ -468,7 +467,7 @@ export function ScenariosManager({
       {filteredScenarios.length === 0 ? (
         <section className="pm-card flex min-h-[380px] flex-col items-center justify-center gap-4 p-8 text-center">
           <div className="pm-icon size-16">
-            <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">account_tree</span>
+            <MIcon name="account_tree" className="text-3xl text-[var(--pm-muted)]" />
           </div>
           <div>
             <p className="font-extrabold text-[var(--pm-text)]">سناریویی برای نمایش وجود ندارد</p>
@@ -505,7 +504,7 @@ export function ScenariosManager({
                 <div className="flex items-start justify-between gap-3 pt-1">
                   <div className="flex min-w-0 items-start gap-3">
                     <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(dominantAlignment)}`}>
-                      <span className="material-symbols-outlined text-xl">account_tree</span>
+                      <MIcon name="account_tree" className="text-xl" />
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-[var(--pm-muted)]">سناریوی {alignmentLabel(dominantAlignment)}</p>
@@ -525,7 +524,7 @@ export function ScenariosManager({
                       className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-raised text-[var(--pm-muted)] transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:text-[var(--pm-muted)] dark:hover:text-sky-300"
                       title="ویرایش سناریو"
                     >
-                      <span className="material-symbols-outlined text-base">edit_square</span>
+                      <MIcon name="edit_square" className="text-base" />
                     </button>
                     <button
                       onClick={(event) => {
@@ -535,7 +534,7 @@ export function ScenariosManager({
                       className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-raised text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-[var(--pm-primary-strong)] dark:text-[var(--pm-muted)] dark:hover:text-[var(--pm-primary)]"
                       title="کپی سناریو"
                     >
-                      <span className="material-symbols-outlined text-base">content_copy</span>
+                      <MIcon name="content_copy" className="text-base" />
                     </button>
                     <button
                       onClick={(event) => {
@@ -545,7 +544,7 @@ export function ScenariosManager({
                       className="flex size-8 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
                       title="حذف سناریو"
                     >
-                      <span className="material-symbols-outlined text-base">delete</span>
+                      <MIcon name="delete" className="text-base" />
                     </button>
                   </div>
                 </div>
@@ -586,7 +585,7 @@ export function ScenariosManager({
                   </div>
                   <div className="mr-auto flex items-center gap-1 text-xs font-extrabold text-[var(--pm-muted)] transition-colors group-hover:text-[var(--pm-primary)] dark:group-hover:text-[var(--pm-primary)]">
                     جزئیات
-                    <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>
+                    <MIcon name="arrow_back" className="text-sm transition-transform group-hover:-translate-x-1" />
                   </div>
                 </div>
               </article>
@@ -608,7 +607,7 @@ export function ScenariosManager({
                 </p>
               </div>
               <button onClick={closeForm} className="pm-button-secondary size-10 p-0">
-                <span className="material-symbols-outlined text-xl">close</span>
+                <MIcon name="close" className="text-xl" />
               </button>
             </div>
 
@@ -648,7 +647,7 @@ export function ScenariosManager({
                 </div>
 
                 <label className="mb-3 flex min-h-11 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-surface px-3 ">
-                  <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
+                  <MIcon name="search" className="text-[var(--pm-muted)]" />
                   <input
                     value={roleSearch}
                     onChange={(event) => setRoleSearch(event.target.value)}
@@ -660,7 +659,7 @@ export function ScenariosManager({
                 <div className="custom-scrollbar max-h-[390px] overflow-y-auto">
                   {filteredRoles.length === 0 ? (
                     <div className="flex min-h-40 flex-col items-center justify-center gap-3 text-center text-sm text-[var(--pm-muted)]">
-                      <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">manage_search</span>
+                      <MIcon name="manage_search" className="text-3xl text-[var(--pm-muted)]" />
                       نقشی با این جستجو پیدا نشد.
                     </div>
                   ) : (
@@ -684,7 +683,7 @@ export function ScenariosManager({
                                   disabled={currentCount === 0}
                                   className="flex size-7 items-center justify-center rounded-md hover:bg-raised disabled:opacity-30 "
                                 >
-                                  <span className="material-symbols-outlined text-base">remove</span>
+                                  <MIcon name="remove" className="text-base" />
                                 </button>
                                 <span className="w-5 text-center text-sm font-extrabold text-[var(--pm-text)]">{currentCount}</span>
                                 <button
@@ -692,7 +691,7 @@ export function ScenariosManager({
                                   onClick={() => updateRoleCount(role.id, 1)}
                                   className="flex size-7 items-center justify-center rounded-md hover:bg-raised "
                                 >
-                                  <span className="material-symbols-outlined text-base">add</span>
+                                  <MIcon name="add" className="text-base" />
                                 </button>
                               </div>
                             </div>
@@ -715,7 +714,7 @@ export function ScenariosManager({
                 disabled={loading || formData.roles.length === 0}
                 className="pm-button-primary min-h-11 px-5 disabled:opacity-50"
               >
-                <span className="material-symbols-outlined text-xl">{loading ? "progress_activity" : "save"}</span>
+                <MIcon name={loading ? "progress_activity" : "save"} className="text-xl" />
                 {loading ? "در حال ذخیره..." : "ذخیره سناریو"}
               </button>
             </div>
@@ -740,7 +739,7 @@ export function ScenariosManager({
                 </p>
               </div>
               <button onClick={() => setSelectedScenario(null)} className="pm-button-secondary size-10 p-0">
-                <span className="material-symbols-outlined text-xl">close</span>
+                <MIcon name="close" className="text-xl" />
               </button>
             </div>
 
@@ -753,7 +752,7 @@ export function ScenariosManager({
                   ["مستقل", scenarioAlignmentCounts(selectedScenario).NEUTRAL, "casino", "text-amber-500"],
                 ].map(([label, value, icon, color]) => (
                   <div key={label} className="pm-muted-card p-3">
-                    <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+                    <MIcon name={icon} className={`text-lg ${color}`} />
                     <p className="mt-2 text-lg font-extrabold text-[var(--pm-text)]">{value}</p>
                     <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{label}</p>
                   </div>
@@ -773,18 +772,18 @@ export function ScenariosManager({
                 }}
                 className="pm-button-secondary min-h-10 flex-1 px-4"
               >
-                <span className="material-symbols-outlined text-lg">edit_square</span>
+                <MIcon name="edit_square" className="text-lg" />
                 ویرایش سناریو
               </button>
               <button
                 onClick={() => openDuplicateForm(selectedScenario)}
                 className="pm-button-secondary min-h-10 flex-1 px-4"
               >
-                <span className="material-symbols-outlined text-lg">content_copy</span>
+                <MIcon name="content_copy" className="text-lg" />
                 کپی برای نسخه جدید
               </button>
               <button onClick={() => handleDelete(selectedScenario.id)} className="pm-button-danger min-h-10 flex-1 px-4">
-                <span className="material-symbols-outlined text-lg">delete</span>
+                <MIcon name="delete" className="text-lg" />
                 حذف سناریو
               </button>
             </div>

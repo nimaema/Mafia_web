@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { getAdminSuggestionRequests, reviewSuggestionRequest } from "@/actions/suggestions";
 import { usePopup } from "@/components/PopupProvider";
+import { MIcon } from "@/components/ui/MIcon";
 
 type SuggestionType = "NEW_ROLE" | "NEW_SCENARIO" | "CHANGE_ROLE" | "CHANGE_SCENARIO";
 type SuggestionStatus = "PENDING" | "APPROVED" | "REJECTED";
@@ -212,19 +213,19 @@ export function AdminSuggestionRequestsPanel() {
             ))}
           </div>
           <button onClick={() => loadRequests(filter)} disabled={loading || isPending} className="pm-button-secondary min-h-10 px-3 text-xs">
-            <span className={`material-symbols-outlined text-base ${loading ? "animate-spin" : ""}`}>refresh</span>
+            <MIcon name="refresh" className={`text-base ${loading ? "animate-spin" : ""}`} />
             بروزرسانی
           </button>
         </div>
 
         {loading ? (
           <div className="flex min-h-96 items-center justify-center p-8">
-            <span className="material-symbols-outlined animate-spin text-4xl text-[var(--pm-primary)]">progress_activity</span>
+            <MIcon name="progress_activity" className="animate-spin text-4xl text-[var(--pm-primary)]" />
           </div>
         ) : requests.length === 0 ? (
           <div className="flex min-h-96 flex-col items-center justify-center gap-3 p-8 text-center">
             <div className="pm-icon size-16">
-              <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">rate_review</span>
+              <MIcon name="rate_review" className="text-3xl text-[var(--pm-muted)]" />
             </div>
             <p className="font-extrabold text-[var(--pm-text)]">درخواستی برای این فیلتر وجود ندارد</p>
             <p className="max-w-sm text-sm font-bold leading-6 text-[var(--pm-muted)]">وقتی کاربران پیشنهادی ثبت کنند، کارت بررسی آن اینجا نمایش داده می‌شود.</p>
@@ -243,13 +244,13 @@ export function AdminSuggestionRequestsPanel() {
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="flex min-w-0 items-start gap-3">
                         <div className={`grid size-12 shrink-0 place-items-center rounded-2xl bg-accent ${typeMeta.tone} text-white  `}>
-                          <span className="material-symbols-outlined text-2xl">{typeMeta.icon}</span>
+                          <MIcon name={typeMeta.icon} className="text-2xl" />
                         </div>
                         <div className="min-w-0">
                           <div className="flex flex-wrap gap-2">
                             <span className="rounded-lg border border-[var(--pm-line)] bg-raised px-2.5 py-1 text-xs font-extrabold text-[var(--pm-muted)] dark:text-zinc-300">{typeMeta.label}</span>
                             <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-extrabold ${status.className}`}>
-                              <span className="material-symbols-outlined text-sm">{status.icon}</span>
+                              <MIcon name={status.icon} className="text-sm" />
                               {status.label}
                             </span>
                           </div>
@@ -320,11 +321,11 @@ export function AdminSuggestionRequestsPanel() {
                         </label>
                         <div className="grid gap-2 sm:grid-cols-2">
                           <button onClick={() => review(request, "APPROVED")} disabled={isBusy} className="pm-button-primary min-h-11">
-                            <span className={`material-symbols-outlined text-xl ${isBusy ? "animate-spin" : ""}`}>{isBusy ? "progress_activity" : "task_alt"}</span>
+                            <MIcon name={isBusy ? "progress_activity" : "task_alt"} className={`text-xl ${isBusy ? "animate-spin" : ""}`} />
                             تایید و اعمال
                           </button>
                           <button onClick={() => review(request, "REJECTED")} disabled={isBusy} className="pm-button-secondary min-h-11 border-red-500/20 text-red-600 hover:bg-red-500/10 dark:text-red-300">
-                            <span className="material-symbols-outlined text-xl">block</span>
+                            <MIcon name="block" className="text-xl" />
                             رد درخواست
                           </button>
                         </div>

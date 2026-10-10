@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowRight, Check, Copy, LockSimple, ShareNetwork } from "@phosphor-icons/react";
-import { getGameStatus, joinGame } from "@/actions/game";
+import { ArrowRight, Check, Copy, LockSimple, ShareNetwork, SignOut } from "@phosphor-icons/react";
+import { getGameStatus, joinGame, leaveLobby } from "@/actions/game";
 import { getPusherClient } from "@/lib/pusher-client";
 import { usePopup } from "@/components/PopupProvider";
 import { MaskAvatar } from "@/components/brand/MaskAvatar";
@@ -22,13 +22,14 @@ export default function PlayerLobbyPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
-  const { showAlert, showToast } = usePopup();
+  const { showAlert, showConfirm, showToast } = usePopup();
   const gameId = params.id as string;
 
   const [game, setGame] = useState<any>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [joined, setJoined] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [password, setPassword] = useState("");
@@ -80,6 +81,7 @@ export default function PlayerLobbyPage() {
     channel.bind("player-joined", (data: { player: Player }) =>
       setPlayers((previous) => (previous.some((player) => player.id === data.player.id) ? previous : [...previous, data.player])),
     );
+    channel.bind("player-left", (data: { playerId: string }) => setPlayers((previous) => previous.filter((player) => player.id !== data.playerId)));
     channel.bind("game-started", sync);
     channel.bind("scenario-updated", sync);
     channel.bind("player-removed", (data: { playerId: string; userId?: string | null; blocked?: boolean }) => {
@@ -129,6 +131,25 @@ export default function PlayerLobbyPage() {
       setJoinError(result.error || "پیوستن به لابی انجام نشد.");
     }
   };
+
+  const handleLeave = () =>
+    showConfirm(
+      "از میز بلند می‌شوید؟",
+      "صندلی‌تان آزاد می‌شود. تا قبل از شروع بازی می‌توانید دوباره بنشینید.",
+      async () => {
+        setLeaving(true);
+        const result = await leaveLobby(gameId);
+        setLeaving(false);
+        if (result.success) {
+          setJoined(false);
+          setPlayers((previous) => previous.filter((player) => player.userId !== session?.user?.id));
+          showToast("از میز بلند شدید", "success");
+        } else {
+          showToast(result.error || "ترک لابی انجام نشد", "error");
+        }
+      },
+      "warning",
+    );
 
   const shareLobby = async () => {
     const url = `${window.location.origin}/lobby/${gameId}`;
@@ -211,7 +232,7 @@ export default function PlayerLobbyPage() {
                   <li key={player.id} className="motion-reveal flex items-center gap-3 py-2">
                     <MaskAvatar seed={player.userId || player.id} hue={hues.get(player.userId || player.id)} size="md" />
                     <span className="flex-1 truncate font-bold">{player.name}</span>
-                    {isMe ? <span className="nq-tag bg-accent-soft text-accent">شما</span> : null}
+                    {isMe ? <span className="nq-tag bg-accent-soft text-accent">شما</span> : !player.userId ? <span className="nq-tag bg-raised text-muted">مهمان</span> : null}
                   </li>
                 );
               })}
@@ -253,9 +274,15 @@ export default function PlayerLobbyPage() {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-canvas/95 px-5 pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 backdrop-blur-xl">
         <div className="mx-auto max-w-xl">
           {joined ? (
-            <div className="flex items-center gap-3 rounded-[var(--radius-md)] bg-accent-soft px-4 py-3.5 text-accent" role="status">
-              <span className="size-2.5 shrink-0 animate-[live-dot_1.6s_ease-in-out_infinite] rounded-full bg-accent" aria-hidden />
-              <p className="text-sm font-extrabold leading-6">شما سر میز هستید. با شروع بازی، نقشتان همین‌جا باز می‌شود.</p>
+            <div className="flex items-stretch gap-2">
+              <div className="flex flex-1 items-center gap-3 rounded-[var(--radius-md)] bg-accent-soft px-4 py-3.5 text-accent" role="status">
+                <span className="size-2.5 shrink-0 animate-[live-dot_1.6s_ease-in-out_infinite] rounded-full bg-accent" aria-hidden />
+                <p className="text-sm font-extrabold leading-6">شما سر میز هستید. با شروع بازی، نقشتان همین‌جا باز می‌شود.</p>
+              </div>
+              <button type="button" onClick={handleLeave} disabled={leaving} className="nq-btn nq-btn-secondary shrink-0 flex-col gap-0.5 px-3 text-xs" aria-label="ترک میز">
+                <SignOut size={20} weight="bold" className="-scale-x-100" aria-hidden />
+                ترک میز
+              </button>
             </div>
           ) : blocked ? (
             <Notice tone="danger">گرداننده ورود شما را به این لابی بسته است.</Notice>

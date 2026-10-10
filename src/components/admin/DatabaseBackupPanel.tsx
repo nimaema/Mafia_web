@@ -10,6 +10,7 @@ import {
 } from "@/actions/dbBackups";
 import { getRoleScenarioBackupOverview } from "@/actions/admin";
 import { usePopup } from "@/components/PopupProvider";
+import { MIcon } from "@/components/ui/MIcon";
 
 type DatabaseBackupRecord = {
   fileName: string;
@@ -253,7 +254,7 @@ export function DatabaseBackupPanel() {
       <div className="flex items-start justify-between gap-3 border-b border-[var(--pm-line)] bg-raised p-4 ">
         <div className="flex items-start gap-3">
           <div className="pm-icon">
-            <span className="material-symbols-outlined text-lg text-sky-600 dark:text-sky-300">{icon}</span>
+            <MIcon name={icon} className="text-lg text-sky-600 dark:text-sky-300" />
           </div>
           <div>
             <p className="text-sm font-extrabold text-[var(--pm-text)]">{title}</p>
@@ -262,7 +263,7 @@ export function DatabaseBackupPanel() {
             </p>
           </div>
         </div>
-        {roleScenarioBackupsLoading && <span className="material-symbols-outlined animate-spin text-[var(--pm-muted)]">progress_activity</span>}
+        {roleScenarioBackupsLoading && <MIcon name="progress_activity" className="animate-spin text-[var(--pm-muted)]" />}
       </div>
 
       {backup ? (
@@ -313,7 +314,7 @@ export function DatabaseBackupPanel() {
               disabled={databaseBackupsLoading || roleScenarioBackupsLoading || Boolean(databaseBackupBusy)}
               className="pm-button-secondary min-h-10 px-3 text-xs"
             >
-              <span className="material-symbols-outlined text-base">refresh</span>
+              <MIcon name="refresh" className="text-base" />
               بروزرسانی
             </button>
             <button
@@ -322,9 +323,7 @@ export function DatabaseBackupPanel() {
               disabled={Boolean(databaseBackupBusy)}
               className="pm-button-primary min-h-10 px-3 text-xs"
             >
-              <span className={`material-symbols-outlined text-base ${databaseBackupBusy === "create" ? "animate-spin" : ""}`}>
-                {databaseBackupBusy === "create" ? "progress_activity" : "backup"}
-              </span>
+              <MIcon name={databaseBackupBusy === "create" ? "progress_activity" : "backup"} className={`text-base ${databaseBackupBusy === "create" ? "animate-spin" : ""}`} />
               بکاپ فوری
             </button>
           </div>
@@ -336,7 +335,7 @@ export function DatabaseBackupPanel() {
           <div className="relative p-5 sm:p-6">
             <div className="flex items-start gap-4">
               <div className="pm-icon-primary size-12">
-                <span className="material-symbols-outlined text-2xl">restore_page</span>
+                <MIcon name="restore_page" className="text-2xl" />
               </div>
               <div>
                 <h2 className="mt-1 text-2xl font-extrabold text-[var(--pm-text)]">بازگشت بدون از دست دادن ساختار جدید</h2>
@@ -356,7 +355,7 @@ export function DatabaseBackupPanel() {
                 </p>
               </div>
               <div className="flex size-12 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-zinc-950">
-                <span className="material-symbols-outlined text-2xl">shield</span>
+                <MIcon name="shield" className="text-2xl" />
               </div>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-2">
@@ -382,7 +381,7 @@ export function DatabaseBackupPanel() {
         ].map(([label, value, icon, color]) => (
           <div key={label} className="rounded-lg border border-[var(--pm-line)] bg-surface p-4 ">
             <div className="flex items-center justify-between gap-3">
-              <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+              <MIcon name={icon} className={`text-lg ${color}`} />
               <span className="h-1.5 w-8 rounded-full bg-zinc-200 " />
             </div>
             <p className="mt-3 text-base font-extrabold text-[var(--pm-text)]">{value}</p>
@@ -418,14 +417,14 @@ export function DatabaseBackupPanel() {
               </p>
             </div>
             {databaseBackupsLoading && (
-              <span className="material-symbols-outlined animate-spin text-[var(--pm-muted)]">progress_activity</span>
+              <MIcon name="progress_activity" className="animate-spin text-[var(--pm-muted)]" />
             )}
           </div>
 
           {databaseBackupsLoading && databaseBackups.length === 0 ? (
             <div className="flex min-h-72 flex-col items-center justify-center p-8 text-center">
               <div className="grid size-14 place-items-center rounded-2xl bg-[var(--pm-primary)] text-zinc-950 ">
-                <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
+                <MIcon name="progress_activity" className="animate-spin text-3xl leading-none" />
               </div>
               <p className="mt-4 text-base font-extrabold text-[var(--pm-text)]">در حال خواندن آرشیو بکاپ‌ها</p>
               <p className="mt-2 max-w-md text-xs font-bold leading-6 text-[var(--pm-muted)]">
@@ -435,7 +434,7 @@ export function DatabaseBackupPanel() {
           ) : databaseBackups.length === 0 ? (
             <div className="flex min-h-72 flex-col items-center justify-center gap-4 p-8 text-center">
               <div className="pm-icon size-16">
-                <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">database_off</span>
+                <MIcon name="database_off" className="text-3xl text-[var(--pm-muted)]" />
               </div>
               <div>
                 <p className="font-extrabold text-[var(--pm-text)]">هنوز بکاپی ساخته نشده است</p>
@@ -448,7 +447,7 @@ export function DatabaseBackupPanel() {
                 <article key={backup.fileName} className="grid gap-3 p-4 transition-colors hover:bg-raised lg:grid-cols-[minmax(0,1fr)_150px_270px] lg:items-center">
                   <div className="flex min-w-0 items-start gap-3">
                     <div className="pm-icon mt-0.5">
-                      <span className="material-symbols-outlined text-lg">folder_data</span>
+                      <MIcon name="folder_data" className="text-lg" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
@@ -482,9 +481,7 @@ export function DatabaseBackupPanel() {
                       disabled={Boolean(databaseBackupBusy)}
                       className="pm-button-primary min-h-10 px-3 text-xs"
                     >
-                      <span className={`material-symbols-outlined text-base ${databaseBackupBusy === `data:${backup.fileName}` ? "animate-spin" : ""}`}>
-                        {databaseBackupBusy === `data:${backup.fileName}` ? "progress_activity" : "database_upload"}
-                      </span>
+                      <MIcon name={databaseBackupBusy === `data:${backup.fileName}` ? "progress_activity" : "database_upload"} className={databaseBackupBusy === `data:${backup.fileName}` ? "text-base animate-spin" : "text-base"} />
                       بازیابی داده
                     </button>
                     <button
@@ -493,9 +490,7 @@ export function DatabaseBackupPanel() {
                       disabled={Boolean(databaseBackupBusy)}
                       className="pm-button-secondary min-h-10 px-3 text-xs text-amber-700 dark:text-amber-300"
                     >
-                      <span className={`material-symbols-outlined text-base ${databaseBackupBusy === `full:${backup.fileName}` ? "animate-spin" : ""}`}>
-                        {databaseBackupBusy === `full:${backup.fileName}` ? "progress_activity" : "settings_backup_restore"}
-                      </span>
+                      <MIcon name={databaseBackupBusy === `full:${backup.fileName}` ? "progress_activity" : "settings_backup_restore"} className={databaseBackupBusy === `full:${backup.fileName}` ? "text-base animate-spin" : "text-base"} />
                       بازگشت کامل
                     </button>
                     <button
@@ -504,9 +499,7 @@ export function DatabaseBackupPanel() {
                       disabled={Boolean(databaseBackupBusy)}
                       className="pm-button-danger min-h-10 px-3 text-xs"
                     >
-                      <span className={`material-symbols-outlined text-base ${databaseBackupBusy === `delete:${backup.fileName}` ? "animate-spin" : ""}`}>
-                        {databaseBackupBusy === `delete:${backup.fileName}` ? "progress_activity" : "delete"}
-                      </span>
+                      <MIcon name={databaseBackupBusy === `delete:${backup.fileName}` ? "progress_activity" : "delete"} className={databaseBackupBusy === `delete:${backup.fileName}` ? "text-base animate-spin" : "text-base"} />
                       حذف فایل
                     </button>
                   </div>
@@ -519,7 +512,7 @@ export function DatabaseBackupPanel() {
         <aside className="h-fit rounded-lg border border-[var(--pm-line)] bg-surface p-4 xl:sticky xl:top-5">
           <div className="flex items-center gap-3">
             <div className="pm-icon">
-              <span className="material-symbols-outlined text-lg text-[var(--pm-primary)]">rule_settings</span>
+              <MIcon name="rule_settings" className="text-lg text-[var(--pm-primary)]" />
             </div>
             <div>
               <p className="text-sm font-extrabold text-[var(--pm-text)]">نوع بازیابی را درست انتخاب کنید</p>
@@ -530,7 +523,7 @@ export function DatabaseBackupPanel() {
           <div className="mt-4 space-y-3">
             <div className="rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-base text-[var(--pm-primary)] dark:text-[var(--pm-primary)]">database_upload</span>
+                <MIcon name="database_upload" className="text-base text-[var(--pm-primary)] dark:text-[var(--pm-primary)]" />
                 <p className="text-xs font-extrabold text-[var(--pm-text)]">بازیابی داده</p>
               </div>
               <p className="mt-2 text-xs leading-6 text-[var(--pm-muted)]">
@@ -539,7 +532,7 @@ export function DatabaseBackupPanel() {
             </div>
             <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-base text-amber-600 dark:text-amber-300">settings_backup_restore</span>
+                <MIcon name="settings_backup_restore" className="text-base text-amber-600 dark:text-amber-300" />
                 <p className="text-xs font-extrabold text-[var(--pm-text)]">بازگشت کامل</p>
               </div>
               <p className="mt-2 text-xs leading-6 text-[var(--pm-muted)]">

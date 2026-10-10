@@ -1,48 +1,25 @@
 import Link from "next/link";
+import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
+import { MaskMark } from "@/components/brand/MaskMark";
 
 export default function NotFound() {
   return (
-    <main className="app-page pm-force-dark flex min-h-screen items-center overflow-hidden bg-[#111417] px-4 py-10 text-white" dir="rtl">
-      <section className="app-container">
-        <div className="pm-command pm-aurora mx-auto grid max-w-5xl gap-6 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="relative z-10 flex flex-col justify-center">
-            <div className="pm-chip pm-chip-warning w-fit">
-              <span className="material-symbols-outlined text-base">radar</span>
-              مسیر پیدا نشد
-            </div>
-            <h1 className="mt-5 text-7xl font-black leading-none sm:text-8xl">404</h1>
-            <h2 className="mt-4 text-3xl font-black">این صفحه از میز بازی خارج شده.</h2>
-            <p className="mt-4 max-w-xl text-base font-bold leading-8 text-white/58">
-              آدرس درست نیست یا صفحه جابه‌جا شده است. قبل از شروع دور بعدی، از مسیرهای امن برگردید.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/" className="pm-button pm-button-primary min-h-12 px-5">
-                <span className="material-symbols-outlined text-xl">home</span>
-                صفحه اصلی
-              </Link>
-              <Link href="/dashboard/user" className="pm-button pm-button-secondary min-h-12 bg-white/[0.07] px-5 text-white shadow-none">
-                <span className="material-symbols-outlined text-xl">dashboard</span>
-                داشبورد
-              </Link>
-            </div>
-          </div>
-
-          <div className="relative z-10 grid grid-cols-2 gap-3">
-            {[
-              ["search_off", "ردیابی", "ناموفق"],
-              ["route", "مسیر", "نامعتبر"],
-              ["shield", "حساب", "امن"],
-              ["login", "بازگشت", "آماده"],
-            ].map(([icon, label, value]) => (
-              <div key={label} className="pm-muted-card p-4">
-                <span className="material-symbols-outlined text-2xl text-[var(--pm-primary)]">{icon}</span>
-                <p className="mt-4 text-xl font-black">{value}</p>
-                <p className="mt-1 text-xs font-bold text-white/48">{label}</p>
-              </div>
-            ))}
-          </div>
+    <main className="nq-grain relative flex min-h-dvh flex-col justify-end overflow-hidden bg-night px-6 pb-[max(env(safe-area-inset-bottom),3rem)] text-moon" dir="rtl">
+      <MaskMark className="pointer-events-none absolute -left-16 top-20 w-[26rem] rotate-[-12deg] text-moon opacity-10" />
+      <div className="relative z-10 mx-auto w-full max-w-xl">
+        <p className="text-base font-bold opacity-80">خطای ۴۰۴</p>
+        <h1 className="nq-display mt-2 text-[4.2rem] leading-none sm:text-[5.5rem]">این میز خالی است.</h1>
+        <p className="mt-5 max-w-sm text-lg font-semibold leading-8 opacity-90">صفحه‌ای که دنبالش بودید این‌جا نیست. شاید آدرس اشتباه است یا صفحه جابه‌جا شده.</p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Link href="/dashboard/user" className="nq-btn nq-btn-lg bg-moon text-night">
+            رفتن به خانه
+            <ArrowLeft size={20} weight="bold" aria-hidden />
+          </Link>
+          <Link href="/" className="nq-btn nq-btn-lg bg-moon/12 text-moon">
+            صفحه اصلی نقاب
+          </Link>
         </div>
-      </section>
+      </div>
     </main>
   );
 }

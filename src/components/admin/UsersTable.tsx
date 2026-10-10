@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { updateUserRole, deleteUser } from "@/actions/admin";
 import { usePopup } from "@/components/PopupProvider";
+import { MIcon } from "@/components/ui/MIcon";
 
 export function UsersTable({ users, currentUserId }: { users: any[], currentUserId: string }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -85,7 +86,7 @@ export function UsersTable({ users, currentUserId }: { users: any[], currentUser
                   className="w-8 h-8 rounded-full bg-red-50 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white dark:text-red-600 dark:text-red-400 transition-colors flex items-center justify-center disabled:opacity-50 mx-auto"
                   title="حذف کاربر"
                 >
-                  <span className="material-symbols-outlined text-sm">delete</span>
+                  <MIcon name="delete" className="text-sm" />
                 </button>
               </td>
             </tr>

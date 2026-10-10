@@ -5,10 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getPusherClient } from "@/lib/pusher-client";
-import { cancelGame, createCustomGameScenario, getGameStatus, removeWaitingLobbyPlayer, setGameRoleAbilities, setGameScenario, setTelegramJoinEnabled, startGame } from "@/actions/game";
+import { addGuestPlayer, cancelGame, createCustomGameScenario, getGameStatus, removeWaitingLobbyPlayer, setGameRoleAbilities, setGameScenario, setTelegramJoinEnabled, startGame } from "@/actions/game";
 import { getScenarios } from "@/actions/admin";
 import { getRoles } from "@/actions/role";
-import { ArrowRight, Check, Copy, MagnifyingGlass, Minus, Play, Plus, Prohibit, ShareNetwork, TelegramLogo, Trash, UserMinus } from "@phosphor-icons/react";
+import { ArrowRight, Check, Copy, MagnifyingGlass, Minus, Play, Plus, Prohibit, ShareNetwork, TelegramLogo, Trash, UserMinus, UserPlus } from "@phosphor-icons/react";
 import { usePopup } from "@/components/PopupProvider";
 import { MaskAvatar } from "@/components/brand/MaskAvatar";
 import { Sheet } from "@/components/ui/Sheet";
@@ -182,6 +182,8 @@ export default function GameLobbyPage() {
   const [busyPlayerId, setBusyPlayerId] = useState<string | null>(null);
   const [deletingLobby, setDeletingLobby] = useState(false);
   const [savingTelegramJoin, setSavingTelegramJoin] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [addingGuest, setAddingGuest] = useState(false);
 
   useEffect(() => {
     if (sessionStatus === "loading") return;
@@ -421,6 +423,23 @@ export default function GameLobbyPage() {
     );
   };
 
+  const handleAddGuest = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const name = guestName.trim();
+    if (!name || addingGuest) return;
+    setAddingGuest(true);
+    const res = await addGuestPlayer(gameId, name);
+    setAddingGuest(false);
+    if (res.success && res.playerId) {
+      const playerId = res.playerId;
+      setPlayers((previous) => (previous.some((item) => item.id === playerId) ? previous : [...previous, { id: playerId, name, userId: null, joinSource: "WEB" } as Player]));
+      setGuestName("");
+      showToast(`${name} سر میز نشست`, "success");
+    } else {
+      showToast(res.error || "افزودن مهمان انجام نشد", "error");
+    }
+  };
+
   const handleToggleTelegramJoin = async () => {
     const nextValue = !game?.telegramJoinEnabled;
     setSavingTelegramJoin(true);
@@ -621,7 +640,9 @@ export default function GameLobbyPage() {
                     <MaskAvatar seed={seed} hue={hues.get(seed)} size="md" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-bold">{player.name}</span>
-                      {player.joinSource === "TELEGRAM" ? (
+                      {!player.userId ? (
+                        <span className="text-xs font-bold text-muted">مهمان · بدون گوشی</span>
+                      ) : player.joinSource === "TELEGRAM" ? (
                         <span className="flex items-center gap-1 text-xs font-bold text-[#29a9eb]">
                           <TelegramLogo size={12} weight="fill" aria-hidden />
                           از تلگرام
@@ -631,6 +652,7 @@ export default function GameLobbyPage() {
                     <button type="button" onClick={() => handleRemovePlayer(player, false)} disabled={busy} className="nq-icon-btn size-10" aria-label={`بیرون کردن ${player.name}`} title="بیرون کردن">
                       <UserMinus size={18} weight="bold" aria-hidden />
                     </button>
+                    {player.userId ? (
                     <button
                       type="button"
                       onClick={() => handleRemovePlayer(player, true)}
@@ -641,6 +663,7 @@ export default function GameLobbyPage() {
                     >
                       <Prohibit size={18} weight="bold" aria-hidden />
                     </button>
+                    ) : null}
                   </li>
                 );
               })}
@@ -648,6 +671,22 @@ export default function GameLobbyPage() {
           )}
           {requiredPlayers > players.length ? (
             <p className="mt-2 text-sm font-medium text-muted">{`${toFa(requiredPlayers - players.length)} صندلی خالی مانده.`}</p>
+          ) : null}
+          {!requiredPlayers || requiredPlayers > players.length ? (
+            <form onSubmit={handleAddGuest} className="mt-4 flex gap-2">
+              <input
+                value={guestName}
+                onChange={(event) => setGuestName(event.target.value)}
+                maxLength={40}
+                aria-label="نام مهمان"
+                placeholder="مهمان بدون گوشی؟ نامش را بنویسید"
+                className="min-h-12 min-w-0 flex-1"
+              />
+              <button type="submit" disabled={addingGuest || !guestName.trim()} className="nq-btn nq-btn-secondary shrink-0">
+                <UserPlus size={18} weight="bold" aria-hidden />
+                {addingGuest ? "…" : "بنشان"}
+              </button>
+            </form>
           ) : null}
         </section>
 

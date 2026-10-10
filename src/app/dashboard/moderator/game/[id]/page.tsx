@@ -33,6 +33,8 @@ import {
   ShieldCheck,
   Star,
   Sun,
+  TelegramLogo,
+  IdentificationCard,
   UserMinus,
   UserPlus,
 } from "@phosphor-icons/react";
@@ -44,6 +46,7 @@ import { assignTableHues } from "@/lib/playerColor";
 import { PHASE_SURFACE, logbookDayLabel, logbookNightLabel, phaseTitle, type Phase } from "@/lib/phase";
 import { GameReportTimeline, type GameReportEvent } from "@/components/game/GameReportTimeline";
 import { PhaseControl } from "@/components/game/PhaseControl";
+import { RoleCard } from "@/components/game/RoleCard";
 
 type Alignment = "CITIZEN" | "MAFIA" | "NEUTRAL";
 type AbilityEffectType = "NONE" | "CONVERT_TO_MAFIA" | "YAKUZA" | "TWO_NAME_INQUIRY";
@@ -375,6 +378,19 @@ function SpeechTimer({ title, defaultSeconds }: { title: string; defaultSeconds:
       <p className={`text-center text-5xl font-black tabular-nums transition-colors ${urgent ? "text-danger" : remaining === 0 ? "text-muted" : "text-fg"}`} dir="ltr" aria-live="off">
         {formatTimer(remaining)}
       </p>
+      <div className="flex justify-center gap-1" role="group" aria-label="مدت آماده">
+        {[30, 45, 60, 90, 120].map((seconds) => (
+          <button
+            key={seconds}
+            type="button"
+            onClick={() => updateDuration(seconds)}
+            aria-pressed={duration === seconds}
+            className={`h-8 min-w-9 rounded-[0.6rem] px-1.5 text-xs font-extrabold tabular-nums ${duration === seconds ? "bg-accent-soft text-accent" : "bg-raised text-muted hover:text-fg"}`}
+          >
+            {seconds.toLocaleString("fa-IR")}
+          </button>
+        ))}
+      </div>
       <span className="block h-1.5 overflow-hidden rounded-full bg-raised" aria-hidden>
         <span className={`block h-full rounded-full transition-[width] duration-1000 ease-linear ${urgent ? "bg-danger" : "bg-accent"}`} style={{ width: `${progress * 100}%` }} />
       </span>
@@ -433,6 +449,7 @@ export default function ModeratorGamePage() {
   const [playerPicker, setPlayerPicker] = useState<PlayerPickerRequest | null>(null);
   const [shotResolution, setShotResolution] = useState<{ player: PlayerRecord; nextRound: number } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [guestReveal, setGuestReveal] = useState<PlayerRecord | null>(null);
 
   const refreshGame = async (showLoader = false) => {
     if (sessionStatus === "loading") return;
@@ -1264,10 +1281,18 @@ export default function ModeratorGamePage() {
                   <li key={player.id} className="flex items-center gap-3 py-2.5">
                     <MaskAvatar seed={player.userId || player.id} hue={hues.get(player.userId || player.id)} size="md" eliminated={out} />
                     <span className="min-w-0 flex-1">
-                      <span className={`block truncate font-bold ${out ? "text-muted line-through" : ""}`}>{player.name}</span>
-                      <span className="block truncate text-sm font-medium text-muted">{player.role?.name || "بدون نقش"}</span>
+                      <span className={`flex items-center gap-1.5 truncate font-bold ${out ? "text-muted line-through" : ""}`}>
+                        {player.name}
+                        {player.joinSource === "TELEGRAM" ? <TelegramLogo size={14} weight="fill" className="shrink-0 text-[#29a9eb]" aria-label="از تلگرام" /> : null}
+                      </span>
+                      <span className="block truncate text-sm font-medium text-muted">{`${player.role?.name || "بدون نقش"}${player.userId ? "" : " · مهمان"}`}</span>
                     </span>
-                    <FactionTag alignment={player.role?.alignment} />
+                    <FactionTag alignment={player.role?.alignment} compact={!player.userId} />
+                    {!player.userId && player.role && !finished ? (
+                      <button type="button" onClick={() => setGuestReveal(player)} className="nq-icon-btn size-10" aria-label={`نشان دادن نقش به ${player.name}`} title="نشان دادن نقش">
+                        <IdentificationCard size={18} weight="bold" aria-hidden />
+                      </button>
+                    ) : null}
                     {!finished ? (
                       <button
                         type="button"
@@ -1328,6 +1353,15 @@ export default function ModeratorGamePage() {
       ) : null}
 
       {/* Game menu */}
+      <Sheet open={Boolean(guestReveal)} onClose={() => setGuestReveal(null)} title={`گوشی را به ${guestReveal?.name || "مهمان"} بدهید`} eyebrow="نقش مهمان">
+        {guestReveal ? (
+          <div className="flex flex-col items-center gap-4 pb-2">
+            <p className="text-center text-sm font-medium leading-6 text-muted">کارت را لمس کند تا نقشش را ببیند؛ بعد از چند ثانیه خودش برمی‌گردد.</p>
+            <RoleCard key={guestReveal.id} name={guestReveal.role?.name} description={guestReveal.role?.description} alignment={guestReveal.role?.alignment} />
+          </div>
+        ) : null}
+      </Sheet>
+
       <Sheet open={menuOpen} onClose={() => setMenuOpen(false)} title="گزینه‌های بازی">
         <div className="flex flex-col gap-6">
           {!finished ? (

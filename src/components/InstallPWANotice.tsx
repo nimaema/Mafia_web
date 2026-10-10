@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { CaretLeft, CheckCircle, DownloadSimple } from "@phosphor-icons/react";
 import { usePwaInstallState } from "@/hooks/usePwaInstallState";
+import { MIcon } from "@/components/ui/MIcon";
+import { Sheet } from "@/components/ui/Sheet";
 
 const PWA_LOGIN_PROMPT_KEY = "pwa-install-login-prompt-dismissed";
 
@@ -13,8 +16,8 @@ type BeforeInstallPromptEvent = Event & {
 
 const installBenefits = [
   { icon: "fullscreen", title: "تمام‌صفحه", text: "بدون نوار مرورگر" },
-  { icon: "touch_app", title: "دسترسی سریع", text: "از Home Screen" },
-  { icon: "phone_iphone", title: "نمای پایدار", text: "مثل اپ موبایل" },
+  { icon: "touch_app", title: "یک لمس", text: "از صفحه اصلی گوشی" },
+  { icon: "phone_iphone", title: "مثل اپ", text: "نمای پایدار سر میز" },
 ];
 
 const afterInstallTips = [
@@ -77,138 +80,93 @@ export function InstallPWANotice() {
 
   if (!visible || !pwa.isMobileBrowser) return null;
 
-  if (!expanded) {
-    return (
-      <div className="fixed right-0 top-[42dvh] z-[260] md:hidden" dir="rtl">
+  return (
+    <>
+      {!expanded ? (
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="pm-contrast-surface group flex min-h-32 w-11 flex-col items-center justify-center gap-2 rounded-l-2xl border border-r-0 border-[var(--pm-primary)]/30 bg-zinc-950/95 py-3 text-white transition-all active:scale-[0.98]"
-          aria-label="باز کردن راهنمای نصب برنامه"
+          className="motion-reveal fixed right-0 top-[38dvh] z-[260] flex flex-col items-center gap-2 rounded-s-[var(--radius-md)] bg-night py-3 pe-1.5 ps-2 text-moon shadow-[var(--nq-shadow)] md:hidden"
+          aria-label="باز کردن راهنمای نصب نقاب"
         >
-          <span className="flex size-8 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] ">
-            <span className="material-symbols-outlined text-xl">{pwa.guide.icon}</span>
+          <span className="grid size-8 place-items-center rounded-[0.6rem] bg-accent text-on-accent">
+            <MIcon name={pwa.guide.icon} className="text-lg" />
           </span>
-          <span className="grid place-items-center text-xs font-extrabold leading-4 [writing-mode:vertical-rl]">
-            نصب اپ
-          </span>
-          <span className="material-symbols-outlined text-base text-[var(--pm-primary)] transition-transform group-hover:-translate-x-0.5">chevron_left</span>
+          <span className="text-xs font-extrabold [writing-mode:vertical-rl]">نصب اپ</span>
+          <CaretLeft size={14} weight="bold" className="opacity-70" aria-hidden />
         </button>
-      </div>
-    );
-  }
+      ) : null}
 
-  return (
-    <div className="fixed inset-0 z-[260] flex items-end justify-center bg-zinc-950/82 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] text-right sm:items-center sm:p-4" dir="rtl">
-      <section className="motion-pop flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/15 bg-surface sm:max-h-[calc(100dvh-2rem)]">
-        <header className="pm-contrast-surface shrink-0 border-b border-[var(--pm-line)] bg-zinc-950 px-4 py-3 text-white">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="relative flex size-11 shrink-0 items-center justify-center rounded-xl bg-[var(--pm-primary)] text-[var(--pm-text-inverse)] ">
-                <span className="material-symbols-outlined text-2xl">{pwa.guide.platformIcon}</span>
-                <span className="absolute -bottom-1 -left-1 flex size-5 items-center justify-center rounded-md border border-zinc-950 bg-surface text-zinc-950">
-                  <span className="material-symbols-outlined text-sm">{pwa.guide.icon}</span>
-                </span>
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--pm-primary)]">{pwa.guide.platformLabel} PWA</p>
-                <h2 className="mt-0.5 text-xl font-extrabold leading-7">نصب نقاب</h2>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={close}
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-surface text-white transition-all hover:bg-raised hover:text-zinc-950"
-              aria-label="بستن راهنمای نصب تا ورود بعدی"
-            >
-              <span className="material-symbols-outlined text-xl">close</span>
+      <Sheet
+        open={expanded}
+        onClose={() => setExpanded(false)}
+        title="نقاب را نصب کنید"
+        eyebrow={`راهنمای ${pwa.guide.platformLabel}`}
+        footer={
+          <div className="grid gap-2">
+            {installPrompt ? (
+              <button type="button" onClick={install} className="nq-btn nq-btn-primary nq-btn-lg w-full">
+                <DownloadSimple size={20} weight="bold" aria-hidden />
+                نصب مستقیم
+              </button>
+            ) : null}
+            <button type="button" onClick={close} className="nq-btn nq-btn-ghost w-full">
+              فعلاً نه، تا ورود بعدی
             </button>
           </div>
+        }
+      >
+        <div className="flex flex-col gap-5">
+          <p className="font-medium leading-7 text-muted">همه‌چیز در مرورگر هم کار می‌کند؛ نصب فقط ورود سریع‌تر و صفحهٔ کامل می‌دهد.</p>
 
-          <p className="mt-2 text-xs font-bold leading-5 text-zinc-300">
-            همه امکانات در مرورگر هم فعال است؛ نصب فقط ورود سریع‌تر و نمای تمام‌صفحه می‌دهد.
-          </p>
-
-          <div className="mt-2 grid grid-cols-3 gap-1.5">
+          <ul className="grid grid-cols-3 gap-2">
             {installBenefits.map((item) => (
-              <span key={item.title} className="rounded-lg border border-[var(--pm-line)] bg-surface p-2 text-center">
-                <span className="material-symbols-outlined text-base text-[var(--pm-primary)]">{item.icon}</span>
-                <span className="mt-0.5 block text-xs font-extrabold text-white">{item.title}</span>
-                <span className="mt-0.5 block truncate text-xs font-bold text-[var(--pm-muted)]">{item.text}</span>
-              </span>
+              <li key={item.title} className="flex flex-col items-center gap-1 rounded-[var(--radius-md)] bg-raised px-2 py-3 text-center">
+                <MIcon name={item.icon} className="text-xl text-accent" />
+                <span className="text-sm font-extrabold">{item.title}</span>
+                <span className="text-xs font-medium leading-5 text-muted">{item.text}</span>
+              </li>
             ))}
-          </div>
-        </header>
+          </ul>
 
-        <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-3 py-3">
-          <section className="overflow-hidden rounded-xl border border-[var(--pm-primary)]/25 bg-[var(--pm-primary)]/10">
-            <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-primary)]/20 bg-surface p-2.5 ">
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="material-symbols-outlined flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-lg text-zinc-950">
-                  {pwa.guide.platformIcon}
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xs font-extrabold text-[var(--pm-primary)]">راهنمای دقیق نصب</p>
-                  <h3 className="mt-0.5 truncate text-sm font-extrabold text-[var(--pm-text)]">{pwa.guide.label}</h3>
-                </div>
-              </div>
-              <span className="material-symbols-outlined flex size-8 shrink-0 items-center justify-center rounded-lg bg-fg text-lg text-canvas">
-                {pwa.guide.icon}
-              </span>
-            </div>
-
-            <ol className="grid gap-1.5 p-2.5">
+          <section aria-labelledby="pwa-steps-title">
+            <h3 id="pwa-steps-title" className="mb-3 flex items-center gap-2 text-sm font-extrabold">
+              <MIcon name={pwa.guide.platformIcon} className="text-lg text-accent" />
+              {pwa.guide.label}
+            </h3>
+            <ol className="flex flex-col gap-2">
               {pwa.guide.steps.map((step, index) => (
-                <li key={step} className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-2 rounded-lg border border-[var(--pm-line)] bg-surface p-2 ">
-                  <span className="relative flex size-9 items-center justify-center rounded-lg bg-[var(--pm-primary)] text-[var(--pm-text-inverse)]">
-                    <span className="material-symbols-outlined text-lg">{pwa.guide.stepIcons[index] || "touch_app"}</span>
-                    <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-fg text-xs font-extrabold text-canvas">
-                      {index + 1}
+                <li key={step} className="flex items-start gap-3 rounded-[var(--radius-md)] border border-line p-3">
+                  <span className="relative grid size-10 shrink-0 place-items-center rounded-[0.75rem] bg-accent-soft text-accent">
+                    <MIcon name={pwa.guide.stepIcons[index] || "touch_app"} className="text-xl" />
+                    <span className="absolute -top-1.5 -right-1.5 grid size-5 place-items-center rounded-full bg-fg text-[0.7rem] font-black text-canvas">
+                      {(index + 1).toLocaleString("fa-IR")}
                     </span>
                   </span>
-                  <span className="pt-0.5 text-xs font-bold leading-5 text-zinc-700 dark:text-zinc-200">{step}</span>
+                  <span className="pt-1.5 text-sm font-semibold leading-6">{step}</span>
                 </li>
               ))}
             </ol>
           </section>
 
-          <details className="group mt-2 overflow-hidden rounded-lg border border-sky-500/20 bg-sky-500/10">
-            <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 px-3 text-xs font-extrabold text-[var(--pm-text)]">
-              <span className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-base text-sky-600 dark:text-sky-300">tips_and_updates</span>
-                بعد از نصب
-              </span>
-              <span className="material-symbols-outlined text-lg text-[var(--pm-muted)] transition-transform group-open:rotate-180">keyboard_arrow_down</span>
+          <details className="group rounded-[var(--radius-md)] bg-raised">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 text-sm font-extrabold">
+              بعد از نصب
+              <MIcon name="keyboard_arrow_down" className="text-lg text-muted transition-transform group-open:rotate-180" />
             </summary>
-            <ul className="grid gap-1.5 border-t border-sky-500/15 p-2.5">
+            <ul className="flex flex-col gap-2 px-4 pb-4">
               {afterInstallTips.map((tip) => (
-                <li key={tip} className="flex gap-2 text-xs font-bold leading-5 text-sky-800 dark:text-sky-200">
-                  <span className="material-symbols-outlined mt-0.5 text-sm">check_circle</span>
-                  <span>{tip}</span>
+                <li key={tip} className="flex gap-2 text-sm font-medium leading-6 text-muted">
+                  <CheckCircle size={18} weight="fill" className="mt-0.5 shrink-0 text-success" aria-hidden />
+                  {tip}
                 </li>
               ))}
             </ul>
           </details>
 
-          <p className="mt-2 rounded-lg border border-[var(--pm-line)] bg-raised p-2.5 text-xs font-bold leading-5 text-[var(--pm-muted)] dark:text-[var(--pm-muted)]">
-            {pwa.guide.note}
-          </p>
+          {pwa.guide.note ? <p className="text-sm font-medium leading-6 text-faint">{pwa.guide.note}</p> : null}
         </div>
-
-        <footer className="shrink-0 border-t border-[var(--pm-line)] bg-surface p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] ">
-          <div className="grid gap-2">
-            {installPrompt && (
-              <button type="button" onClick={install} className="pm-button-primary min-h-11 w-full">
-                <span className="material-symbols-outlined text-xl">download</span>
-                نصب مستقیم برنامه
-              </button>
-            )}
-            <button type="button" onClick={close} className="pm-button-secondary min-h-10 w-full">
-              بستن تا ورود بعدی
-            </button>
-          </div>
-        </footer>
-      </section>
-    </div>
+      </Sheet>
+    </>
   );
 }

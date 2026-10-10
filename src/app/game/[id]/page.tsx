@@ -98,6 +98,7 @@ export default function PlayerGamePage() {
     const roles = (game?.scenario?.roles || []).map((entry: any) => ({
       id: entry.roleId,
       name: entry.role?.name || "نقش",
+      description: entry.role?.description || "",
       alignment: entry.role?.alignment || "NEUTRAL",
       count: entry.count,
     }));
@@ -182,7 +183,7 @@ export default function PlayerGamePage() {
 
           <details className="group rounded-[var(--radius-lg)] border border-line bg-surface" open>
             <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5">
-              <span className="text-lg font-extrabold">ترکیب نقش‌ها</span>
+              <span className="text-lg font-extrabold">نقش‌های این بازی</span>
               <span className="flex items-center gap-3 text-sm font-bold">
                 <span className={FACTION.CITIZEN.text}>{`${toFa(composition.counts.CITIZEN || 0)} شهروند`}</span>
                 <span className={FACTION.MAFIA.text}>{`${toFa(composition.counts.MAFIA || 0)} مافیا`}</span>
@@ -190,17 +191,26 @@ export default function PlayerGamePage() {
                 <CaretDown size={18} weight="bold" className="text-muted transition-transform group-open:rotate-180" aria-hidden />
               </span>
             </summary>
-            <ul className="border-t border-line px-5 py-2">
-              {composition.roles.map((role: any) => (
-                <li key={role.id || role.name} className="flex items-center justify-between gap-3 py-2.5">
-                  <span className="flex items-center gap-2.5 font-bold">
-                    {role.name}
-                    {role.count > 1 ? <span className="text-sm text-muted">{`× ${toFa(role.count)}`}</span> : null}
-                  </span>
-                  <FactionTag alignment={role.alignment} />
-                </li>
-              ))}
-            </ul>
+            <div className="border-t border-line px-5 pb-2 pt-3">
+              {game?.scenario?.description ? <p className="whitespace-pre-line pb-2 text-sm font-medium leading-7 text-muted">{game.scenario.description}</p> : null}
+              <ul>
+                {composition.roles.map((role: any) => (
+                  <li key={role.id || role.name} className="border-b border-line last:border-0">
+                    <details className="group/role">
+                      <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 py-2">
+                        <span className="flex flex-1 items-center gap-2.5 font-bold">
+                          {role.name}
+                          {role.count > 1 ? <span className="text-sm text-muted">{`× ${toFa(role.count)}`}</span> : null}
+                        </span>
+                        <FactionTag alignment={role.alignment} />
+                        <CaretDown size={14} weight="bold" className="shrink-0 text-muted transition-transform group-open/role:rotate-180" aria-hidden />
+                      </summary>
+                      <p className="whitespace-pre-line pb-3 text-sm font-medium leading-7 text-muted">{role.description || "توضیحی برای این نقش ثبت نشده است."}</p>
+                    </details>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </details>
 
           {game?.nightEvents?.length ? <PublicNightLog events={game.nightEvents} /> : null}

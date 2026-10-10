@@ -1863,3 +1863,91 @@ export async function removeWaitingLobbyPlayer(gameId: string, playerId: string,
     return { error: error.message || "حذف بازیکن از لابی انجام نشد." };
   }
 }
+
+export async function leaveLobby(gameId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("ابتدا وارد حساب خود شوید.");
+    }
+
+    const player = await prisma.gamePlayer.findFirst({
+      where: { gameId, userId: session.user.id },
+      select: { id: true, name: true, game: { select: { status: true } } },
+    });
+    if (!player) {
+      return { success: true };
+    }
+    if (player.game.status !== "WAITING") {
+      throw new Error("بازی شروع شده است؛ برای ترک بازی به گرداننده بگویید.");
+    }
+
+    await prisma.gamePlayer.delete({ where: { id: player.id } });
+
+    await pusherServer.trigger(`game-${gameId}`, "player-left", {
+      playerId: player.id,
+      playerName: player.name,
+    });
+    await broadcastLobbyUpdated("player-left", gameId);
+
+    revalidatePath("/dashboard/user");
+    revalidatePath(`/dashboard/moderator/lobby/${gameId}`);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Leave lobby error:", error);
+    return { error: error.message || "ترک لابی انجام نشد." };
+  }
+}
+
+export async function addGuestPlayer(gameId: string, guestName: string) {
+  try {
+    const { game } = await checkModeratorForGame(gameId);
+    if (game.status !== "WAITING") {
+      throw new Error("مهمان فقط قبل از شروع بازی اضافه می‌شود.");
+    }
+
+    const name = guestName.trim().replace(/\s+/g, " ").slice(0, 40);
+    if (!name) {
+      throw new Error("نام مهمان را بنویسید.");
+    }
+
+    const lobby = await prisma.game.findUnique({
+      where: { id: gameId },
+      select: {
+        scenario: { select: { roles: { select: { count: true } } } },
+        _count: { select: { players: true } },
+      },
+    });
+    const capacity = lobby?.scenario?.roles.reduce((sum, role) => sum + role.count, 0) || 0;
+    if (capacity > 0 && (lobby?._count.players || 0) >= capacity) {
+      throw new Error("میز پر است. سناریوی بزرگ‌تری انتخاب کنید یا یک نفر را بردارید.");
+    }
+
+    const player = await prisma.gamePlayer.create({
+      data: { gameId, name, joinSource: JoinSource.WEB },
+    });
+
+    await pusherServer.trigger(`game-${gameId}`, "player-joined", {
+      player: {
+        id: player.id,
+        name: player.name,
+        image: null,
+        userId: null,
+        isAlive: player.isAlive,
+        joinSource: player.joinSource,
+      },
+    });
+    await broadcastLobbyUpdated("guest-added", gameId);
+
+    revalidatePath(`/dashboard/moderator/lobby/${gameId}`);
+
+    return { success: true, playerId: player.id };
+  } catch (error: any) {
+    console.error("Add guest error:", error);
+    if (error.code === "P2002") {
+      return { error: "این نام همین حالا سر میز است. نام دیگری بنویسید." };
+    }
+    return { error: error.message || "افزودن مهمان انجام نشد." };
+  }
+}

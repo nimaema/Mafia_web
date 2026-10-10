@@ -25,6 +25,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { usePopup } from "@/components/PopupProvider";
 import { ScenarioRoleComposition } from "@/components/ScenarioRoleComposition";
+import { MIcon } from "@/components/ui/MIcon";
 
 type AdminTab = "roles" | "scenarios";
 type RoleAlignmentFilter = "ALL" | Alignment;
@@ -800,7 +801,7 @@ export default function AdminDashboard() {
                     : "text-[var(--pm-muted)] hover:bg-raised "
                 }`}
               >
-                <span className="material-symbols-outlined text-lg">theater_comedy</span>
+                <MIcon name="theater_comedy" className="text-lg" />
                 نقش‌ها
               </button>
               <button
@@ -811,7 +812,7 @@ export default function AdminDashboard() {
                     : "text-[var(--pm-muted)] hover:bg-raised "
                 }`}
               >
-                <span className="material-symbols-outlined text-lg">account_tree</span>
+                <MIcon name="account_tree" className="text-lg" />
                 سناریوها
               </button>
             </div>
@@ -831,9 +832,7 @@ export default function AdminDashboard() {
               {stats.roles} نقش، {stats.scenarios} سناریو و ترکیب‌های آماده بازی
             </p>
           </div>
-          <span className="material-symbols-outlined text-[var(--pm-muted)]">
-            {showStats ? "keyboard_arrow_up" : "keyboard_arrow_down"}
-          </span>
+          <MIcon name={showStats ? "keyboard_arrow_up" : "keyboard_arrow_down"} className="text-[var(--pm-muted)]" />
         </button>
 
         {showStats && (
@@ -846,7 +845,7 @@ export default function AdminDashboard() {
             ].map(([label, value, icon, color]) => (
               <div key={label} className="pm-muted-card group overflow-hidden p-4 transition-colors hover:border-[var(--pm-primary)]/25">
                 <div className="flex items-center justify-between gap-3">
-                  <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+                  <MIcon name={icon} className={`text-lg ${color}`} />
                   <span className="h-1.5 w-10 rounded-full bg-zinc-200 transition-colors group-hover:bg-[var(--pm-primary)] "></span>
                 </div>
                 <p className="mt-3 text-2xl font-extrabold text-[var(--pm-text)]">{value}</p>
@@ -862,7 +861,7 @@ export default function AdminDashboard() {
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface p-6 ">
             <div className="w-full max-w-md rounded-2xl border border-[var(--pm-line)] bg-surface p-5 text-center ">
               <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[var(--pm-primary)] text-zinc-950 ">
-                <span className="material-symbols-outlined animate-spin text-3xl leading-none">progress_activity</span>
+                <MIcon name="progress_activity" className="animate-spin text-3xl leading-none" />
               </div>
               <p className="mt-4 text-base font-extrabold text-[var(--pm-text)]">در حال همگام‌سازی مرکز پیکربندی</p>
               <p className="mt-2 text-xs font-bold leading-6 text-[var(--pm-muted)]">
@@ -880,14 +879,14 @@ export default function AdminDashboard() {
         ) : errorMessage ? (
           <div className="flex min-h-[520px] flex-col items-center justify-center gap-5 p-6 text-center">
             <div className="pm-icon size-16 text-red-500">
-              <span className="material-symbols-outlined text-3xl">cloud_off</span>
+              <MIcon name="cloud_off" className="text-3xl" />
             </div>
             <div>
               <h2 className="text-xl font-extrabold text-[var(--pm-text)]">بارگذاری اطلاعات ناموفق بود</h2>
               <p className="mt-2 max-w-md text-sm leading-6 text-[var(--pm-muted)]">{errorMessage}</p>
             </div>
             <button onClick={refreshData} className="pm-button-primary">
-              <span className="material-symbols-outlined text-xl">refresh</span>
+              <MIcon name="refresh" className="text-xl" />
               تلاش دوباره
             </button>
           </div>
@@ -914,7 +913,7 @@ export default function AdminDashboard() {
                 <div className="mt-4 rounded-lg border border-sky-500/20 bg-sky-500/10 p-3">
                   <div className="flex items-start gap-3">
                     <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-sky-500/20 bg-surface text-sky-700 dark:text-sky-300">
-                      <span className="material-symbols-outlined text-lg">cloud_done</span>
+                      <MIcon name="cloud_done" className="text-lg" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-extrabold text-[var(--pm-text)]">پشتیبان نقش‌ها</p>
@@ -930,7 +929,7 @@ export default function AdminDashboard() {
                       disabled={roleBackupBusy}
                       className="pm-button-secondary min-h-9 px-3 text-xs"
                     >
-                      <span className="material-symbols-outlined text-base">backup</span>
+                      <MIcon name="backup" className="text-base" />
                       ذخیره بکاپ
                     </button>
                     <button
@@ -939,7 +938,7 @@ export default function AdminDashboard() {
                       disabled={roleBackupBusy}
                       className="pm-button-secondary min-h-9 px-3 text-xs"
                     >
-                      <span className="material-symbols-outlined text-base">settings_backup_restore</span>
+                      <MIcon name="settings_backup_restore" className="text-base" />
                       بازیابی
                     </button>
                     <button
@@ -948,11 +947,11 @@ export default function AdminDashboard() {
                       disabled={roleBackupBusy}
                       className="pm-button-secondary min-h-9 px-3 text-xs"
                     >
-                      <span className="material-symbols-outlined text-base">download</span>
+                      <MIcon name="download" className="text-base" />
                       JSON
                     </button>
                     <label className={`pm-button-secondary min-h-9 cursor-pointer px-3 text-xs ${roleBackupBusy ? "pointer-events-none opacity-60" : ""}`}>
-                      <span className="material-symbols-outlined text-base">upload_file</span>
+                      <MIcon name="upload_file" className="text-base" />
                       آپلود
                       <input type="file" accept="application/json,.json" className="hidden" onChange={handleRoleJsonUpload} disabled={roleBackupBusy} />
                     </label>
@@ -1016,7 +1015,7 @@ export default function AdminDashboard() {
                       }
                       className="pm-button-secondary min-h-9 shrink-0 px-3 text-xs"
                     >
-                      <span className="material-symbols-outlined text-base">add</span>
+                      <MIcon name="add" className="text-base" />
                       افزودن
                     </button>
                   </div>
@@ -1049,7 +1048,7 @@ export default function AdminDashboard() {
                                 className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
                                 aria-label="حذف توانایی"
                               >
-                                <span className="material-symbols-outlined text-lg">delete</span>
+                                <MIcon name="delete" className="text-lg" />
                               </button>
                             </div>
 
@@ -1164,9 +1163,7 @@ export default function AdminDashboard() {
                 </div>
 
                 <button type="submit" className="pm-button-primary min-h-11">
-                  <span className="material-symbols-outlined text-xl">
-                    {editingRoleId ? "save" : "add_circle"}
-                  </span>
+                  <MIcon name={editingRoleId ? "save" : "add_circle"} className="text-xl" />
                   {editingRoleId ? "ذخیره تغییرات" : "ثبت نقش"}
                 </button>
               </form>
@@ -1176,7 +1173,7 @@ export default function AdminDashboard() {
               {roles.length === 0 ? (
                 <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center ">
                   <div className="pm-icon size-16">
-                    <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">theater_comedy</span>
+                    <MIcon name="theater_comedy" className="text-3xl text-[var(--pm-muted)]" />
                   </div>
                   <div>
                     <p className="font-extrabold text-[var(--pm-text)]">هنوز نقشی ثبت نشده است</p>
@@ -1187,7 +1184,7 @@ export default function AdminDashboard() {
                 <>
                   <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
                     <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-raised px-3 ">
-                      <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
+                      <MIcon name="search" className="text-[var(--pm-muted)]" />
                       <input
                         value={roleSearch}
                         onChange={(event) => setRoleSearch(event.target.value)}
@@ -1223,7 +1220,7 @@ export default function AdminDashboard() {
                   {visibleRoles.length === 0 ? (
                     <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center ">
                       <div className="pm-icon size-16">
-                        <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">manage_search</span>
+                        <MIcon name="manage_search" className="text-3xl text-[var(--pm-muted)]" />
                       </div>
                       <div>
                         <p className="font-extrabold text-[var(--pm-text)]">نقشی با این جستجو پیدا نشد</p>
@@ -1240,9 +1237,7 @@ export default function AdminDashboard() {
                         >
                           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-1">
                             <div className="flex items-center gap-2">
-                              <span className={`material-symbols-outlined flex size-9 rounded-lg border ${alignmentClass(group.alignment)}`}>
-                                {alignmentIcon(group.alignment)}
-                              </span>
+                              <MIcon name={alignmentIcon(group.alignment)} className={`flex size-9 rounded-lg border ${alignmentClass(group.alignment)}`} />
                               <div>
                                 <p className="text-sm font-extrabold text-[var(--pm-text)]">{alignmentLabel(group.alignment)}</p>
                                 <p className="mt-0.5 text-xs font-bold text-[var(--pm-muted)]">{group.roles.length} نقش</p>
@@ -1250,7 +1245,7 @@ export default function AdminDashboard() {
                             </div>
                             <div className="flex items-center gap-3">
                               <span className={`hidden h-1.5 w-16 rounded-full bg-accent sm:block ${alignmentAccentClass(group.alignment)}`} />
-                              <span className="material-symbols-outlined text-[var(--pm-muted)] transition-transform group-open/role-side:rotate-180">keyboard_arrow_down</span>
+                              <MIcon name="keyboard_arrow_down" className="text-[var(--pm-muted)] transition-transform group-open/role-side:rotate-180" />
                             </div>
                           </summary>
 
@@ -1267,7 +1262,7 @@ export default function AdminDashboard() {
                                 <div className="flex items-start justify-between gap-3 pt-1">
                                   <div className="flex min-w-0 items-start gap-3">
                                     <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(role.alignment)}`}>
-                                      <span className="material-symbols-outlined text-xl">{alignmentIcon(role.alignment)}</span>
+                                      <MIcon name={alignmentIcon(role.alignment)} className="text-xl" />
                                     </div>
                                     <div className="min-w-0">
                                       <h3 className="truncate text-base font-extrabold text-[var(--pm-text)]">{role.name}</h3>
@@ -1281,14 +1276,14 @@ export default function AdminDashboard() {
                                       className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-raised text-[var(--pm-muted)] transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:text-[var(--pm-muted)] dark:hover:text-sky-300"
                                       title="ویرایش نقش"
                                     >
-                                      <span className="material-symbols-outlined text-base">edit_square</span>
+                                      <MIcon name="edit_square" className="text-base" />
                                     </button>
                                     <button
                                       onClick={() => handleDeleteRole(role.id)}
                                       className="flex size-8 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
                                       title="حذف نقش"
                                     >
-                                      <span className="material-symbols-outlined text-base">delete</span>
+                                      <MIcon name="delete" className="text-base" />
                                     </button>
                                   </div>
                                 </div>
@@ -1304,7 +1299,7 @@ export default function AdminDashboard() {
                                         key={`${role.id}-${ability.id}`}
                                         className="inline-flex items-center gap-1 rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 px-2 py-1 text-xs font-extrabold text-[var(--pm-primary)]"
                                       >
-                                        <span className="material-symbols-outlined text-[13px]">dark_mode</span>
+                                        <MIcon name="dark_mode" className="text-[13px]" />
                                         {ability.label}، {abilityUsageLabel(ability)}
                                       </span>
                                     ))
@@ -1357,7 +1352,7 @@ export default function AdminDashboard() {
                 <div className="mt-4 rounded-lg border border-[var(--pm-primary)]/20 bg-[var(--pm-primary)]/10 p-3">
                   <div className="flex items-start gap-3">
                     <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--pm-primary)]/20 bg-surface text-[var(--pm-primary-strong)] dark:text-[var(--pm-primary)]">
-                      <span className="material-symbols-outlined text-lg">cloud_done</span>
+                      <MIcon name="cloud_done" className="text-lg" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-extrabold text-[var(--pm-text)]">پشتیبان سناریوها</p>
@@ -1373,7 +1368,7 @@ export default function AdminDashboard() {
                       disabled={scenarioBackupBusy}
                       className="pm-button-secondary min-h-9 px-3 text-xs"
                     >
-                      <span className="material-symbols-outlined text-base">backup</span>
+                      <MIcon name="backup" className="text-base" />
                       ذخیره بکاپ
                     </button>
                     <button
@@ -1382,7 +1377,7 @@ export default function AdminDashboard() {
                       disabled={scenarioBackupBusy}
                       className="pm-button-secondary min-h-9 px-3 text-xs"
                     >
-                      <span className="material-symbols-outlined text-base">settings_backup_restore</span>
+                      <MIcon name="settings_backup_restore" className="text-base" />
                       بازیابی
                     </button>
                     <button
@@ -1391,11 +1386,11 @@ export default function AdminDashboard() {
                       disabled={scenarioBackupBusy}
                       className="pm-button-secondary min-h-9 px-3 text-xs"
                     >
-                      <span className="material-symbols-outlined text-base">download</span>
+                      <MIcon name="download" className="text-base" />
                       JSON
                     </button>
                     <label className={`pm-button-secondary min-h-9 cursor-pointer px-3 text-xs ${scenarioBackupBusy ? "pointer-events-none opacity-60" : ""}`}>
-                      <span className="material-symbols-outlined text-base">upload_file</span>
+                      <MIcon name="upload_file" className="text-base" />
                       آپلود
                       <input type="file" accept="application/json,.json" className="hidden" onChange={handleScenarioJsonUpload} disabled={scenarioBackupBusy} />
                     </label>
@@ -1411,7 +1406,7 @@ export default function AdminDashboard() {
                         }}
                         className="pm-button-secondary col-span-2 min-h-9 px-3 text-xs"
                       >
-                        <span className="material-symbols-outlined text-base">auto_awesome</span>
+                        <MIcon name="auto_awesome" className="text-base" />
                         نصب سناریوهای پیش‌فرض
                       </button>
                     )}
@@ -1448,7 +1443,7 @@ export default function AdminDashboard() {
                   </div>
 
                   <label className="mb-3 flex min-h-10 items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-raised px-3 ">
-                    <span className="material-symbols-outlined text-base text-[var(--pm-muted)]">search</span>
+                    <MIcon name="search" className="text-base text-[var(--pm-muted)]" />
                     <input
                       value={scenarioRoleSearch}
                       onChange={(event) => setScenarioRoleSearch(event.target.value)}
@@ -1460,12 +1455,12 @@ export default function AdminDashboard() {
                   <div className="custom-scrollbar max-h-80 space-y-2 overflow-y-auto">
                     {roles.length === 0 ? (
                       <div className="flex min-h-32 flex-col items-center justify-center gap-2 text-center text-sm text-[var(--pm-muted)]">
-                        <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">playlist_add</span>
+                        <MIcon name="playlist_add" className="text-3xl text-[var(--pm-muted)]" />
                         برای طراحی سناریو ابتدا نقش‌ها را اضافه کنید.
                       </div>
                     ) : scenarioRoleOptions.length === 0 ? (
                       <div className="flex min-h-32 flex-col items-center justify-center gap-2 text-center text-sm text-[var(--pm-muted)]">
-                        <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">manage_search</span>
+                        <MIcon name="manage_search" className="text-3xl text-[var(--pm-muted)]" />
                         نقشی با این جستجو پیدا نشد.
                       </div>
                     ) : (
@@ -1492,7 +1487,7 @@ export default function AdminDashboard() {
                                     ? "border-[var(--pm-primary)] bg-accent   text-zinc-950  "
                                     : "border-line bg-surface text-zinc-300 group-hover/role-option:border-[var(--pm-primary)] group-hover/role-option:text-[var(--pm-primary)]   dark:text-zinc-700"
                                 }`}>
-                                  <span className="material-symbols-outlined text-lg">{selected ? "check" : "add"}</span>
+                                  <MIcon name={selected ? "check" : "add"} className="text-lg" />
                                 </div>
                                 <div>
                                   <p className="text-sm font-extrabold text-[var(--pm-text)]">{role.name}</p>
@@ -1503,11 +1498,11 @@ export default function AdminDashboard() {
                               {selected && (
                                 <div className="flex items-center gap-2 rounded-lg border border-[var(--pm-line)] bg-surface px-2 py-1 ">
                                   <button type="button" onClick={() => updateRoleCount(role.id, -1)} className="text-[var(--pm-muted)] transition-colors hover:text-zinc-950 dark:hover:text-white">
-                                    <span className="material-symbols-outlined text-base">remove</span>
+                                    <MIcon name="remove" className="text-base" />
                                   </button>
                                   <span className="w-4 text-center text-sm font-extrabold text-[var(--pm-text)]">{selected.count}</span>
                                   <button type="button" onClick={() => updateRoleCount(role.id, 1)} className="text-[var(--pm-muted)] transition-colors hover:text-zinc-950 dark:hover:text-white">
-                                    <span className="material-symbols-outlined text-base">add</span>
+                                    <MIcon name="add" className="text-base" />
                                   </button>
                                 </div>
                               )}
@@ -1520,9 +1515,7 @@ export default function AdminDashboard() {
                 </div>
 
                 <button type="submit" className="pm-button-primary min-h-11">
-                  <span className="material-symbols-outlined text-xl">
-                    {editingScenarioId ? "save" : "library_add"}
-                  </span>
+                  <MIcon name={editingScenarioId ? "save" : "library_add"} className="text-xl" />
                   {editingScenarioId ? "ذخیره سناریو" : "ثبت سناریو"}
                 </button>
               </form>
@@ -1532,7 +1525,7 @@ export default function AdminDashboard() {
               {scenarios.length === 0 ? (
                 <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center ">
                   <div className="pm-icon size-16">
-                    <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">account_tree</span>
+                    <MIcon name="account_tree" className="text-3xl text-[var(--pm-muted)]" />
                   </div>
                   <div>
                     <p className="font-extrabold text-[var(--pm-text)]">سناریویی برای نمایش وجود ندارد</p>
@@ -1542,7 +1535,7 @@ export default function AdminDashboard() {
               ) : (
                 <>
                   <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-raised px-3 ">
-                    <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
+                    <MIcon name="search" className="text-[var(--pm-muted)]" />
                     <input
                       value={scenarioSearch}
                       onChange={(event) => setScenarioSearch(event.target.value)}
@@ -1554,7 +1547,7 @@ export default function AdminDashboard() {
                   {visibleScenarios.length === 0 ? (
                     <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[var(--pm-line)] p-8 text-center ">
                       <div className="pm-icon size-16">
-                        <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">manage_search</span>
+                        <MIcon name="manage_search" className="text-3xl text-[var(--pm-muted)]" />
                       </div>
                       <div>
                         <p className="font-extrabold text-[var(--pm-text)]">سناریویی با این جستجو پیدا نشد</p>
@@ -1591,7 +1584,7 @@ export default function AdminDashboard() {
                             <div className="flex items-start justify-between gap-3 pt-1">
                               <div className="flex min-w-0 items-start gap-3">
                                 <div className={`flex size-11 shrink-0 items-center justify-center rounded-lg border ${alignmentClass(dominantAlignment)}`}>
-                                  <span className="material-symbols-outlined text-xl">account_tree</span>
+                                  <MIcon name="account_tree" className="text-xl" />
                                 </div>
                                 <div className="min-w-0">
                                   <p className="text-xs font-bold text-[var(--pm-muted)]">سناریوی {alignmentLabel(dominantAlignment)}</p>
@@ -1611,7 +1604,7 @@ export default function AdminDashboard() {
                                   className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-raised text-[var(--pm-muted)] transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-600 dark:text-[var(--pm-muted)] dark:hover:text-sky-300"
                                   title="ویرایش سناریو"
                                 >
-                                  <span className="material-symbols-outlined text-base">edit_square</span>
+                                  <MIcon name="edit_square" className="text-base" />
                                 </button>
                                 <button
                                   onClick={(event) => {
@@ -1621,7 +1614,7 @@ export default function AdminDashboard() {
                                   className="flex size-8 items-center justify-center rounded-lg border border-[var(--pm-line)] bg-raised text-[var(--pm-muted)] transition-all hover:border-[var(--pm-primary)]/30 hover:bg-[var(--pm-primary)]/10 hover:text-[var(--pm-primary-strong)] dark:text-[var(--pm-muted)] dark:hover:text-[var(--pm-primary)]"
                                   title="کپی سناریو"
                                 >
-                                  <span className="material-symbols-outlined text-base">content_copy</span>
+                                  <MIcon name="content_copy" className="text-base" />
                                 </button>
                                 <button
                                   onClick={(event) => {
@@ -1631,7 +1624,7 @@ export default function AdminDashboard() {
                                   className="flex size-8 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-500 transition-all hover:bg-red-500 hover:text-white"
                                   title="حذف سناریو"
                                 >
-                                  <span className="material-symbols-outlined text-base">delete</span>
+                                  <MIcon name="delete" className="text-base" />
                                 </button>
                               </div>
                             </div>
@@ -1672,7 +1665,7 @@ export default function AdminDashboard() {
                               </div>
                               <div className="mr-auto flex items-center gap-1 text-xs font-extrabold text-[var(--pm-muted)] transition-colors group-hover:text-[var(--pm-primary)] dark:group-hover:text-[var(--pm-primary)]">
                                 جزئیات
-                                <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>
+                                <MIcon name="arrow_back" className="text-sm transition-transform group-hover:-translate-x-1" />
                               </div>
                             </div>
                           </article>
@@ -1708,7 +1701,7 @@ export default function AdminDashboard() {
                 className="pm-button-secondary min-h-10 px-3"
                 aria-label="بستن"
               >
-                <span className="material-symbols-outlined text-xl">close</span>
+                <MIcon name="close" className="text-xl" />
               </button>
             </div>
 
@@ -1721,7 +1714,7 @@ export default function AdminDashboard() {
                   ["مستقل", scenarioAlignmentCounts(selectedScenario).NEUTRAL, "casino", "text-amber-500"],
                 ].map(([label, value, icon, color]) => (
                   <div key={label} className="pm-muted-card p-3">
-                    <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+                    <MIcon name={icon} className={`text-lg ${color}`} />
                     <p className="mt-2 text-lg font-extrabold text-[var(--pm-text)]">{value}</p>
                     <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{label}</p>
                   </div>
@@ -1741,21 +1734,21 @@ export default function AdminDashboard() {
                 }}
                 className="pm-button-secondary min-h-10 flex-1 px-4"
               >
-                <span className="material-symbols-outlined text-lg">edit_square</span>
+                <MIcon name="edit_square" className="text-lg" />
                 ویرایش سناریو
               </button>
               <button
                 onClick={() => handleDuplicateScenario(selectedScenario)}
                 className="pm-button-secondary min-h-10 flex-1 px-4"
               >
-                <span className="material-symbols-outlined text-lg">content_copy</span>
+                <MIcon name="content_copy" className="text-lg" />
                 کپی برای نسخه جدید
               </button>
               <button
                 onClick={() => handleDeleteScenario(selectedScenario.id)}
                 className="pm-button-danger min-h-10 flex-1 px-4"
               >
-                <span className="material-symbols-outlined text-lg">delete</span>
+                <MIcon name="delete" className="text-lg" />
                 حذف سناریو
               </button>
             </div>

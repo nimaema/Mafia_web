@@ -6,6 +6,7 @@ import { deleteGameHistory, getAdminGameHistoryPage, setExpiredGameResult } from
 import { publishNightRecords } from "@/actions/game";
 import { usePopup } from "@/components/PopupProvider";
 import { GameReportTimeline } from "@/components/game/GameReportTimeline";
+import { MIcon } from "@/components/ui/MIcon";
 
 type AdminHistoryData = Awaited<ReturnType<typeof getAdminGameHistoryPage>>;
 type WinningAlignment = "CITIZEN" | "MAFIA" | "NEUTRAL";
@@ -190,7 +191,7 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
           <p className="mt-2 text-sm leading-6 text-[var(--pm-muted)]">ادمین می‌تواند بازی‌های ثبت‌شده را برای همه کاربران بررسی یا حذف کند.</p>
         </div>
         <Link href="/dashboard/admin/users" className="pm-button-secondary min-h-11 px-4">
-          <span className="material-symbols-outlined text-xl">arrow_forward</span>
+          <MIcon name="arrow_forward" className="text-xl" />
           کاربران
         </Link>
       </section>
@@ -233,7 +234,7 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
                     <p className="text-xs font-extrabold">نتیجه ثبت‌شده</p>
                     <p className="mt-1 text-base font-extrabold">{winnerLabel(game.winningAlignment)}</p>
                   </div>
-                  <span className="material-symbols-outlined text-2xl">{game.winningAlignment ? "emoji_events" : "pending_actions"}</span>
+                  <MIcon name={game.winningAlignment ? "emoji_events" : "pending_actions"} className="text-2xl" />
                 </div>
               </div>
               {game.canSetResult && (
@@ -251,7 +252,7 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
                         disabled={isPending}
                         className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-extrabold transition-all  disabled:opacity-50 ${option.className}`}
                       >
-                        <span className="material-symbols-outlined text-base">{option.icon}</span>
+                        <MIcon name={option.icon} className="text-base" />
                         {option.label}
                       </button>
                     ))}
@@ -283,12 +284,12 @@ export function AdminHistoryClient({ initialData }: { initialData: AdminHistoryD
                   disabled={game.nightRecordsPublic || isPending}
                   className={game.nightRecordsPublic ? "pm-button-secondary min-h-11 w-full text-[var(--pm-primary)]" : "pm-button-primary min-h-11 w-full"}
                 >
-                  <span className="material-symbols-outlined text-lg">{game.nightRecordsPublic ? "public" : "publish"}</span>
+                  <MIcon name={game.nightRecordsPublic ? "public" : "publish"} className="text-lg" />
                   {game.nightRecordsPublic ? "گزارش برای بازیکنان فعال است" : "انتشار گزارش برای بازیکنان"}
                 </button>
               )}
               <button onClick={() => removeGame(game.id)} className="pm-button-danger min-h-11 w-full">
-                <span className="material-symbols-outlined text-lg">delete_forever</span>
+                <MIcon name="delete_forever" className="text-lg" />
                 حذف بازی و نگه‌داشتن خلاصه کاربران
               </button>
             </div>

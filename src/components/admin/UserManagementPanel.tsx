@@ -8,6 +8,7 @@ import { banUser, deleteUser, getAllUsersSafe, sendEmailToUser, sendRecoveryOtpT
 import { MaskAvatar } from "@/components/brand/MaskAvatar";
 import { usePopup } from "@/components/PopupProvider";
 import { usePresenceSnapshot } from "@/hooks/usePresenceSnapshot";
+import { MIcon } from "@/components/ui/MIcon";
 
 type UserRecord = {
   id: string;
@@ -525,7 +526,7 @@ export function UserManagementPanel() {
 
           <div className="flex flex-wrap gap-2">
             <button onClick={refreshUsers} className="pm-button-primary min-h-10 px-3 text-xs">
-              <span className="material-symbols-outlined text-base">refresh</span>
+              <MIcon name="refresh" className="text-base" />
               بروزرسانی
             </button>
           </div>
@@ -544,9 +545,7 @@ export function UserManagementPanel() {
               {counts.total} کاربر، {counts.onlineUsers} آنلاین و {counts.googleUsers} ورود گوگل
             </p>
           </div>
-          <span className="material-symbols-outlined text-[var(--pm-muted)]">
-            {showStats ? "keyboard_arrow_up" : "keyboard_arrow_down"}
-          </span>
+          <MIcon name={showStats ? "keyboard_arrow_up" : "keyboard_arrow_down"} className="text-[var(--pm-muted)]" />
         </button>
 
         {showStats && (
@@ -559,7 +558,7 @@ export function UserManagementPanel() {
               ["فعال ۱۵ دقیقه اخیر", counts.recentUsers, "bolt", "text-amber-500"],
             ].map(([label, value, icon, color]) => (
               <div key={label} className="pm-muted-card p-4">
-                <span className={`material-symbols-outlined text-lg ${color}`}>{icon}</span>
+                <MIcon name={icon} className={`text-lg ${color}`} />
                 <p className="mt-3 text-2xl font-extrabold text-[var(--pm-text)]">{value}</p>
                 <p className="mt-1 text-xs font-bold text-[var(--pm-muted)]">{label}</p>
               </div>
@@ -571,7 +570,7 @@ export function UserManagementPanel() {
       <section className="pm-card p-3">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_160px_170px_190px]">
           <label className="flex min-h-11 items-center gap-3 rounded-lg border border-[var(--pm-line)] bg-surface px-3 text-sm ">
-            <span className="material-symbols-outlined text-[var(--pm-muted)]">search</span>
+            <MIcon name="search" className="text-[var(--pm-muted)]" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -630,7 +629,7 @@ export function UserManagementPanel() {
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface p-6 ">
               <div className="w-full max-w-md rounded-2xl border border-[var(--pm-line)] bg-surface p-5 text-center ">
                 <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-sky-400 text-sky-950 ">
-                  <span className="material-symbols-outlined animate-spin text-3xl leading-none">sync</span>
+                  <MIcon name="sync" className="animate-spin text-3xl leading-none" />
                 </div>
                 <p className="mt-4 text-base font-extrabold text-[var(--pm-text)]">در حال ساخت نمای مدیریتی کاربران</p>
                 <p className="mt-2 text-xs font-bold leading-6 text-[var(--pm-muted)]">
@@ -648,21 +647,21 @@ export function UserManagementPanel() {
           ) : errorMessage ? (
             <div className="flex min-h-[420px] flex-col items-center justify-center gap-5 p-6 text-center">
               <div className="pm-icon size-16 text-red-500">
-                <span className="material-symbols-outlined text-3xl">cloud_off</span>
+                <MIcon name="cloud_off" className="text-3xl" />
               </div>
               <div>
                 <h2 className="text-xl font-extrabold text-[var(--pm-text)]">بارگذاری کاربران ناموفق بود</h2>
                 <p className="mt-2 max-w-md text-sm leading-6 text-[var(--pm-muted)]">{errorMessage}</p>
               </div>
               <button onClick={refreshUsers} className="pm-button-primary">
-                <span className="material-symbols-outlined text-xl">refresh</span>
+                <MIcon name="refresh" className="text-xl" />
                 تلاش دوباره
               </button>
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 p-6 text-center">
               <div className="pm-icon size-16">
-                <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">person_search</span>
+                <MIcon name="person_search" className="text-3xl text-[var(--pm-muted)]" />
               </div>
               <div>
                 <p className="font-extrabold text-[var(--pm-text)]">کاربری با این فیلتر پیدا نشد</p>
@@ -777,7 +776,7 @@ export function UserManagementPanel() {
                     <div className="mt-3 flex flex-wrap gap-2">
                       <span className="rounded-full bg-moon/14 px-2.5 py-1 text-xs font-extrabold">{roleLabel(selectedUser.role)}</span>
                       <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-extrabold ${selectedPresence?.online ? "border-[var(--pm-primary)]/30 bg-[var(--pm-primary)]/10 text-[var(--pm-primary)]" : "border-[var(--pm-line)] bg-surface text-zinc-300"}`}>
-                        <span className="material-symbols-outlined text-sm">{selectedPresence?.icon}</span>
+                        <MIcon name={selectedPresence?.icon} className="text-sm" />
                         {selectedPresence?.label || "آفلاین"}
                       </span>
                     </div>
@@ -804,7 +803,7 @@ export function UserManagementPanel() {
                       <p className="mt-2 text-xl font-extrabold">{selectedActivity?.label || "ثبت نشده"}</p>
                       <p className="mt-1 text-xs font-bold opacity-80">{selectedActivity?.detail || "فعالیتی ثبت نشده"}</p>
                     </div>
-                    <span className="material-symbols-outlined text-2xl">schedule</span>
+                    <MIcon name="schedule" className="text-2xl" />
                   </div>
                 </div>
 
@@ -853,7 +852,7 @@ export function UserManagementPanel() {
                   <div className="flex items-center justify-between rounded-lg border border-[var(--pm-line)] p-3 text-sm ">
                     <span className="font-bold text-[var(--pm-muted)]">حضور آنلاین</span>
                     <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-extrabold ${selectedPresence?.className || ""}`}>
-                      <span className="material-symbols-outlined text-sm">{selectedPresence?.icon}</span>
+                      <MIcon name={selectedPresence?.icon} className="text-sm" />
                       {selectedPresence?.label || "آفلاین"}
                     </span>
                   </div>
@@ -865,7 +864,7 @@ export function UserManagementPanel() {
                     disabled={busyUserId === selectedUser.id || !selectedUser.email}
                     className="pm-button-secondary w-full text-sky-600 dark:text-sky-300"
                   >
-                    <span className="material-symbols-outlined text-lg">outgoing_mail</span>
+                    <MIcon name="outgoing_mail" className="text-lg" />
                     ارسال ایمیل به کاربر
                   </button>
                   <button
@@ -873,7 +872,7 @@ export function UserManagementPanel() {
                     disabled={busyUserId === selectedUser.id || !selectedUser.email}
                     className="pm-button-secondary w-full text-amber-700 dark:text-amber-300"
                   >
-                    <span className="material-symbols-outlined text-lg">vpn_key</span>
+                    <MIcon name="vpn_key" className="text-lg" />
                     ارسال رمز یک‌بارمصرف بازیابی
                   </button>
                   {!selectedUser.emailVerified && (
@@ -882,7 +881,7 @@ export function UserManagementPanel() {
                       disabled={busyUserId === selectedUser.id || !selectedUser.email}
                       className="pm-button-secondary w-full text-[var(--pm-primary)]"
                     >
-                      <span className="material-symbols-outlined text-lg">mark_email_read</span>
+                      <MIcon name="mark_email_read" className="text-lg" />
                       تایید دستی ایمیل کاربر
                     </button>
                   )}
@@ -891,7 +890,7 @@ export function UserManagementPanel() {
                     disabled={busyUserId === selectedUser.id || selectedUser.id === currentUserId}
                     className={selectedUser.isBanned ? "pm-button-secondary w-full text-emerald-600 dark:text-emerald-400" : "pm-button-danger w-full"}
                   >
-                    <span className="material-symbols-outlined text-lg">{selectedUser.isBanned ? "lock_open" : "block"}</span>
+                    <MIcon name={selectedUser.isBanned ? "lock_open" : "block"} className="text-lg" />
                     {selectedUser.isBanned ? "رفع مسدودیت" : "مسدودسازی کاربر"}
                   </button>
                   <button
@@ -899,7 +898,7 @@ export function UserManagementPanel() {
                     disabled={busyUserId === selectedUser.id || selectedUser.id === currentUserId}
                     className="pm-button-danger w-full"
                   >
-                    <span className="material-symbols-outlined text-lg">delete</span>
+                    <MIcon name="delete" className="text-lg" />
                     حذف کامل کاربر
                   </button>
                 </div>
@@ -908,7 +907,7 @@ export function UserManagementPanel() {
           ) : (
             <div className="flex min-h-96 flex-col items-center justify-center gap-4 p-8 text-center">
               <div className="pm-icon size-16">
-                <span className="material-symbols-outlined text-3xl text-[var(--pm-muted)]">manage_search</span>
+                <MIcon name="manage_search" className="text-3xl text-[var(--pm-muted)]" />
               </div>
               <div>
                 <p className="font-extrabold text-[var(--pm-text)]">کاربری انتخاب نشده</p>
@@ -936,7 +935,7 @@ export function UserManagementPanel() {
                 </p>
               </div>
               <button onClick={() => setEmailComposerUser(null)} className="pm-button-secondary size-10 p-0">
-                <span className="material-symbols-outlined text-xl">close</span>
+                <MIcon name="close" className="text-xl" />
               </button>
             </div>
 
@@ -957,7 +956,7 @@ export function UserManagementPanel() {
                           : "text-[var(--pm-muted)] hover:bg-raised dark:text-[var(--pm-muted)] "
                       }`}
                     >
-                      <span className="material-symbols-outlined text-base">{item.icon}</span>
+                      <MIcon name={item.icon} className="text-base" />
                       {item.label}
                     </button>
                   ))}
@@ -1007,7 +1006,7 @@ export function UserManagementPanel() {
                           onClick={() => addEmailFormatBlock(item.value)}
                           className="flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-extrabold text-[var(--pm-muted)] transition-all hover:bg-raised hover:text-zinc-950 dark:text-[var(--pm-muted)] dark:hover:text-white"
                         >
-                          <span className="material-symbols-outlined text-base">{item.icon}</span>
+                          <MIcon name={item.icon} className="text-base" />
                           {item.label}
                         </button>
                       ))}
@@ -1125,7 +1124,7 @@ export function UserManagementPanel() {
                 disabled={busyUserId === emailComposerUser.id}
                 className="pm-button-primary min-h-11 flex-1 px-4"
               >
-                <span className="material-symbols-outlined text-lg">send</span>
+                <MIcon name="send" className="text-lg" />
                 ارسال ایمیل
               </button>
             </div>

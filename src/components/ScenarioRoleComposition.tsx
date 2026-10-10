@@ -1,4 +1,5 @@
 import type { Alignment } from "@prisma/client";
+import { MIcon } from "@/components/ui/MIcon";
 
 type ScenarioRole = {
   id?: string;
@@ -86,9 +87,7 @@ export function ScenarioRoleComposition({ roles, compact = false }: ScenarioRole
         <section key={group.alignment} className="overflow-hidden rounded-2xl border border-[var(--pm-line)] bg-white/[0.045] shadow-lg shadow-black/10 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3 border-b border-[var(--pm-line)] bg-black/18 px-3 py-2.5">
             <div className="flex min-w-0 items-center gap-2">
-              <span className={`material-symbols-outlined flex size-9 shrink-0 items-center justify-center rounded-xl border text-lg ${alignmentClass(group.alignment)}`}>
-                {alignmentIcon(group.alignment)}
-              </span>
+              <MIcon name={alignmentIcon(group.alignment)} className={`flex size-9 shrink-0 items-center justify-center rounded-xl border text-lg ${alignmentClass(group.alignment)}`} />
               <div className="min-w-0">
                 <p className="text-sm font-black text-white">{alignmentLabel(group.alignment)}</p>
                 <p className="mt-0.5 text-[10px] font-bold text-white/42">{group.items.length} نوع نقش</p>

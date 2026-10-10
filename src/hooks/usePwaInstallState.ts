@@ -184,9 +184,10 @@ function readState(): PwaInstallState {
   const uaLower = ua.toLowerCase();
   const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
   const width = Math.min(window.innerWidth, window.screen?.width || window.innerWidth);
-  const iPadOS = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
   const android = /android/.test(uaLower);
   const iosPhone = /iphone|ipod/.test(uaLower);
+  // iPadOS reports a desktop Mac UA; only trust that signal when the UA names no phone OS.
+  const iPadOS = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1 && !android && !iosPhone;
   const iosTablet = /ipad/.test(uaLower) || iPadOS;
   const androidTablet = android && !/mobile/.test(uaLower);
   const isTablet = iosTablet || androidTablet || (coarsePointer && width >= 768);

@@ -23,14 +23,14 @@ export function Tag({ tone = "neutral", icon, children, className = "" }: { tone
 
 const FACTION_ICON = { CITIZEN: ShieldCheck, MAFIA: Knife, NEUTRAL: Star } as const;
 
-export function FactionTag({ alignment, className = "" }: { alignment: Faction | string | null | undefined; className?: string }) {
+export function FactionTag({ alignment, compact = false, className = "" }: { alignment: Faction | string | null | undefined; compact?: boolean; className?: string }) {
   const f = faction(alignment);
   if (!f) return null;
   const Icon = FACTION_ICON[alignment as Faction];
   return (
-    <span className={`nq-tag ${f.soft} ${f.text} ${className}`}>
+    <span className={`nq-tag ${f.soft} ${f.text} ${className}`} title={compact ? f.label : undefined}>
       <Icon weight="fill" className="size-3.5" aria-hidden />
-      {f.label}
+      {compact ? <span className="sr-only">{f.label}</span> : f.label}
     </span>
   );
 }

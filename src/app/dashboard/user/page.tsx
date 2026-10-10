@@ -8,6 +8,7 @@ import { getUserStatsSafe } from "@/actions/dashboard";
 import { getWaitingGamesSafe } from "@/actions/game";
 import { getPusherClient } from "@/lib/pusher-client";
 import { MaskAvatar, MaskStack } from "@/components/brand/MaskAvatar";
+import { CaseFile, type HistoryItem } from "@/components/game/CaseFile";
 import { JoinByCode } from "@/components/game/JoinByCode";
 import { Notice } from "@/components/ui/Notice";
 import { FactionTag } from "@/components/ui/Tag";
@@ -34,6 +35,7 @@ export default function PlayerHome() {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
   const [lobbyError, setLobbyError] = useState("");
+  const [openGame, setOpenGame] = useState<HistoryItem | null>(null);
 
   const refreshLobbies = useCallback(async () => {
     const result = await getWaitingGamesSafe(Date.now());
@@ -89,7 +91,7 @@ export default function PlayerHome() {
         <section className="flex items-center gap-4">
           <MaskAvatar seed={data?.userId || session?.user?.id || name} size="xl" />
           <div className="min-w-0">
-            <h1 className="nq-display truncate text-[2.4rem] leading-[1.15]">{`سلام ${name}`}</h1>
+            <h1 className="nq-display line-clamp-2 break-words text-[2.4rem] leading-[1.15]">{`سلام ${name}`}</h1>
             <p className="mt-0.5 text-[0.95rem] font-medium text-muted">
               {total ? (
                 <>
@@ -204,7 +206,7 @@ export default function PlayerHome() {
                 const lost = game.result === "LOSS";
                 return (
                   <li key={game.id}>
-                    <Link href="/dashboard/user/history" className="flex items-center gap-3 py-3.5">
+                    <button type="button" onClick={() => setOpenGame(game)} className="flex w-full items-center gap-3 py-3.5 text-right">
                       <span className={`grid size-10 shrink-0 place-items-center rounded-[0.8rem] ${won ? "bg-success/14 text-success" : lost ? "bg-danger/12 text-danger" : "bg-raised text-muted"}`}>
                         {won ? <Trophy size={20} weight="fill" aria-label="برد" /> : <XCircle size={20} weight="fill" aria-label={lost ? "باخت" : "نامشخص"} />}
                       </span>
@@ -213,7 +215,7 @@ export default function PlayerHome() {
                         <span className="block truncate text-sm font-medium text-muted">{`${game.roleName} · ${game.date}`}</span>
                       </span>
                       <FactionTag alignment={game.roleAlignment} />
-                    </Link>
+                    </button>
                   </li>
                 );
               })}
@@ -237,6 +239,7 @@ export default function PlayerHome() {
           </section>
         ) : null}
       </aside>
+      {openGame ? <CaseFile game={openGame} onClose={() => setOpenGame(null)} /> : null}
     </div>
   );
 }
